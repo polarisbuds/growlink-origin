@@ -1,0 +1,14 @@
+node_modules
+.env
+
+# Generated files
+static/css/output.css
+static/vendor/
+tmp/
+
+doc/*
+!doc/meetup*
+
+scripts/tmp/
+
+!.gitkeep
