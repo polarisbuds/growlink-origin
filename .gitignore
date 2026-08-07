@@ -7,7 +7,7 @@ static/vendor/
 tmp/
 
 doc/*
-!doc/*
+doc/*.gitkeep
 
 scripts/tmp/
 
