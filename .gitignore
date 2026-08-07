@@ -14,3 +14,4 @@ scripts/tmp/
 !.gitkeep
 *.log
 uploads/*
+!uploads/.gitkeep
