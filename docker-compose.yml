@@ -1,6 +1,6 @@
 services:
   app:
-    container_name: "terms-checker"
+    container_name: "my-app"
     build:
       context: .
       dockerfile: docker/app/Dockerfile
@@ -22,21 +22,21 @@ services:
     command: ["air"]
 
   postgresql:
-    container_name: "terms-checker-db"
+    container_name: "my-app-db"
     build:
       context: .
       dockerfile: docker/database/postgresql/Dockerfile
     ports:
       - "5432:5432"
     environment:
-      POSTGRES_DB: ${POSTGRES_DB:-terms-checkerdb}
+      POSTGRES_DB: ${POSTGRES_DB:-my-appdb}
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
     volumes:
       - postgres_data:/var/lib/postgresql
 
   dynamodb:
-    container_name: "terms-checker-dynamodb"
+    container_name: "my-app-dynamodb"
     build:
       context: .
       dockerfile: docker/database/dynamodb/Dockerfile
@@ -48,8 +48,8 @@ services:
 
 volumes:
   go_modules:
-    name: terms-checker-app-volume
+    name: my-app-app-volume
   postgres_data:
-    name: terms-checker-postgresql-volume
+    name: my-app-postgresql-volume
   dynamodb_data:
-    name: terms-checker-dynamodb-volume
+    name: my-app-dynamodb-volume

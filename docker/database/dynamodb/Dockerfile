@@ -1,5 +1,5 @@
 FROM amazon/dynamodb-local:latest
-MAINTAINER Poraris-Buds sweet.cafe0141@gmail.com
+LABEL MAINTAINER="ryota.kashio"
 
 # 一時的に root ユーザーに切り替えてディレクトリ作成と権限変更を行う
 USER root

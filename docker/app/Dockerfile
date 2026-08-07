@@ -1,5 +1,5 @@
 FROM golang:1.26.1
-MAINTAINER Poraris-Buds sweet.cafe0141@gmail.com
+LABEL MAINTAINER="ryota.kashio"
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     git curl bash unzip \
@@ -13,7 +13,7 @@ RUN curl -fsSL https://bun.sh/install | bash
 ENV PATH="/root/.bun/bin:$PATH"
 
 WORKDIR /app/frontend
-COPY frontend/package.json frontend/*.lock .
+COPY frontend/package.json frontend/*.lock /app/frontend/
 RUN bun install
 
 WORKDIR /app

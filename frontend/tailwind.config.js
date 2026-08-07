@@ -4,6 +4,7 @@ export default {
   content: [
     "../static/js/**/*.js",
     "../templates/**/*.html",
+    "../internal/**/*.go",
   ],
   theme: {
     extend: {},
@@ -11,6 +12,6 @@ export default {
   plugins: [require("daisyui")],
   // daisyUIの設定（任意）
   daisyui: {
-    themes: ["light", "dark", "cupcake"],
+    themes: ["light", "dark", "cupcake", "coffee", "emerald", "abyss"],
   },
 }
