@@ -7,8 +7,10 @@ static/vendor/
 tmp/
 
 doc/*
-!doc/meetup*
+!doc/*
 
 scripts/tmp/
 
 !.gitkeep
+*.log
+uploads/*
