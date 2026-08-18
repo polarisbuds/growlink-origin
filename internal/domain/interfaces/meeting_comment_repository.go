@@ -3,6 +3,6 @@ package interfaces
 import "terms-checker/internal/domain/entity"
 
 type MeetingCommentRepository interface {
-	BaseRepository[entity.User]
-	BaseUnScopedRepository[entity.User]
+	BaseRepository[entity.MeetingComment]
+	BaseUnScopedRepository[entity.MeetingComment]
 }
