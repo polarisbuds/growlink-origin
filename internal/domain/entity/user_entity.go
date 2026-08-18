@@ -12,6 +12,7 @@ type User struct {
 	Name     string    `gorm:"type:text;not null"`
 	Email    string    `gorm:"type:text;not null;uniqueIndex"`
 	Password *string   `gorm:"type:text"`
+	ImageURI string    `gorm:"type:text"`
 
 	RoleID       int64 `gorm:"not null;index"`
 	DepartmentID int64 `gorm:"not null;index"`

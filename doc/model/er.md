@@ -10,6 +10,7 @@ users {
     text name "not null"
     text email "not null"
     text password "SAML認証時にのみ不要。Basic認証ユーザはパスワード認証となる。管理者アカウント（Authority == Owener）はBasic認証のみに制限。"
+    text image_uri "イメージ画像の保存先"
 
     bigint role_id FK
     bigint department_id FK
