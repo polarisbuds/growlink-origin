@@ -1,4 +1,4 @@
-package ldap_repository
+package ldap_repository_interface
 
 import (
 	"terms-checker/internal/domain/entity"

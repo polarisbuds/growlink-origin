@@ -1,4 +1,4 @@
-package base_repository
+package repository_interface
 
 type BaseRepository[T any] interface {
 	// Is exists record

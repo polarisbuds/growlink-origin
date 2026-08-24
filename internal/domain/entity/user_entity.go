@@ -10,17 +10,19 @@ type User struct {
 
 	UUID     uuid.UUID `gorm:"type:uuid;not null;uniqueIndex;default:gen_random_uuid()"`
 	Name     string    `gorm:"type:text;not null"`
-	Email    string    `gorm:"type:text;not null;uniqueIndex"`
+	Email    string    `gorm:"type:text;not null"`
 	Password *string   `gorm:"type:text"`
-	ImageURI string    `gorm:"type:text"`
+	ImageURI *string   `gorm:"type:text"`
 
 	RoleID       int64 `gorm:"not null;index"`
 	DepartmentID int64 `gorm:"not null;index"`
-	TeamID       int64 `gorm:"not null;index"`
 	AuthorityID  int64 `gorm:"not null;index"`
 
-	Role       *Role       `gorm:"foreignKey:RoleID;references:ID;constraint:OnUpdate:CASCADE,OnDelete:RESTRICT"`
-	Department *Department `gorm:"foreignKey:DepartmentID;references:ID;constraint:OnUpdate:CASCADE,OnDelete:RESTRICT"`
-	Team       *Team       `gorm:"foreignKey:TeamID;references:ID;constraint:OnUpdate:CASCADE,OnDelete:RESTRICT"`
-	Authority  *Authority  `gorm:"foreignKey:AuthorityID;references:ID;constraint:OnUpdate:CASCADE,OnDelete:RESTRICT"`
+	Role       *Role       `gorm:"foreignKey:RoleID"`
+	Department *Department `gorm:"foreignKey:DepartmentID"`
+	Authority  *Authority  `gorm:"foreignKey:AuthorityID"`
+
+	TeamMembers           []TeamMember       `gorm:"foreignKey:MemberID"`
+	UserRelationshipsFrom []UserRelationship `gorm:"foreignKey:FromID"`
+	UserRelationshipsTo   []UserRelationship `gorm:"foreignKey:ToID"`
 }

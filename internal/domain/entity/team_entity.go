@@ -12,10 +12,8 @@ type Team struct {
 	Name string    `gorm:"type:varchar(64);not null"`
 
 	DepartmentID int64 `gorm:"not null;index"`
-	ReaderID     int64 `gorm:"not null;index"`
 
 	Department *Department `gorm:"foreignKey:DepartmentID"`
-	Reader     *User       `gorm:"foreignKey:ReaderID"`
 
-	Users []User `gorm:"foreignKey:TeamID"`
+	TeamMembers []TeamMember `gorm:"foreignKey:TeamID"`
 }

@@ -1,4 +1,4 @@
-package interfaces
+package repository_interface
 
 import "terms-checker/internal/domain/entity"
 

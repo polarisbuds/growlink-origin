@@ -1,4 +1,4 @@
-package interfaces
+package repository_interface
 
 type BaseUnScopedRepository[T any] interface {
 	// [Unscoped] Is exists record
