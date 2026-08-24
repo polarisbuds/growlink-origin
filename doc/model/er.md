@@ -32,17 +32,17 @@ users ||--o{ team_members: "メンバーID"
 
 departments {
     uuid uuid UK
-    varchar(64) name
+    text name
 }
 
 roles {
     uuid uuid UK
-    varchar(64) name
+    text name
 }
 
 teams {
     uuid uuid UK
-    varchar(64) name
+    text name
 
     bigint department_id FK
 }
@@ -74,7 +74,7 @@ meeting_status ||--o{ meetings: "不要になる可能性有り"
 meeting_status {
     uuid uuid UK
     number code
-    varchar(16) label "pending|draft|submitted|done"
+    text label "pending|draft|submitted|done"
 }
 
 templates {
@@ -140,7 +140,7 @@ users ||--o{ read_commentables: ""
 
 authorities {
     uuid uuid UK
-    varchar(16) type "general|boss|owner"
+    text type "general|boss|owner"
 }
 
 %% 上司-部下、メンター-メンティーの関係性を設定、これを元にread_commentablesを設定する？

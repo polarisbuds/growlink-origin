@@ -9,7 +9,7 @@ type Team struct {
 	gorm.Model
 
 	UUID uuid.UUID `gorm:"type:uuid;not null;uniqueIndex;default:gen_random_uuid()"`
-	Name string    `gorm:"type:varchar(64);not null"`
+	Name string    `gorm:"type:text;not null"`
 
 	DepartmentID int64 `gorm:"not null;index"`
 

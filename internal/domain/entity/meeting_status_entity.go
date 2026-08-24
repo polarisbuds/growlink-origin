@@ -10,7 +10,7 @@ type MeetingStatus struct {
 
 	UUID  uuid.UUID `gorm:"type:uuid;not null;uniqueIndex;default:gen_random_uuid()"`
 	Code  int64     `gorm:"not null;uniqueIndex"`
-	Label string    `gorm:"type:varchar(16);not null;uniqueIndex"`
+	Label string    `gorm:"type:text;not null;uniqueIndex"`
 
 	Meetings []Meeting `gorm:"foreignKey:StatusID"`
 }
