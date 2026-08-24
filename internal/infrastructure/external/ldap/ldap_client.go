@@ -1,26 +1,24 @@
-package ldap_repository
+package ldap
 
 import (
 	"fmt"
 	"growlink/internal/domain/entity"
-	"sync"
 
 	"github.com/go-ldap/ldap/v3"
 )
 
-type LDAPRepository struct {
+type LDAPClient struct {
 	setting *LDAPSetting
-	mu      sync.RWMutex
 }
 
-func NewLDAPRepository(setting *LDAPSetting) *LDAPRepository {
-	return &LDAPRepository{
+func NewClient(setting *LDAPSetting) *LDAPClient {
+	return &LDAPClient{
 		setting: setting,
 	}
 }
 
-func (repo *LDAPRepository) newConnection() (*ldap.Conn, error) {
-	setting := repo.setting
+func (client *LDAPClient) newConnection() (*ldap.Conn, error) {
+	setting := client.setting
 	conn, err := ldap.DialURL(setting.URL)
 	if err != nil {
 		return nil, fmt.Errorf("コネクションの作成に失敗しました: %w", err)
@@ -28,16 +26,16 @@ func (repo *LDAPRepository) newConnection() (*ldap.Conn, error) {
 	return conn, err
 }
 
-func (repo *LDAPRepository) bind(conn *ldap.Conn, bindDN, password string) error {
+func (client *LDAPClient) bind(conn *ldap.Conn, bindDN, password string) error {
 	if err := conn.Bind(bindDN, password); err != nil {
 		return fmt.Errorf("コネクションのバインドに失敗しました: %w", err)
 	}
 	return nil
 }
 
-func (repo *LDAPRepository) newLDAPSearchRequest(filter string) *ldap.SearchRequest {
+func (client *LDAPClient) newLDAPSearchRequest(filter string) *ldap.SearchRequest {
 	searchReq := ldap.NewSearchRequest(
-		repo.setting.BaseDN,
+		client.setting.BaseDN,
 		ldap.ScopeWholeSubtree,
 		ldap.NeverDerefAliases,
 		0,
@@ -50,40 +48,41 @@ func (repo *LDAPRepository) newLDAPSearchRequest(filter string) *ldap.SearchRequ
 			"department",
 			"mail",
 			"distinguishedName",
+			"employeeID",
 		},
 		nil,
 	)
 	return searchReq
 }
 
-func (repo *LDAPRepository) makeFilterString(uname string) string {
+func (client *LDAPClient) makeFilterString(uname string) string {
 	return fmt.Sprintf(
 		"(&%s(%s=%s))",
-		repo.setting.SearchFilter,
-		repo.setting.SearchAttr,
+		client.setting.SearchFilter,
+		client.setting.SearchAttr,
 		ldap.EscapeFilter(uname))
 }
 
-func (repo *LDAPRepository) FindUser(userName string) (*entity.LDAPUser, error) {
-	conn, err := repo.newConnection()
+func (client *LDAPClient) Search(userName string) (*entity.LDAPUser, error) {
+	conn, err := client.newConnection()
 	if err != nil {
-		return nil, fmt.Errorf("認証用接続に失敗しました: %w", err)
+		return nil, fmt.Errorf("検索用接続に失敗しました: %w", err)
 	}
 	defer conn.Close()
 
-	if err := repo.bind(conn, repo.setting.BindDN, repo.setting.BinddnPassword); err != nil {
-		return nil, fmt.Errorf("パスワード認証に失敗しました: %w", err)
+	if err := client.bind(conn, client.setting.BindDN, client.setting.BinddnPassword); err != nil {
+		return nil, fmt.Errorf("バインドに失敗しました: %w", err)
 	}
 
-	filter := repo.makeFilterString(userName)
-	req := repo.newLDAPSearchRequest(filter)
+	filter := client.makeFilterString(userName)
+	req := client.newLDAPSearchRequest(filter)
 	result, err := conn.Search(req)
 	if err != nil {
 		return nil, fmt.Errorf("LDAP認証のユーザ検索に失敗しました: %w", err)
 	}
 
 	if len(result.Entries) == 0 {
-		return nil, fmt.Errorf("LDAP認証の結果ユーザが見つかりませんでした: %w", err)
+		return nil, fmt.Errorf("LDAP認証の結果、ユーザが見つかりませんでした\n")
 	}
 
 	e := result.Entries[0]
@@ -98,19 +97,19 @@ func (repo *LDAPRepository) FindUser(userName string) (*entity.LDAPUser, error) 
 	}, nil
 }
 
-func (repo *LDAPRepository) Login(userName, password string) (*entity.LDAPUser, error) {
-	user, err := repo.FindUser(userName)
+func (client *LDAPClient) Authenticate(userName, password string) (*entity.LDAPUser, error) {
+	user, err := client.Search(userName)
 	if err != nil {
 		return nil, err
 	}
 
-	conn, err := repo.newConnection()
+	conn, err := client.newConnection()
 	if err != nil {
 		return nil, fmt.Errorf("認証用接続に失敗: %w", err)
 	}
 	defer conn.Close()
 
-	if err := repo.bind(conn, user.DN, password); err != nil {
+	if err := client.bind(conn, user.DN, password); err != nil {
 		return nil, fmt.Errorf("パスワード認証に失敗: %w", err)
 	}
 

@@ -1,4 +1,4 @@
-package ldap_repository
+package ldap
 
 import (
 	"fmt"
