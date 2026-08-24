@@ -78,11 +78,11 @@ func (client *LDAPClient) Search(userName string) (*entity.LDAPUser, error) {
 	req := client.newLDAPSearchRequest(filter)
 	result, err := conn.Search(req)
 	if err != nil {
-		return nil, fmt.Errorf("LDAP認証のユーザ検索に失敗しました: %w", err)
+		return nil, fmt.Errorf("LDAP検索: ユーザの検索に失敗しました: %w", err)
 	}
 
 	if len(result.Entries) == 0 {
-		return nil, fmt.Errorf("LDAP認証の結果、ユーザが見つかりませんでした\n")
+		return nil, fmt.Errorf("LDAP検索: 検索結果が0件でした。")
 	}
 
 	e := result.Entries[0]
