@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"growlink/internal/infrastructure/external/ldap_repository"
+	"growlink/internal/infrastructure/external/ldap"
 	infrastructure "growlink/internal/infrastructure/postgresql"
 	"growlink/internal/interface/handler"
 	"growlink/internal/shared/config"
@@ -78,13 +78,13 @@ func main() {
 		}
 	}()
 
-	ldapSetting, err := ldap_repository.NewLDAPSetting()
+	ldapSetting, err := ldap.NewLDAPSetting()
 	if err != nil {
 		slog.Error("LDAP設定情報の作成に失敗しました", slog.Any("msg", err))
 		os.Exit(3)
 	}
-	ldapRepo := ldap_repository.NewLDAPRepository(ldapSetting)
-	user, err := ldapRepo.Login("ryota.kashio", "P@ssw0rd@@@@@@@@@@@")
+	ldapClient := ldap.NewClient(ldapSetting)
+	user, err := ldapClient.Authenticate("ryota.kashio", "P@ssw0rd@@@@@@@@@@@")
 	if err != nil {
 		slog.Error("ADアカウント認証に失敗しました", slog.Any("msg", err))
 		os.Exit(2)
