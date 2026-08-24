@@ -1,5 +1,6 @@
 ```mermaid
 erDiagram
+
 %% 各テーブルは bigint id PKを所持
 %% 各テーブルは created_at, updated_at, deleted_atを所持
 %% tables { bigint id PK, datetime created_at, datetime updated_at, datetime deleted_at } が存在する前提とする。
@@ -174,5 +175,4 @@ events {
     uuid uuid UK
     text name "イベント名"
 }
-
 ```

@@ -35,14 +35,16 @@ subgraph growlink["1on1ミーティングシステム"]
 
     subgraph management["管理者機能"]
         subgraph mng_peering[ペアリング管理]
-            read_peering[ペアリング閲覧] %% 一覧表示
+            %% 一覧表示
+            read_peering[ペアリング閲覧]
             create_peering[ペアリング作成]
             update_peering[ペアリング更新]
             delete_peering[ペアリング削除]
         end
 
         subgraph mng_template[テンプレート管理]
-            read_template[テンプレート閲覧] %% 一覧表示や詳細表示
+            %% 一覧表示や詳細表示
+            read_template[テンプレート閲覧]
             create_template[テンプレート作成]
             update_template[テンプレート更新]
             delete_template[テンプレート削除]
@@ -56,7 +58,8 @@ subgraph growlink["1on1ミーティングシステム"]
 
         subgraph read_history[履歴管理]
             meeting_history[ミーティング履歴閲覧]
-            user_history[ユーザ履歴閲覧] %% ログイン/操作(簡易)
+            %% ログイン/操作(簡易)
+            user_history[ユーザ履歴閲覧]
         end
 
         subgraph mng_progress[進捗管理]
