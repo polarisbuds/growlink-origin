@@ -108,5 +108,4 @@ owner --> basic_login
 
 user --> upload_icon
 user --> delete_icon
-
 ```
