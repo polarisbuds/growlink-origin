@@ -12,22 +12,6 @@ type BaseRepository[T any] struct {
 	ctx context.Context
 }
 
-type RepositoryOption struct {
-	Order         string
-	WhereOption   *WhereOption
-	PreloadOption []*PreloadOption
-}
-
-type WhereOption struct {
-	Query string
-	Args  []any
-}
-
-type PreloadOption struct {
-	Association string
-	Query       func(db gorm.PreloadBuilder) error
-}
-
 func (repo *BaseRepository[T]) Exists(query string, args ...any) (bool, error) {
 	count, err := repo.Count(query, args...)
 	if err != nil {
