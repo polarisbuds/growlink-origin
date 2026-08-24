@@ -14,7 +14,7 @@ type UserRelationship struct {
 	SourceUserID   int64 `gorm:"not null;index"`
 	TargetUserID   int64 `gorm:"not null;index"`
 
-	RelationType *UserRelationshipType `gorm:"foreignKey:RelationTypeID"`
-	SourceUser   *User                 `gorm:"foreignKey:SourceUserID"`
-	TargetUser   *User                 `gorm:"foreignKey:TargetUserID"`
+	RelationType *UserRelationshipType `gorm:"foreignKey:RelationTypeID;references:ID"`
+	SourceUser   *User                 `gorm:"foreignKey:SourceUserID;references:ID"`
+	TargetUser   *User                 `gorm:"foreignKey:TargetUserID;references:ID"`
 }

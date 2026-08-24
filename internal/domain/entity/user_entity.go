@@ -22,7 +22,7 @@ type User struct {
 	Department *Department `gorm:"foreignKey:DepartmentID"`
 	Authority  *Authority  `gorm:"foreignKey:AuthorityID"`
 
-	TeamMembers           []TeamMember       `gorm:"foreignKey:MemberID"`
-	UserRelationshipsFrom []UserRelationship `gorm:"foreignKey:FromID"`
-	UserRelationshipsTo   []UserRelationship `gorm:"foreignKey:ToID"`
+	TeamMembers                  []TeamMember       `gorm:"foreignKey:MemberID;references:ID"`
+	UserRelationshipsSourceUsers []UserRelationship `gorm:"foreignKey:SourceUserID;references:ID"`
+	UserRelationshipsTargetUsers []UserRelationship `gorm:"foreignKey:TargetUserID;references:ID"`
 }

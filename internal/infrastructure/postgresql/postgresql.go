@@ -1,6 +1,7 @@
 package infrastructure
 
 import (
+	"growlink/internal/domain/entity"
 	"time"
 
 	"gorm.io/driver/postgres"
@@ -32,5 +33,26 @@ func NewPostgresqlDB(dsn string) (*gorm.DB, error) {
 }
 
 func autoMigrateOnce(db *gorm.DB) error {
-	return db.AutoMigrate()
+	return db.AutoMigrate(
+		// トランザクションテーブル
+		&entity.User{},
+		&entity.Department{},
+		&entity.Team{},
+		&entity.TeamMember{},
+		&entity.Peering{},
+		&entity.Meeting{},
+		&entity.Template{},
+		&entity.Topic{},
+		&entity.Answer{},
+		&entity.MeetingComment{},
+		&entity.AnswerComment{},
+		&entity.ReadCommentable{},
+		&entity.UserRelationship{},
+
+		// マスタテーブル
+		&entity.Authority{},
+		&entity.Role{},
+		&entity.MeetingStatus{},
+		&entity.UserRelationshipType{},
+	)
 }

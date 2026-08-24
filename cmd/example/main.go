@@ -1,11 +1,16 @@
 package main
 
 import (
+	"fmt"
+	"growlink/internal/infrastructure/external/ldap_repository"
+	infrastructure "growlink/internal/infrastructure/postgresql"
+	"growlink/internal/interface/handler"
+	"growlink/internal/shared/config"
+	"io"
 	"log/slog"
 	"os"
 	"runtime"
 	"strings"
-	"terms-checker/internal/infrastructure/external/ldap_repository"
 	"time"
 
 	"github.com/joho/godotenv"
@@ -76,7 +81,7 @@ func main() {
 	ldapSetting, err := ldap_repository.NewLDAPSetting()
 	if err != nil {
 		slog.Error("LDAP設定情報の作成に失敗しました", slog.Any("msg", err))
-		os.Exit(1)
+		os.Exit(3)
 	}
 	ldapRepo := ldap_repository.NewLDAPRepository(ldapSetting)
 	user, err := ldapRepo.Login("ryota.kashio", "P@ssw0rd@@@@@@@@@@@")
@@ -86,13 +91,17 @@ func main() {
 	}
 	slog.Info("ADアカウント認証に成功しました", slog.Any("user", *user))
 
-	// multiWriter := io.MultiWriter(os.Stdout, accessLogFile)
-	// ec = handler.NewEcho(multiWriter)
-	// dp, err := infrastructure.NewPostgresqlDB("")
-	// if err != nil {
-	// 	slog.Error("failed to connect to postgresql", "err", err)
-	// 	os.Exit(1)
-	// }
+	multiWriter := io.MultiWriter(os.Stdout, accessLogFile)
+	_ = handler.NewEcho(multiWriter)
 
+	dsn := config.GetPostgresqlDSN()
+	fmt.Print("dsn: ", dsn)
+	_, err = infrastructure.NewPostgresqlDB(dsn)
+	if err != nil {
+		slog.Error("failed to connect to postgresql", "err", err)
+		os.Exit(1)
+	}
+
+	fmt.Println("SUCCESS.")
 	os.Exit(0)
 }
