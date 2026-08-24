@@ -1,8 +1,10 @@
 ```mermaid
 graph LR;
 
-mentee((一般ユーザー\n（メンティー）))
-mentor((一般ユーザー\n（メンター）))
+user((ユーザ\n（全権限共通）))
+
+mentee((メンティーユーザー))
+mentor((メンターユーザー))
 boss((上司ユーザー))
 owner((管理者ユーザー))
 
@@ -24,14 +26,23 @@ subgraph growlink["1on1ミーティングシステム"]
         meeting_comment[ミーティングコメント]
     end
 
+    subgraph setting["設定"]
+        subgraph setting_icon["アイコン設定"]
+            upload_icon["ユーザアイコンのアップロード/セット"]
+            delete_icon["ユーザアイコンの削除"]
+        end
+    end
+
     subgraph management["管理者機能"]
         subgraph mng_peering[ペアリング管理]
+            read_peering[ペアリング閲覧] %% 一覧表示
             create_peering[ペアリング作成]
             update_peering[ペアリング更新]
             delete_peering[ペアリング削除]
         end
 
         subgraph mng_template[テンプレート管理]
+            read_template[テンプレート閲覧] %% 一覧表示や詳細表示
             create_template[テンプレート作成]
             update_template[テンプレート更新]
             delete_template[テンプレート削除]
@@ -41,6 +52,11 @@ subgraph growlink["1on1ミーティングシステム"]
             create_meeting[ミーティング作成]
             update_meeting[ミーティング更新]
             delete_meeting[ミーティング削除]
+        end
+
+        subgraph read_history[履歴管理]
+            meeting_history[ミーティング履歴閲覧]
+            user_history[ユーザ履歴閲覧] %% ログイン/操作(簡易)
         end
 
         subgraph mng_progress[進捗管理]
@@ -89,4 +105,8 @@ ldap_login --> search
 ldap_login --> ad_login
 
 owner --> basic_login
+
+user --> upload_icon
+user --> delete_icon
+
 ```
