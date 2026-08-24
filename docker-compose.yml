@@ -1,6 +1,6 @@
 services:
   app:
-    container_name: "my-app"
+    container_name: "growlink"
     build:
       context: .
       dockerfile: docker/app/Dockerfile
@@ -22,21 +22,21 @@ services:
     command: ["air"]
 
   postgresql:
-    container_name: "my-app-db"
+    container_name: "growlink-db"
     build:
       context: .
       dockerfile: docker/database/postgresql/Dockerfile
     ports:
       - "5432:5432"
     environment:
-      POSTGRES_DB: ${POSTGRES_DB:-my-appdb}
+      POSTGRES_DB: ${POSTGRES_DB:-growlinkdb}
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
     volumes:
       - postgres_data:/var/lib/postgresql
 
   dynamodb:
-    container_name: "my-app-dynamodb"
+    container_name: "growlink-dynamodb"
     build:
       context: .
       dockerfile: docker/database/dynamodb/Dockerfile
@@ -48,8 +48,8 @@ services:
 
 volumes:
   go_modules:
-    name: my-app-app-volume
+    name: growlink-app-volume
   postgres_data:
-    name: my-app-postgresql-volume
+    name: growlink-postgresql-volume
   dynamodb_data:
-    name: my-app-dynamodb-volume
+    name: growlink-dynamodb-volume
