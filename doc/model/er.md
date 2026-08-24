@@ -70,11 +70,11 @@ templates ||--o{ meetings: "ミーティングにはテンプレートの指定�
 peerings ||--o{ meetings: "ミーティング参加ユーザはペア指定（閲覧権限とは別管理）"
 meeting_status ||--o{ meetings: "不要になる可能性有り"
 
-%% ステータス done 以外では他ユーザから見られないようにする
+%% ステータス submitted, done 以外では他ユーザから見られないようにする
 meeting_status {
     uuid uuid UK
     number code
-    varchar(16) label "pending|draft|done"
+    varchar(16) label "pending|draft|submitted|done"
 }
 
 templates {
@@ -159,6 +159,20 @@ users ||--o{ user_relationships: "部下, subordinate_id"
 user_relationship_types {
     uuid uuid UK
     text name "関係性名称（mentor|mentee|boss|subordinate)"
+}
+
+histories {
+    uuid uuid UK
+
+    bigint user_id FK
+    bigint event_id FK
+}
+events ||--o{ users: "イベント発報者"
+events ||--o{ histories: "履歴のイベントタイプ（login/meeting.draft,meeting.submitなど）"
+
+events {
+    uuid uuid UK
+    text name "イベント名"
 }
 
 ```
