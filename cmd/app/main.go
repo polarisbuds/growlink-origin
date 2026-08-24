@@ -57,7 +57,8 @@ func init() {
 }
 
 const (
-	DATA_ROOT = "uploads"
+	DATA_ROOT    = "uploads"
+	EXIT_SUCCESS = 0
 )
 
 func main() {
@@ -72,13 +73,5 @@ func main() {
 		}
 	}()
 
-	// multiWriter := io.MultiWriter(os.Stdout, accessLogFile)
-	// ec = handler.NewEcho(multiWriter)
-	// dp, err := infrastructure.NewPostgresqlDB("")
-	// if err != nil {
-	// 	slog.Error("failed to connect to postgresql", "err", err)
-	// 	os.Exit(1)
-	// }
-
-	os.Exit(0)
+	os.Exit(EXIT_SUCCESS)
 }
