@@ -1,6 +1,6 @@
 package repository_interface
 
-import "terms-checker/internal/domain/entity"
+import "growlink/internal/domain/entity"
 
 type TemplateRepository interface {
 	BaseRepository[entity.Template]

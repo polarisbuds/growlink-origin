@@ -1,7 +1,7 @@
 package ldap_repository_interface
 
 import (
-	"terms-checker/internal/domain/entity"
+	"growlink/internal/domain/entity"
 )
 
 type LDAPRepository interface {

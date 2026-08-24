@@ -1,4 +1,4 @@
-module terms-checker
+module growlink
 
 go 1.26.1
 

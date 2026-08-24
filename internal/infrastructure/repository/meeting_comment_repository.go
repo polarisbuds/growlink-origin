@@ -2,7 +2,7 @@ package repository
 
 import (
 	"context"
-	"terms-checker/internal/domain/entity"
+	"growlink/internal/domain/entity"
 
 	"gorm.io/gorm"
 )

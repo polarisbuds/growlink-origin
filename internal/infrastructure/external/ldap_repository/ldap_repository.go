@@ -2,8 +2,8 @@ package ldap_repository
 
 import (
 	"fmt"
+	"growlink/internal/domain/entity"
 	"sync"
-	"terms-checker/internal/domain/entity"
 
 	"github.com/go-ldap/ldap/v3"
 )
