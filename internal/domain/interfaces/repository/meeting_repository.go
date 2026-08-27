@@ -1,8 +1,21 @@
 package repository_interface
 
-import "growlink/internal/domain/entity"
+import (
+	"growlink/internal/domain/entity"
+	"time"
+
+	"github.com/google/uuid"
+)
 
 type MeetingRepository interface {
 	BaseRepository[entity.Meeting]
 	BaseUnScopedRepository[entity.Meeting]
+
+	GetAll() ([]entity.Meeting, error)
+	GetByID(id int64) (*entity.Meeting, error)
+	GetByUUID(uuid uuid.UUID) (*entity.Meeting, error)
+
+	GetUntilToday(base time.Time) ([]entity.Meeting, error)
+	GetFromSpecificDateOnward(base time.Time) ([]entity.Meeting, error)
+	GetBetweenDates(from, to time.Time) ([]entity.Meeting, error)
 }
