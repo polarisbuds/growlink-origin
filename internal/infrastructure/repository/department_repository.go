@@ -8,17 +8,18 @@ import (
 )
 
 type DepartmentRepository struct {
-	BaseRepository[entity.Department]
-	BaseUnScopedRepository[entity.Department]
+	ctx                    context.Context
+	baseRepository         BaseRepository[entity.Department]
+	unScopedBaseRepository BaseUnScopedRepository[entity.Department]
 }
 
 func NewDepartementRepository(ctx context.Context, dp *gorm.DB) *DepartmentRepository {
 	return &DepartmentRepository{
-		BaseRepository: BaseRepository[entity.Department]{
-			dp:  dp,
-			ctx: ctx,
+		baseRepository: BaseRepository[entity.Department]{
+			dp:   dp,
+			bctx: ctx,
 		},
-		BaseUnScopedRepository: BaseUnScopedRepository[entity.Department]{
+		unScopedBaseRepository: BaseUnScopedRepository[entity.Department]{
 			udp:  dp.Unscoped(),
 			uctx: ctx,
 		},

@@ -12,17 +12,18 @@ import (
 )
 
 type MeetingRepository struct {
-	BaseRepository[entity.Meeting]
-	BaseUnScopedRepository[entity.Meeting]
+	ctx                    context.Context
+	baseRepository         BaseRepository[entity.Meeting]
+	unScopedBaseRepository BaseUnScopedRepository[entity.Meeting]
 }
 
 func NewMeetingRepository(ctx context.Context, dp *gorm.DB) *MeetingRepository {
 	return &MeetingRepository{
-		BaseRepository: BaseRepository[entity.Meeting]{
-			dp:  dp,
-			ctx: ctx,
+		baseRepository: BaseRepository[entity.Meeting]{
+			dp:   dp,
+			bctx: ctx,
 		},
-		BaseUnScopedRepository: BaseUnScopedRepository[entity.Meeting]{
+		unScopedBaseRepository: BaseUnScopedRepository[entity.Meeting]{
 			udp:  dp.Unscoped(),
 			uctx: ctx,
 		},
@@ -57,7 +58,7 @@ func preloadBasic(chain gorm.ChainInterface[entity.Meeting]) gorm.ChainInterface
 }
 
 func (repo *MeetingRepository) GetAll() ([]entity.Meeting, error) {
-	meetings, err := preloadBasic(gorm.G[entity.Meeting](repo.dp).Order("id DESC")).
+	meetings, err := preloadBasic(gorm.G[entity.Meeting](repo.baseRepository.dp).Order("id DESC")).
 		Find(repo.ctx)
 	if err != nil {
 		return nil, fmt.Errorf("ミーティング情報の全取得に失敗しました: %w", err)
@@ -66,7 +67,7 @@ func (repo *MeetingRepository) GetAll() ([]entity.Meeting, error) {
 }
 
 func (repo *MeetingRepository) GetByID(id int64) (*entity.Meeting, error) {
-	meeting, err := preloadAll(gorm.G[entity.Meeting](repo.dp).Order("id DESC")).
+	meeting, err := preloadAll(gorm.G[entity.Meeting](repo.baseRepository.dp).Order("id DESC")).
 		Where("id = ?", id).
 		First(repo.ctx)
 	if err != nil {
@@ -76,7 +77,7 @@ func (repo *MeetingRepository) GetByID(id int64) (*entity.Meeting, error) {
 }
 
 func (repo *MeetingRepository) GetByUUID(uuid uuid.UUID) (*entity.Meeting, error) {
-	meeting, err := preloadAll(gorm.G[entity.Meeting](repo.dp).Order("id DESC")).
+	meeting, err := preloadAll(gorm.G[entity.Meeting](repo.baseRepository.dp).Order("id DESC")).
 		Where("uuid = ?", uuid.String()).
 		First(repo.ctx)
 	if err != nil {
@@ -88,7 +89,7 @@ func (repo *MeetingRepository) GetByUUID(uuid uuid.UUID) (*entity.Meeting, error
 func (repo *MeetingRepository) GetUntilToday(base time.Time) ([]entity.Meeting, error) {
 	endOfBaseDay := utils.GetEndOfDay(base)
 
-	meetings, err := preloadBasic(gorm.G[entity.Meeting](repo.dp).Order("id DESC")).
+	meetings, err := preloadBasic(gorm.G[entity.Meeting](repo.baseRepository.dp).Order("id DESC")).
 		Where("implemented_at <= ? ", endOfBaseDay).
 		Find(repo.ctx)
 	if err != nil {
@@ -100,7 +101,7 @@ func (repo *MeetingRepository) GetUntilToday(base time.Time) ([]entity.Meeting, 
 func (repo *MeetingRepository) GetFromSpecificDateOnward(base time.Time) ([]entity.Meeting, error) {
 	startOfBaseDay := utils.GetStartOfDay(base)
 
-	meetings, err := preloadBasic(gorm.G[entity.Meeting](repo.dp).Order("id DESC")).
+	meetings, err := preloadBasic(gorm.G[entity.Meeting](repo.baseRepository.dp).Order("id DESC")).
 		Where("implemented_at >= ? ", startOfBaseDay).
 		Find(repo.ctx)
 	if err != nil {
@@ -120,7 +121,7 @@ func (repo *MeetingRepository) GetBetweenDates(from, to time.Time) ([]entity.Mee
 	baseFrom := utils.GetStartOfDay(f)
 	baseTo := utils.GetEndOfDay(t)
 
-	meetings, err := preloadBasic(gorm.G[entity.Meeting](repo.dp).Order("id DESC")).
+	meetings, err := preloadBasic(gorm.G[entity.Meeting](repo.baseRepository.dp).Order("id DESC")).
 		Where("implemented_at BETWEEN ? AND ? ", baseFrom, baseTo).
 		Find(repo.ctx)
 	if err != nil {

@@ -8,17 +8,18 @@ import (
 )
 
 type UserRepository struct {
-	BaseRepository[entity.User]
-	BaseUnScopedRepository[entity.User]
+	ctx                    context.Context
+	baseRepository         BaseRepository[entity.User]
+	unScopedBaseRepository BaseUnScopedRepository[entity.User]
 }
 
 func NewUserRepository(ctx context.Context, dp *gorm.DB) *UserRepository {
 	return &UserRepository{
-		BaseRepository: BaseRepository[entity.User]{
-			dp:  dp,
-			ctx: ctx,
+		baseRepository: BaseRepository[entity.User]{
+			dp:   dp,
+			bctx: ctx,
 		},
-		BaseUnScopedRepository: BaseUnScopedRepository[entity.User]{
+		unScopedBaseRepository: BaseUnScopedRepository[entity.User]{
 			udp:  dp.Unscoped(),
 			uctx: ctx,
 		},

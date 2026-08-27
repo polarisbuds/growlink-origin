@@ -7,18 +7,18 @@ import (
 	"io"
 	"os"
 	"path/filepath"
-
-	"gorm.io/gorm"
 )
 
 const FIRST_GENERATION = 1
 
 type StorageFileRepository struct {
+	ctx  context.Context
 	root string
 }
 
-func NewStorageRepository(ctx context.Context, dp *gorm.DB, root string) *StorageFileRepository {
+func NewStorageRepository(ctx context.Context, root string) *StorageFileRepository {
 	return &StorageFileRepository{
+		ctx:  ctx,
 		root: root,
 	}
 }
@@ -58,7 +58,7 @@ func (repo *StorageFileRepository) NewFile(name string, content io.Reader) error
 	return nil
 }
 
-func (repo *StorageFileRepository) DeleteStorageFile(path string) error {
+func (repo *StorageFileRepository) DeleteFile(path string) error {
 	info, err := os.Stat(path)
 	if err != nil {
 		if os.IsNotExist(err) {

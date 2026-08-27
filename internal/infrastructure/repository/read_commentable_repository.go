@@ -8,17 +8,18 @@ import (
 )
 
 type ReadCommentableRepository struct {
-	BaseRepository[entity.ReadCommentable]
-	BaseUnScopedRepository[entity.ReadCommentable]
+	ctx                    context.Context
+	baseRepository         BaseRepository[entity.ReadCommentable]
+	unScopedBaseRepository BaseUnScopedRepository[entity.ReadCommentable]
 }
 
 func NewReadCommentableRepository(ctx context.Context, dp *gorm.DB) *ReadCommentableRepository {
 	return &ReadCommentableRepository{
-		BaseRepository: BaseRepository[entity.ReadCommentable]{
-			dp:  dp,
-			ctx: ctx,
+		baseRepository: BaseRepository[entity.ReadCommentable]{
+			dp:   dp,
+			bctx: ctx,
 		},
-		BaseUnScopedRepository: BaseUnScopedRepository[entity.ReadCommentable]{
+		unScopedBaseRepository: BaseUnScopedRepository[entity.ReadCommentable]{
 			udp:  dp.Unscoped(),
 			uctx: ctx,
 		},

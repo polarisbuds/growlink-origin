@@ -8,17 +8,18 @@ import (
 )
 
 type AnswerRepository struct {
-	BaseRepository[entity.Answer]
-	BaseUnScopedRepository[entity.Answer]
+	ctx                    context.Context
+	baseRepository         BaseRepository[entity.Answer]
+	unScopedBaseRepository BaseUnScopedRepository[entity.Answer]
 }
 
 func NewAnswerRepository(ctx context.Context, dp *gorm.DB) *AnswerRepository {
 	return &AnswerRepository{
-		BaseRepository: BaseRepository[entity.Answer]{
-			dp:  dp,
-			ctx: ctx,
+		baseRepository: BaseRepository[entity.Answer]{
+			dp:   dp,
+			bctx: ctx,
 		},
-		BaseUnScopedRepository: BaseUnScopedRepository[entity.Answer]{
+		unScopedBaseRepository: BaseUnScopedRepository[entity.Answer]{
 			udp:  dp.Unscoped(),
 			uctx: ctx,
 		},

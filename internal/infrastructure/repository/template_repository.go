@@ -8,17 +8,18 @@ import (
 )
 
 type TemplateRepository struct {
-	BaseRepository[entity.Template]
-	BaseUnScopedRepository[entity.Template]
+	ctx                    context.Context
+	baseRepository         BaseRepository[entity.Template]
+	unScopedBaseRepository BaseUnScopedRepository[entity.Template]
 }
 
 func NewTemplateRepository(ctx context.Context, dp *gorm.DB) *TemplateRepository {
 	return &TemplateRepository{
-		BaseRepository: BaseRepository[entity.Template]{
-			dp:  dp,
-			ctx: ctx,
+		baseRepository: BaseRepository[entity.Template]{
+			dp:   dp,
+			bctx: ctx,
 		},
-		BaseUnScopedRepository: BaseUnScopedRepository[entity.Template]{
+		unScopedBaseRepository: BaseUnScopedRepository[entity.Template]{
 			udp:  dp.Unscoped(),
 			uctx: ctx,
 		},

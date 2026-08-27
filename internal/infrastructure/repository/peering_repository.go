@@ -8,17 +8,18 @@ import (
 )
 
 type PeeringRepository struct {
-	BaseRepository[entity.Peering]
-	BaseUnScopedRepository[entity.Peering]
+	ctx                    context.Context
+	baseRepository         BaseRepository[entity.Peering]
+	unScopedBaseRepository BaseUnScopedRepository[entity.Peering]
 }
 
 func NewPeeringRepository(ctx context.Context, dp *gorm.DB) *PeeringRepository {
 	return &PeeringRepository{
-		BaseRepository: BaseRepository[entity.Peering]{
-			dp:  dp,
-			ctx: ctx,
+		baseRepository: BaseRepository[entity.Peering]{
+			dp:   dp,
+			bctx: ctx,
 		},
-		BaseUnScopedRepository: BaseUnScopedRepository[entity.Peering]{
+		unScopedBaseRepository: BaseUnScopedRepository[entity.Peering]{
 			udp:  dp.Unscoped(),
 			uctx: ctx,
 		},

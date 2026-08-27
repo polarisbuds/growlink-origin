@@ -8,17 +8,18 @@ import (
 )
 
 type MeetingStatusRepository struct {
-	BaseRepository[entity.MeetingStatus]
-	BaseUnScopedRepository[entity.MeetingStatus]
+	ctx                    context.Context
+	baseRepository         BaseRepository[entity.MeetingStatus]
+	unScopedBaseRepository BaseUnScopedRepository[entity.MeetingStatus]
 }
 
 func NewMeetingStatusRepository(ctx context.Context, dp *gorm.DB) *MeetingStatusRepository {
 	return &MeetingStatusRepository{
-		BaseRepository: BaseRepository[entity.MeetingStatus]{
-			dp:  dp,
-			ctx: ctx,
+		baseRepository: BaseRepository[entity.MeetingStatus]{
+			dp:   dp,
+			bctx: ctx,
 		},
-		BaseUnScopedRepository: BaseUnScopedRepository[entity.MeetingStatus]{
+		unScopedBaseRepository: BaseUnScopedRepository[entity.MeetingStatus]{
 			udp:  dp.Unscoped(),
 			uctx: ctx,
 		},

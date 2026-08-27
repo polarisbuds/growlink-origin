@@ -8,17 +8,18 @@ import (
 )
 
 type HistoryRepository struct {
-	BaseRepository[entity.History]
-	BaseUnScopedRepository[entity.History]
+	ctx                    context.Context
+	baseRepository         BaseRepository[entity.History]
+	unScopedBaseRepository BaseUnScopedRepository[entity.History]
 }
 
 func NewHistoryRepository(ctx context.Context, dp *gorm.DB) *HistoryRepository {
 	return &HistoryRepository{
-		BaseRepository: BaseRepository[entity.History]{
-			dp:  dp,
-			ctx: ctx,
+		baseRepository: BaseRepository[entity.History]{
+			dp:   dp,
+			bctx: ctx,
 		},
-		BaseUnScopedRepository: BaseUnScopedRepository[entity.History]{
+		unScopedBaseRepository: BaseUnScopedRepository[entity.History]{
 			udp:  dp.Unscoped(),
 			uctx: ctx,
 		},

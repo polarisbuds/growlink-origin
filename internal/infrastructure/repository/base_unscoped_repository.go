@@ -12,6 +12,13 @@ type BaseUnScopedRepository[T any] struct {
 	uctx context.Context
 }
 
+func NewBaseUnScopedRepository[T any](ctx context.Context, dp *gorm.DB) *BaseUnScopedRepository[T] {
+	return &BaseUnScopedRepository[T]{
+		udp:  dp.Unscoped(),
+		uctx: ctx,
+	}
+}
+
 func (repo *BaseUnScopedRepository[T]) UExists(query string, args ...any) (bool, error) {
 	count, err := repo.UCount(query, args...)
 	if err != nil {

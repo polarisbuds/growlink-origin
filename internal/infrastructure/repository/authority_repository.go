@@ -8,17 +8,18 @@ import (
 )
 
 type AuthorityRepository struct {
-	BaseRepository[entity.Authority]
-	BaseUnScopedRepository[entity.Authority]
+	ctx                    context.Context
+	baseRepository         BaseRepository[entity.Authority]
+	unScopedBaseRepository BaseUnScopedRepository[entity.Authority]
 }
 
 func NewAuthorityRepository(ctx context.Context, dp *gorm.DB) *AuthorityRepository {
 	return &AuthorityRepository{
-		BaseRepository: BaseRepository[entity.Authority]{
-			dp:  dp,
-			ctx: ctx,
+		baseRepository: BaseRepository[entity.Authority]{
+			dp:   dp,
+			bctx: ctx,
 		},
-		BaseUnScopedRepository: BaseUnScopedRepository[entity.Authority]{
+		unScopedBaseRepository: BaseUnScopedRepository[entity.Authority]{
 			udp:  dp.Unscoped(),
 			uctx: ctx,
 		},

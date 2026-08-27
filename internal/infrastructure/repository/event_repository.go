@@ -8,17 +8,18 @@ import (
 )
 
 type EventRepository struct {
-	BaseRepository[entity.Event]
-	BaseUnScopedRepository[entity.Event]
+	ctx                    context.Context
+	baseRepository         BaseRepository[entity.Event]
+	unScopedBaseRepository BaseUnScopedRepository[entity.Event]
 }
 
 func NewEventRepository(ctx context.Context, dp *gorm.DB) *EventRepository {
 	return &EventRepository{
-		BaseRepository: BaseRepository[entity.Event]{
-			dp:  dp,
-			ctx: ctx,
+		baseRepository: BaseRepository[entity.Event]{
+			dp:   dp,
+			bctx: ctx,
 		},
-		BaseUnScopedRepository: BaseUnScopedRepository[entity.Event]{
+		unScopedBaseRepository: BaseUnScopedRepository[entity.Event]{
 			udp:  dp.Unscoped(),
 			uctx: ctx,
 		},

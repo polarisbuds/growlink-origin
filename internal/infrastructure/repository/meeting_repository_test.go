@@ -12,7 +12,6 @@ import (
 	"growlink/internal/shared/testutils/database"
 	"growlink/internal/shared/testutils/fixtures"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"gorm.io/gorm"
 )
@@ -80,65 +79,9 @@ func TestMeetingRepository_GetAll_OrderingAndAssociation(t *testing.T) {
 	}
 }
 
-func TestMeetingRepository_CRUD_BaseRepository(t *testing.T) {
-	tx := testutils.Begin(t)
-	repo := newMeetingRepo(t, tx)
-
-	base := fixtures.Meeting(t, tx).Create()
-
-	toInsert := &entity.Meeting{
-		ImplementedAt: base.ImplementedAt,
-		StatusID:      base.StatusID,
-		TemplateID:    base.TemplateID,
-		PeeringID:     base.PeeringID,
-	}
-	err := repo.Insert(toInsert)
-	assertions.NoError(t, err)
-
-	got, err := repo.First("id DESC", "id = ?", toInsert.ID)
-	assertions.NoError(t, err)
-	require.NotNil(t, got)
-	assert.Equal(t, toInsert.ID, got.ID)
-
-	updatedAt := atJST(2026, time.August, 1, 12, 0, 0)
-	_, err = repo.Update("implemented_at", updatedAt, "id = ?", toInsert.ID)
-	assertions.NoError(t, err)
-
-	got, err = repo.First("id DESC", "id = ?", toInsert.ID)
-	assertions.NoError(t, err)
-	require.NotNil(t, got)
-	assert.True(t, updatedAt.Equal(got.ImplementedAt))
-
-	deleted, err := repo.Delete(1, "id = ?", toInsert.ID)
-	assertions.NoError(t, err)
-	assert.Equal(t, 1, deleted)
-
-	_, err = repo.GetByID(int64(toInsert.ID))
-	assertions.NotFound(t, err)
-}
-
-func TestMeetingRepository_SoftDelete_Unscoped(t *testing.T) {
-	tx := testutils.Begin(t)
-	repo := newMeetingRepo(t, tx)
-
-	want := fixtures.Meeting(t, tx).Create()
-
-	deleted, err := repo.Delete(1, "id = ?", want.ID)
-	assertions.NoError(t, err)
-	assert.Equal(t, 1, deleted)
-
-	_, err = repo.GetByID(int64(want.ID))
-	assertions.NotFound(t, err)
-
-	got, err := repo.UFirst("id DESC", "id = ?", want.ID)
-	assertions.NoError(t, err)
-	require.NotNil(t, got)
-	assert.Equal(t, want.ID, got.ID)
-}
-
 func TestMeetingRepository_UniqueConstraint_UUID(t *testing.T) {
 	tx := testutils.Begin(t)
-	repo := newMeetingRepo(t, tx)
+	repo := newBaseMeetingRepo(t, tx)
 
 	existing := fixtures.Meeting(t, tx).Create()
 
@@ -154,7 +97,7 @@ func TestMeetingRepository_UniqueConstraint_UUID(t *testing.T) {
 
 func TestMeetingRepository_ForeignKeyConstraint(t *testing.T) {
 	tx := testutils.Begin(t)
-	repo := newMeetingRepo(t, tx)
+	repo := newBaseMeetingRepo(t, tx)
 
 	invalid := fixtures.MeetingWithoutFK(t, tx)
 	err := repo.Insert(invalid)

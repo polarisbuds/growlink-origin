@@ -8,17 +8,18 @@ import (
 )
 
 type TopicRepository struct {
-	BaseRepository[entity.Topic]
-	BaseUnScopedRepository[entity.Topic]
+	ctx                    context.Context
+	baseRepository         BaseRepository[entity.Topic]
+	unScopedBaseRepository BaseUnScopedRepository[entity.Topic]
 }
 
 func NewTopicRepository(ctx context.Context, dp *gorm.DB) *TopicRepository {
 	return &TopicRepository{
-		BaseRepository: BaseRepository[entity.Topic]{
-			dp:  dp,
-			ctx: ctx,
+		baseRepository: BaseRepository[entity.Topic]{
+			dp:   dp,
+			bctx: ctx,
 		},
-		BaseUnScopedRepository: BaseUnScopedRepository[entity.Topic]{
+		unScopedBaseRepository: BaseUnScopedRepository[entity.Topic]{
 			udp:  dp.Unscoped(),
 			uctx: ctx,
 		},

@@ -8,17 +8,18 @@ import (
 )
 
 type UserRelationshipTypeRepository struct {
-	BaseRepository[entity.UserRelationshipType]
-	BaseUnScopedRepository[entity.UserRelationshipType]
+	ctx                    context.Context
+	baseRepository         BaseRepository[entity.UserRelationshipType]
+	unScopedBaseRepository BaseUnScopedRepository[entity.UserRelationshipType]
 }
 
 func NewUserRelationshipTypeRepository(ctx context.Context, dp *gorm.DB) *UserRelationshipTypeRepository {
 	return &UserRelationshipTypeRepository{
-		BaseRepository: BaseRepository[entity.UserRelationshipType]{
-			dp:  dp,
-			ctx: ctx,
+		baseRepository: BaseRepository[entity.UserRelationshipType]{
+			dp:   dp,
+			bctx: ctx,
 		},
-		BaseUnScopedRepository: BaseUnScopedRepository[entity.UserRelationshipType]{
+		unScopedBaseRepository: BaseUnScopedRepository[entity.UserRelationshipType]{
 			udp:  dp.Unscoped(),
 			uctx: ctx,
 		},
