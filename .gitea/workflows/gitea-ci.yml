@@ -1,0 +1,60 @@
+name: Growlink CI/CD
+
+on:
+    push:
+        branches:
+            - "master"
+            - "develop"
+            - "feature/*"
+    pull_request:
+        branches:
+            - "master"
+            - "develop"
+            - "feature/*"
+
+jobs:
+    # 1. テストフェーズ
+    test:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
+
+            - name: Set up Go
+              uses: actions/setup-go@v5
+              with:
+                  go-version: "stable"
+                  cache: true
+
+            - name: Install dependencies
+              run: go mod download
+
+            - name: Run all tests
+              run: go test -v -race ./...
+
+    # 2. ビルドフェーズ（テストが成功した時のみ実行）
+    build:
+        runs-on: ubuntu-latest
+        needs: test # テストの完了を必須条件にする
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
+
+            - name: Set up Go
+              uses: actions/setup-go@v5
+              with:
+                  go-version: "stable"
+                  cache: true
+
+            - name: Build application
+              run: go build -v -o ./dist/app main.go
+
+    # 3. CD（デプロイ）フェーズ（ビルドまで全てOKの時のみ実行）
+    deploy:
+        runs-on: ubuntu-latest
+        needs: build # ビルドの完了を必須条件にする
+        steps:
+            - name: Deploy Step
+              run: |
+                  echo "Test -> Build -> OK! Starting CD..."
+                  # *** ここにCD（自動デプロイ）の処理（例：サーバーへの転送やDockerイメージのプッシュ等）を記入してください ***
