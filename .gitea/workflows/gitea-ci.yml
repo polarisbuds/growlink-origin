@@ -31,6 +31,9 @@ jobs:
 
             - name: Run all tests
               run: go test -v -race ./...
+              env:
+                  # TestContainers-Goを利用しているためSocketを通す
+                  DOCKER_HOST: unix:///var/run/docker.sock
 
     # 2. ビルドフェーズ（テストが成功した時のみ実行）
     build:
