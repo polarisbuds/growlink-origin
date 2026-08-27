@@ -1,4 +1,4 @@
-package entity
+package ldap_entity
 
 // LDAP認証(AD認証)の結果を格納する
 type LDAPUser struct {

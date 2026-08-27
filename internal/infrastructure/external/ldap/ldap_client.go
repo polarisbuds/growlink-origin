@@ -2,7 +2,7 @@ package ldap
 
 import (
 	"fmt"
-	"growlink/internal/domain/entity"
+	ldap_entity "growlink/internal/domain/entity/ldap"
 
 	"github.com/go-ldap/ldap/v3"
 )
@@ -63,7 +63,7 @@ func (client *LDAPClient) makeFilterString(uname string) string {
 		ldap.EscapeFilter(uname))
 }
 
-func (client *LDAPClient) Search(userName string) (*entity.LDAPUser, error) {
+func (client *LDAPClient) Search(userName string) (*ldap_entity.LDAPUser, error) {
 	conn, err := client.newConnection()
 	if err != nil {
 		return nil, fmt.Errorf("検索用接続に失敗しました: %w", err)
@@ -87,7 +87,7 @@ func (client *LDAPClient) Search(userName string) (*entity.LDAPUser, error) {
 
 	e := result.Entries[0]
 
-	return &entity.LDAPUser{
+	return &ldap_entity.LDAPUser{
 		UserName:   e.GetAttributeValue("sAMAccountName"),
 		Name:       e.GetAttributeValue("displayName"),
 		Department: e.GetAttributeValue("department"),
@@ -97,7 +97,7 @@ func (client *LDAPClient) Search(userName string) (*entity.LDAPUser, error) {
 	}, nil
 }
 
-func (client *LDAPClient) Authenticate(userName, password string) (*entity.LDAPUser, error) {
+func (client *LDAPClient) Authenticate(userName, password string) (*ldap_entity.LDAPUser, error) {
 	user, err := client.Search(userName)
 	if err != nil {
 		return nil, err
