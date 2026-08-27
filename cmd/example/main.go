@@ -2,9 +2,9 @@ package main
 
 import (
 	"fmt"
+	"growlink/internal/adapter/handler"
 	"growlink/internal/infrastructure/external/ldap"
 	infrastructure "growlink/internal/infrastructure/postgresql"
-	"growlink/internal/interface/handler"
 	"growlink/internal/shared/config"
 	"io"
 	"log/slog"
