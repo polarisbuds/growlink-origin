@@ -25,14 +25,16 @@ func NewPostgresqlDB(dsn string) (*gorm.DB, error) {
 		return nil, err
 	}
 
-	if err := autoMigrateOnce(db); err != nil {
+	if err := AutoMigrate(db); err != nil {
 		return nil, err
 	}
 
 	return db, nil
 }
 
-func autoMigrateOnce(db *gorm.DB) error {
+// AutoMigrate applies the GORM schema for all domain entities.
+// Production and test environments share this migration list.
+func AutoMigrate(db *gorm.DB) error {
 	return db.AutoMigrate(
 		// トランザクションテーブル
 		&entity.User{},
