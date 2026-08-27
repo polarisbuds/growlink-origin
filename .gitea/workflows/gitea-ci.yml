@@ -50,7 +50,7 @@ jobs:
                   cache: true
 
             - name: Build application
-              run: go build -v -o ./dist/app main.go
+              run: go build -v -o ./dist/app ./cmd/app/main.go
 
     # 3. CD（デプロイ）フェーズ（ビルドまで全てOKの時のみ実行）
     deploy:
