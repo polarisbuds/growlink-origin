@@ -38,12 +38,12 @@ func (repo *StorageFileRepository) Exists(name string) (isExists bool, err error
 func (repo *StorageFileRepository) NewFile(name string, content io.Reader) error {
 	uploadsDirectory, err := utils.GetAbsoluteTargetDir(repo.root)
 	if err != nil {
-		return fmt.Errorf("アイコン保存先のフォルダの取得に失敗しました: %w", err)
+		return fmt.Errorf("[CREATE]アイコン保存先のフォルダの取得に失敗しました: %w", err)
 	}
 
 	filePath := filepath.Join(uploadsDirectory, name)
 	if _, err := os.Stat(filePath); err != nil && !os.IsNotExist(err) {
-		return fmt.Errorf("ファイルの存在確認でエラーが発生しました: %w", err)
+		return fmt.Errorf("[CREATE]アイコンファイルの存在確認に失敗しました: %w", err)
 	}
 
 	f, err := os.Create(filePath)
@@ -58,16 +58,28 @@ func (repo *StorageFileRepository) NewFile(name string, content io.Reader) error
 	return nil
 }
 
-func (repo *StorageFileRepository) DeleteFile(path string) error {
-	info, err := os.Stat(path)
+func (repo *StorageFileRepository) DeleteFile(name string) error {
+	uploadsDirectory, err := utils.GetAbsoluteTargetDir(repo.root)
+	if err != nil {
+		return fmt.Errorf("[DELETE]アイコン保存先のフォルダの取得に失敗しました: %w", err)
+	}
+
+	filePath := filepath.Join(uploadsDirectory, name)
+
+	info, err := os.Stat(filePath)
 	if err != nil {
 		if os.IsNotExist(err) {
 			return nil
 		}
-		return err
+		return fmt.Errorf("[DELETE]アイコンファイルの存在確認に失敗しました: %w", err)
 	}
+
 	if info.IsDir() {
 		return fmt.Errorf("削除対象のPATHがディレクトリになっています")
 	}
-	return os.Remove(path)
+
+	if err = os.Remove(filePath); err != nil {
+		return fmt.Errorf("アイコンファイルの削除に失敗しました: %w", err)
+	}
+	return nil
 }
