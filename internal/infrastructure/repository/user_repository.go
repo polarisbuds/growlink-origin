@@ -2,7 +2,9 @@ package repository
 
 import (
 	"context"
+	"fmt"
 	"growlink/internal/domain/entity"
+	"log/slog"
 
 	"gorm.io/gorm"
 )
@@ -24,4 +26,27 @@ func NewUserRepository(ctx context.Context, dp *gorm.DB) *UserRepository {
 			uctx: ctx,
 		},
 	}
+}
+
+func (repo *UserRepository) GetByID(id int64) (*entity.User, error) {
+	user, err := repo.baseRepository.First("id ASC", "id = ?", id)
+	if err != nil {
+		return nil, fmt.Errorf("指定されたユーザIDは存在しませんでした: %w", err)
+	}
+	if user == nil {
+		return nil, fmt.Errorf("指定されたユーザIDは存在しませんでした: %w", gorm.ErrRecordNotFound)
+	}
+	return user, nil
+}
+
+func (repo *UserRepository) UpdateByID(user *entity.User) error {
+	if user == nil {
+		slog.Warn("アップデート対象のデータが空データ（nil）です。")
+		return nil
+	}
+
+	if _, err := repo.baseRepository.Updates(*user, "id = ?", user.ID); err != nil {
+		return fmt.Errorf("ユーザ情報の更新に失敗しました: %w", err)
+	}
+	return nil
 }

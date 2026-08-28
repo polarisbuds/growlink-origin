@@ -10,6 +10,12 @@ import (
 	"gorm.io/gorm"
 )
 
+// User inserts a User with Layer0 master dependencies (Layer1).
+func User(t *testing.T, tx *gorm.DB, prefix string) *entity.User {
+	t.Helper()
+	return createUser(t, tx, prefix)
+}
+
 // createUser inserts a User with Layer0 master dependencies (Layer1).
 func createUser(t *testing.T, tx *gorm.DB, prefix string) *entity.User {
 	t.Helper()
