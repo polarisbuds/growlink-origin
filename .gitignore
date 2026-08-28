@@ -7,8 +7,12 @@ static/vendor/
 tmp/
 
 doc/*
+doc/model/*.pdf
 doc/patched
+doc/documents/meetup/images/*.png
+doc/documents/meetup/*.pdf
 !doc/model
+!doc/documents
 
 scripts/tmp/
 
