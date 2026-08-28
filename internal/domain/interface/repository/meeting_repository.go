@@ -8,9 +8,6 @@ import (
 )
 
 type MeetingRepository interface {
-	BaseRepository[entity.Meeting]
-	BaseUnScopedRepository[entity.Meeting]
-
 	GetAll() ([]entity.Meeting, error)
 	GetByID(id int64) (*entity.Meeting, error)
 	GetByUUID(uuid uuid.UUID) (*entity.Meeting, error)
