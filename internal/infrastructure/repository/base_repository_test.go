@@ -32,7 +32,7 @@ func TestBaseRepository_CRUD(t *testing.T) {
 		ImplementedAt: base.ImplementedAt,
 		StatusID:      base.StatusID,
 		TemplateID:    base.TemplateID,
-		PeeringID:     base.PeeringID,
+		PairingID:     base.PairingID,
 	}
 	err := repo.Insert(toInsert)
 	assertions.NoError(t, err)

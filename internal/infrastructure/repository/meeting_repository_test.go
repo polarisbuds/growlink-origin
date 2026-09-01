@@ -71,9 +71,9 @@ func TestMeetingRepository_GetAll_OrderingAndAssociation(t *testing.T) {
 	assertions.MeetingIDs(t, []entity.Meeting{*second, *first}, got)
 
 	for _, meeting := range got {
-		require.NotNil(t, meeting.Peering)
-		require.NotNil(t, meeting.Peering.Mentor)
-		require.NotNil(t, meeting.Peering.Mentee)
+		require.NotNil(t, meeting.Pairing)
+		require.NotNil(t, meeting.Pairing.Mentor)
+		require.NotNil(t, meeting.Pairing.Mentee)
 		require.NotNil(t, meeting.Status)
 		require.NotNil(t, meeting.Template)
 	}
@@ -90,7 +90,7 @@ func TestMeetingRepository_UniqueConstraint_UUID(t *testing.T) {
 		ImplementedAt: time.Now(),
 		StatusID:      existing.StatusID,
 		TemplateID:    existing.TemplateID,
-		PeeringID:     existing.PeeringID,
+		PairingID:     existing.PairingID,
 	})
 	assertions.UniqueViolation(t, err)
 }

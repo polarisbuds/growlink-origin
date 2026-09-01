@@ -39,9 +39,9 @@ func preloadAll(chain gorm.ChainInterface[entity.Meeting]) gorm.ChainInterface[e
 		Preload("Status", preloadNone).
 		Preload("Template", preloadNone).
 		Preload("Template.Topics", preloadNone).
-		Preload("Peering", preloadNone).
-		Preload("Peering.Mentor", preloadNone).
-		Preload("Peering.Mentee", preloadNone).
+		Preload("Pairing", preloadNone).
+		Preload("Pairing.Mentor", preloadNone).
+		Preload("Pairing.Mentee", preloadNone).
 		Preload("Answers", preloadNone).
 		Preload("Answers.AnswerComments", preloadNone).
 		Preload("MeetingComments", preloadNone).
@@ -52,9 +52,9 @@ func preloadBasic(chain gorm.ChainInterface[entity.Meeting]) gorm.ChainInterface
 	return chain.
 		Preload("Status", preloadNone).
 		Preload("Template", preloadNone).
-		Preload("Peering", preloadNone).
-		Preload("Peering.Mentor", preloadNone).
-		Preload("Peering.Mentee", preloadNone)
+		Preload("Pairing", preloadNone).
+		Preload("Pairing.Mentor", preloadNone).
+		Preload("Pairing.Mentee", preloadNone)
 }
 
 func (repo *MeetingRepository) GetAll() ([]entity.Meeting, error) {
