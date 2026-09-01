@@ -6,19 +6,19 @@ import (
 	repository_interface "growlink/internal/domain/interface/repository"
 )
 
-type CreatePairlistUsecase struct {
+type PairingListCreatorUsecase struct {
 	pairingRepo repository_interface.PairingRepository
 	userRepo    repository_interface.UserRepository
 }
 
-func NewCreatePairlistUsecase(pairingRepo repository_interface.PairingRepository, userRepo repository_interface.UserRepository) *CreatePairlistUsecase {
-	return &CreatePairlistUsecase{
+func NewPairingListCreatorUsecase(pairingRepo repository_interface.PairingRepository, userRepo repository_interface.UserRepository) *PairingListCreatorUsecase {
+	return &PairingListCreatorUsecase{
 		pairingRepo: pairingRepo,
 		userRepo:    userRepo,
 	}
 }
 
-func (uc *CreatePairlistUsecase) CreatePairList(mentorID uint) (menteeList []entity.User, err error) {
+func (uc *PairingListCreatorUsecase) CreatePairList(mentorID uint) (menteeList []entity.User, err error) {
 	pairings, err := uc.pairingRepo.GetByMentorID(mentorID)
 	if err != nil {
 		return nil, fmt.Errorf("ペアリストの作成に失敗しました: %w", err)

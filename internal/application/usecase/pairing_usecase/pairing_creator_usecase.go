@@ -5,19 +5,19 @@ import (
 	repository_interface "growlink/internal/domain/interface/repository"
 )
 
-type CreatePairingUsecase struct {
+type PairingCreatorUsecase struct {
 	pairingRepo repository_interface.PairingRepository
 	userRepo    repository_interface.UserRepository
 }
 
-func NewCreatePairingUsecase(pairingRepo repository_interface.PairingRepository, userRepo repository_interface.UserRepository) *CreatePairingUsecase {
-	return &CreatePairingUsecase{
+func NewPairingCreatorUsecase(pairingRepo repository_interface.PairingRepository, userRepo repository_interface.UserRepository) *PairingCreatorUsecase {
+	return &PairingCreatorUsecase{
 		pairingRepo: pairingRepo,
 		userRepo:    userRepo,
 	}
 }
 
-func (uc *CreatePairingUsecase) CreatePairing(menteeID, mentorID uint) error {
+func (uc *PairingCreatorUsecase) PairingCreator(menteeID, mentorID uint) error {
 	oldPair, err := uc.pairingRepo.GetByMenteeID(menteeID)
 	if err != nil {
 		return fmt.Errorf("ペアリング（旧）の取得に失敗しました: %w", err)
