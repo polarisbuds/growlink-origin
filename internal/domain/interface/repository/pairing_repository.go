@@ -1,5 +1,6 @@
 package repository_interface
 
-type PeeringRepository interface {
+//go:generate mockgen -typed -source=$GOFILE -destination=mock/mock_$GOFILE -package=mock
+
 type PairingRepository interface {
 }

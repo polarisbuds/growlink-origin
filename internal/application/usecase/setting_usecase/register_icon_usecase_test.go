@@ -8,384 +8,328 @@ import (
 
 	"growlink/internal/application/usecase/setting_usecase"
 	"growlink/internal/domain/entity"
-	repository_interface "growlink/internal/domain/interface/repository"
-	"growlink/internal/shared/testutils/stab"
+	repomock "growlink/internal/domain/interface/repository/mock"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"gorm.io/gorm"
+	"go.uber.org/mock/gomock"
 )
 
-func newTestUser(id int64, imageURI *string) *entity.User {
-	return &entity.User{
-		Model:    gorm.Model{ID: uint(id)},
-		Name:     "icon-user",
-		Email:    "icon@example.com",
-		ImageURI: imageURI,
-	}
+type registerIconCaptures struct {
+	newFileNames    []string
+	existsNames     []string
+	deleteFileNames []string
+	updatedUser     *entity.User
+}
+
+type registerIconSetupFn func(t *testing.T, user *repomock.MockUserRepository, file *repomock.MockUploadFileRepository, cap *registerIconCaptures)
+type registerIconAssertFn func(t *testing.T, cap *registerIconCaptures)
+
+func newRegisterIconUsecase(t *testing.T) (
+	*setting_usecase.RegisterIconUsecase,
+	*repomock.MockUserRepository,
+	*repomock.MockUploadFileRepository,
+) {
+	t.Helper()
+	ctrl := gomock.NewController(t)
+	userRepo := repomock.NewMockUserRepository(ctrl)
+	fileRepo := repomock.NewMockUploadFileRepository(ctrl)
+	return setting_usecase.NewRegisterIconUsecase(fileRepo, userRepo), userRepo, fileRepo
 }
 
 func TestRegisterIconUsecase_UploadIcon(t *testing.T) {
-	const validUserID int64 = 10
-	notFoundErr := errors.New("user not found")
-	newFileErr := errors.New("new file failed")
-	updateErr := errors.New("update failed")
-	existsErr := errors.New("exists check failed")
-	deleteErr := errors.New("delete failed")
-
 	tests := []struct {
 		name        string
-		fileRepo    repository_interface.UploadFileRepository
-		userRepo    repository_interface.UserRepository
 		userID      int64
 		filename    string
 		content     io.Reader
 		wantErr     bool
 		errContains string
-		assertFn    func(t *testing.T, fileRepo *stab.UploadFileRepository, userRepo *stab.UserRepository)
+		setup       registerIconSetupFn
+		assertFn    registerIconAssertFn
 	}{
 		{
-			name: "通常系_拡張子ありのアイコン登録",
-			fileRepo: &stab.UploadFileRepository{
-				ExistsFunc:     func(string) (bool, error) { return true, nil },
-				NewFileFunc:    func(string, io.Reader) error { return nil },
-				DeleteFileFunc: func(string) error { return nil },
-			},
-			userRepo: &stab.UserRepository{
-				GetByIDFunc: func(id int64) (*entity.User, error) {
-					if id != validUserID {
-						return nil, notFoundErr
-					}
-					return newTestUser(id, nil), nil
-				},
-			},
+			name:     "通常系_拡張子ありのアイコン登録",
 			userID:   validUserID,
 			filename: "avatar.png",
 			content:  strings.NewReader("png-bytes"),
 			wantErr:  false,
-			assertFn: func(t *testing.T, fileRepo *stab.UploadFileRepository, userRepo *stab.UserRepository) {
+			setup: func(_ *testing.T, user *repomock.MockUserRepository, file *repomock.MockUploadFileRepository, cap *registerIconCaptures) {
+				user.EXPECT().GetByID(validUserID).Return(newTestUser(validUserID, nil), nil)
+				file.EXPECT().NewFile(gomock.Any(), gomock.Any()).DoAndReturn(func(name string, _ io.Reader) error {
+					cap.newFileNames = append(cap.newFileNames, name)
+					return nil
+				})
+				user.EXPECT().UpdateByID(gomock.Any()).DoAndReturn(func(u *entity.User) error {
+					cap.updatedUser = u
+					return nil
+				})
+				file.EXPECT().Exists(gomock.Any()).DoAndReturn(func(name string) (bool, error) {
+					cap.existsNames = append(cap.existsNames, name)
+					return true, nil
+				})
+				file.EXPECT().DeleteFile(gomock.Any()).DoAndReturn(func(name string) error {
+					cap.deleteFileNames = append(cap.deleteFileNames, name)
+					return nil
+				})
+			},
+			assertFn: func(t *testing.T, cap *registerIconCaptures) {
 				t.Helper()
-				require.Len(t, fileRepo.NewFileNames, 1)
-				gotName := fileRepo.NewFileNames[0]
+				require.Len(t, cap.newFileNames, 1)
+				gotName := cap.newFileNames[0]
 				assertUUIDFilename(t, gotName, ".png")
-				require.NotNil(t, userRepo.UpdatedUser)
-				require.NotNil(t, userRepo.UpdatedUser.ImageURI)
-				assert.Equal(t, gotName, *userRepo.UpdatedUser.ImageURI)
-				require.Len(t, fileRepo.ExistsNames, 1)
-				assert.Equal(t, gotName, fileRepo.ExistsNames[0])
-				require.Len(t, fileRepo.DeleteFileNames, 1)
-				assert.Equal(t, gotName, fileRepo.DeleteFileNames[0])
+				require.NotNil(t, cap.updatedUser)
+				require.NotNil(t, cap.updatedUser.ImageURI)
+				assert.Equal(t, gotName, *cap.updatedUser.ImageURI)
+				require.Equal(t, []string{gotName}, cap.existsNames)
+				require.Equal(t, []string{gotName}, cap.deleteFileNames)
 			},
 		},
 		{
-			name: "通常系_既存アイコンあり",
-			fileRepo: &stab.UploadFileRepository{
-				ExistsFunc:     func(string) (bool, error) { return true, nil },
-				NewFileFunc:    func(string, io.Reader) error { return nil },
-				DeleteFileFunc: func(string) error { return nil },
-			},
-			userRepo: func() *stab.UserRepository {
-				old := "old-icon.jpg"
-				return &stab.UserRepository{
-					GetByIDFunc: func(id int64) (*entity.User, error) {
-						return newTestUser(id, &old), nil
-					},
-				}
-			}(),
+			name:     "通常系_既存アイコンあり",
 			userID:   validUserID,
 			filename: "next.webp",
 			content:  strings.NewReader("webp-bytes"),
 			wantErr:  false,
-			assertFn: func(t *testing.T, fileRepo *stab.UploadFileRepository, userRepo *stab.UserRepository) {
+			setup: func(_ *testing.T, user *repomock.MockUserRepository, file *repomock.MockUploadFileRepository, cap *registerIconCaptures) {
+				old := "old-icon.jpg"
+				user.EXPECT().GetByID(validUserID).Return(newTestUser(validUserID, &old), nil)
+				file.EXPECT().NewFile(gomock.Any(), gomock.Any()).DoAndReturn(func(name string, _ io.Reader) error {
+					cap.newFileNames = append(cap.newFileNames, name)
+					return nil
+				})
+				user.EXPECT().UpdateByID(gomock.Any()).DoAndReturn(func(u *entity.User) error {
+					cap.updatedUser = u
+					return nil
+				})
+				file.EXPECT().Exists(gomock.Any()).Return(true, nil)
+				file.EXPECT().DeleteFile(gomock.Any()).Return(nil)
+			},
+			assertFn: func(t *testing.T, cap *registerIconCaptures) {
 				t.Helper()
-				require.Len(t, fileRepo.NewFileNames, 1)
-				assertUUIDFilename(t, fileRepo.NewFileNames[0], ".webp")
-				require.NotNil(t, userRepo.UpdatedUser)
-				require.NotNil(t, userRepo.UpdatedUser.ImageURI)
-				assert.Equal(t, fileRepo.NewFileNames[0], *userRepo.UpdatedUser.ImageURI)
+				require.Len(t, cap.newFileNames, 1)
+				assertUUIDFilename(t, cap.newFileNames[0], ".webp")
+				require.NotNil(t, cap.updatedUser)
+				require.NotNil(t, cap.updatedUser.ImageURI)
+				assert.Equal(t, cap.newFileNames[0], *cap.updatedUser.ImageURI)
 			},
 		},
 		{
-			name: "通常系_存在チェックがfalseなら削除しない",
-			fileRepo: &stab.UploadFileRepository{
-				ExistsFunc:  func(string) (bool, error) { return false, nil },
-				NewFileFunc: func(string, io.Reader) error { return nil },
-			},
-			userRepo: &stab.UserRepository{
-				GetByIDFunc: func(id int64) (*entity.User, error) {
-					return newTestUser(id, nil), nil
-				},
-			},
+			name:     "通常系_存在チェックがfalseなら削除しない",
 			userID:   validUserID,
 			filename: "avatar.jpeg",
 			content:  strings.NewReader("jpeg-bytes"),
 			wantErr:  false,
-			assertFn: func(t *testing.T, fileRepo *stab.UploadFileRepository, _ *stab.UserRepository) {
+			setup: func(_ *testing.T, user *repomock.MockUserRepository, file *repomock.MockUploadFileRepository, cap *registerIconCaptures) {
+				user.EXPECT().GetByID(validUserID).Return(newTestUser(validUserID, nil), nil)
+				file.EXPECT().NewFile(gomock.Any(), gomock.Any()).Return(nil)
+				user.EXPECT().UpdateByID(gomock.Any()).Return(nil)
+				file.EXPECT().Exists(gomock.Any()).DoAndReturn(func(name string) (bool, error) {
+					cap.existsNames = append(cap.existsNames, name)
+					return false, nil
+				})
+			},
+			assertFn: func(t *testing.T, cap *registerIconCaptures) {
 				t.Helper()
-				require.Len(t, fileRepo.ExistsNames, 1)
-				assert.Empty(t, fileRepo.DeleteFileNames)
+				require.Len(t, cap.existsNames, 1)
+				assert.Empty(t, cap.deleteFileNames)
 			},
 		},
 		{
-			name: "異常系_ユーザ取得失敗",
-			fileRepo: &stab.UploadFileRepository{
-				NewFileFunc: func(string, io.Reader) error {
-					t.Fatal("NewFile must not be called")
-					return nil
-				},
-			},
-			userRepo: &stab.UserRepository{
-				GetByIDFunc: func(int64) (*entity.User, error) {
-					return nil, notFoundErr
-				},
-			},
+			name:        "異常系_ユーザ取得失敗",
 			userID:      validUserID,
 			filename:    "avatar.png",
 			content:     strings.NewReader("png-bytes"),
 			wantErr:     true,
 			errContains: "ユーザアイコンのアップロードで存在しないユーザIDが指定されました",
-			assertFn: func(t *testing.T, fileRepo *stab.UploadFileRepository, userRepo *stab.UserRepository) {
+			setup: func(_ *testing.T, user *repomock.MockUserRepository, _ *repomock.MockUploadFileRepository, _ *registerIconCaptures) {
+				user.EXPECT().GetByID(validUserID).Return(nil, errUserNotFound)
+			},
+			assertFn: func(t *testing.T, cap *registerIconCaptures) {
 				t.Helper()
-				assert.Empty(t, fileRepo.NewFileNames)
-				assert.Nil(t, userRepo.UpdatedUser)
+				assert.Empty(t, cap.newFileNames)
+				assert.Nil(t, cap.updatedUser)
 			},
 		},
 		{
-			name: "異常系_ファイル新規作成失敗",
-			fileRepo: &stab.UploadFileRepository{
-				NewFileFunc: func(string, io.Reader) error { return newFileErr },
-			},
-			userRepo: &stab.UserRepository{
-				GetByIDFunc: func(id int64) (*entity.User, error) {
-					return newTestUser(id, nil), nil
-				},
-				UpdateByIDFunc: func(*entity.User) error {
-					t.Fatal("UpdateByID must not be called")
-					return nil
-				},
-			},
+			name:        "異常系_ファイル新規作成失敗",
 			userID:      validUserID,
 			filename:    "avatar.png",
 			content:     strings.NewReader("png-bytes"),
 			wantErr:     true,
 			errContains: "ユーザアイコンの新規作成処理に失敗しました",
-			assertFn: func(t *testing.T, fileRepo *stab.UploadFileRepository, userRepo *stab.UserRepository) {
+			setup: func(_ *testing.T, user *repomock.MockUserRepository, file *repomock.MockUploadFileRepository, cap *registerIconCaptures) {
+				user.EXPECT().GetByID(validUserID).Return(newTestUser(validUserID, nil), nil)
+				file.EXPECT().NewFile(gomock.Any(), gomock.Any()).DoAndReturn(func(name string, _ io.Reader) error {
+					cap.newFileNames = append(cap.newFileNames, name)
+					return errNewFileFailed
+				})
+			},
+			assertFn: func(t *testing.T, cap *registerIconCaptures) {
 				t.Helper()
-				require.Len(t, fileRepo.NewFileNames, 1)
-				assert.Nil(t, userRepo.UpdatedUser)
+				require.Len(t, cap.newFileNames, 1)
+				assert.Nil(t, cap.updatedUser)
 			},
 		},
 		{
-			name: "異常系_ユーザ更新失敗",
-			fileRepo: &stab.UploadFileRepository{
-				NewFileFunc: func(string, io.Reader) error { return nil },
-				ExistsFunc: func(string) (bool, error) {
-					t.Fatal("Exists must not be called")
-					return false, nil
-				},
-			},
-			userRepo: &stab.UserRepository{
-				GetByIDFunc: func(id int64) (*entity.User, error) {
-					return newTestUser(id, nil), nil
-				},
-				UpdateByIDFunc: func(*entity.User) error { return updateErr },
-			},
+			name:        "異常系_ユーザ更新失敗",
 			userID:      validUserID,
 			filename:    "avatar.png",
 			content:     strings.NewReader("png-bytes"),
 			wantErr:     true,
 			errContains: "ユーザデータの更新（ユーザアイコン）に失敗しました",
+			setup: func(_ *testing.T, user *repomock.MockUserRepository, file *repomock.MockUploadFileRepository, _ *registerIconCaptures) {
+				user.EXPECT().GetByID(validUserID).Return(newTestUser(validUserID, nil), nil)
+				file.EXPECT().NewFile(gomock.Any(), gomock.Any()).Return(nil)
+				user.EXPECT().UpdateByID(gomock.Any()).Return(errUpdateFailed)
+			},
 		},
 		{
-			name: "異常系_既存ファイルの存在チェック失敗",
-			fileRepo: &stab.UploadFileRepository{
-				NewFileFunc: func(string, io.Reader) error { return nil },
-				ExistsFunc:  func(string) (bool, error) { return false, existsErr },
-			},
-			userRepo: &stab.UserRepository{
-				GetByIDFunc: func(id int64) (*entity.User, error) {
-					return newTestUser(id, nil), nil
-				},
-			},
+			name:        "異常系_既存ファイルの存在チェック失敗",
 			userID:      validUserID,
 			filename:    "avatar.png",
 			content:     strings.NewReader("png-bytes"),
 			wantErr:     true,
 			errContains: "アップロード済みのイメージファイルの存在チェックに失敗しました",
-			assertFn: func(t *testing.T, fileRepo *stab.UploadFileRepository, _ *stab.UserRepository) {
+			setup: func(_ *testing.T, user *repomock.MockUserRepository, file *repomock.MockUploadFileRepository, _ *registerIconCaptures) {
+				user.EXPECT().GetByID(validUserID).Return(newTestUser(validUserID, nil), nil)
+				file.EXPECT().NewFile(gomock.Any(), gomock.Any()).Return(nil)
+				user.EXPECT().UpdateByID(gomock.Any()).Return(nil)
+				file.EXPECT().Exists(gomock.Any()).Return(false, errExistsCheckFailed)
+			},
+			assertFn: func(t *testing.T, cap *registerIconCaptures) {
 				t.Helper()
-				assert.Empty(t, fileRepo.DeleteFileNames)
+				assert.Empty(t, cap.deleteFileNames)
 			},
 		},
 		{
-			name: "異常系_既存ファイルの削除失敗",
-			fileRepo: &stab.UploadFileRepository{
-				NewFileFunc:    func(string, io.Reader) error { return nil },
-				ExistsFunc:     func(string) (bool, error) { return true, nil },
-				DeleteFileFunc: func(string) error { return deleteErr },
-			},
-			userRepo: &stab.UserRepository{
-				GetByIDFunc: func(id int64) (*entity.User, error) {
-					return newTestUser(id, nil), nil
-				},
-			},
+			name:        "異常系_既存ファイルの削除失敗",
 			userID:      validUserID,
 			filename:    "avatar.png",
 			content:     strings.NewReader("png-bytes"),
 			wantErr:     true,
 			errContains: "アップロード済みのイメージファイルの削除に失敗しました",
-			assertFn: func(t *testing.T, fileRepo *stab.UploadFileRepository, _ *stab.UserRepository) {
+			setup: func(_ *testing.T, user *repomock.MockUserRepository, file *repomock.MockUploadFileRepository, cap *registerIconCaptures) {
+				user.EXPECT().GetByID(validUserID).Return(newTestUser(validUserID, nil), nil)
+				file.EXPECT().NewFile(gomock.Any(), gomock.Any()).Return(nil)
+				user.EXPECT().UpdateByID(gomock.Any()).Return(nil)
+				file.EXPECT().Exists(gomock.Any()).Return(true, nil)
+				file.EXPECT().DeleteFile(gomock.Any()).DoAndReturn(func(name string) error {
+					cap.deleteFileNames = append(cap.deleteFileNames, name)
+					return errDeleteFailed
+				})
+			},
+			assertFn: func(t *testing.T, cap *registerIconCaptures) {
 				t.Helper()
-				require.Len(t, fileRepo.DeleteFileNames, 1)
+				require.Len(t, cap.deleteFileNames, 1)
 			},
 		},
 		{
-			name: "不正値_ユーザIDが0",
-			fileRepo: &stab.UploadFileRepository{
-				NewFileFunc: func(string, io.Reader) error {
-					t.Fatal("NewFile must not be called")
-					return nil
-				},
-			},
-			userRepo: &stab.UserRepository{
-				GetByIDFunc: func(id int64) (*entity.User, error) {
-					if id <= 0 {
-						return nil, errors.New("invalid user id")
-					}
-					return newTestUser(id, nil), nil
-				},
-			},
+			name:        "不正値_ユーザIDが0",
 			userID:      0,
 			filename:    "avatar.png",
 			content:     strings.NewReader("png-bytes"),
 			wantErr:     true,
 			errContains: "ユーザアイコンのアップロードで存在しないユーザIDが指定されました",
+			setup: func(_ *testing.T, user *repomock.MockUserRepository, _ *repomock.MockUploadFileRepository, _ *registerIconCaptures) {
+				user.EXPECT().GetByID(int64(0)).Return(nil, errors.New("invalid user id"))
+			},
 		},
 		{
-			name: "不正値_ユーザIDが負数",
-			fileRepo: &stab.UploadFileRepository{
-				NewFileFunc: func(string, io.Reader) error {
-					t.Fatal("NewFile must not be called")
-					return nil
-				},
-			},
-			userRepo: &stab.UserRepository{
-				GetByIDFunc: func(id int64) (*entity.User, error) {
-					if id <= 0 {
-						return nil, errors.New("invalid user id")
-					}
-					return newTestUser(id, nil), nil
-				},
-			},
+			name:        "不正値_ユーザIDが負数",
 			userID:      -1,
 			filename:    "avatar.png",
 			content:     strings.NewReader("png-bytes"),
 			wantErr:     true,
 			errContains: "ユーザアイコンのアップロードで存在しないユーザIDが指定されました",
+			setup: func(_ *testing.T, user *repomock.MockUserRepository, _ *repomock.MockUploadFileRepository, _ *registerIconCaptures) {
+				user.EXPECT().GetByID(int64(-1)).Return(nil, errors.New("invalid user id"))
+			},
 		},
 		{
-			name: "不正値_ファイル名が空",
-			fileRepo: &stab.UploadFileRepository{
-				ExistsFunc:     func(string) (bool, error) { return false, nil },
-				NewFileFunc:    func(string, io.Reader) error { return nil },
-				DeleteFileFunc: func(string) error { return nil },
-			},
-			userRepo: &stab.UserRepository{
-				GetByIDFunc: func(id int64) (*entity.User, error) {
-					return newTestUser(id, nil), nil
-				},
-			},
+			name:     "不正値_ファイル名が空",
 			userID:   validUserID,
 			filename: "",
 			content:  strings.NewReader("bytes"),
 			wantErr:  false,
-			assertFn: func(t *testing.T, fileRepo *stab.UploadFileRepository, _ *stab.UserRepository) {
+			setup: func(_ *testing.T, user *repomock.MockUserRepository, file *repomock.MockUploadFileRepository, cap *registerIconCaptures) {
+				user.EXPECT().GetByID(validUserID).Return(newTestUser(validUserID, nil), nil)
+				file.EXPECT().NewFile(gomock.Any(), gomock.Any()).DoAndReturn(func(name string, _ io.Reader) error {
+					cap.newFileNames = append(cap.newFileNames, name)
+					return nil
+				})
+				user.EXPECT().UpdateByID(gomock.Any()).Return(nil)
+				file.EXPECT().Exists(gomock.Any()).Return(false, nil)
+			},
+			assertFn: func(t *testing.T, cap *registerIconCaptures) {
 				t.Helper()
-				require.Len(t, fileRepo.NewFileNames, 1)
-				gotName := fileRepo.NewFileNames[0]
+				require.Len(t, cap.newFileNames, 1)
+				gotName := cap.newFileNames[0]
 				require.True(t, strings.HasSuffix(gotName, "."))
 				_, err := uuid.Parse(strings.TrimSuffix(gotName, "."))
 				require.NoError(t, err)
 			},
 		},
 		{
-			name: "不正値_拡張子なしのファイル名",
-			fileRepo: &stab.UploadFileRepository{
-				ExistsFunc:  func(string) (bool, error) { return false, nil },
-				NewFileFunc: func(string, io.Reader) error { return nil },
-			},
-			userRepo: &stab.UserRepository{
-				GetByIDFunc: func(id int64) (*entity.User, error) {
-					return newTestUser(id, nil), nil
-				},
-			},
+			name:     "不正値_拡張子なしのファイル名",
 			userID:   validUserID,
 			filename: "avatar",
 			content:  strings.NewReader("bytes"),
 			wantErr:  false,
-			assertFn: func(t *testing.T, fileRepo *stab.UploadFileRepository, _ *stab.UserRepository) {
+			setup: func(_ *testing.T, user *repomock.MockUserRepository, file *repomock.MockUploadFileRepository, cap *registerIconCaptures) {
+				user.EXPECT().GetByID(validUserID).Return(newTestUser(validUserID, nil), nil)
+				file.EXPECT().NewFile(gomock.Any(), gomock.Any()).DoAndReturn(func(name string, _ io.Reader) error {
+					cap.newFileNames = append(cap.newFileNames, name)
+					return nil
+				})
+				user.EXPECT().UpdateByID(gomock.Any()).Return(nil)
+				file.EXPECT().Exists(gomock.Any()).Return(false, nil)
+			},
+			assertFn: func(t *testing.T, cap *registerIconCaptures) {
 				t.Helper()
-				require.Len(t, fileRepo.NewFileNames, 1)
-				gotName := fileRepo.NewFileNames[0]
+				require.Len(t, cap.newFileNames, 1)
+				gotName := cap.newFileNames[0]
 				require.True(t, strings.HasSuffix(gotName, "."))
 				_, err := uuid.Parse(strings.TrimSuffix(gotName, "."))
 				require.NoError(t, err)
 			},
 		},
 		{
-			name: "不正値_contentがnil",
-			fileRepo: &stab.UploadFileRepository{
-				NewFileFunc: func(_ string, content io.Reader) error {
-					if content == nil {
-						return errors.New("content is nil")
-					}
-					return nil
-				},
-			},
-			userRepo: &stab.UserRepository{
-				GetByIDFunc: func(id int64) (*entity.User, error) {
-					return newTestUser(id, nil), nil
-				},
-			},
+			name:        "不正値_contentがnil",
 			userID:      validUserID,
 			filename:    "avatar.png",
 			content:     nil,
 			wantErr:     true,
 			errContains: "ユーザアイコンの新規作成処理に失敗しました",
+			setup: func(_ *testing.T, user *repomock.MockUserRepository, file *repomock.MockUploadFileRepository, _ *registerIconCaptures) {
+				user.EXPECT().GetByID(validUserID).Return(newTestUser(validUserID, nil), nil)
+				file.EXPECT().NewFile(gomock.Any(), gomock.Any()).DoAndReturn(func(_ string, content io.Reader) error {
+					if content == nil {
+						return errors.New("content is nil")
+					}
+					return nil
+				})
+			},
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			uc := setting_usecase.NewRegisterIconUsecase(tt.fileRepo, tt.userRepo)
-			gotErr := uc.UploadIcon(tt.userID, tt.filename, tt.content)
-			if gotErr != nil {
-				if !tt.wantErr {
-					t.Errorf("UploadIcon() failed: %v", gotErr)
-					return
-				}
-				if tt.errContains != "" {
-					assert.ErrorContains(t, gotErr, tt.errContains)
-				}
-			} else if tt.wantErr {
-				t.Fatal("UploadIcon() succeeded unexpectedly")
+			uc, userRepo, fileRepo := newRegisterIconUsecase(t)
+			cap := &registerIconCaptures{}
+			if tt.setup != nil {
+				tt.setup(t, userRepo, fileRepo, cap)
 			}
 
+			gotErr := uc.UploadIcon(tt.userID, tt.filename, tt.content)
+			assertUsecaseErr(t, gotErr, tt.wantErr, tt.errContains, "UploadIcon")
+			if t.Failed() {
+				return
+			}
 			if tt.assertFn != nil {
-				fileRepo, okFile := tt.fileRepo.(*stab.UploadFileRepository)
-				userRepo, okUser := tt.userRepo.(*stab.UserRepository)
-				require.True(t, okFile && okUser)
-				tt.assertFn(t, fileRepo, userRepo)
+				tt.assertFn(t, cap)
 			}
 		})
 	}
-}
-
-func assertUUIDFilename(t *testing.T, filename, ext string) {
-	t.Helper()
-	require.True(t, strings.HasSuffix(filename, ext), "filename %q should end with %q", filename, ext)
-	id, err := uuid.Parse(strings.TrimSuffix(filename, ext))
-	require.NoError(t, err)
-	assert.NotEqual(t, uuid.Nil, id)
 }

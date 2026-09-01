@@ -1,5 +1,7 @@
 package repository_interface
 
+//go:generate mockgen -typed -source=$GOFILE -destination=mock/mock_$GOFILE -package=mock
+
 type BaseUnScopedRepository[T any] interface {
 	// [Unscoped] Is exists record
 	UExists(query string, args ...any) (bool, error)

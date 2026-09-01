@@ -1,5 +1,7 @@
 package repository_interface
 
+//go:generate mockgen -typed -source=$GOFILE -destination=mock/mock_$GOFILE -package=mock
+
 import (
 	"growlink/internal/domain/entity"
 	"time"
