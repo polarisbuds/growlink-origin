@@ -121,7 +121,7 @@ func (c *MockMeetingRepositoryGetBetweenDatesCall) DoAndReturn(f func(time.Time,
 }
 
 // GetByID mocks base method.
-func (m *MockMeetingRepository) GetByID(id int64) (*entity.Meeting, error) {
+func (m *MockMeetingRepository) GetByID(id uint) (*entity.Meeting, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetByID", id)
 	ret0, _ := ret[0].(*entity.Meeting)
@@ -148,13 +148,13 @@ func (c *MockMeetingRepositoryGetByIDCall) Return(arg0 *entity.Meeting, arg1 err
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockMeetingRepositoryGetByIDCall) Do(f func(int64) (*entity.Meeting, error)) *MockMeetingRepositoryGetByIDCall {
+func (c *MockMeetingRepositoryGetByIDCall) Do(f func(uint) (*entity.Meeting, error)) *MockMeetingRepositoryGetByIDCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockMeetingRepositoryGetByIDCall) DoAndReturn(f func(int64) (*entity.Meeting, error)) *MockMeetingRepositoryGetByIDCall {
+func (c *MockMeetingRepositoryGetByIDCall) DoAndReturn(f func(uint) (*entity.Meeting, error)) *MockMeetingRepositoryGetByIDCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }

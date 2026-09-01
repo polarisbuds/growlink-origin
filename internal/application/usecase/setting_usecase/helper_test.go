@@ -13,7 +13,7 @@ import (
 	"gorm.io/gorm"
 )
 
-const validUserID int64 = 10
+const validUserID uint = 10
 
 var (
 	errUserNotFound      = errors.New("user not found")
@@ -23,7 +23,7 @@ var (
 	errDeleteFailed      = errors.New("delete failed")
 )
 
-func newTestUser(id int64, imageURI *string) *entity.User {
+func newTestUser(id uint, imageURI *string) *entity.User {
 	return &entity.User{
 		Model:    gorm.Model{ID: uint(id)},
 		Name:     "icon-user",

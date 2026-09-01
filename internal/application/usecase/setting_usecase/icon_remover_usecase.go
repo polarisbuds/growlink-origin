@@ -20,7 +20,7 @@ func NewIconRemoverUsecase(
 	}
 }
 
-func (uc *IconRemoverUsecase) RemoveIcon(userID int64) error {
+func (uc *IconRemoverUsecase) RemoveIcon(userID uint) error {
 	user, err := uc.userRepository.GetByID(userID)
 	if err != nil {
 		return fmt.Errorf("ユーザアイコンの削除処理で存在しないユーザIDが指定されました: %w", err)

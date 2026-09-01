@@ -85,9 +85,9 @@ func (b *MeetingBuilder) Create() *entity.Meeting {
 
 	meeting := &entity.Meeting{
 		ImplementedAt: implementedAt,
-		StatusID:      int64(status.ID),
-		TemplateID:    int64(template.ID),
-		PairingID:     int64(pairing.ID),
+		StatusID:      status.ID,
+		TemplateID:    template.ID,
+		PairingID:     pairing.ID,
 	}
 	if b.meetingUUID != nil {
 		meeting.UUID = *b.meetingUUID

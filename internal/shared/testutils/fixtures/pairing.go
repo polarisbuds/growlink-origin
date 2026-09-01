@@ -16,8 +16,8 @@ func createPairing(t *testing.T, tx *gorm.DB) *entity.Pairing {
 	mentee := createUser(t, tx, "mentee")
 
 	pairing := &entity.Pairing{
-		MentorID: int64(mentor.ID),
-		MenteeID: int64(mentee.ID),
+		MentorID: mentor.ID,
+		MenteeID: mentee.ID,
 	}
 	if err := tx.Create(pairing).Error; err != nil {
 		t.Fatalf("failed to create pairing fixture: %v", err)

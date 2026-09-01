@@ -25,8 +25,8 @@ func createReadCommentable(t *testing.T, tx *gorm.DB, meeting *entity.Meeting, u
 	}
 
 	readCommentable := &entity.ReadCommentable{
-		MeetingID: int64(meeting.ID),
-		UserID:    int64(user.ID),
+		MeetingID: meeting.ID,
+		UserID:    user.ID,
 	}
 	if err := tx.Create(readCommentable).Error; err != nil {
 		t.Fatalf("failed to create read commentable fixture: %v", err)

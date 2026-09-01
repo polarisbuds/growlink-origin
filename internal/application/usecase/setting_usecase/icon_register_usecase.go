@@ -25,7 +25,7 @@ func NewIconRegisterUsecase(
 	}
 }
 
-func (uc *IconRegisterUsecase) RegistIcon(userID int64, name string, content io.Reader) error {
+func (uc *IconRegisterUsecase) RegistIcon(userID uint, name string, content io.Reader) error {
 	user, err := uc.userRepository.GetByID(userID)
 	if err != nil {
 		return fmt.Errorf("ユーザアイコンのアップロードで存在しないユーザIDが指定されました: %w", err)

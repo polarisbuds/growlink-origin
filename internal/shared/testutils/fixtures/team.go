@@ -28,8 +28,7 @@ func createTeam(t *testing.T, tx *gorm.DB) *entity.Team {
 	department := createDepartment(t, tx, "team")
 	team := &entity.Team{
 		Name:         fmt.Sprintf("team-%d", time.Now().UnixNano()),
-		DepartmentID: int64(department.ID),
-	}
+		DepartmentID: department.ID}
 	if err := tx.Create(team).Error; err != nil {
 		t.Fatalf("failed to create team fixture: %v", err)
 	}
@@ -48,8 +47,8 @@ func createTeamMember(t *testing.T, tx *gorm.DB, team *entity.Team, member *enti
 	}
 
 	teamMember := &entity.TeamMember{
-		TeamID:   int64(team.ID),
-		MemberID: int64(member.ID),
+		TeamID:   team.ID,
+		MemberID: member.ID,
 	}
 	if err := tx.Create(teamMember).Error; err != nil {
 		t.Fatalf("failed to create team member fixture: %v", err)

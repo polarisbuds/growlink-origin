@@ -42,9 +42,9 @@ func createUserRelationship(t *testing.T, tx *gorm.DB) *entity.UserRelationship 
 	targetUser := createUser(t, tx, "target")
 
 	relationship := &entity.UserRelationship{
-		RelationTypeID: int64(relationType.ID),
-		SourceUserID:   int64(sourceUser.ID),
-		TargetUserID:   int64(targetUser.ID),
+		RelationTypeID: relationType.ID,
+		SourceUserID:   sourceUser.ID,
+		TargetUserID:   targetUser.ID,
 	}
 	if err := tx.Create(relationship).Error; err != nil {
 		t.Fatalf("failed to create user relationship fixture: %v", err)

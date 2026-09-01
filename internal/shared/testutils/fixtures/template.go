@@ -17,7 +17,7 @@ func createTemplate(t *testing.T, tx *gorm.DB) *entity.Template {
 	user := createUser(t, tx, "template-owner")
 	template := &entity.Template{
 		Title:  fmt.Sprintf("template-%d", time.Now().UnixNano()),
-		UserID: int64(user.ID),
+		UserID: user.ID,
 	}
 	if err := tx.Create(template).Error; err != nil {
 		t.Fatalf("failed to create template fixture: %v", err)
@@ -34,7 +34,7 @@ func createTopic(t *testing.T, tx *gorm.DB, template *entity.Template) *entity.T
 		DisplayNo:  1,
 		Question:   "test question",
 		IsRequire:  true,
-		TemplateID: int64(template.ID),
+		TemplateID: template.ID,
 	}
 	if err := tx.Create(topic).Error; err != nil {
 		t.Fatalf("failed to create topic fixture: %v", err)

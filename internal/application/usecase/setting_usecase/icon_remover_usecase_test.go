@@ -39,7 +39,7 @@ func TestIconRemoverUsecase_IconRemover(t *testing.T) {
 
 	tests := []struct {
 		name        string
-		userID      int64
+		userID      uint
 		wantErr     bool
 		errContains string
 		setup       iconRemoverSetupFn
@@ -192,21 +192,7 @@ func TestIconRemoverUsecase_IconRemover(t *testing.T) {
 			wantErr:     true,
 			errContains: "ユーザアイコンの削除処理で存在しないユーザIDが指定されました",
 			setup: func(_ *testing.T, user *repomock.MockUserRepository, _ *repomock.MockUploadFileRepository, _ *iconRemoverCaptures) {
-				user.EXPECT().GetByID(int64(0)).Return(nil, errors.New("invalid user id"))
-			},
-			assertFn: func(t *testing.T, cap *iconRemoverCaptures) {
-				t.Helper()
-				assert.Empty(t, cap.existsNames)
-				assert.Nil(t, cap.updatedUser)
-			},
-		},
-		{
-			name:        "不正値_ユーザIDが負数",
-			userID:      -1,
-			wantErr:     true,
-			errContains: "ユーザアイコンの削除処理で存在しないユーザIDが指定されました",
-			setup: func(_ *testing.T, user *repomock.MockUserRepository, _ *repomock.MockUploadFileRepository, _ *iconRemoverCaptures) {
-				user.EXPECT().GetByID(int64(-1)).Return(nil, errors.New("invalid user id"))
+				user.EXPECT().GetByID(uint(0)).Return(nil, errors.New("invalid user id"))
 			},
 			assertFn: func(t *testing.T, cap *iconRemoverCaptures) {
 				t.Helper()

@@ -21,8 +21,8 @@ func createHistory(t *testing.T, tx *gorm.DB) *entity.History {
 	event := createEvent(t, tx, "history")
 
 	history := &entity.History{
-		UserID:  int64(user.ID),
-		EventID: int64(event.ID),
+		UserID:  user.ID,
+		EventID: event.ID,
 	}
 	if err := tx.Create(history).Error; err != nil {
 		t.Fatalf("failed to create history fixture: %v", err)

@@ -36,9 +36,9 @@ func createAnswer(t *testing.T, tx *gorm.DB, meeting *entity.Meeting, topic *ent
 
 	answer := &entity.Answer{
 		Content:   "test answer",
-		MeetingID: int64(meeting.ID),
-		TopicID:   int64(topic.ID),
-		UserID:    int64(user.ID),
+		MeetingID: meeting.ID,
+		TopicID:   topic.ID,
+		UserID:    user.ID,
 	}
 	if err := tx.Create(answer).Error; err != nil {
 		t.Fatalf("failed to create answer fixture: %v", err)
@@ -62,8 +62,8 @@ func createAnswerComment(t *testing.T, tx *gorm.DB, answer *entity.Answer, user 
 	commentContent := "answer comment"
 	answerComment := &entity.AnswerComment{
 		Content:  &commentContent,
-		AnswerID: int64(answer.ID),
-		UserID:   int64(user.ID),
+		AnswerID: answer.ID,
+		UserID:   user.ID,
 	}
 	if err := tx.Create(answerComment).Error; err != nil {
 		t.Fatalf("failed to create answer comment fixture: %v", err)

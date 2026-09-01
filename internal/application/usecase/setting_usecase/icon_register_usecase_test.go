@@ -41,7 +41,7 @@ func newIconRegisterUsecase(t *testing.T) (
 func TestIconRegisterUsecase_RegistIcon(t *testing.T) {
 	tests := []struct {
 		name        string
-		userID      int64
+		userID      uint
 		filename    string
 		content     io.Reader
 		wantErr     bool
@@ -234,17 +234,6 @@ func TestIconRegisterUsecase_RegistIcon(t *testing.T) {
 			errContains: "ユーザアイコンのアップロードで存在しないユーザIDが指定されました",
 			setup: func(_ *testing.T, user *repomock.MockUserRepository, _ *repomock.MockUploadFileRepository, _ *iconRegisterCaptures) {
 				user.EXPECT().GetByID(int64(0)).Return(nil, errors.New("invalid user id"))
-			},
-		},
-		{
-			name:        "不正値_ユーザIDが負数",
-			userID:      -1,
-			filename:    "avatar.png",
-			content:     strings.NewReader("png-bytes"),
-			wantErr:     true,
-			errContains: "ユーザアイコンのアップロードで存在しないユーザIDが指定されました",
-			setup: func(_ *testing.T, user *repomock.MockUserRepository, _ *repomock.MockUploadFileRepository, _ *iconRegisterCaptures) {
-				user.EXPECT().GetByID(int64(-1)).Return(nil, errors.New("invalid user id"))
 			},
 		},
 		{

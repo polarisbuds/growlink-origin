@@ -27,8 +27,8 @@ func createMeetingComment(t *testing.T, tx *gorm.DB, meeting *entity.Meeting, us
 	meetingCommentContent := "meeting comment"
 	meetingComment := &entity.MeetingComment{
 		Content:   &meetingCommentContent,
-		MeetingID: int64(meeting.ID),
-		UserID:    int64(user.ID),
+		MeetingID: meeting.ID,
+		UserID:    user.ID,
 	}
 	if err := tx.Create(meetingComment).Error; err != nil {
 		t.Fatalf("failed to create meeting comment fixture: %v", err)

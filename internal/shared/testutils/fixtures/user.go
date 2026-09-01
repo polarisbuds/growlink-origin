@@ -27,9 +27,9 @@ func createUser(t *testing.T, tx *gorm.DB, prefix string) *entity.User {
 	user := &entity.User{
 		Name:         fmt.Sprintf("%s-name", prefix),
 		Email:        fmt.Sprintf("%s-%d@example.com", prefix, time.Now().UnixNano()),
-		RoleID:       int64(role.ID),
-		DepartmentID: int64(department.ID),
-		AuthorityID:  int64(authority.ID),
+		RoleID:       role.ID,
+		DepartmentID: department.ID,
+		AuthorityID:  authority.ID,
 	}
 	if err := tx.Create(user).Error; err != nil {
 		t.Fatalf("failed to create user fixture: %v", err)
