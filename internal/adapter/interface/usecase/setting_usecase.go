@@ -5,12 +5,12 @@ package usecase_interface
 import "io"
 
 type SettingUsecase interface {
-	IconUploader
+	IconRegister
 	IconRemover
 }
 
-type IconUploader interface {
-	UploadIcon(userID int64, name string, content io.Reader) error
+type IconRegister interface {
+	RegistIcon(userID int64, name string, content io.Reader) error
 }
 
 type IconRemover interface {

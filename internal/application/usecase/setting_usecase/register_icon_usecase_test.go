@@ -38,7 +38,7 @@ func newRegisterIconUsecase(t *testing.T) (
 	return setting_usecase.NewRegisterIconUsecase(fileRepo, userRepo), userRepo, fileRepo
 }
 
-func TestRegisterIconUsecase_UploadIcon(t *testing.T) {
+func TestRegisterIconUsecase_RegistIcon(t *testing.T) {
 	tests := []struct {
 		name        string
 		userID      int64
@@ -322,7 +322,7 @@ func TestRegisterIconUsecase_UploadIcon(t *testing.T) {
 				tt.setup(t, userRepo, fileRepo, cap)
 			}
 
-			gotErr := uc.UploadIcon(tt.userID, tt.filename, tt.content)
+			gotErr := uc.RegistIcon(tt.userID, tt.filename, tt.content)
 			assertUsecaseErr(t, gotErr, tt.wantErr, tt.errContains, "UploadIcon")
 			if t.Failed() {
 				return
