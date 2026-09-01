@@ -1,6 +1,6 @@
 package ldap_interface
 
-//go:generate mockgen -typed -source=$GOFILE -destination=mock/mock_$GOFILE -package=mock
+//go:generate go tool mockgen -typed -source=$GOFILE -destination=mock/mock_$GOFILE -package=mock
 
 import ldap_entity "growlink/internal/domain/entity/ldap"
 

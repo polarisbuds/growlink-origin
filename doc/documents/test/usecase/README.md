@@ -89,7 +89,7 @@ go test -v -count=1 ./internal/application/usecase/setting_usecase/ -run "TestRe
 ```go
 package repository_interface
 
-//go:generate mockgen -typed -source=$GOFILE -destination=mock/mock_$GOFILE -package=mock
+//go:generate go tool mockgen -typed -source=$GOFILE -destination=mock/mock_$GOFILE -package=mock
 
 import "growlink/internal/domain/entity"
 
@@ -117,7 +117,12 @@ type UserRepository interface {
 go generate ./internal/domain/interface/... ./internal/adapter/interface/...
 ```
 
-`tools.go`（`//go:build tools`）で `go.uber.org/mock/mockgen` をツール依存としてピン留めしています。
+`mockgen` は `go.mod` の `tool` ディレクティブでピン留めします（`go get -tool go.uber.org/mock/mockgen`）。  
+`//go:generate` は PATH 上の `mockgen` ではなく `go tool mockgen` を呼びます。
+
+```
+tool go.uber.org/mock/mockgen
+```
 
 ### 5.3 インターフェースを変更したとき
 
@@ -337,7 +342,7 @@ Repository テスト用の `assertions.NotFound` などは、GORM エラー向�
 ## 12. 新規 Usecase テストを足すときのチェックリスト
 
 1. [ ] パッケージは `<usecaseパッケージ>_test`
-2. [ ] 依存インターフェースに `go:generate mockgen` がある
+2. [ ] 依存インターフェースに `go:generate go tool mockgen` がある
 3. [ ] `go generate` 後の `mock/` がコミットされている
 4. [ ] テストファイル内に `newXxxUsecase(t)` がある（ファイルをまたがない）
 5. [ ] `helper_test.go` にはモック非依存の共通部品だけ置いている
@@ -360,7 +365,7 @@ Repository テスト用の `assertions.NotFound` などは、GORM エラー向�
 | 生成モック | `internal/domain/interface/**/mock/` |
 | Usecase テスト | `internal/application/usecase/<領域>/*_usecase_test.go` |
 | テスト共通ヘルパー | `internal/application/usecase/<領域>/helper_test.go` |
-| mockgen ツール依存 | `tools.go` |
+| mockgen ツール依存 | `go.mod` の `tool go.uber.org/mock/mockgen` |
 | DB fixture（使わない） | `internal/shared/testutils/fixtures` |
 | Repository 統合テスト | `internal/infrastructure/repository/` |
 
@@ -377,7 +382,7 @@ internal/
   adapter/interface/usecase/
     setting_usecase.go                 ← go:generate
     mock/mock_setting_usecase.go
-tools.go                               ← mockgen ピン留め
+go.mod                                 ← tool go.uber.org/mock/mockgen
 ```
 
 ---
@@ -397,6 +402,6 @@ tools.go                               ← mockgen ピン留め
 | 共通ヘルパー | `internal/application/usecase/setting_usecase/helper_test.go` | `newTestUser`、`assertUsecaseErr`、`assertUUIDFilename` |
 | 生成モック | `internal/domain/interface/repository/mock/mock_user_repository.go` | `MockUserRepository`、`NewMockUserRepository` |
 | 生成モック | `internal/domain/interface/repository/mock/mock_upload_file_repository.go` | `MockUploadFileRepository`、typed EXPECT |
-| インターフェース | `internal/domain/interface/repository/user_repository.go` | `go:generate mockgen` コメント |
-| ツール依存 | `tools.go` | `go.uber.org/mock/mockgen` のピン留め |
+| インターフェース | `internal/domain/interface/repository/user_repository.go` | `go:generate go tool mockgen` コメント |
+| ツール依存 | `go.mod` | `tool go.uber.org/mock/mockgen` |
 | Repository テストとの分担 | `doc/documents/test/repository/README.md` | Usecase の分岐は Repository テストでは扱わない、という境界 |

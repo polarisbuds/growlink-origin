@@ -76,3 +76,5 @@ require (
 	golang.org/x/time v0.14.0 // indirect
 	golang.org/x/tools v0.47.0 // indirect
 )
+
+tool go.uber.org/mock/mockgen
