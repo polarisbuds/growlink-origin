@@ -55,6 +55,6 @@ func TestBaseRepository_CRUD(t *testing.T) {
 	assertions.NoError(t, err)
 	assert.Equal(t, 1, deleted)
 
-	_, err = meetingRepo.GetByID(int64(toInsert.ID))
+	_, err = meetingRepo.GetByID(toInsert.ID)
 	assertions.NotFound(t, err)
 }

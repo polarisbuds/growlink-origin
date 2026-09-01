@@ -13,9 +13,9 @@ type Meeting struct {
 	UUID          uuid.UUID `gorm:"type:uuid;not null;uniqueIndex;default:gen_random_uuid()"`
 	ImplementedAt time.Time `gorm:"not null"`
 
-	StatusID   int64 `gorm:"not null;index"`
-	TemplateID int64 `gorm:"not null;index"`
-	PairingID  int64 `gorm:"not null;index"`
+	StatusID   uint `gorm:"not null;index"`
+	TemplateID uint `gorm:"not null;index"`
+	PairingID  uint `gorm:"not null;index"`
 
 	Status   *MeetingStatus `gorm:"foreignKey:StatusID"`
 	Template *Template      `gorm:"foreignKey:TemplateID"`

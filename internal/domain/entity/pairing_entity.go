@@ -10,8 +10,8 @@ type Pairing struct {
 
 	UUID uuid.UUID `gorm:"type:uuid;not null;uniqueIndex;default:gen_random_uuid()"`
 
-	MentorID int64 `gorm:"not null;index"`
-	MenteeID int64 `gorm:"not null;index"`
+	MentorID uint `gorm:"not null;index"`
+	MenteeID uint `gorm:"not null;index"`
 
 	Mentor *User `gorm:"foreignKey:MentorID"`
 	Mentee *User `gorm:"foreignKey:MenteeID"`

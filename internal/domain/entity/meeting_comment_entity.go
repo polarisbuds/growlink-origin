@@ -12,8 +12,8 @@ type MeetingComment struct {
 
 	Content *string `gorm:"type:text"`
 
-	MeetingID int64 `gorm:"not null;index"`
-	UserID    int64 `gorm:"not null;index"`
+	MeetingID uint `gorm:"not null;index"`
+	UserID    uint `gorm:"not null;index"`
 
 	Meeting *Meeting `gorm:"foreignKey:MeetingID"`
 	User    *User    `gorm:"foreignKey:UserID"`

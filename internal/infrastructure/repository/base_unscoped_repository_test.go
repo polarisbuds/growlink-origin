@@ -32,7 +32,7 @@ func TestBaseUnScopedRepository_SoftDelete(t *testing.T) {
 	assertions.NoError(t, err)
 	assert.Equal(t, 1, deleted)
 
-	_, err = meetingRepo.GetByID(int64(want.ID))
+	_, err = meetingRepo.GetByID(want.ID)
 	assertions.NotFound(t, err)
 
 	got, err := unscoped.UFirst("id DESC", "id = ?", want.ID)

@@ -11,7 +11,7 @@ type Team struct {
 	UUID uuid.UUID `gorm:"type:uuid;not null;uniqueIndex;default:gen_random_uuid()"`
 	Name string    `gorm:"type:text;not null"`
 
-	DepartmentID int64 `gorm:"not null;index"`
+	DepartmentID uint `gorm:"not null;index"`
 
 	Department *Department `gorm:"foreignKey:DepartmentID"`
 

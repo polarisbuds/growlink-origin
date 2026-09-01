@@ -39,7 +39,7 @@ func TestMeetingRepository_InsertAndGetByID(t *testing.T) {
 
 	want := fixtures.Meeting(t, tx).WithNestedPreloadGraph().Create()
 
-	got, err := repo.GetByID(int64(want.ID))
+	got, err := repo.GetByID(want.ID)
 	assertions.NoError(t, err)
 	assertions.RequireMeetingPreloaded(t, got, want)
 	assertions.RequireMeetingNestedPreload(t, got)
@@ -201,7 +201,7 @@ func TestMeetingRepository_TransactionRollbackIsolation(t *testing.T) {
 	repo := newMeetingRepo(t, tx)
 	want := fixtures.Meeting(t, tx).Create()
 
-	got, err := repo.GetByID(int64(want.ID))
+	got, err := repo.GetByID(want.ID)
 	assertions.NoError(t, err)
 	require.NotNil(t, got)
 
@@ -210,6 +210,6 @@ func TestMeetingRepository_TransactionRollbackIsolation(t *testing.T) {
 	otherTx := testutils.Begin(t)
 	otherRepo := newMeetingRepo(t, otherTx)
 
-	_, err = otherRepo.GetByID(int64(want.ID))
+	_, err = otherRepo.GetByID(want.ID)
 	assertions.NotFound(t, err)
 }

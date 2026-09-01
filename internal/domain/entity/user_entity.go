@@ -14,9 +14,9 @@ type User struct {
 	Password *string   `gorm:"type:text"`
 	ImageURI *string   `gorm:"type:text"`
 
-	RoleID       int64 `gorm:"not null;index"`
-	DepartmentID int64 `gorm:"not null;index"`
-	AuthorityID  int64 `gorm:"not null;index"`
+	RoleID       uint `gorm:"not null;index"`
+	DepartmentID uint `gorm:"not null;index"`
+	AuthorityID  uint `gorm:"not null;index"`
 
 	Role       *Role       `gorm:"foreignKey:RoleID"`
 	Department *Department `gorm:"foreignKey:DepartmentID"`

@@ -10,9 +10,9 @@ type UserRelationship struct {
 
 	UUID uuid.UUID `gorm:"type:uuid;not null;uniqueIndex;default:gen_random_uuid()"`
 
-	RelationTypeID int64 `gorm:"not null;index"`
-	SourceUserID   int64 `gorm:"not null;index"`
-	TargetUserID   int64 `gorm:"not null;index"`
+	RelationTypeID uint `gorm:"not null;index"`
+	SourceUserID   uint `gorm:"not null;index"`
+	TargetUserID   uint `gorm:"not null;index"`
 
 	RelationType *UserRelationshipType `gorm:"foreignKey:RelationTypeID;references:ID"`
 	SourceUser   *User                 `gorm:"foreignKey:SourceUserID;references:ID"`

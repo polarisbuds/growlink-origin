@@ -11,7 +11,7 @@ import (
 
 type MeetingRepository interface {
 	GetAll() ([]entity.Meeting, error)
-	GetByID(id int64) (*entity.Meeting, error)
+	GetByID(id uint) (*entity.Meeting, error)
 	GetByUUID(uuid uuid.UUID) (*entity.Meeting, error)
 
 	GetUntilToday(base time.Time) ([]entity.Meeting, error)

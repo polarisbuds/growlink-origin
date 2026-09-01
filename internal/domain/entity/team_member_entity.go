@@ -12,8 +12,8 @@ type TeamMember struct {
 
 	IsReader bool `gorm:"not null;default:false"`
 
-	TeamID   int64 `gorm:"not null;index"`
-	MemberID int64 `gorm:"not null;index"`
+	TeamID   uint `gorm:"not null;index"`
+	MemberID uint `gorm:"not null;index"`
 
 	Team   *Team `gorm:"foreignKey:TeamID"`
 	Member *User `gorm:"foreignKey:MemberID"`

@@ -36,7 +36,7 @@ func (repo *BaseRepository[T]) InsertInBatch(models []T, batchSize int) error {
 }
 
 func (repo *BaseRepository[T]) First(order, query string, args ...any) (*T, error) {
-	whereChain, err := repo.newChain(order, query, args...)
+	whereChain, err := repo.WhereChain(order, query, args...)
 	if err != nil {
 		return nil, err
 	}
@@ -48,7 +48,7 @@ func (repo *BaseRepository[T]) First(order, query string, args ...any) (*T, erro
 }
 
 func (repo *BaseRepository[T]) Where(order, query string, args ...any) ([]T, error) {
-	whereChain, err := repo.newChain(order, query, args...)
+	whereChain, err := repo.WhereChain(order, query, args...)
 	if err != nil {
 		return nil, err
 	}
@@ -58,7 +58,26 @@ func (repo *BaseRepository[T]) Where(order, query string, args ...any) ([]T, err
 	return whereChain.Find(repo.bctx)
 }
 
-func (repo *BaseRepository[T]) newChain(order, query string, args ...any) (gorm.ChainInterface[T], error) {
+func (repo *BaseRepository[T]) WhereInBatch(batchSize int, order, query string, args ...any) ([]T, error) {
+	whereChain, err := repo.WhereChain(order, query, args...)
+	if err != nil {
+		return nil, err
+	}
+	if whereChain == nil {
+		return nil, nil
+	}
+
+	result := []T{}
+	if err := whereChain.FindInBatches(repo.bctx, batchSize, func(data []T, batch int) error {
+		result = append(result, data...)
+		return nil
+	}); err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+func (repo *BaseRepository[T]) WhereChain(order, query string, args ...any) (gorm.ChainInterface[T], error) {
 	exists, err := repo.Exists(query, args...)
 	if err != nil {
 		return nil, fmt.Errorf("レコードの参照で問題が発生しました: %w", err)

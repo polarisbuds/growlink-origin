@@ -13,7 +13,7 @@ type Topic struct {
 	Question  string    `gorm:"type:text;not null"`
 	IsRequire bool      `gorm:"not null"`
 
-	TemplateID int64 `gorm:"not null;index"`
+	TemplateID uint `gorm:"not null;index"`
 
 	Template *Template `gorm:"foreignKey:TemplateID"`
 

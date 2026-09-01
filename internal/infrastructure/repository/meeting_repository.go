@@ -66,7 +66,7 @@ func (repo *MeetingRepository) GetAll() ([]entity.Meeting, error) {
 	return meetings, nil
 }
 
-func (repo *MeetingRepository) GetByID(id int64) (*entity.Meeting, error) {
+func (repo *MeetingRepository) GetByID(id uint) (*entity.Meeting, error) {
 	meeting, err := preloadAll(gorm.G[entity.Meeting](repo.baseRepository.dp).Order("id DESC")).
 		Where("id = ?", id).
 		First(repo.ctx)

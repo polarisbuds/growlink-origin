@@ -12,8 +12,8 @@ type AnswerComment struct {
 
 	Content *string `gorm:"type:text"`
 
-	AnswerID int64 `gorm:"not null;index"`
-	UserID   int64 `gorm:"not null;index"`
+	AnswerID uint `gorm:"not null;index"`
+	UserID   uint `gorm:"not null;index"`
 
 	Answer *Answer `gorm:"foreignKey:AnswerID"`
 	User   *User   `gorm:"foreignKey:UserID"`

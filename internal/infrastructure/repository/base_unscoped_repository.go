@@ -28,7 +28,7 @@ func (repo *BaseUnScopedRepository[T]) UExists(query string, args ...any) (bool,
 }
 
 func (repo *BaseUnScopedRepository[T]) UFirst(order, query string, args ...any) (*T, error) {
-	whereChain, err := repo.newUChain(order, query, args...)
+	whereChain, err := repo.UWhereChain(order, query, args...)
 	if err != nil {
 		return nil, err
 	}
@@ -40,7 +40,7 @@ func (repo *BaseUnScopedRepository[T]) UFirst(order, query string, args ...any) 
 }
 
 func (repo *BaseUnScopedRepository[T]) UWhere(order, query string, args ...any) ([]T, error) {
-	whereChain, err := repo.newUChain(order, query, args...)
+	whereChain, err := repo.UWhereChain(order, query, args...)
 	if err != nil {
 		return nil, err
 	}
@@ -50,7 +50,26 @@ func (repo *BaseUnScopedRepository[T]) UWhere(order, query string, args ...any) 
 	return whereChain.Find(repo.uctx)
 }
 
-func (repo *BaseUnScopedRepository[T]) newUChain(order, query string, args ...any) (gorm.ChainInterface[T], error) {
+func (repo *BaseUnScopedRepository[T]) UWhereInBatch(batchSize int, order, query string, args ...any) ([]T, error) {
+	whereChain, err := repo.UWhereChain(order, query, args...)
+	if err != nil {
+		return nil, err
+	}
+	if whereChain == nil {
+		return nil, nil
+	}
+
+	result := []T{}
+	if err := whereChain.FindInBatches(repo.uctx, batchSize, func(data []T, batch int) error {
+		result = append(result, data...)
+		return nil
+	}); err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+func (repo *BaseUnScopedRepository[T]) UWhereChain(order, query string, args ...any) (gorm.ChainInterface[T], error) {
 	exists, err := repo.UExists(query, args...)
 	if err != nil {
 		return nil, fmt.Errorf("レコードの参照で問題が発生しました: %w", err)
