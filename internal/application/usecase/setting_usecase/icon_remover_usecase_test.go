@@ -13,17 +13,17 @@ import (
 	"go.uber.org/mock/gomock"
 )
 
-type removeIconCaptures struct {
+type iconRemoverCaptures struct {
 	existsNames     []string
 	deleteFileNames []string
 	updatedUser     *entity.User
 }
 
-type removeIconSetupFn func(t *testing.T, user *repomock.MockUserRepository, file *repomock.MockUploadFileRepository, cap *removeIconCaptures)
-type removeIconAssertFn func(t *testing.T, cap *removeIconCaptures)
+type iconRemoverSetupFn func(t *testing.T, user *repomock.MockUserRepository, file *repomock.MockUploadFileRepository, cap *iconRemoverCaptures)
+type iconRemoverAssertFn func(t *testing.T, cap *iconRemoverCaptures)
 
-func newRemoveIconUsecase(t *testing.T) (
-	*setting_usecase.RemoveIconUsecase,
+func newIconRemoverUsecase(t *testing.T) (
+	*setting_usecase.IconRemoverUsecase,
 	*repomock.MockUserRepository,
 	*repomock.MockUploadFileRepository,
 ) {
@@ -31,10 +31,10 @@ func newRemoveIconUsecase(t *testing.T) (
 	ctrl := gomock.NewController(t)
 	userRepo := repomock.NewMockUserRepository(ctrl)
 	fileRepo := repomock.NewMockUploadFileRepository(ctrl)
-	return setting_usecase.NewRemoveIconUsecase(fileRepo, userRepo), userRepo, fileRepo
+	return setting_usecase.NewIconRemoverUsecase(fileRepo, userRepo), userRepo, fileRepo
 }
 
-func TestRemoveIconUsecase_RemoveIcon(t *testing.T) {
+func TestIconRemoverUsecase_IconRemover(t *testing.T) {
 	existingIcon := "current-icon.png"
 
 	tests := []struct {
@@ -42,14 +42,14 @@ func TestRemoveIconUsecase_RemoveIcon(t *testing.T) {
 		userID      int64
 		wantErr     bool
 		errContains string
-		setup       removeIconSetupFn
-		assertFn    removeIconAssertFn
+		setup       iconRemoverSetupFn
+		assertFn    iconRemoverAssertFn
 	}{
 		{
 			name:    "通常系_既存アイコンあり_ファイルも存在する",
 			userID:  validUserID,
 			wantErr: false,
-			setup: func(_ *testing.T, user *repomock.MockUserRepository, file *repomock.MockUploadFileRepository, cap *removeIconCaptures) {
+			setup: func(_ *testing.T, user *repomock.MockUserRepository, file *repomock.MockUploadFileRepository, cap *iconRemoverCaptures) {
 				user.EXPECT().GetByID(validUserID).Return(newTestUser(validUserID, &existingIcon), nil)
 				file.EXPECT().Exists(existingIcon).DoAndReturn(func(name string) (bool, error) {
 					cap.existsNames = append(cap.existsNames, name)
@@ -64,7 +64,7 @@ func TestRemoveIconUsecase_RemoveIcon(t *testing.T) {
 					return nil
 				})
 			},
-			assertFn: func(t *testing.T, cap *removeIconCaptures) {
+			assertFn: func(t *testing.T, cap *iconRemoverCaptures) {
 				t.Helper()
 				require.Equal(t, []string{existingIcon}, cap.existsNames)
 				require.Equal(t, []string{existingIcon}, cap.deleteFileNames)
@@ -76,7 +76,7 @@ func TestRemoveIconUsecase_RemoveIcon(t *testing.T) {
 			name:    "通常系_既存アイコンあり_ファイルが存在しない",
 			userID:  validUserID,
 			wantErr: false,
-			setup: func(_ *testing.T, user *repomock.MockUserRepository, file *repomock.MockUploadFileRepository, cap *removeIconCaptures) {
+			setup: func(_ *testing.T, user *repomock.MockUserRepository, file *repomock.MockUploadFileRepository, cap *iconRemoverCaptures) {
 				user.EXPECT().GetByID(validUserID).Return(newTestUser(validUserID, &existingIcon), nil)
 				file.EXPECT().Exists(existingIcon).DoAndReturn(func(name string) (bool, error) {
 					cap.existsNames = append(cap.existsNames, name)
@@ -87,7 +87,7 @@ func TestRemoveIconUsecase_RemoveIcon(t *testing.T) {
 					return nil
 				})
 			},
-			assertFn: func(t *testing.T, cap *removeIconCaptures) {
+			assertFn: func(t *testing.T, cap *iconRemoverCaptures) {
 				t.Helper()
 				require.Equal(t, []string{existingIcon}, cap.existsNames)
 				assert.Empty(t, cap.deleteFileNames)
@@ -99,14 +99,14 @@ func TestRemoveIconUsecase_RemoveIcon(t *testing.T) {
 			name:    "通常系_アイコン未設定",
 			userID:  validUserID,
 			wantErr: false,
-			setup: func(_ *testing.T, user *repomock.MockUserRepository, _ *repomock.MockUploadFileRepository, cap *removeIconCaptures) {
+			setup: func(_ *testing.T, user *repomock.MockUserRepository, _ *repomock.MockUploadFileRepository, cap *iconRemoverCaptures) {
 				user.EXPECT().GetByID(validUserID).Return(newTestUser(validUserID, nil), nil)
 				user.EXPECT().UpdateByID(gomock.Any()).DoAndReturn(func(u *entity.User) error {
 					cap.updatedUser = u
 					return nil
 				})
 			},
-			assertFn: func(t *testing.T, cap *removeIconCaptures) {
+			assertFn: func(t *testing.T, cap *iconRemoverCaptures) {
 				t.Helper()
 				assert.Empty(t, cap.existsNames)
 				assert.Empty(t, cap.deleteFileNames)
@@ -119,10 +119,10 @@ func TestRemoveIconUsecase_RemoveIcon(t *testing.T) {
 			userID:      validUserID,
 			wantErr:     true,
 			errContains: "ユーザアイコンの削除処理で存在しないユーザIDが指定されました",
-			setup: func(_ *testing.T, user *repomock.MockUserRepository, _ *repomock.MockUploadFileRepository, _ *removeIconCaptures) {
+			setup: func(_ *testing.T, user *repomock.MockUserRepository, _ *repomock.MockUploadFileRepository, _ *iconRemoverCaptures) {
 				user.EXPECT().GetByID(validUserID).Return(nil, errUserNotFound)
 			},
-			assertFn: func(t *testing.T, cap *removeIconCaptures) {
+			assertFn: func(t *testing.T, cap *iconRemoverCaptures) {
 				t.Helper()
 				assert.Empty(t, cap.existsNames)
 				assert.Empty(t, cap.deleteFileNames)
@@ -134,14 +134,14 @@ func TestRemoveIconUsecase_RemoveIcon(t *testing.T) {
 			userID:      validUserID,
 			wantErr:     true,
 			errContains: "削除対象のイメージファイルの存在チェックに失敗しました",
-			setup: func(_ *testing.T, user *repomock.MockUserRepository, file *repomock.MockUploadFileRepository, cap *removeIconCaptures) {
+			setup: func(_ *testing.T, user *repomock.MockUserRepository, file *repomock.MockUploadFileRepository, cap *iconRemoverCaptures) {
 				user.EXPECT().GetByID(validUserID).Return(newTestUser(validUserID, &existingIcon), nil)
 				file.EXPECT().Exists(existingIcon).DoAndReturn(func(name string) (bool, error) {
 					cap.existsNames = append(cap.existsNames, name)
 					return false, errExistsCheckFailed
 				})
 			},
-			assertFn: func(t *testing.T, cap *removeIconCaptures) {
+			assertFn: func(t *testing.T, cap *iconRemoverCaptures) {
 				t.Helper()
 				require.Equal(t, []string{existingIcon}, cap.existsNames)
 				assert.Empty(t, cap.deleteFileNames)
@@ -153,7 +153,7 @@ func TestRemoveIconUsecase_RemoveIcon(t *testing.T) {
 			userID:      validUserID,
 			wantErr:     true,
 			errContains: "削除対象のイメージファイルの削除に失敗しました",
-			setup: func(_ *testing.T, user *repomock.MockUserRepository, file *repomock.MockUploadFileRepository, cap *removeIconCaptures) {
+			setup: func(_ *testing.T, user *repomock.MockUserRepository, file *repomock.MockUploadFileRepository, cap *iconRemoverCaptures) {
 				user.EXPECT().GetByID(validUserID).Return(newTestUser(validUserID, &existingIcon), nil)
 				file.EXPECT().Exists(existingIcon).Return(true, nil)
 				file.EXPECT().DeleteFile(existingIcon).DoAndReturn(func(name string) error {
@@ -161,7 +161,7 @@ func TestRemoveIconUsecase_RemoveIcon(t *testing.T) {
 					return errDeleteFailed
 				})
 			},
-			assertFn: func(t *testing.T, cap *removeIconCaptures) {
+			assertFn: func(t *testing.T, cap *iconRemoverCaptures) {
 				t.Helper()
 				require.Equal(t, []string{existingIcon}, cap.deleteFileNames)
 				assert.Nil(t, cap.updatedUser)
@@ -172,7 +172,7 @@ func TestRemoveIconUsecase_RemoveIcon(t *testing.T) {
 			userID:      validUserID,
 			wantErr:     true,
 			errContains: "ユーザデータの更新（ユーザアイコン）に失敗しました",
-			setup: func(_ *testing.T, user *repomock.MockUserRepository, file *repomock.MockUploadFileRepository, cap *removeIconCaptures) {
+			setup: func(_ *testing.T, user *repomock.MockUserRepository, file *repomock.MockUploadFileRepository, cap *iconRemoverCaptures) {
 				user.EXPECT().GetByID(validUserID).Return(newTestUser(validUserID, &existingIcon), nil)
 				file.EXPECT().Exists(existingIcon).Return(true, nil)
 				file.EXPECT().DeleteFile(existingIcon).DoAndReturn(func(name string) error {
@@ -181,7 +181,7 @@ func TestRemoveIconUsecase_RemoveIcon(t *testing.T) {
 				})
 				user.EXPECT().UpdateByID(gomock.Any()).Return(errUpdateFailed)
 			},
-			assertFn: func(t *testing.T, cap *removeIconCaptures) {
+			assertFn: func(t *testing.T, cap *iconRemoverCaptures) {
 				t.Helper()
 				require.Equal(t, []string{existingIcon}, cap.deleteFileNames)
 			},
@@ -191,10 +191,10 @@ func TestRemoveIconUsecase_RemoveIcon(t *testing.T) {
 			userID:      0,
 			wantErr:     true,
 			errContains: "ユーザアイコンの削除処理で存在しないユーザIDが指定されました",
-			setup: func(_ *testing.T, user *repomock.MockUserRepository, _ *repomock.MockUploadFileRepository, _ *removeIconCaptures) {
+			setup: func(_ *testing.T, user *repomock.MockUserRepository, _ *repomock.MockUploadFileRepository, _ *iconRemoverCaptures) {
 				user.EXPECT().GetByID(int64(0)).Return(nil, errors.New("invalid user id"))
 			},
-			assertFn: func(t *testing.T, cap *removeIconCaptures) {
+			assertFn: func(t *testing.T, cap *iconRemoverCaptures) {
 				t.Helper()
 				assert.Empty(t, cap.existsNames)
 				assert.Nil(t, cap.updatedUser)
@@ -205,10 +205,10 @@ func TestRemoveIconUsecase_RemoveIcon(t *testing.T) {
 			userID:      -1,
 			wantErr:     true,
 			errContains: "ユーザアイコンの削除処理で存在しないユーザIDが指定されました",
-			setup: func(_ *testing.T, user *repomock.MockUserRepository, _ *repomock.MockUploadFileRepository, _ *removeIconCaptures) {
+			setup: func(_ *testing.T, user *repomock.MockUserRepository, _ *repomock.MockUploadFileRepository, _ *iconRemoverCaptures) {
 				user.EXPECT().GetByID(int64(-1)).Return(nil, errors.New("invalid user id"))
 			},
-			assertFn: func(t *testing.T, cap *removeIconCaptures) {
+			assertFn: func(t *testing.T, cap *iconRemoverCaptures) {
 				t.Helper()
 				assert.Empty(t, cap.existsNames)
 				assert.Nil(t, cap.updatedUser)
@@ -218,7 +218,7 @@ func TestRemoveIconUsecase_RemoveIcon(t *testing.T) {
 			name:    "不正値_ImageURIが空文字",
 			userID:  validUserID,
 			wantErr: false,
-			setup: func(_ *testing.T, user *repomock.MockUserRepository, file *repomock.MockUploadFileRepository, cap *removeIconCaptures) {
+			setup: func(_ *testing.T, user *repomock.MockUserRepository, file *repomock.MockUploadFileRepository, cap *iconRemoverCaptures) {
 				empty := ""
 				user.EXPECT().GetByID(validUserID).Return(newTestUser(validUserID, &empty), nil)
 				file.EXPECT().Exists("").DoAndReturn(func(name string) (bool, error) {
@@ -230,7 +230,7 @@ func TestRemoveIconUsecase_RemoveIcon(t *testing.T) {
 					return nil
 				})
 			},
-			assertFn: func(t *testing.T, cap *removeIconCaptures) {
+			assertFn: func(t *testing.T, cap *iconRemoverCaptures) {
 				t.Helper()
 				require.Equal(t, []string{""}, cap.existsNames)
 				assert.Empty(t, cap.deleteFileNames)
@@ -242,14 +242,14 @@ func TestRemoveIconUsecase_RemoveIcon(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			uc, userRepo, fileRepo := newRemoveIconUsecase(t)
-			cap := &removeIconCaptures{}
+			uc, userRepo, fileRepo := newIconRemoverUsecase(t)
+			cap := &iconRemoverCaptures{}
 			if tt.setup != nil {
 				tt.setup(t, userRepo, fileRepo, cap)
 			}
 
 			gotErr := uc.RemoveIcon(tt.userID)
-			assertUsecaseErr(t, gotErr, tt.wantErr, tt.errContains, "RemoveIcon")
+			assertUsecaseErr(t, gotErr, tt.wantErr, tt.errContains, "IconRemover")
 			if t.Failed() {
 				return
 			}

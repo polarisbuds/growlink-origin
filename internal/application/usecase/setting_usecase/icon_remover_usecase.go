@@ -6,21 +6,21 @@ import (
 	"log/slog"
 )
 
-type RemoveIconUsecase struct {
+type IconRemoverUsecase struct {
 	uploadFileRepository repository_interface.UploadFileRepository
 	userRepository       repository_interface.UserRepository
 }
 
-func NewRemoveIconUsecase(
+func NewIconRemoverUsecase(
 	fileRepo repository_interface.UploadFileRepository,
-	userRepo repository_interface.UserRepository) *RemoveIconUsecase {
-	return &RemoveIconUsecase{
+	userRepo repository_interface.UserRepository) *IconRemoverUsecase {
+	return &IconRemoverUsecase{
 		uploadFileRepository: fileRepo,
 		userRepository:       userRepo,
 	}
 }
 
-func (uc *RemoveIconUsecase) RemoveIcon(userID int64) error {
+func (uc *IconRemoverUsecase) RemoveIcon(userID int64) error {
 	user, err := uc.userRepository.GetByID(userID)
 	if err != nil {
 		return fmt.Errorf("ユーザアイコンの削除処理で存在しないユーザIDが指定されました: %w", err)

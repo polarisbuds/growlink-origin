@@ -16,18 +16,18 @@ import (
 	"go.uber.org/mock/gomock"
 )
 
-type registerIconCaptures struct {
+type iconRegisterCaptures struct {
 	newFileNames    []string
 	existsNames     []string
 	deleteFileNames []string
 	updatedUser     *entity.User
 }
 
-type registerIconSetupFn func(t *testing.T, user *repomock.MockUserRepository, file *repomock.MockUploadFileRepository, cap *registerIconCaptures)
-type registerIconAssertFn func(t *testing.T, cap *registerIconCaptures)
+type iconRegisterSetupFn func(t *testing.T, user *repomock.MockUserRepository, file *repomock.MockUploadFileRepository, cap *iconRegisterCaptures)
+type iconRegisterAssertFn func(t *testing.T, cap *iconRegisterCaptures)
 
-func newRegisterIconUsecase(t *testing.T) (
-	*setting_usecase.RegisterIconUsecase,
+func newIconRegisterUsecase(t *testing.T) (
+	*setting_usecase.IconRegisterUsecase,
 	*repomock.MockUserRepository,
 	*repomock.MockUploadFileRepository,
 ) {
@@ -35,10 +35,10 @@ func newRegisterIconUsecase(t *testing.T) (
 	ctrl := gomock.NewController(t)
 	userRepo := repomock.NewMockUserRepository(ctrl)
 	fileRepo := repomock.NewMockUploadFileRepository(ctrl)
-	return setting_usecase.NewRegisterIconUsecase(fileRepo, userRepo), userRepo, fileRepo
+	return setting_usecase.NewIconRegisterUsecase(fileRepo, userRepo), userRepo, fileRepo
 }
 
-func TestRegisterIconUsecase_RegistIcon(t *testing.T) {
+func TestIconRegisterUsecase_RegistIcon(t *testing.T) {
 	tests := []struct {
 		name        string
 		userID      int64
@@ -46,8 +46,8 @@ func TestRegisterIconUsecase_RegistIcon(t *testing.T) {
 		content     io.Reader
 		wantErr     bool
 		errContains string
-		setup       registerIconSetupFn
-		assertFn    registerIconAssertFn
+		setup       iconRegisterSetupFn
+		assertFn    iconRegisterAssertFn
 	}{
 		{
 			name:     "通常系_拡張子ありのアイコン登録",
@@ -55,7 +55,7 @@ func TestRegisterIconUsecase_RegistIcon(t *testing.T) {
 			filename: "avatar.png",
 			content:  strings.NewReader("png-bytes"),
 			wantErr:  false,
-			setup: func(_ *testing.T, user *repomock.MockUserRepository, file *repomock.MockUploadFileRepository, cap *registerIconCaptures) {
+			setup: func(_ *testing.T, user *repomock.MockUserRepository, file *repomock.MockUploadFileRepository, cap *iconRegisterCaptures) {
 				user.EXPECT().GetByID(validUserID).Return(newTestUser(validUserID, nil), nil)
 				file.EXPECT().NewFile(gomock.Any(), gomock.Any()).DoAndReturn(func(name string, _ io.Reader) error {
 					cap.newFileNames = append(cap.newFileNames, name)
@@ -74,7 +74,7 @@ func TestRegisterIconUsecase_RegistIcon(t *testing.T) {
 					return nil
 				})
 			},
-			assertFn: func(t *testing.T, cap *registerIconCaptures) {
+			assertFn: func(t *testing.T, cap *iconRegisterCaptures) {
 				t.Helper()
 				require.Len(t, cap.newFileNames, 1)
 				gotName := cap.newFileNames[0]
@@ -92,7 +92,7 @@ func TestRegisterIconUsecase_RegistIcon(t *testing.T) {
 			filename: "next.webp",
 			content:  strings.NewReader("webp-bytes"),
 			wantErr:  false,
-			setup: func(_ *testing.T, user *repomock.MockUserRepository, file *repomock.MockUploadFileRepository, cap *registerIconCaptures) {
+			setup: func(_ *testing.T, user *repomock.MockUserRepository, file *repomock.MockUploadFileRepository, cap *iconRegisterCaptures) {
 				old := "old-icon.jpg"
 				user.EXPECT().GetByID(validUserID).Return(newTestUser(validUserID, &old), nil)
 				file.EXPECT().NewFile(gomock.Any(), gomock.Any()).DoAndReturn(func(name string, _ io.Reader) error {
@@ -106,7 +106,7 @@ func TestRegisterIconUsecase_RegistIcon(t *testing.T) {
 				file.EXPECT().Exists(gomock.Any()).Return(true, nil)
 				file.EXPECT().DeleteFile(gomock.Any()).Return(nil)
 			},
-			assertFn: func(t *testing.T, cap *registerIconCaptures) {
+			assertFn: func(t *testing.T, cap *iconRegisterCaptures) {
 				t.Helper()
 				require.Len(t, cap.newFileNames, 1)
 				assertUUIDFilename(t, cap.newFileNames[0], ".webp")
@@ -121,7 +121,7 @@ func TestRegisterIconUsecase_RegistIcon(t *testing.T) {
 			filename: "avatar.jpeg",
 			content:  strings.NewReader("jpeg-bytes"),
 			wantErr:  false,
-			setup: func(_ *testing.T, user *repomock.MockUserRepository, file *repomock.MockUploadFileRepository, cap *registerIconCaptures) {
+			setup: func(_ *testing.T, user *repomock.MockUserRepository, file *repomock.MockUploadFileRepository, cap *iconRegisterCaptures) {
 				user.EXPECT().GetByID(validUserID).Return(newTestUser(validUserID, nil), nil)
 				file.EXPECT().NewFile(gomock.Any(), gomock.Any()).Return(nil)
 				user.EXPECT().UpdateByID(gomock.Any()).Return(nil)
@@ -130,7 +130,7 @@ func TestRegisterIconUsecase_RegistIcon(t *testing.T) {
 					return false, nil
 				})
 			},
-			assertFn: func(t *testing.T, cap *registerIconCaptures) {
+			assertFn: func(t *testing.T, cap *iconRegisterCaptures) {
 				t.Helper()
 				require.Len(t, cap.existsNames, 1)
 				assert.Empty(t, cap.deleteFileNames)
@@ -143,10 +143,10 @@ func TestRegisterIconUsecase_RegistIcon(t *testing.T) {
 			content:     strings.NewReader("png-bytes"),
 			wantErr:     true,
 			errContains: "ユーザアイコンのアップロードで存在しないユーザIDが指定されました",
-			setup: func(_ *testing.T, user *repomock.MockUserRepository, _ *repomock.MockUploadFileRepository, _ *registerIconCaptures) {
+			setup: func(_ *testing.T, user *repomock.MockUserRepository, _ *repomock.MockUploadFileRepository, _ *iconRegisterCaptures) {
 				user.EXPECT().GetByID(validUserID).Return(nil, errUserNotFound)
 			},
-			assertFn: func(t *testing.T, cap *registerIconCaptures) {
+			assertFn: func(t *testing.T, cap *iconRegisterCaptures) {
 				t.Helper()
 				assert.Empty(t, cap.newFileNames)
 				assert.Nil(t, cap.updatedUser)
@@ -159,14 +159,14 @@ func TestRegisterIconUsecase_RegistIcon(t *testing.T) {
 			content:     strings.NewReader("png-bytes"),
 			wantErr:     true,
 			errContains: "ユーザアイコンの新規作成処理に失敗しました",
-			setup: func(_ *testing.T, user *repomock.MockUserRepository, file *repomock.MockUploadFileRepository, cap *registerIconCaptures) {
+			setup: func(_ *testing.T, user *repomock.MockUserRepository, file *repomock.MockUploadFileRepository, cap *iconRegisterCaptures) {
 				user.EXPECT().GetByID(validUserID).Return(newTestUser(validUserID, nil), nil)
 				file.EXPECT().NewFile(gomock.Any(), gomock.Any()).DoAndReturn(func(name string, _ io.Reader) error {
 					cap.newFileNames = append(cap.newFileNames, name)
 					return errNewFileFailed
 				})
 			},
-			assertFn: func(t *testing.T, cap *registerIconCaptures) {
+			assertFn: func(t *testing.T, cap *iconRegisterCaptures) {
 				t.Helper()
 				require.Len(t, cap.newFileNames, 1)
 				assert.Nil(t, cap.updatedUser)
@@ -179,7 +179,7 @@ func TestRegisterIconUsecase_RegistIcon(t *testing.T) {
 			content:     strings.NewReader("png-bytes"),
 			wantErr:     true,
 			errContains: "ユーザデータの更新（ユーザアイコン）に失敗しました",
-			setup: func(_ *testing.T, user *repomock.MockUserRepository, file *repomock.MockUploadFileRepository, _ *registerIconCaptures) {
+			setup: func(_ *testing.T, user *repomock.MockUserRepository, file *repomock.MockUploadFileRepository, _ *iconRegisterCaptures) {
 				user.EXPECT().GetByID(validUserID).Return(newTestUser(validUserID, nil), nil)
 				file.EXPECT().NewFile(gomock.Any(), gomock.Any()).Return(nil)
 				user.EXPECT().UpdateByID(gomock.Any()).Return(errUpdateFailed)
@@ -192,13 +192,13 @@ func TestRegisterIconUsecase_RegistIcon(t *testing.T) {
 			content:     strings.NewReader("png-bytes"),
 			wantErr:     true,
 			errContains: "アップロード済みのイメージファイルの存在チェックに失敗しました",
-			setup: func(_ *testing.T, user *repomock.MockUserRepository, file *repomock.MockUploadFileRepository, _ *registerIconCaptures) {
+			setup: func(_ *testing.T, user *repomock.MockUserRepository, file *repomock.MockUploadFileRepository, _ *iconRegisterCaptures) {
 				user.EXPECT().GetByID(validUserID).Return(newTestUser(validUserID, nil), nil)
 				file.EXPECT().NewFile(gomock.Any(), gomock.Any()).Return(nil)
 				user.EXPECT().UpdateByID(gomock.Any()).Return(nil)
 				file.EXPECT().Exists(gomock.Any()).Return(false, errExistsCheckFailed)
 			},
-			assertFn: func(t *testing.T, cap *registerIconCaptures) {
+			assertFn: func(t *testing.T, cap *iconRegisterCaptures) {
 				t.Helper()
 				assert.Empty(t, cap.deleteFileNames)
 			},
@@ -210,7 +210,7 @@ func TestRegisterIconUsecase_RegistIcon(t *testing.T) {
 			content:     strings.NewReader("png-bytes"),
 			wantErr:     true,
 			errContains: "アップロード済みのイメージファイルの削除に失敗しました",
-			setup: func(_ *testing.T, user *repomock.MockUserRepository, file *repomock.MockUploadFileRepository, cap *registerIconCaptures) {
+			setup: func(_ *testing.T, user *repomock.MockUserRepository, file *repomock.MockUploadFileRepository, cap *iconRegisterCaptures) {
 				user.EXPECT().GetByID(validUserID).Return(newTestUser(validUserID, nil), nil)
 				file.EXPECT().NewFile(gomock.Any(), gomock.Any()).Return(nil)
 				user.EXPECT().UpdateByID(gomock.Any()).Return(nil)
@@ -220,7 +220,7 @@ func TestRegisterIconUsecase_RegistIcon(t *testing.T) {
 					return errDeleteFailed
 				})
 			},
-			assertFn: func(t *testing.T, cap *registerIconCaptures) {
+			assertFn: func(t *testing.T, cap *iconRegisterCaptures) {
 				t.Helper()
 				require.Len(t, cap.deleteFileNames, 1)
 			},
@@ -232,7 +232,7 @@ func TestRegisterIconUsecase_RegistIcon(t *testing.T) {
 			content:     strings.NewReader("png-bytes"),
 			wantErr:     true,
 			errContains: "ユーザアイコンのアップロードで存在しないユーザIDが指定されました",
-			setup: func(_ *testing.T, user *repomock.MockUserRepository, _ *repomock.MockUploadFileRepository, _ *registerIconCaptures) {
+			setup: func(_ *testing.T, user *repomock.MockUserRepository, _ *repomock.MockUploadFileRepository, _ *iconRegisterCaptures) {
 				user.EXPECT().GetByID(int64(0)).Return(nil, errors.New("invalid user id"))
 			},
 		},
@@ -243,7 +243,7 @@ func TestRegisterIconUsecase_RegistIcon(t *testing.T) {
 			content:     strings.NewReader("png-bytes"),
 			wantErr:     true,
 			errContains: "ユーザアイコンのアップロードで存在しないユーザIDが指定されました",
-			setup: func(_ *testing.T, user *repomock.MockUserRepository, _ *repomock.MockUploadFileRepository, _ *registerIconCaptures) {
+			setup: func(_ *testing.T, user *repomock.MockUserRepository, _ *repomock.MockUploadFileRepository, _ *iconRegisterCaptures) {
 				user.EXPECT().GetByID(int64(-1)).Return(nil, errors.New("invalid user id"))
 			},
 		},
@@ -253,7 +253,7 @@ func TestRegisterIconUsecase_RegistIcon(t *testing.T) {
 			filename: "",
 			content:  strings.NewReader("bytes"),
 			wantErr:  false,
-			setup: func(_ *testing.T, user *repomock.MockUserRepository, file *repomock.MockUploadFileRepository, cap *registerIconCaptures) {
+			setup: func(_ *testing.T, user *repomock.MockUserRepository, file *repomock.MockUploadFileRepository, cap *iconRegisterCaptures) {
 				user.EXPECT().GetByID(validUserID).Return(newTestUser(validUserID, nil), nil)
 				file.EXPECT().NewFile(gomock.Any(), gomock.Any()).DoAndReturn(func(name string, _ io.Reader) error {
 					cap.newFileNames = append(cap.newFileNames, name)
@@ -262,7 +262,7 @@ func TestRegisterIconUsecase_RegistIcon(t *testing.T) {
 				user.EXPECT().UpdateByID(gomock.Any()).Return(nil)
 				file.EXPECT().Exists(gomock.Any()).Return(false, nil)
 			},
-			assertFn: func(t *testing.T, cap *registerIconCaptures) {
+			assertFn: func(t *testing.T, cap *iconRegisterCaptures) {
 				t.Helper()
 				require.Len(t, cap.newFileNames, 1)
 				gotName := cap.newFileNames[0]
@@ -277,7 +277,7 @@ func TestRegisterIconUsecase_RegistIcon(t *testing.T) {
 			filename: "avatar",
 			content:  strings.NewReader("bytes"),
 			wantErr:  false,
-			setup: func(_ *testing.T, user *repomock.MockUserRepository, file *repomock.MockUploadFileRepository, cap *registerIconCaptures) {
+			setup: func(_ *testing.T, user *repomock.MockUserRepository, file *repomock.MockUploadFileRepository, cap *iconRegisterCaptures) {
 				user.EXPECT().GetByID(validUserID).Return(newTestUser(validUserID, nil), nil)
 				file.EXPECT().NewFile(gomock.Any(), gomock.Any()).DoAndReturn(func(name string, _ io.Reader) error {
 					cap.newFileNames = append(cap.newFileNames, name)
@@ -286,7 +286,7 @@ func TestRegisterIconUsecase_RegistIcon(t *testing.T) {
 				user.EXPECT().UpdateByID(gomock.Any()).Return(nil)
 				file.EXPECT().Exists(gomock.Any()).Return(false, nil)
 			},
-			assertFn: func(t *testing.T, cap *registerIconCaptures) {
+			assertFn: func(t *testing.T, cap *iconRegisterCaptures) {
 				t.Helper()
 				require.Len(t, cap.newFileNames, 1)
 				gotName := cap.newFileNames[0]
@@ -302,7 +302,7 @@ func TestRegisterIconUsecase_RegistIcon(t *testing.T) {
 			content:     nil,
 			wantErr:     true,
 			errContains: "ユーザアイコンの新規作成処理に失敗しました",
-			setup: func(_ *testing.T, user *repomock.MockUserRepository, file *repomock.MockUploadFileRepository, _ *registerIconCaptures) {
+			setup: func(_ *testing.T, user *repomock.MockUserRepository, file *repomock.MockUploadFileRepository, _ *iconRegisterCaptures) {
 				user.EXPECT().GetByID(validUserID).Return(newTestUser(validUserID, nil), nil)
 				file.EXPECT().NewFile(gomock.Any(), gomock.Any()).DoAndReturn(func(_ string, content io.Reader) error {
 					if content == nil {
@@ -316,8 +316,8 @@ func TestRegisterIconUsecase_RegistIcon(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			uc, userRepo, fileRepo := newRegisterIconUsecase(t)
-			cap := &registerIconCaptures{}
+			uc, userRepo, fileRepo := newIconRegisterUsecase(t)
+			cap := &iconRegisterCaptures{}
 			if tt.setup != nil {
 				tt.setup(t, userRepo, fileRepo, cap)
 			}

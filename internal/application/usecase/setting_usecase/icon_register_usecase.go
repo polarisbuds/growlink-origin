@@ -11,21 +11,21 @@ import (
 	"github.com/google/uuid"
 )
 
-type RegisterIconUsecase struct {
+type IconRegisterUsecase struct {
 	uploadFileRepository repository_interface.UploadFileRepository
 	userRepository       repository_interface.UserRepository
 }
 
-func NewRegisterIconUsecase(
+func NewIconRegisterUsecase(
 	fileRepo repository_interface.UploadFileRepository,
-	userRepo repository_interface.UserRepository) *RegisterIconUsecase {
-	return &RegisterIconUsecase{
+	userRepo repository_interface.UserRepository) *IconRegisterUsecase {
+	return &IconRegisterUsecase{
 		uploadFileRepository: fileRepo,
 		userRepository:       userRepo,
 	}
 }
 
-func (uc *RegisterIconUsecase) RegistIcon(userID int64, name string, content io.Reader) error {
+func (uc *IconRegisterUsecase) RegistIcon(userID int64, name string, content io.Reader) error {
 	user, err := uc.userRepository.GetByID(userID)
 	if err != nil {
 		return fmt.Errorf("ユーザアイコンのアップロードで存在しないユーザIDが指定されました: %w", err)
