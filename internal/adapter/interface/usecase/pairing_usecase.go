@@ -11,13 +11,13 @@ type PairingUsecase interface {
 }
 
 type PairingListCreator interface {
-	CreatePairList(mentorID int64) (menteeList []entity.User, err error)
+	CreatePairList(mentorID uint) (menteeList []entity.User, err error)
 }
 
 type PairingCreator interface {
-	CreatePair(menteeID, mentorID int64) bool
+	CreatePair(menteeID, mentorID uint) bool
 }
 
 type PairingBreaker interface {
-	BreakPair(menteeID, mentorID int64) bool
+	BreakPair(menteeID uint) bool
 }

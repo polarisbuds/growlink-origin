@@ -10,9 +10,9 @@ type SettingUsecase interface {
 }
 
 type IconRegister interface {
-	RegistIcon(userID int64, name string, content io.Reader) error
+	RegistIcon(userID uint, name string, content io.Reader) error
 }
 
 type IconRemover interface {
-	RemoveIcon(userID int64) error
+	RemoveIcon(userID uint) error
 }

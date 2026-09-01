@@ -10,6 +10,7 @@
 package mock
 
 import (
+	entity "growlink/internal/domain/entity"
 	reflect "reflect"
 
 	gomock "go.uber.org/mock/gomock"
@@ -40,17 +41,17 @@ func (m *MockPairingUsecase) EXPECT() *MockPairingUsecaseMockRecorder {
 }
 
 // BreakPair mocks base method.
-func (m *MockPairingUsecase) BreakPair(menteeID, mentorID int64) bool {
+func (m *MockPairingUsecase) BreakPair(menteeID uint) bool {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "BreakPair", menteeID, mentorID)
+	ret := m.ctrl.Call(m, "BreakPair", menteeID)
 	ret0, _ := ret[0].(bool)
 	return ret0
 }
 
 // BreakPair indicates an expected call of BreakPair.
-func (mr *MockPairingUsecaseMockRecorder) BreakPair(menteeID, mentorID any) *MockPairingUsecaseBreakPairCall {
+func (mr *MockPairingUsecaseMockRecorder) BreakPair(menteeID any) *MockPairingUsecaseBreakPairCall {
 	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BreakPair", reflect.TypeOf((*MockPairingUsecase)(nil).BreakPair), menteeID, mentorID)
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BreakPair", reflect.TypeOf((*MockPairingUsecase)(nil).BreakPair), menteeID)
 	return &MockPairingUsecaseBreakPairCall{Call: call}
 }
 
@@ -66,19 +67,19 @@ func (c *MockPairingUsecaseBreakPairCall) Return(arg0 bool) *MockPairingUsecaseB
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockPairingUsecaseBreakPairCall) Do(f func(int64, int64) bool) *MockPairingUsecaseBreakPairCall {
+func (c *MockPairingUsecaseBreakPairCall) Do(f func(uint) bool) *MockPairingUsecaseBreakPairCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockPairingUsecaseBreakPairCall) DoAndReturn(f func(int64, int64) bool) *MockPairingUsecaseBreakPairCall {
+func (c *MockPairingUsecaseBreakPairCall) DoAndReturn(f func(uint) bool) *MockPairingUsecaseBreakPairCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
 // CreatePair mocks base method.
-func (m *MockPairingUsecase) CreatePair(menteeID, mentorID int64) bool {
+func (m *MockPairingUsecase) CreatePair(menteeID, mentorID uint) bool {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreatePair", menteeID, mentorID)
 	ret0, _ := ret[0].(bool)
@@ -104,22 +105,22 @@ func (c *MockPairingUsecaseCreatePairCall) Return(arg0 bool) *MockPairingUsecase
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockPairingUsecaseCreatePairCall) Do(f func(int64, int64) bool) *MockPairingUsecaseCreatePairCall {
+func (c *MockPairingUsecaseCreatePairCall) Do(f func(uint, uint) bool) *MockPairingUsecaseCreatePairCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockPairingUsecaseCreatePairCall) DoAndReturn(f func(int64, int64) bool) *MockPairingUsecaseCreatePairCall {
+func (c *MockPairingUsecaseCreatePairCall) DoAndReturn(f func(uint, uint) bool) *MockPairingUsecaseCreatePairCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
 // CreatePairList mocks base method.
-func (m *MockPairingUsecase) CreatePairList(mentorID int64) ([]int64, error) {
+func (m *MockPairingUsecase) CreatePairList(mentorID uint) ([]entity.User, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreatePairList", mentorID)
-	ret0, _ := ret[0].([]int64)
+	ret0, _ := ret[0].([]entity.User)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -137,19 +138,19 @@ type MockPairingUsecaseCreatePairListCall struct {
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MockPairingUsecaseCreatePairListCall) Return(menteeList []int64, err error) *MockPairingUsecaseCreatePairListCall {
+func (c *MockPairingUsecaseCreatePairListCall) Return(menteeList []entity.User, err error) *MockPairingUsecaseCreatePairListCall {
 	c.Call = c.Call.Return(menteeList, err)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockPairingUsecaseCreatePairListCall) Do(f func(int64) ([]int64, error)) *MockPairingUsecaseCreatePairListCall {
+func (c *MockPairingUsecaseCreatePairListCall) Do(f func(uint) ([]entity.User, error)) *MockPairingUsecaseCreatePairListCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockPairingUsecaseCreatePairListCall) DoAndReturn(f func(int64) ([]int64, error)) *MockPairingUsecaseCreatePairListCall {
+func (c *MockPairingUsecaseCreatePairListCall) DoAndReturn(f func(uint) ([]entity.User, error)) *MockPairingUsecaseCreatePairListCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
@@ -179,10 +180,10 @@ func (m *MockPairingListCreator) EXPECT() *MockPairingListCreatorMockRecorder {
 }
 
 // CreatePairList mocks base method.
-func (m *MockPairingListCreator) CreatePairList(mentorID int64) ([]int64, error) {
+func (m *MockPairingListCreator) CreatePairList(mentorID uint) ([]entity.User, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreatePairList", mentorID)
-	ret0, _ := ret[0].([]int64)
+	ret0, _ := ret[0].([]entity.User)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -200,19 +201,19 @@ type MockPairingListCreatorCreatePairListCall struct {
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MockPairingListCreatorCreatePairListCall) Return(menteeList []int64, err error) *MockPairingListCreatorCreatePairListCall {
+func (c *MockPairingListCreatorCreatePairListCall) Return(menteeList []entity.User, err error) *MockPairingListCreatorCreatePairListCall {
 	c.Call = c.Call.Return(menteeList, err)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockPairingListCreatorCreatePairListCall) Do(f func(int64) ([]int64, error)) *MockPairingListCreatorCreatePairListCall {
+func (c *MockPairingListCreatorCreatePairListCall) Do(f func(uint) ([]entity.User, error)) *MockPairingListCreatorCreatePairListCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockPairingListCreatorCreatePairListCall) DoAndReturn(f func(int64) ([]int64, error)) *MockPairingListCreatorCreatePairListCall {
+func (c *MockPairingListCreatorCreatePairListCall) DoAndReturn(f func(uint) ([]entity.User, error)) *MockPairingListCreatorCreatePairListCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
@@ -242,7 +243,7 @@ func (m *MockPairingCreator) EXPECT() *MockPairingCreatorMockRecorder {
 }
 
 // CreatePair mocks base method.
-func (m *MockPairingCreator) CreatePair(menteeID, mentorID int64) bool {
+func (m *MockPairingCreator) CreatePair(menteeID, mentorID uint) bool {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreatePair", menteeID, mentorID)
 	ret0, _ := ret[0].(bool)
@@ -268,13 +269,13 @@ func (c *MockPairingCreatorCreatePairCall) Return(arg0 bool) *MockPairingCreator
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockPairingCreatorCreatePairCall) Do(f func(int64, int64) bool) *MockPairingCreatorCreatePairCall {
+func (c *MockPairingCreatorCreatePairCall) Do(f func(uint, uint) bool) *MockPairingCreatorCreatePairCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockPairingCreatorCreatePairCall) DoAndReturn(f func(int64, int64) bool) *MockPairingCreatorCreatePairCall {
+func (c *MockPairingCreatorCreatePairCall) DoAndReturn(f func(uint, uint) bool) *MockPairingCreatorCreatePairCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
@@ -304,17 +305,17 @@ func (m *MockPairingBreaker) EXPECT() *MockPairingBreakerMockRecorder {
 }
 
 // BreakPair mocks base method.
-func (m *MockPairingBreaker) BreakPair(menteeID, mentorID int64) bool {
+func (m *MockPairingBreaker) BreakPair(menteeID uint) bool {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "BreakPair", menteeID, mentorID)
+	ret := m.ctrl.Call(m, "BreakPair", menteeID)
 	ret0, _ := ret[0].(bool)
 	return ret0
 }
 
 // BreakPair indicates an expected call of BreakPair.
-func (mr *MockPairingBreakerMockRecorder) BreakPair(menteeID, mentorID any) *MockPairingBreakerBreakPairCall {
+func (mr *MockPairingBreakerMockRecorder) BreakPair(menteeID any) *MockPairingBreakerBreakPairCall {
 	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BreakPair", reflect.TypeOf((*MockPairingBreaker)(nil).BreakPair), menteeID, mentorID)
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BreakPair", reflect.TypeOf((*MockPairingBreaker)(nil).BreakPair), menteeID)
 	return &MockPairingBreakerBreakPairCall{Call: call}
 }
 
@@ -330,13 +331,13 @@ func (c *MockPairingBreakerBreakPairCall) Return(arg0 bool) *MockPairingBreakerB
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockPairingBreakerBreakPairCall) Do(f func(int64, int64) bool) *MockPairingBreakerBreakPairCall {
+func (c *MockPairingBreakerBreakPairCall) Do(f func(uint) bool) *MockPairingBreakerBreakPairCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockPairingBreakerBreakPairCall) DoAndReturn(f func(int64, int64) bool) *MockPairingBreakerBreakPairCall {
+func (c *MockPairingBreakerBreakPairCall) DoAndReturn(f func(uint) bool) *MockPairingBreakerBreakPairCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }

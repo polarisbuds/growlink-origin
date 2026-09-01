@@ -40,8 +40,46 @@ func (m *MockSettingUsecase) EXPECT() *MockSettingUsecaseMockRecorder {
 	return m.recorder
 }
 
+// RegistIcon mocks base method.
+func (m *MockSettingUsecase) RegistIcon(userID uint, name string, content io.Reader) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "RegistIcon", userID, name, content)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// RegistIcon indicates an expected call of RegistIcon.
+func (mr *MockSettingUsecaseMockRecorder) RegistIcon(userID, name, content any) *MockSettingUsecaseRegistIconCall {
+	mr.mock.ctrl.T.Helper()
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RegistIcon", reflect.TypeOf((*MockSettingUsecase)(nil).RegistIcon), userID, name, content)
+	return &MockSettingUsecaseRegistIconCall{Call: call}
+}
+
+// MockSettingUsecaseRegistIconCall wrap *gomock.Call
+type MockSettingUsecaseRegistIconCall struct {
+	*gomock.Call
+}
+
+// Return rewrite *gomock.Call.Return
+func (c *MockSettingUsecaseRegistIconCall) Return(arg0 error) *MockSettingUsecaseRegistIconCall {
+	c.Call = c.Call.Return(arg0)
+	return c
+}
+
+// Do rewrite *gomock.Call.Do
+func (c *MockSettingUsecaseRegistIconCall) Do(f func(uint, string, io.Reader) error) *MockSettingUsecaseRegistIconCall {
+	c.Call = c.Call.Do(f)
+	return c
+}
+
+// DoAndReturn rewrite *gomock.Call.DoAndReturn
+func (c *MockSettingUsecaseRegistIconCall) DoAndReturn(f func(uint, string, io.Reader) error) *MockSettingUsecaseRegistIconCall {
+	c.Call = c.Call.DoAndReturn(f)
+	return c
+}
+
 // RemoveIcon mocks base method.
-func (m *MockSettingUsecase) RemoveIcon(userID int64) error {
+func (m *MockSettingUsecase) RemoveIcon(userID uint) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "RemoveIcon", userID)
 	ret0, _ := ret[0].(error)
@@ -67,113 +105,75 @@ func (c *MockSettingUsecaseRemoveIconCall) Return(arg0 error) *MockSettingUsecas
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockSettingUsecaseRemoveIconCall) Do(f func(int64) error) *MockSettingUsecaseRemoveIconCall {
+func (c *MockSettingUsecaseRemoveIconCall) Do(f func(uint) error) *MockSettingUsecaseRemoveIconCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockSettingUsecaseRemoveIconCall) DoAndReturn(f func(int64) error) *MockSettingUsecaseRemoveIconCall {
+func (c *MockSettingUsecaseRemoveIconCall) DoAndReturn(f func(uint) error) *MockSettingUsecaseRemoveIconCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
-// UploadIcon mocks base method.
-func (m *MockSettingUsecase) UploadIcon(userID int64, name string, content io.Reader) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UploadIcon", userID, name, content)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// UploadIcon indicates an expected call of UploadIcon.
-func (mr *MockSettingUsecaseMockRecorder) UploadIcon(userID, name, content any) *MockSettingUsecaseUploadIconCall {
-	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UploadIcon", reflect.TypeOf((*MockSettingUsecase)(nil).UploadIcon), userID, name, content)
-	return &MockSettingUsecaseUploadIconCall{Call: call}
-}
-
-// MockSettingUsecaseUploadIconCall wrap *gomock.Call
-type MockSettingUsecaseUploadIconCall struct {
-	*gomock.Call
-}
-
-// Return rewrite *gomock.Call.Return
-func (c *MockSettingUsecaseUploadIconCall) Return(arg0 error) *MockSettingUsecaseUploadIconCall {
-	c.Call = c.Call.Return(arg0)
-	return c
-}
-
-// Do rewrite *gomock.Call.Do
-func (c *MockSettingUsecaseUploadIconCall) Do(f func(int64, string, io.Reader) error) *MockSettingUsecaseUploadIconCall {
-	c.Call = c.Call.Do(f)
-	return c
-}
-
-// DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockSettingUsecaseUploadIconCall) DoAndReturn(f func(int64, string, io.Reader) error) *MockSettingUsecaseUploadIconCall {
-	c.Call = c.Call.DoAndReturn(f)
-	return c
-}
-
-// MockIconUploader is a mock of IconUploader interface.
-type MockIconUploader struct {
+// MockIconRegister is a mock of IconRegister interface.
+type MockIconRegister struct {
 	ctrl     *gomock.Controller
-	recorder *MockIconUploaderMockRecorder
+	recorder *MockIconRegisterMockRecorder
 	isgomock struct{}
 }
 
-// MockIconUploaderMockRecorder is the mock recorder for MockIconUploader.
-type MockIconUploaderMockRecorder struct {
-	mock *MockIconUploader
+// MockIconRegisterMockRecorder is the mock recorder for MockIconRegister.
+type MockIconRegisterMockRecorder struct {
+	mock *MockIconRegister
 }
 
-// NewMockIconUploader creates a new mock instance.
-func NewMockIconUploader(ctrl *gomock.Controller) *MockIconUploader {
-	mock := &MockIconUploader{ctrl: ctrl}
-	mock.recorder = &MockIconUploaderMockRecorder{mock}
+// NewMockIconRegister creates a new mock instance.
+func NewMockIconRegister(ctrl *gomock.Controller) *MockIconRegister {
+	mock := &MockIconRegister{ctrl: ctrl}
+	mock.recorder = &MockIconRegisterMockRecorder{mock}
 	return mock
 }
 
 // EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockIconUploader) EXPECT() *MockIconUploaderMockRecorder {
+func (m *MockIconRegister) EXPECT() *MockIconRegisterMockRecorder {
 	return m.recorder
 }
 
-// UploadIcon mocks base method.
-func (m *MockIconUploader) UploadIcon(userID int64, name string, content io.Reader) error {
+// RegistIcon mocks base method.
+func (m *MockIconRegister) RegistIcon(userID uint, name string, content io.Reader) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UploadIcon", userID, name, content)
+	ret := m.ctrl.Call(m, "RegistIcon", userID, name, content)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// UploadIcon indicates an expected call of UploadIcon.
-func (mr *MockIconUploaderMockRecorder) UploadIcon(userID, name, content any) *MockIconUploaderUploadIconCall {
+// RegistIcon indicates an expected call of RegistIcon.
+func (mr *MockIconRegisterMockRecorder) RegistIcon(userID, name, content any) *MockIconRegisterRegistIconCall {
 	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UploadIcon", reflect.TypeOf((*MockIconUploader)(nil).UploadIcon), userID, name, content)
-	return &MockIconUploaderUploadIconCall{Call: call}
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RegistIcon", reflect.TypeOf((*MockIconRegister)(nil).RegistIcon), userID, name, content)
+	return &MockIconRegisterRegistIconCall{Call: call}
 }
 
-// MockIconUploaderUploadIconCall wrap *gomock.Call
-type MockIconUploaderUploadIconCall struct {
+// MockIconRegisterRegistIconCall wrap *gomock.Call
+type MockIconRegisterRegistIconCall struct {
 	*gomock.Call
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MockIconUploaderUploadIconCall) Return(arg0 error) *MockIconUploaderUploadIconCall {
+func (c *MockIconRegisterRegistIconCall) Return(arg0 error) *MockIconRegisterRegistIconCall {
 	c.Call = c.Call.Return(arg0)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockIconUploaderUploadIconCall) Do(f func(int64, string, io.Reader) error) *MockIconUploaderUploadIconCall {
+func (c *MockIconRegisterRegistIconCall) Do(f func(uint, string, io.Reader) error) *MockIconRegisterRegistIconCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockIconUploaderUploadIconCall) DoAndReturn(f func(int64, string, io.Reader) error) *MockIconUploaderUploadIconCall {
+func (c *MockIconRegisterRegistIconCall) DoAndReturn(f func(uint, string, io.Reader) error) *MockIconRegisterRegistIconCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
@@ -203,7 +203,7 @@ func (m *MockIconRemover) EXPECT() *MockIconRemoverMockRecorder {
 }
 
 // RemoveIcon mocks base method.
-func (m *MockIconRemover) RemoveIcon(userID int64) error {
+func (m *MockIconRemover) RemoveIcon(userID uint) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "RemoveIcon", userID)
 	ret0, _ := ret[0].(error)
@@ -229,13 +229,13 @@ func (c *MockIconRemoverRemoveIconCall) Return(arg0 error) *MockIconRemoverRemov
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockIconRemoverRemoveIconCall) Do(f func(int64) error) *MockIconRemoverRemoveIconCall {
+func (c *MockIconRemoverRemoveIconCall) Do(f func(uint) error) *MockIconRemoverRemoveIconCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockIconRemoverRemoveIconCall) DoAndReturn(f func(int64) error) *MockIconRemoverRemoveIconCall {
+func (c *MockIconRemoverRemoveIconCall) DoAndReturn(f func(uint) error) *MockIconRemoverRemoveIconCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
