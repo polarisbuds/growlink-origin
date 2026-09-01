@@ -1,6 +1,13 @@
 package repository_interface
 
+import "growlink/internal/domain/entity"
+
 //go:generate go tool mockgen -typed -source=$GOFILE -destination=mock/mock_$GOFILE -package=mock
 
 type PairingRepository interface {
+	CreatePairing(menteeID, mentorID uint) (*entity.Pairing, error)
+	BreakPairing(pairingID uint) error
+	BreakAllMenteePairing(mentorID uint) error
+	GetByMenteeID(menteeID uint) (*entity.Pairing, error)
+	GetByMentorID(mentorID uint) ([]entity.Pairing, error)
 }

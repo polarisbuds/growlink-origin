@@ -28,7 +28,7 @@ func NewUserRepository(ctx context.Context, dp *gorm.DB) *UserRepository {
 	}
 }
 
-func (repo *UserRepository) GetByID(id int64) (*entity.User, error) {
+func (repo *UserRepository) GetByID(id uint) (*entity.User, error) {
 	user, err := repo.baseRepository.First("id ASC", "id = ?", id)
 	if err != nil {
 		return nil, fmt.Errorf("指定されたユーザIDは存在しませんでした: %w", err)
@@ -37,6 +37,14 @@ func (repo *UserRepository) GetByID(id int64) (*entity.User, error) {
 		return nil, fmt.Errorf("指定されたユーザIDは存在しませんでした: %w", gorm.ErrRecordNotFound)
 	}
 	return user, nil
+}
+
+func (repo *UserRepository) GetByIDs(ids []uint) ([]entity.User, error) {
+	users, err := repo.baseRepository.WhereInBatch(len(ids), "id ASC", "id IN ?", ids)
+	if err != nil {
+		return nil, fmt.Errorf("ユーザIDのバッチ取得に失敗しました: %w", err)
+	}
+	return users, nil
 }
 
 func (repo *UserRepository) UpdateByID(user *entity.User) error {
