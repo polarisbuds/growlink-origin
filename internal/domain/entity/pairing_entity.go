@@ -5,7 +5,7 @@ import (
 	"gorm.io/gorm"
 )
 
-type Peering struct {
+type Pairing struct {
 	gorm.Model
 
 	UUID uuid.UUID `gorm:"type:uuid;not null;uniqueIndex;default:gen_random_uuid()"`
@@ -16,5 +16,5 @@ type Peering struct {
 	Mentor *User `gorm:"foreignKey:MentorID"`
 	Mentee *User `gorm:"foreignKey:MenteeID"`
 
-	Meetings []Meeting `gorm:"foreignKey:PeeringID"`
+	Meetings []Meeting `gorm:"foreignKey:PairingID"`
 }

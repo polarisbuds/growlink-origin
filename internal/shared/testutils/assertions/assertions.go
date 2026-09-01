@@ -62,7 +62,7 @@ func RequireMeetingPreloaded(t *testing.T, got *entity.Meeting, want *entity.Mee
 	assert.Equal(t, want.UUID, got.UUID)
 	assert.Equal(t, want.StatusID, got.StatusID)
 	assert.Equal(t, want.TemplateID, got.TemplateID)
-	assert.Equal(t, want.PeeringID, got.PeeringID)
+	assert.Equal(t, want.PairingID, got.PairingID)
 
 	require.NotNil(t, got.Status)
 	assert.Equal(t, uint(want.StatusID), got.Status.ID)
@@ -70,9 +70,9 @@ func RequireMeetingPreloaded(t *testing.T, got *entity.Meeting, want *entity.Mee
 	require.NotNil(t, got.Template)
 	assert.Equal(t, uint(want.TemplateID), got.Template.ID)
 
-	require.NotNil(t, got.Peering)
-	require.NotNil(t, got.Peering.Mentor)
-	require.NotNil(t, got.Peering.Mentee)
+	require.NotNil(t, got.Pairing)
+	require.NotNil(t, got.Pairing.Mentor)
+	require.NotNil(t, got.Pairing.Mentee)
 }
 
 func RequireMeetingNestedPreload(t *testing.T, got *entity.Meeting) {

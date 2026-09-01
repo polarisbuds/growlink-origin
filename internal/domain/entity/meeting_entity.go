@@ -15,11 +15,11 @@ type Meeting struct {
 
 	StatusID   int64 `gorm:"not null;index"`
 	TemplateID int64 `gorm:"not null;index"`
-	PeeringID  int64 `gorm:"not null;index"`
+	PairingID  int64 `gorm:"not null;index"`
 
 	Status   *MeetingStatus `gorm:"foreignKey:StatusID"`
 	Template *Template      `gorm:"foreignKey:TemplateID"`
-	Peering  *Peering       `gorm:"foreignKey:PeeringID"`
+	Pairing  *Pairing       `gorm:"foreignKey:PairingID"`
 
 	Answers          []Answer          `gorm:"foreignKey:MeetingID"`
 	MeetingComments  []MeetingComment  `gorm:"foreignKey:MeetingID"`

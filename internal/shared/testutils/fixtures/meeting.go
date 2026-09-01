@@ -17,7 +17,7 @@ type MeetingBuilder struct {
 	implementedAt *time.Time
 	status        *entity.MeetingStatus
 	template      *entity.Template
-	peering       *entity.Peering
+	pairing       *entity.Pairing
 	meetingUUID   *uuid.UUID
 	nestedPreload bool
 }
@@ -43,8 +43,8 @@ func (b *MeetingBuilder) WithTemplate(template *entity.Template) *MeetingBuilder
 	return b
 }
 
-func (b *MeetingBuilder) WithPeering(peering *entity.Peering) *MeetingBuilder {
-	b.peering = peering
+func (b *MeetingBuilder) WithPairing(pairing *entity.Pairing) *MeetingBuilder {
+	b.pairing = pairing
 	return b
 }
 
@@ -59,7 +59,7 @@ func (b *MeetingBuilder) WithNestedPreloadGraph() *MeetingBuilder {
 }
 
 // Create persists the meeting graph in ER dependency order:
-// Layer0 Status -> Layer2 Peering/Template -> Layer4 Meeting -> Layer5/6 children.
+// Layer0 Status -> Layer2 Pairing/Template -> Layer4 Meeting -> Layer5/6 children.
 func (b *MeetingBuilder) Create() *entity.Meeting {
 	b.t.Helper()
 
@@ -68,9 +68,9 @@ func (b *MeetingBuilder) Create() *entity.Meeting {
 		status = createMeetingStatus(b.t, b.tx)
 	}
 
-	peering := b.peering
-	if peering == nil {
-		peering = createPeering(b.t, b.tx)
+	pairing := b.pairing
+	if pairing == nil {
+		pairing = createPairing(b.t, b.tx)
 	}
 
 	template := b.template
@@ -87,7 +87,7 @@ func (b *MeetingBuilder) Create() *entity.Meeting {
 		ImplementedAt: implementedAt,
 		StatusID:      int64(status.ID),
 		TemplateID:    int64(template.ID),
-		PeeringID:     int64(peering.ID),
+		PairingID:     int64(pairing.ID),
 	}
 	if b.meetingUUID != nil {
 		meeting.UUID = *b.meetingUUID
@@ -98,7 +98,7 @@ func (b *MeetingBuilder) Create() *entity.Meeting {
 	}
 
 	if b.nestedPreload {
-		createMeetingChildren(b.t, b.tx, meeting, template, peering)
+		createMeetingChildren(b.t, b.tx, meeting, template, pairing)
 	}
 
 	return meeting
@@ -106,13 +106,13 @@ func (b *MeetingBuilder) Create() *entity.Meeting {
 
 // createMeetingChildren inserts Answer/MeetingComment graph (Layer5/6).
 // Topic must exist before Answer (topics -> answers FK).
-func createMeetingChildren(t *testing.T, tx *gorm.DB, meeting *entity.Meeting, template *entity.Template, peering *entity.Peering) {
+func createMeetingChildren(t *testing.T, tx *gorm.DB, meeting *entity.Meeting, template *entity.Template, pairing *entity.Pairing) {
 	t.Helper()
 
 	topic := createTopic(t, tx, template)
-	answer := createAnswer(t, tx, meeting, topic, peering.Mentor)
-	createAnswerComment(t, tx, answer, peering.Mentee)
-	createMeetingComment(t, tx, meeting, peering.Mentor)
+	answer := createAnswer(t, tx, meeting, topic, pairing.Mentor)
+	createAnswerComment(t, tx, answer, pairing.Mentee)
+	createMeetingComment(t, tx, meeting, pairing.Mentor)
 }
 
 // MeetingWithoutFK creates a meeting with invalid FK references for constraint tests.
@@ -123,7 +123,7 @@ func MeetingWithoutFK(t *testing.T, tx *gorm.DB) *entity.Meeting {
 		ImplementedAt: time.Now(),
 		StatusID:      999999999,
 		TemplateID:    999999999,
-		PeeringID:     999999999,
+		PairingID:     999999999,
 	}
 	return meeting
 }
