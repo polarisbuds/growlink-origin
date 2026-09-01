@@ -25,7 +25,7 @@ func TestUserRepository_GetByID(t *testing.T) {
 
 	want := fixtures.User(t, tx, "get")
 
-	got, err := repo.GetByID(int64(want.ID))
+	got, err := repo.GetByID(want.ID)
 	assertions.NoError(t, err)
 	require.NotNil(t, got)
 	assert.Equal(t, want.ID, got.ID)
@@ -57,7 +57,7 @@ func TestUserRepository_UpdateByID(t *testing.T) {
 	err := repo.UpdateByID(want)
 	assertions.NoError(t, err)
 
-	got, err := repo.GetByID(int64(want.ID))
+	got, err := repo.GetByID(want.ID)
 	assertions.NoError(t, err)
 	require.NotNil(t, got)
 	assert.Equal(t, want.ID, got.ID)

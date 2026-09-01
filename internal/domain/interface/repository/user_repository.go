@@ -5,6 +5,7 @@ package repository_interface
 import "growlink/internal/domain/entity"
 
 type UserRepository interface {
-	GetByID(id int64) (*entity.User, error)
+	GetByID(id uint) (*entity.User, error)
+	GetByIDs(ids []uint) ([]entity.User, error)
 	UpdateByID(user *entity.User) error
 }
