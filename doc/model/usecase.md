@@ -34,12 +34,12 @@ subgraph growlink["1on1ミーティングシステム"]
     end
 
     subgraph management["管理者機能"]
-        subgraph mng_peering[ペアリング管理]
+        subgraph mng_pairing[ペアリング管理]
             %% 一覧表示
-            read_peering[ペアリング閲覧]
-            create_peering[ペアリング作成]
-            update_peering[ペアリング更新]
-            delete_peering[ペアリング削除]
+            read_pairing[ペアリング閲覧]
+            create_pairing[ペアリング作成]
+            update_pairing[ペアリング更新]
+            delete_pairing[ペアリング削除]
         end
 
         subgraph mng_template[テンプレート管理]
@@ -84,9 +84,9 @@ mentee --> submit
 mentee --> topic_comment
 mentee --> meeting_comment
 
-mentor -->|peeringを参照しmentorに指定されている場合| read
-mentor -->|peeringを参照しmentorに指定されている場合| topic_comment
-mentor -->|peeringを参照しmentorに指定されている場合| meeting_comment
+mentor -->|pairingを参照しmentorに指定されている場合| read
+mentor -->|pairingを参照しmentorに指定されている場合| topic_comment
+mentor -->|pairingを参照しmentorに指定されている場合| meeting_comment
 
 boss -->|authority_idがbossかつ、mentee.team_idのチームリーダーに指定されている場合| read
 boss -->|authority_idがbossかつ、mentee.team_idのチームリーダーに指定されている場合| topic_comment
@@ -96,7 +96,7 @@ boss --> mng_progress
 owner --> read
 owner --> topic_comment
 owner --> meeting_comment
-owner --> mng_peering
+owner --> mng_pairing
 owner --> mng_meeting
 owner --> mng_template
 owner --> mng_progress

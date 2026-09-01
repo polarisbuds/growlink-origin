@@ -19,7 +19,7 @@ users {
 }
 roles ||--o{ users: ""
 departments ||--|{ users: ""
-authorities ||--o{ users: "参照権限（一般：自身のミーティングまたは、メンティーがいる場合はそのミーティングの内容の閲覧権限、上長：チーム配下の閲覧権限、オーナー：全ての閲覧権限）を付与。一般はPeeringを参照し、上長・オーナーはReadCommentableで参照範囲を定義"
+authorities ||--o{ users: "参照権限（一般：自身のミーティングまたは、メンティーがいる場合はそのミーティングの内容の閲覧権限、上長：チーム配下の閲覧権限、オーナー：全ての閲覧権限）を付与。一般はPairingを参照し、上長・オーナーはReadCommentableで参照範囲を定義"
 
 team_members {
     uuid uuid UK
@@ -49,14 +49,14 @@ teams {
 }
 departments ||--|{ teams: "部署＞チーム（SM以下のチームを想定）"
 
-peerings {
+pairings {
     uuid uuid UK
-    
+
     bigint mentor_id FK
     bigint mentee_id FK
 }
-users ||--o{ peerings: "Mentor"
-users ||--o{ peerings: "Mentee"
+users ||--o{ pairings: "Mentor"
+users ||--o{ pairings: "Mentee"
 
 %% ミーティング系
 meetings {
@@ -65,10 +65,10 @@ meetings {
 
     bigint status_id FK "マスタテーブルは不要の可能性有"
     bigint template_id FK
-    bigint peering_id FK
+    bigint pairing_id FK
 }
 templates ||--o{ meetings: "ミーティングにはテンプレートの指定が必須"
-peerings ||--o{ meetings: "ミーティング参加ユーザはペア指定（閲覧権限とは別管理）"
+pairings ||--o{ meetings: "ミーティング参加ユーザはペア指定（閲覧権限とは別管理）"
 meeting_status ||--o{ meetings: "不要になる可能性有り"
 
 %% ステータス submitted, done 以外では他ユーザから見られないようにする
@@ -129,7 +129,7 @@ answers ||--o{ answer_comments: ""
 users ||--o{ answer_comments: ""
 
 %% 権限系
-%% 上長や部署長、管理者などのミーティング当事者以外からの閲覧権限を管理する（メンターはReadWriteCommentableのため別管理（Peeringテーブル管理））、一時的な閲覧権限付与なども想定。
+%% 上長や部署長、管理者などのミーティング当事者以外からの閲覧権限を管理する（メンターはReadWriteCommentableのため別管理（Pairingテーブル管理））、一時的な閲覧権限付与なども想定。
 read_commentables {
     uuid uuid UK
 

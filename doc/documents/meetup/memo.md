@@ -30,15 +30,15 @@
 <div style="page-break-before:always">
 
 # 8. ペア一覧
-![](images/peering_view.png)
+![](images/pairing_view.png)
 <div style="page-break-before:always">
 
 # 9. ペア作成（単発）
-![](images/peering_new_initialize.png)
+![](images/pairing_new_initialize.png)
 <div style="page-break-before:always">
 
 # 10. ペア作成（繰り返し、スケジュール設定？）
-![](images/peering_new.png)
+![](images/pairing_new.png)
 <div style="page-break-before:always">
 
 # 11. テンプレート一覧

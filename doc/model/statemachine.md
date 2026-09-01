@@ -32,14 +32,14 @@ state Growlink {
 
     state Management {
         MngTemplate: テンプレート管理画面
-        MngPeering: ペアリング管理画面
+        MngPairing: ペアリング管理画面
         MngMeeting: ミーティング管理画面
         MngProgress: 実施状況画面
         state mng_view_select <<choice>>
 
         [*] --> mng_view_select
         mng_view_select --> MngTemplate: 初期表示
-        mng_view_select --> MngPeering
+        mng_view_select --> MngPairing
         mng_view_select --> MngMeeting
         mng_view_select --> MngProgress
     }
