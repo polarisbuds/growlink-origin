@@ -70,7 +70,9 @@ func (repo *BaseUnScopedRepository[T]) UWhereInBatch(batchSize int, order, query
 }
 
 func (repo *BaseUnScopedRepository[T]) UChain(order string, preloads ...string) gorm.ChainInterface[T] {
-	chain := gorm.G[T](repo.udp).Order(order)
+	chain := gorm.G[T](repo.udp).Scopes(func(stmt *gorm.Statement) {
+		stmt.Unscoped = true
+	}).Order(order)
 	for _, preload := range preloads {
 		chain = chain.Preload(preload, nil)
 	}

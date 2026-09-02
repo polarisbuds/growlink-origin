@@ -58,3 +58,25 @@ func TestBaseRepository_CRUD(t *testing.T) {
 	_, err = meetingRepo.GetByID(toInsert.ID)
 	assertions.NotFound(t, err)
 }
+
+func TestBaseRepository_Chain(t *testing.T) {
+	tx := testutils.Begin(t)
+	repo := newBaseMeetingRepo(t, tx)
+	ctx := context.Background()
+
+	first := fixtures.Meeting(t, tx).Create()
+	second := fixtures.Meeting(t, tx).Create()
+
+	got, err := repo.Chain("id DESC").Find(ctx)
+	assertions.NoError(t, err)
+	assertions.MeetingIDs(t, []entity.Meeting{*second, *first}, got)
+	for _, meeting := range got {
+		assert.Nil(t, meeting.Template)
+		assert.Nil(t, meeting.Pairing)
+	}
+
+	preloaded, err := repo.Chain("id DESC", "Template", "Pairing", "Pairing.Mentor", "Pairing.Mentee").
+		Where("id = ?", second.ID).First(ctx)
+	assertions.NoError(t, err)
+	assertions.RequireMeetingPreloaded(t, &preloaded, second)
+}

@@ -40,3 +40,30 @@ func TestBaseUnScopedRepository_SoftDelete(t *testing.T) {
 	require.NotNil(t, got)
 	assert.Equal(t, want.ID, got.ID)
 }
+
+func TestBaseUnScopedRepository_UChain(t *testing.T) {
+	tx := testutils.Begin(t)
+	repo := newBaseMeetingRepo(t, tx)
+	unscoped := newUnscopedMeetingRepo(t, tx)
+	ctx := context.Background()
+
+	first := fixtures.Meeting(t, tx).Create()
+	second := fixtures.Meeting(t, tx).Create()
+
+	deleted, err := repo.Delete(1, "id = ?", first.ID)
+	assertions.NoError(t, err)
+	assert.Equal(t, 1, deleted)
+
+	got, err := unscoped.UChain("id DESC").Find(ctx)
+	assertions.NoError(t, err)
+	assertions.MeetingIDs(t, []entity.Meeting{*second, *first}, got)
+	for _, meeting := range got {
+		assert.Nil(t, meeting.Template)
+		assert.Nil(t, meeting.Pairing)
+	}
+
+	preloaded, err := unscoped.UChain("id DESC", "Template", "Pairing", "Pairing.Mentor", "Pairing.Mentee").
+		Where("id = ?", first.ID).First(ctx)
+	assertions.NoError(t, err)
+	assertions.RequireMeetingPreloaded(t, &preloaded, first)
+}
