@@ -9,17 +9,17 @@ import (
 
 type UserRelationshipRepository struct {
 	ctx                    context.Context
-	baseRepository         BaseRepository[entity.User]
-	unScopedBaseRepository BaseUnScopedRepository[entity.User]
+	baseRepository         BaseRepository[entity.UserRelationship]
+	unScopedBaseRepository BaseUnScopedRepository[entity.UserRelationship]
 }
 
 func NewUserRelationshipRepository(ctx context.Context, dp *gorm.DB) *UserRelationshipRepository {
 	return &UserRelationshipRepository{
-		baseRepository: BaseRepository[entity.User]{
+		baseRepository: BaseRepository[entity.UserRelationship]{
 			dp:   dp,
 			bctx: ctx,
 		},
-		unScopedBaseRepository: BaseUnScopedRepository[entity.User]{
+		unScopedBaseRepository: BaseUnScopedRepository[entity.UserRelationship]{
 			udp:  dp.Unscoped(),
 			uctx: ctx,
 		},
