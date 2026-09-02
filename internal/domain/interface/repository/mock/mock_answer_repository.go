@@ -10,6 +10,9 @@
 package mock
 
 import (
+	entity "growlink/internal/domain/entity"
+	reflect "reflect"
+
 	gomock "go.uber.org/mock/gomock"
 )
 
@@ -35,4 +38,199 @@ func NewMockAnswerRepository(ctrl *gomock.Controller) *MockAnswerRepository {
 // EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockAnswerRepository) EXPECT() *MockAnswerRepositoryMockRecorder {
 	return m.recorder
+}
+
+// GetByID mocks base method.
+func (m *MockAnswerRepository) GetByID(id uint) (*entity.Answer, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetByID", id)
+	ret0, _ := ret[0].(*entity.Answer)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetByID indicates an expected call of GetByID.
+func (mr *MockAnswerRepositoryMockRecorder) GetByID(id any) *MockAnswerRepositoryGetByIDCall {
+	mr.mock.ctrl.T.Helper()
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByID", reflect.TypeOf((*MockAnswerRepository)(nil).GetByID), id)
+	return &MockAnswerRepositoryGetByIDCall{Call: call}
+}
+
+// MockAnswerRepositoryGetByIDCall wrap *gomock.Call
+type MockAnswerRepositoryGetByIDCall struct {
+	*gomock.Call
+}
+
+// Return rewrite *gomock.Call.Return
+func (c *MockAnswerRepositoryGetByIDCall) Return(arg0 *entity.Answer, arg1 error) *MockAnswerRepositoryGetByIDCall {
+	c.Call = c.Call.Return(arg0, arg1)
+	return c
+}
+
+// Do rewrite *gomock.Call.Do
+func (c *MockAnswerRepositoryGetByIDCall) Do(f func(uint) (*entity.Answer, error)) *MockAnswerRepositoryGetByIDCall {
+	c.Call = c.Call.Do(f)
+	return c
+}
+
+// DoAndReturn rewrite *gomock.Call.DoAndReturn
+func (c *MockAnswerRepositoryGetByIDCall) DoAndReturn(f func(uint) (*entity.Answer, error)) *MockAnswerRepositoryGetByIDCall {
+	c.Call = c.Call.DoAndReturn(f)
+	return c
+}
+
+// GetByMeetingID mocks base method.
+func (m *MockAnswerRepository) GetByMeetingID(meetingID uint) ([]entity.Answer, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetByMeetingID", meetingID)
+	ret0, _ := ret[0].([]entity.Answer)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetByMeetingID indicates an expected call of GetByMeetingID.
+func (mr *MockAnswerRepositoryMockRecorder) GetByMeetingID(meetingID any) *MockAnswerRepositoryGetByMeetingIDCall {
+	mr.mock.ctrl.T.Helper()
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByMeetingID", reflect.TypeOf((*MockAnswerRepository)(nil).GetByMeetingID), meetingID)
+	return &MockAnswerRepositoryGetByMeetingIDCall{Call: call}
+}
+
+// MockAnswerRepositoryGetByMeetingIDCall wrap *gomock.Call
+type MockAnswerRepositoryGetByMeetingIDCall struct {
+	*gomock.Call
+}
+
+// Return rewrite *gomock.Call.Return
+func (c *MockAnswerRepositoryGetByMeetingIDCall) Return(arg0 []entity.Answer, arg1 error) *MockAnswerRepositoryGetByMeetingIDCall {
+	c.Call = c.Call.Return(arg0, arg1)
+	return c
+}
+
+// Do rewrite *gomock.Call.Do
+func (c *MockAnswerRepositoryGetByMeetingIDCall) Do(f func(uint) ([]entity.Answer, error)) *MockAnswerRepositoryGetByMeetingIDCall {
+	c.Call = c.Call.Do(f)
+	return c
+}
+
+// DoAndReturn rewrite *gomock.Call.DoAndReturn
+func (c *MockAnswerRepositoryGetByMeetingIDCall) DoAndReturn(f func(uint) ([]entity.Answer, error)) *MockAnswerRepositoryGetByMeetingIDCall {
+	c.Call = c.Call.DoAndReturn(f)
+	return c
+}
+
+// GetByUserID mocks base method.
+func (m *MockAnswerRepository) GetByUserID(userD uint) ([]entity.Answer, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetByUserID", userD)
+	ret0, _ := ret[0].([]entity.Answer)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetByUserID indicates an expected call of GetByUserID.
+func (mr *MockAnswerRepositoryMockRecorder) GetByUserID(userD any) *MockAnswerRepositoryGetByUserIDCall {
+	mr.mock.ctrl.T.Helper()
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByUserID", reflect.TypeOf((*MockAnswerRepository)(nil).GetByUserID), userD)
+	return &MockAnswerRepositoryGetByUserIDCall{Call: call}
+}
+
+// MockAnswerRepositoryGetByUserIDCall wrap *gomock.Call
+type MockAnswerRepositoryGetByUserIDCall struct {
+	*gomock.Call
+}
+
+// Return rewrite *gomock.Call.Return
+func (c *MockAnswerRepositoryGetByUserIDCall) Return(arg0 []entity.Answer, arg1 error) *MockAnswerRepositoryGetByUserIDCall {
+	c.Call = c.Call.Return(arg0, arg1)
+	return c
+}
+
+// Do rewrite *gomock.Call.Do
+func (c *MockAnswerRepositoryGetByUserIDCall) Do(f func(uint) ([]entity.Answer, error)) *MockAnswerRepositoryGetByUserIDCall {
+	c.Call = c.Call.Do(f)
+	return c
+}
+
+// DoAndReturn rewrite *gomock.Call.DoAndReturn
+func (c *MockAnswerRepositoryGetByUserIDCall) DoAndReturn(f func(uint) ([]entity.Answer, error)) *MockAnswerRepositoryGetByUserIDCall {
+	c.Call = c.Call.DoAndReturn(f)
+	return c
+}
+
+// Submit mocks base method.
+func (m *MockAnswerRepository) Submit(answer *entity.Answer) (*entity.Answer, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Submit", answer)
+	ret0, _ := ret[0].(*entity.Answer)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Submit indicates an expected call of Submit.
+func (mr *MockAnswerRepositoryMockRecorder) Submit(answer any) *MockAnswerRepositorySubmitCall {
+	mr.mock.ctrl.T.Helper()
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Submit", reflect.TypeOf((*MockAnswerRepository)(nil).Submit), answer)
+	return &MockAnswerRepositorySubmitCall{Call: call}
+}
+
+// MockAnswerRepositorySubmitCall wrap *gomock.Call
+type MockAnswerRepositorySubmitCall struct {
+	*gomock.Call
+}
+
+// Return rewrite *gomock.Call.Return
+func (c *MockAnswerRepositorySubmitCall) Return(arg0 *entity.Answer, arg1 error) *MockAnswerRepositorySubmitCall {
+	c.Call = c.Call.Return(arg0, arg1)
+	return c
+}
+
+// Do rewrite *gomock.Call.Do
+func (c *MockAnswerRepositorySubmitCall) Do(f func(*entity.Answer) (*entity.Answer, error)) *MockAnswerRepositorySubmitCall {
+	c.Call = c.Call.Do(f)
+	return c
+}
+
+// DoAndReturn rewrite *gomock.Call.DoAndReturn
+func (c *MockAnswerRepositorySubmitCall) DoAndReturn(f func(*entity.Answer) (*entity.Answer, error)) *MockAnswerRepositorySubmitCall {
+	c.Call = c.Call.DoAndReturn(f)
+	return c
+}
+
+// Submits mocks base method.
+func (m *MockAnswerRepository) Submits(answers []entity.Answer) ([]entity.Answer, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Submits", answers)
+	ret0, _ := ret[0].([]entity.Answer)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Submits indicates an expected call of Submits.
+func (mr *MockAnswerRepositoryMockRecorder) Submits(answers any) *MockAnswerRepositorySubmitsCall {
+	mr.mock.ctrl.T.Helper()
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Submits", reflect.TypeOf((*MockAnswerRepository)(nil).Submits), answers)
+	return &MockAnswerRepositorySubmitsCall{Call: call}
+}
+
+// MockAnswerRepositorySubmitsCall wrap *gomock.Call
+type MockAnswerRepositorySubmitsCall struct {
+	*gomock.Call
+}
+
+// Return rewrite *gomock.Call.Return
+func (c *MockAnswerRepositorySubmitsCall) Return(arg0 []entity.Answer, arg1 error) *MockAnswerRepositorySubmitsCall {
+	c.Call = c.Call.Return(arg0, arg1)
+	return c
+}
+
+// Do rewrite *gomock.Call.Do
+func (c *MockAnswerRepositorySubmitsCall) Do(f func([]entity.Answer) ([]entity.Answer, error)) *MockAnswerRepositorySubmitsCall {
+	c.Call = c.Call.Do(f)
+	return c
+}
+
+// DoAndReturn rewrite *gomock.Call.DoAndReturn
+func (c *MockAnswerRepositorySubmitsCall) DoAndReturn(f func([]entity.Answer) ([]entity.Answer, error)) *MockAnswerRepositorySubmitsCall {
+	c.Call = c.Call.DoAndReturn(f)
+	return c
 }
