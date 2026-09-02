@@ -135,13 +135,16 @@ users ||--o{ read_commentables: ""
 %% 上司-部下、メンター-メンティーの関係性を設定、これを元にread_commentablesを設定する？
 user_relationships {
     uuid uuid UK
-    text relation_type "not null, mentor|mentee|boss|subordinate"
+    text relation_type "not null, mentee|mentor|subordinate|boss"
 
     bigint source_user_id FK
     bigint target_user_id FK
 }
-users ||--o{ user_relationships: "上司, boss_id"
-users ||--o{ user_relationships: "部下, subordinate_id"
+%% Source側からTargetを見た場合のリレーションを記述
+%% 例1: RelationType=Boss, source_user_id=SubordinateID, target_user_id=BossID
+%% 例2: RelationType=Mentee, source_user_id=MentorID, target_user_id=MenteeID
+users ||--o{ user_relationships: "source_user_id"
+users ||--o{ user_relationships: "target_user_id"
 
 histories {
     uuid uuid UK
