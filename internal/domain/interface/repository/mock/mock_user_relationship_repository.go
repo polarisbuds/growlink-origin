@@ -10,6 +10,10 @@
 package mock
 
 import (
+	entity "growlink/internal/domain/entity"
+	valueobject "growlink/internal/domain/valueobject"
+	reflect "reflect"
+
 	gomock "go.uber.org/mock/gomock"
 )
 
@@ -35,4 +39,352 @@ func NewMockUserRelationshipRepository(ctrl *gomock.Controller) *MockUserRelatio
 // EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockUserRelationshipRepository) EXPECT() *MockUserRelationshipRepositoryMockRecorder {
 	return m.recorder
+}
+
+// Create mocks base method.
+func (m *MockUserRelationshipRepository) Create(sourceUserID, targetUserID uint, relationshipType valueobject.RelationshipType) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Create", sourceUserID, targetUserID, relationshipType)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Create indicates an expected call of Create.
+func (mr *MockUserRelationshipRepositoryMockRecorder) Create(sourceUserID, targetUserID, relationshipType any) *MockUserRelationshipRepositoryCreateCall {
+	mr.mock.ctrl.T.Helper()
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockUserRelationshipRepository)(nil).Create), sourceUserID, targetUserID, relationshipType)
+	return &MockUserRelationshipRepositoryCreateCall{Call: call}
+}
+
+// MockUserRelationshipRepositoryCreateCall wrap *gomock.Call
+type MockUserRelationshipRepositoryCreateCall struct {
+	*gomock.Call
+}
+
+// Return rewrite *gomock.Call.Return
+func (c *MockUserRelationshipRepositoryCreateCall) Return(arg0 error) *MockUserRelationshipRepositoryCreateCall {
+	c.Call = c.Call.Return(arg0)
+	return c
+}
+
+// Do rewrite *gomock.Call.Do
+func (c *MockUserRelationshipRepositoryCreateCall) Do(f func(uint, uint, valueobject.RelationshipType) error) *MockUserRelationshipRepositoryCreateCall {
+	c.Call = c.Call.Do(f)
+	return c
+}
+
+// DoAndReturn rewrite *gomock.Call.DoAndReturn
+func (c *MockUserRelationshipRepositoryCreateCall) DoAndReturn(f func(uint, uint, valueobject.RelationshipType) error) *MockUserRelationshipRepositoryCreateCall {
+	c.Call = c.Call.DoAndReturn(f)
+	return c
+}
+
+// Delete mocks base method.
+func (m *MockUserRelationshipRepository) Delete(relationshipID uint) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Delete", relationshipID)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Delete indicates an expected call of Delete.
+func (mr *MockUserRelationshipRepositoryMockRecorder) Delete(relationshipID any) *MockUserRelationshipRepositoryDeleteCall {
+	mr.mock.ctrl.T.Helper()
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockUserRelationshipRepository)(nil).Delete), relationshipID)
+	return &MockUserRelationshipRepositoryDeleteCall{Call: call}
+}
+
+// MockUserRelationshipRepositoryDeleteCall wrap *gomock.Call
+type MockUserRelationshipRepositoryDeleteCall struct {
+	*gomock.Call
+}
+
+// Return rewrite *gomock.Call.Return
+func (c *MockUserRelationshipRepositoryDeleteCall) Return(arg0 error) *MockUserRelationshipRepositoryDeleteCall {
+	c.Call = c.Call.Return(arg0)
+	return c
+}
+
+// Do rewrite *gomock.Call.Do
+func (c *MockUserRelationshipRepositoryDeleteCall) Do(f func(uint) error) *MockUserRelationshipRepositoryDeleteCall {
+	c.Call = c.Call.Do(f)
+	return c
+}
+
+// DoAndReturn rewrite *gomock.Call.DoAndReturn
+func (c *MockUserRelationshipRepositoryDeleteCall) DoAndReturn(f func(uint) error) *MockUserRelationshipRepositoryDeleteCall {
+	c.Call = c.Call.DoAndReturn(f)
+	return c
+}
+
+// Get mocks base method.
+func (m *MockUserRelationshipRepository) Get(relationshipID uint) (*entity.UserRelationship, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Get", relationshipID)
+	ret0, _ := ret[0].(*entity.UserRelationship)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Get indicates an expected call of Get.
+func (mr *MockUserRelationshipRepositoryMockRecorder) Get(relationshipID any) *MockUserRelationshipRepositoryGetCall {
+	mr.mock.ctrl.T.Helper()
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockUserRelationshipRepository)(nil).Get), relationshipID)
+	return &MockUserRelationshipRepositoryGetCall{Call: call}
+}
+
+// MockUserRelationshipRepositoryGetCall wrap *gomock.Call
+type MockUserRelationshipRepositoryGetCall struct {
+	*gomock.Call
+}
+
+// Return rewrite *gomock.Call.Return
+func (c *MockUserRelationshipRepositoryGetCall) Return(arg0 *entity.UserRelationship, arg1 error) *MockUserRelationshipRepositoryGetCall {
+	c.Call = c.Call.Return(arg0, arg1)
+	return c
+}
+
+// Do rewrite *gomock.Call.Do
+func (c *MockUserRelationshipRepositoryGetCall) Do(f func(uint) (*entity.UserRelationship, error)) *MockUserRelationshipRepositoryGetCall {
+	c.Call = c.Call.Do(f)
+	return c
+}
+
+// DoAndReturn rewrite *gomock.Call.DoAndReturn
+func (c *MockUserRelationshipRepositoryGetCall) DoAndReturn(f func(uint) (*entity.UserRelationship, error)) *MockUserRelationshipRepositoryGetCall {
+	c.Call = c.Call.DoAndReturn(f)
+	return c
+}
+
+// GetByBossID mocks base method.
+func (m *MockUserRelationshipRepository) GetByBossID(bossID uint) ([]entity.UserRelationship, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetByBossID", bossID)
+	ret0, _ := ret[0].([]entity.UserRelationship)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetByBossID indicates an expected call of GetByBossID.
+func (mr *MockUserRelationshipRepositoryMockRecorder) GetByBossID(bossID any) *MockUserRelationshipRepositoryGetByBossIDCall {
+	mr.mock.ctrl.T.Helper()
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByBossID", reflect.TypeOf((*MockUserRelationshipRepository)(nil).GetByBossID), bossID)
+	return &MockUserRelationshipRepositoryGetByBossIDCall{Call: call}
+}
+
+// MockUserRelationshipRepositoryGetByBossIDCall wrap *gomock.Call
+type MockUserRelationshipRepositoryGetByBossIDCall struct {
+	*gomock.Call
+}
+
+// Return rewrite *gomock.Call.Return
+func (c *MockUserRelationshipRepositoryGetByBossIDCall) Return(subordinates []entity.UserRelationship, err error) *MockUserRelationshipRepositoryGetByBossIDCall {
+	c.Call = c.Call.Return(subordinates, err)
+	return c
+}
+
+// Do rewrite *gomock.Call.Do
+func (c *MockUserRelationshipRepositoryGetByBossIDCall) Do(f func(uint) ([]entity.UserRelationship, error)) *MockUserRelationshipRepositoryGetByBossIDCall {
+	c.Call = c.Call.Do(f)
+	return c
+}
+
+// DoAndReturn rewrite *gomock.Call.DoAndReturn
+func (c *MockUserRelationshipRepositoryGetByBossIDCall) DoAndReturn(f func(uint) ([]entity.UserRelationship, error)) *MockUserRelationshipRepositoryGetByBossIDCall {
+	c.Call = c.Call.DoAndReturn(f)
+	return c
+}
+
+// GetByMenteeID mocks base method.
+func (m *MockUserRelationshipRepository) GetByMenteeID(menteeID uint) ([]entity.UserRelationship, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetByMenteeID", menteeID)
+	ret0, _ := ret[0].([]entity.UserRelationship)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetByMenteeID indicates an expected call of GetByMenteeID.
+func (mr *MockUserRelationshipRepositoryMockRecorder) GetByMenteeID(menteeID any) *MockUserRelationshipRepositoryGetByMenteeIDCall {
+	mr.mock.ctrl.T.Helper()
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByMenteeID", reflect.TypeOf((*MockUserRelationshipRepository)(nil).GetByMenteeID), menteeID)
+	return &MockUserRelationshipRepositoryGetByMenteeIDCall{Call: call}
+}
+
+// MockUserRelationshipRepositoryGetByMenteeIDCall wrap *gomock.Call
+type MockUserRelationshipRepositoryGetByMenteeIDCall struct {
+	*gomock.Call
+}
+
+// Return rewrite *gomock.Call.Return
+func (c *MockUserRelationshipRepositoryGetByMenteeIDCall) Return(mentors []entity.UserRelationship, err error) *MockUserRelationshipRepositoryGetByMenteeIDCall {
+	c.Call = c.Call.Return(mentors, err)
+	return c
+}
+
+// Do rewrite *gomock.Call.Do
+func (c *MockUserRelationshipRepositoryGetByMenteeIDCall) Do(f func(uint) ([]entity.UserRelationship, error)) *MockUserRelationshipRepositoryGetByMenteeIDCall {
+	c.Call = c.Call.Do(f)
+	return c
+}
+
+// DoAndReturn rewrite *gomock.Call.DoAndReturn
+func (c *MockUserRelationshipRepositoryGetByMenteeIDCall) DoAndReturn(f func(uint) ([]entity.UserRelationship, error)) *MockUserRelationshipRepositoryGetByMenteeIDCall {
+	c.Call = c.Call.DoAndReturn(f)
+	return c
+}
+
+// GetByMentorID mocks base method.
+func (m *MockUserRelationshipRepository) GetByMentorID(mentorID uint) ([]entity.UserRelationship, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetByMentorID", mentorID)
+	ret0, _ := ret[0].([]entity.UserRelationship)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetByMentorID indicates an expected call of GetByMentorID.
+func (mr *MockUserRelationshipRepositoryMockRecorder) GetByMentorID(mentorID any) *MockUserRelationshipRepositoryGetByMentorIDCall {
+	mr.mock.ctrl.T.Helper()
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByMentorID", reflect.TypeOf((*MockUserRelationshipRepository)(nil).GetByMentorID), mentorID)
+	return &MockUserRelationshipRepositoryGetByMentorIDCall{Call: call}
+}
+
+// MockUserRelationshipRepositoryGetByMentorIDCall wrap *gomock.Call
+type MockUserRelationshipRepositoryGetByMentorIDCall struct {
+	*gomock.Call
+}
+
+// Return rewrite *gomock.Call.Return
+func (c *MockUserRelationshipRepositoryGetByMentorIDCall) Return(mentees []entity.UserRelationship, err error) *MockUserRelationshipRepositoryGetByMentorIDCall {
+	c.Call = c.Call.Return(mentees, err)
+	return c
+}
+
+// Do rewrite *gomock.Call.Do
+func (c *MockUserRelationshipRepositoryGetByMentorIDCall) Do(f func(uint) ([]entity.UserRelationship, error)) *MockUserRelationshipRepositoryGetByMentorIDCall {
+	c.Call = c.Call.Do(f)
+	return c
+}
+
+// DoAndReturn rewrite *gomock.Call.DoAndReturn
+func (c *MockUserRelationshipRepositoryGetByMentorIDCall) DoAndReturn(f func(uint) ([]entity.UserRelationship, error)) *MockUserRelationshipRepositoryGetByMentorIDCall {
+	c.Call = c.Call.DoAndReturn(f)
+	return c
+}
+
+// GetByRelationType mocks base method.
+func (m *MockUserRelationshipRepository) GetByRelationType(relationshipType valueobject.RelationshipType) ([]entity.UserRelationship, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetByRelationType", relationshipType)
+	ret0, _ := ret[0].([]entity.UserRelationship)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetByRelationType indicates an expected call of GetByRelationType.
+func (mr *MockUserRelationshipRepositoryMockRecorder) GetByRelationType(relationshipType any) *MockUserRelationshipRepositoryGetByRelationTypeCall {
+	mr.mock.ctrl.T.Helper()
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByRelationType", reflect.TypeOf((*MockUserRelationshipRepository)(nil).GetByRelationType), relationshipType)
+	return &MockUserRelationshipRepositoryGetByRelationTypeCall{Call: call}
+}
+
+// MockUserRelationshipRepositoryGetByRelationTypeCall wrap *gomock.Call
+type MockUserRelationshipRepositoryGetByRelationTypeCall struct {
+	*gomock.Call
+}
+
+// Return rewrite *gomock.Call.Return
+func (c *MockUserRelationshipRepositoryGetByRelationTypeCall) Return(arg0 []entity.UserRelationship, arg1 error) *MockUserRelationshipRepositoryGetByRelationTypeCall {
+	c.Call = c.Call.Return(arg0, arg1)
+	return c
+}
+
+// Do rewrite *gomock.Call.Do
+func (c *MockUserRelationshipRepositoryGetByRelationTypeCall) Do(f func(valueobject.RelationshipType) ([]entity.UserRelationship, error)) *MockUserRelationshipRepositoryGetByRelationTypeCall {
+	c.Call = c.Call.Do(f)
+	return c
+}
+
+// DoAndReturn rewrite *gomock.Call.DoAndReturn
+func (c *MockUserRelationshipRepositoryGetByRelationTypeCall) DoAndReturn(f func(valueobject.RelationshipType) ([]entity.UserRelationship, error)) *MockUserRelationshipRepositoryGetByRelationTypeCall {
+	c.Call = c.Call.DoAndReturn(f)
+	return c
+}
+
+// GetBySubordinateID mocks base method.
+func (m *MockUserRelationshipRepository) GetBySubordinateID(subordinateID uint) ([]entity.UserRelationship, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetBySubordinateID", subordinateID)
+	ret0, _ := ret[0].([]entity.UserRelationship)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetBySubordinateID indicates an expected call of GetBySubordinateID.
+func (mr *MockUserRelationshipRepositoryMockRecorder) GetBySubordinateID(subordinateID any) *MockUserRelationshipRepositoryGetBySubordinateIDCall {
+	mr.mock.ctrl.T.Helper()
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBySubordinateID", reflect.TypeOf((*MockUserRelationshipRepository)(nil).GetBySubordinateID), subordinateID)
+	return &MockUserRelationshipRepositoryGetBySubordinateIDCall{Call: call}
+}
+
+// MockUserRelationshipRepositoryGetBySubordinateIDCall wrap *gomock.Call
+type MockUserRelationshipRepositoryGetBySubordinateIDCall struct {
+	*gomock.Call
+}
+
+// Return rewrite *gomock.Call.Return
+func (c *MockUserRelationshipRepositoryGetBySubordinateIDCall) Return(bosses []entity.UserRelationship, err error) *MockUserRelationshipRepositoryGetBySubordinateIDCall {
+	c.Call = c.Call.Return(bosses, err)
+	return c
+}
+
+// Do rewrite *gomock.Call.Do
+func (c *MockUserRelationshipRepositoryGetBySubordinateIDCall) Do(f func(uint) ([]entity.UserRelationship, error)) *MockUserRelationshipRepositoryGetBySubordinateIDCall {
+	c.Call = c.Call.Do(f)
+	return c
+}
+
+// DoAndReturn rewrite *gomock.Call.DoAndReturn
+func (c *MockUserRelationshipRepositoryGetBySubordinateIDCall) DoAndReturn(f func(uint) ([]entity.UserRelationship, error)) *MockUserRelationshipRepositoryGetBySubordinateIDCall {
+	c.Call = c.Call.DoAndReturn(f)
+	return c
+}
+
+// Update mocks base method.
+func (m *MockUserRelationshipRepository) Update(relationshipID uint, relationship *entity.UserRelationship) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Update", relationshipID, relationship)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Update indicates an expected call of Update.
+func (mr *MockUserRelationshipRepositoryMockRecorder) Update(relationshipID, relationship any) *MockUserRelationshipRepositoryUpdateCall {
+	mr.mock.ctrl.T.Helper()
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockUserRelationshipRepository)(nil).Update), relationshipID, relationship)
+	return &MockUserRelationshipRepositoryUpdateCall{Call: call}
+}
+
+// MockUserRelationshipRepositoryUpdateCall wrap *gomock.Call
+type MockUserRelationshipRepositoryUpdateCall struct {
+	*gomock.Call
+}
+
+// Return rewrite *gomock.Call.Return
+func (c *MockUserRelationshipRepositoryUpdateCall) Return(arg0 error) *MockUserRelationshipRepositoryUpdateCall {
+	c.Call = c.Call.Return(arg0)
+	return c
+}
+
+// Do rewrite *gomock.Call.Do
+func (c *MockUserRelationshipRepositoryUpdateCall) Do(f func(uint, *entity.UserRelationship) error) *MockUserRelationshipRepositoryUpdateCall {
+	c.Call = c.Call.Do(f)
+	return c
+}
+
+// DoAndReturn rewrite *gomock.Call.DoAndReturn
+func (c *MockUserRelationshipRepositoryUpdateCall) DoAndReturn(f func(uint, *entity.UserRelationship) error) *MockUserRelationshipRepositoryUpdateCall {
+	c.Call = c.Call.DoAndReturn(f)
+	return c
 }

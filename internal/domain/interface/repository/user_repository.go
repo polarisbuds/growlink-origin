@@ -7,5 +7,6 @@ import "growlink/internal/domain/entity"
 type UserRepository interface {
 	GetByID(id uint) (*entity.User, error)
 	GetByIDs(ids []uint) ([]entity.User, error)
+	GetByDepartmentID(departmentID uint) ([]entity.User, error)
 	UpdateByID(user *entity.User) error
 }

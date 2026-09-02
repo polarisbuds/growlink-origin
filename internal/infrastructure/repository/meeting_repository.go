@@ -97,6 +97,18 @@ func (repo *MeetingRepository) GetUntilToday(base time.Time) ([]entity.Meeting, 
 	return meetings, nil
 }
 
+func (repo *MeetingRepository) GetByPairingID(pairingID uint) ([]entity.Meeting, error) {
+	pairingWhereChain, err := repo.baseRepository.WhereChain("id ASC", "pairing_id = ?", pairingID)
+	if err != nil {
+		return nil, fmt.Errorf("ペアリングID指定でのペアリングのチェイン情報取得に失敗しました: %w", err)
+	}
+	pairings, err := pairingWhereChain.Preload("Mentor", nil).Preload("Mentee", nil).Find(repo.ctx)
+	if err != nil {
+		return nil, fmt.Errorf("ペアリングID指定でのペアリング情報取得に失敗しました: %w", err)
+	}
+	return pairings, nil
+}
+
 func (repo *MeetingRepository) GetFromSpecificDateOnward(base time.Time) ([]entity.Meeting, error) {
 	startOfBaseDay := utils.GetStartOfDay(base)
 

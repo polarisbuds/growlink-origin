@@ -47,6 +47,20 @@ func (repo *UserRepository) GetByIDs(ids []uint) ([]entity.User, error) {
 	return users, nil
 }
 
+func (repo *UserRepository) GetByDepartmentID(departmentID uint) ([]entity.User, error) {
+	userWhereChain, err := repo.baseRepository.WhereChain("id ASC", "department_id = ?", departmentID)
+	if err != nil {
+		return nil, fmt.Errorf("部署ID指定での情報取得用チェインの作成に失敗しました: %w", err)
+	}
+	users, err := userWhereChain.Preload("Department", nil).
+		Preload("Role", nil).
+		Preload("TeamMembers", nil).Find(repo.ctx)
+	if err != nil {
+		return nil, fmt.Errorf("部署ID指定でのユーザ情報取得処理に失敗しました: %w", err)
+	}
+	return users, nil
+}
+
 func (repo *UserRepository) UpdateByID(user *entity.User) error {
 	if user == nil {
 		slog.Warn("アップデート対象のデータが空データ（nil）です。")

@@ -40,6 +40,45 @@ func (m *MockUserRepository) EXPECT() *MockUserRepositoryMockRecorder {
 	return m.recorder
 }
 
+// GetByDepartmentID mocks base method.
+func (m *MockUserRepository) GetByDepartmentID(departmentID uint) ([]entity.User, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetByDepartmentID", departmentID)
+	ret0, _ := ret[0].([]entity.User)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetByDepartmentID indicates an expected call of GetByDepartmentID.
+func (mr *MockUserRepositoryMockRecorder) GetByDepartmentID(departmentID any) *MockUserRepositoryGetByDepartmentIDCall {
+	mr.mock.ctrl.T.Helper()
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByDepartmentID", reflect.TypeOf((*MockUserRepository)(nil).GetByDepartmentID), departmentID)
+	return &MockUserRepositoryGetByDepartmentIDCall{Call: call}
+}
+
+// MockUserRepositoryGetByDepartmentIDCall wrap *gomock.Call
+type MockUserRepositoryGetByDepartmentIDCall struct {
+	*gomock.Call
+}
+
+// Return rewrite *gomock.Call.Return
+func (c *MockUserRepositoryGetByDepartmentIDCall) Return(arg0 []entity.User, arg1 error) *MockUserRepositoryGetByDepartmentIDCall {
+	c.Call = c.Call.Return(arg0, arg1)
+	return c
+}
+
+// Do rewrite *gomock.Call.Do
+func (c *MockUserRepositoryGetByDepartmentIDCall) Do(f func(uint) ([]entity.User, error)) *MockUserRepositoryGetByDepartmentIDCall {
+	c.Call = c.Call.Do(f)
+	return c
+}
+
+// DoAndReturn rewrite *gomock.Call.DoAndReturn
+func (c *MockUserRepositoryGetByDepartmentIDCall) DoAndReturn(f func(uint) ([]entity.User, error)) *MockUserRepositoryGetByDepartmentIDCall {
+	c.Call = c.Call.DoAndReturn(f)
+	return c
+}
+
 // GetByID mocks base method.
 func (m *MockUserRepository) GetByID(id uint) (*entity.User, error) {
 	m.ctrl.T.Helper()
