@@ -4,15 +4,16 @@ package usecase_interface
 
 import "io"
 
-type SettingUsecase interface {
-	IconRegister
-	IconRemover
-}
+type (
+	SettingUsecase interface {
+		IconRegister
+		IconRemover
+	}
 
-type IconRegister interface {
-	RegistIcon(userID uint, name string, content io.Reader) error
-}
-
-type IconRemover interface {
-	RemoveIcon(userID uint) error
-}
+	IconRegister interface {
+		RegistIcon(userID uint, name string, content io.Reader) error
+	}
+	IconRemover interface {
+		RemoveIcon(userID uint) error
+	}
+)

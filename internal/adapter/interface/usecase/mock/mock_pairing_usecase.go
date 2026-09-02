@@ -78,44 +78,6 @@ func (c *MockPairingUsecaseBreakPairCall) DoAndReturn(f func(uint) bool) *MockPa
 	return c
 }
 
-// CreatePair mocks base method.
-func (m *MockPairingUsecase) CreatePair(menteeID, mentorID uint) bool {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreatePair", menteeID, mentorID)
-	ret0, _ := ret[0].(bool)
-	return ret0
-}
-
-// CreatePair indicates an expected call of CreatePair.
-func (mr *MockPairingUsecaseMockRecorder) CreatePair(menteeID, mentorID any) *MockPairingUsecaseCreatePairCall {
-	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreatePair", reflect.TypeOf((*MockPairingUsecase)(nil).CreatePair), menteeID, mentorID)
-	return &MockPairingUsecaseCreatePairCall{Call: call}
-}
-
-// MockPairingUsecaseCreatePairCall wrap *gomock.Call
-type MockPairingUsecaseCreatePairCall struct {
-	*gomock.Call
-}
-
-// Return rewrite *gomock.Call.Return
-func (c *MockPairingUsecaseCreatePairCall) Return(arg0 bool) *MockPairingUsecaseCreatePairCall {
-	c.Call = c.Call.Return(arg0)
-	return c
-}
-
-// Do rewrite *gomock.Call.Do
-func (c *MockPairingUsecaseCreatePairCall) Do(f func(uint, uint) bool) *MockPairingUsecaseCreatePairCall {
-	c.Call = c.Call.Do(f)
-	return c
-}
-
-// DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockPairingUsecaseCreatePairCall) DoAndReturn(f func(uint, uint) bool) *MockPairingUsecaseCreatePairCall {
-	c.Call = c.Call.DoAndReturn(f)
-	return c
-}
-
 // CreatePairList mocks base method.
 func (m *MockPairingUsecase) CreatePairList(mentorID uint) ([]entity.User, error) {
 	m.ctrl.T.Helper()
@@ -214,68 +176,6 @@ func (c *MockPairingListCreatorCreatePairListCall) Do(f func(uint) ([]entity.Use
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
 func (c *MockPairingListCreatorCreatePairListCall) DoAndReturn(f func(uint) ([]entity.User, error)) *MockPairingListCreatorCreatePairListCall {
-	c.Call = c.Call.DoAndReturn(f)
-	return c
-}
-
-// MockPairingCreator is a mock of PairingCreator interface.
-type MockPairingCreator struct {
-	ctrl     *gomock.Controller
-	recorder *MockPairingCreatorMockRecorder
-	isgomock struct{}
-}
-
-// MockPairingCreatorMockRecorder is the mock recorder for MockPairingCreator.
-type MockPairingCreatorMockRecorder struct {
-	mock *MockPairingCreator
-}
-
-// NewMockPairingCreator creates a new mock instance.
-func NewMockPairingCreator(ctrl *gomock.Controller) *MockPairingCreator {
-	mock := &MockPairingCreator{ctrl: ctrl}
-	mock.recorder = &MockPairingCreatorMockRecorder{mock}
-	return mock
-}
-
-// EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockPairingCreator) EXPECT() *MockPairingCreatorMockRecorder {
-	return m.recorder
-}
-
-// CreatePair mocks base method.
-func (m *MockPairingCreator) CreatePair(menteeID, mentorID uint) bool {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreatePair", menteeID, mentorID)
-	ret0, _ := ret[0].(bool)
-	return ret0
-}
-
-// CreatePair indicates an expected call of CreatePair.
-func (mr *MockPairingCreatorMockRecorder) CreatePair(menteeID, mentorID any) *MockPairingCreatorCreatePairCall {
-	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreatePair", reflect.TypeOf((*MockPairingCreator)(nil).CreatePair), menteeID, mentorID)
-	return &MockPairingCreatorCreatePairCall{Call: call}
-}
-
-// MockPairingCreatorCreatePairCall wrap *gomock.Call
-type MockPairingCreatorCreatePairCall struct {
-	*gomock.Call
-}
-
-// Return rewrite *gomock.Call.Return
-func (c *MockPairingCreatorCreatePairCall) Return(arg0 bool) *MockPairingCreatorCreatePairCall {
-	c.Call = c.Call.Return(arg0)
-	return c
-}
-
-// Do rewrite *gomock.Call.Do
-func (c *MockPairingCreatorCreatePairCall) Do(f func(uint, uint) bool) *MockPairingCreatorCreatePairCall {
-	c.Call = c.Call.Do(f)
-	return c
-}
-
-// DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockPairingCreatorCreatePairCall) DoAndReturn(f func(uint, uint) bool) *MockPairingCreatorCreatePairCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
