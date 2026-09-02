@@ -12,7 +12,7 @@ type UserRelationship struct {
 
 	UUID uuid.UUID `gorm:"type:uuid;not null;uniqueIndex;default:gen_random_uuid()"`
 
-	RelationType valueobject.RelationshipType `gorm:"type:text;not null;index"`
+	RelationType valueobject.RelationshipType `gorm:"type:smallint;not null;index"`
 	SourceUserID uint                         `gorm:"not null;index"`
 	TargetUserID uint                         `gorm:"not null;index"`
 

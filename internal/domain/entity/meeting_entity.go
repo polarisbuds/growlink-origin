@@ -15,7 +15,7 @@ type Meeting struct {
 	UUID          uuid.UUID `gorm:"type:uuid;not null;uniqueIndex;default:gen_random_uuid()"`
 	ImplementedAt time.Time `gorm:"not null"`
 
-	Status     valueobject.MeetingStatus `gorm:"type:text;not null;index"`
+	Status     valueobject.MeetingStatus `gorm:"type:smallint;not null;index"`
 	TemplateID uint                      `gorm:"not null;index"`
 	PairingID  uint                      `gorm:"not null;index"`
 

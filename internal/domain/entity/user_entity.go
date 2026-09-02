@@ -18,7 +18,7 @@ type User struct {
 
 	RoleID       uint                  `gorm:"not null;index"`
 	DepartmentID uint                  `gorm:"not null;index"`
-	Authority    valueobject.Authority `gorm:"type:text;not null;index"`
+	Authority    valueobject.Authority `gorm:"type:smallint;not null;index"`
 
 	Role       *Role       `gorm:"foreignKey:RoleID"`
 	Department *Department `gorm:"foreignKey:DepartmentID"`

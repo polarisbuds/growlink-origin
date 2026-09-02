@@ -2,17 +2,36 @@ package valueobject
 
 import "fmt"
 
-type RelationshipType string
+type RelationshipType int
 
 const (
-	RelationshipTypeMentor      RelationshipType = "mentor"
-	RelationshipTypeMentee      RelationshipType = "mentee"
-	RelationshipTypeBoss        RelationshipType = "boss"
-	RelationshipTypeSubordinate RelationshipType = "subordinate"
+	RelationshipTypeMentor      RelationshipType = iota + 1
+	RelationshipTypeMentee
+	RelationshipTypeBoss
+	RelationshipTypeSubordinate
 )
 
 func (t RelationshipType) String() string {
-	return string(t)
+	switch t {
+	case RelationshipTypeMentor:
+		return "mentor"
+	case RelationshipTypeMentee:
+		return "mentee"
+	case RelationshipTypeBoss:
+		return "boss"
+	case RelationshipTypeSubordinate:
+		return "subordinate"
+	default:
+		return ""
+	}
+}
+
+func (t RelationshipType) Int() int {
+	return int(t)
+}
+
+func (t RelationshipType) UInt() uint {
+	return uint(t)
 }
 
 func (t RelationshipType) IsValid() bool {
@@ -25,9 +44,16 @@ func (t RelationshipType) IsValid() bool {
 }
 
 func ParseRelationshipType(s string) (RelationshipType, error) {
-	relationType := RelationshipType(s)
-	if !relationType.IsValid() {
-		return "", fmt.Errorf("invalid relationship type: %s", s)
+	switch s {
+	case RelationshipTypeMentor.String():
+		return RelationshipTypeMentor, nil
+	case RelationshipTypeMentee.String():
+		return RelationshipTypeMentee, nil
+	case RelationshipTypeBoss.String():
+		return RelationshipTypeBoss, nil
+	case RelationshipTypeSubordinate.String():
+		return RelationshipTypeSubordinate, nil
+	default:
+		return 0, fmt.Errorf("invalid relationship type: %s", s)
 	}
-	return relationType, nil
 }

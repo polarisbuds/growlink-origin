@@ -13,7 +13,7 @@ type History struct {
 	UUID uuid.UUID `gorm:"type:uuid;not null;uniqueIndex;default:gen_random_uuid()"`
 
 	UserID    uint                  `gorm:"not null;index"`
-	EventType valueobject.EventType `gorm:"type:text;not null;index"`
+	EventType valueobject.EventType `gorm:"type:smallint;not null;index"`
 
 	User *User `gorm:"foreignKey:UserID"`
 }

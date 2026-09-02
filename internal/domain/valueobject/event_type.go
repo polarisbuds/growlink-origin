@@ -2,16 +2,33 @@ package valueobject
 
 import "fmt"
 
-type EventType string
+type EventType int
 
 const (
-	EventTypeLogin         EventType = "login"
-	EventTypeMeetingDraft  EventType = "meeting.draft"
-	EventTypeMeetingSubmit EventType = "meeting.submit"
+	EventTypeLogin         EventType = iota + 1
+	EventTypeMeetingDraft
+	EventTypeMeetingSubmit
 )
 
 func (e EventType) String() string {
-	return string(e)
+	switch e {
+	case EventTypeLogin:
+		return "login"
+	case EventTypeMeetingDraft:
+		return "meeting.draft"
+	case EventTypeMeetingSubmit:
+		return "meeting.submit"
+	default:
+		return ""
+	}
+}
+
+func (e EventType) Int() int {
+	return int(e)
+}
+
+func (e EventType) UInt() uint {
+	return uint(e)
 }
 
 func (e EventType) IsValid() bool {
@@ -24,9 +41,14 @@ func (e EventType) IsValid() bool {
 }
 
 func ParseEventType(s string) (EventType, error) {
-	eventType := EventType(s)
-	if !eventType.IsValid() {
-		return "", fmt.Errorf("invalid event type: %s", s)
+	switch s {
+	case EventTypeLogin.String():
+		return EventTypeLogin, nil
+	case EventTypeMeetingDraft.String():
+		return EventTypeMeetingDraft, nil
+	case EventTypeMeetingSubmit.String():
+		return EventTypeMeetingSubmit, nil
+	default:
+		return 0, fmt.Errorf("invalid event type: %s", s)
 	}
-	return eventType, nil
 }
