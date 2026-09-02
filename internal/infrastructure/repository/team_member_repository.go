@@ -68,6 +68,9 @@ func (repo *TeamMemberRepository) preloadWhere(query string, args ...any) ([]ent
 	if err != nil {
 		return nil, fmt.Errorf("チームメンバー情報取得用のチェインの作成に失敗しました: %w", err)
 	}
+	if whereChain == nil {
+		return []entity.TeamMember{}, nil
+	}
 	teamMembers, err := whereChain.Preload("Team", nil).Preload("Team.Department", nil).
 		Preload("Member", nil).Find(repo.ctx)
 	if err != nil {

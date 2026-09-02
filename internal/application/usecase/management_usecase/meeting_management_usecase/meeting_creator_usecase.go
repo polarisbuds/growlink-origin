@@ -89,5 +89,5 @@ func (uc *MeetingCreatorUsecase) CreateMeetingByAll(templateID uint, implementDa
 		}
 	}
 
-	return nil, nil
+	return result, nil
 }

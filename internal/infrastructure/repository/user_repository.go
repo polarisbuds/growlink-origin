@@ -52,6 +52,9 @@ func (repo *UserRepository) GetByDepartmentID(departmentID uint) ([]entity.User,
 	if err != nil {
 		return nil, fmt.Errorf("部署ID指定での情報取得用チェインの作成に失敗しました: %w", err)
 	}
+	if userWhereChain == nil {
+		return []entity.User{}, nil
+	}
 	users, err := userWhereChain.Preload("Department", nil).
 		Preload("Role", nil).
 		Preload("TeamMembers", nil).Find(repo.ctx)
