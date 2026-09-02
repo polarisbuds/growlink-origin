@@ -355,6 +355,82 @@ func (c *MockMeetingRepositoryGetUntilTodayCall) DoAndReturn(f func(time.Time) (
 	return c
 }
 
+// Update mocks base method.
+func (m *MockMeetingRepository) Update(meetingID uint, meeting *entity.Meeting) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Update", meetingID, meeting)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Update indicates an expected call of Update.
+func (mr *MockMeetingRepositoryMockRecorder) Update(meetingID, meeting any) *MockMeetingRepositoryUpdateCall {
+	mr.mock.ctrl.T.Helper()
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockMeetingRepository)(nil).Update), meetingID, meeting)
+	return &MockMeetingRepositoryUpdateCall{Call: call}
+}
+
+// MockMeetingRepositoryUpdateCall wrap *gomock.Call
+type MockMeetingRepositoryUpdateCall struct {
+	*gomock.Call
+}
+
+// Return rewrite *gomock.Call.Return
+func (c *MockMeetingRepositoryUpdateCall) Return(arg0 error) *MockMeetingRepositoryUpdateCall {
+	c.Call = c.Call.Return(arg0)
+	return c
+}
+
+// Do rewrite *gomock.Call.Do
+func (c *MockMeetingRepositoryUpdateCall) Do(f func(uint, *entity.Meeting) error) *MockMeetingRepositoryUpdateCall {
+	c.Call = c.Call.Do(f)
+	return c
+}
+
+// DoAndReturn rewrite *gomock.Call.DoAndReturn
+func (c *MockMeetingRepositoryUpdateCall) DoAndReturn(f func(uint, *entity.Meeting) error) *MockMeetingRepositoryUpdateCall {
+	c.Call = c.Call.DoAndReturn(f)
+	return c
+}
+
+// UpdateImplementDate mocks base method.
+func (m *MockMeetingRepository) UpdateImplementDate(meetingID uint, implementDate time.Time) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateImplementDate", meetingID, implementDate)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateImplementDate indicates an expected call of UpdateImplementDate.
+func (mr *MockMeetingRepositoryMockRecorder) UpdateImplementDate(meetingID, implementDate any) *MockMeetingRepositoryUpdateImplementDateCall {
+	mr.mock.ctrl.T.Helper()
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateImplementDate", reflect.TypeOf((*MockMeetingRepository)(nil).UpdateImplementDate), meetingID, implementDate)
+	return &MockMeetingRepositoryUpdateImplementDateCall{Call: call}
+}
+
+// MockMeetingRepositoryUpdateImplementDateCall wrap *gomock.Call
+type MockMeetingRepositoryUpdateImplementDateCall struct {
+	*gomock.Call
+}
+
+// Return rewrite *gomock.Call.Return
+func (c *MockMeetingRepositoryUpdateImplementDateCall) Return(arg0 error) *MockMeetingRepositoryUpdateImplementDateCall {
+	c.Call = c.Call.Return(arg0)
+	return c
+}
+
+// Do rewrite *gomock.Call.Do
+func (c *MockMeetingRepositoryUpdateImplementDateCall) Do(f func(uint, time.Time) error) *MockMeetingRepositoryUpdateImplementDateCall {
+	c.Call = c.Call.Do(f)
+	return c
+}
+
+// DoAndReturn rewrite *gomock.Call.DoAndReturn
+func (c *MockMeetingRepositoryUpdateImplementDateCall) DoAndReturn(f func(uint, time.Time) error) *MockMeetingRepositoryUpdateImplementDateCall {
+	c.Call = c.Call.DoAndReturn(f)
+	return c
+}
+
 // UpdatePairing mocks base method.
 func (m *MockMeetingRepository) UpdatePairing(meetingID, pairingID uint) error {
 	m.ctrl.T.Helper()

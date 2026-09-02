@@ -8,6 +8,7 @@ type PairingRepository interface {
 	CreatePairing(menteeID, mentorID uint) (*entity.Pairing, error)
 	BreakPairing(pairingID uint) error
 	BreakAllMenteePairing(mentorID uint) error
+	GetAll() ([]entity.Pairing, error)
 	GetByMenteeID(menteeID uint) (*entity.Pairing, error)
 	GetByMentorID(mentorID uint) ([]entity.Pairing, error)
 }

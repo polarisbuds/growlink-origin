@@ -59,6 +59,15 @@ func (repo *PairingRepository) BreakAllMenteePairing(mentorID uint) error {
 	return nil
 }
 
+func (repo *PairingRepository) GetAll() ([]entity.Pairing, error) {
+	chain := repo.baseRepository.Chain("id ASC", "Mentor", "Mentee")
+	pairing, err := chain.Find(repo.ctx)
+	if err != nil {
+		return nil, fmt.Errorf("全てのペアリング情報の取得に失敗しました: %w", err)
+	}
+	return pairing, nil
+}
+
 func (repo *PairingRepository) GetByMenteeID(menteeID uint) (*entity.Pairing, error) {
 	pairing, err := repo.baseRepository.First("id ASC", "mentee_id = ?", menteeID)
 	if err != nil {

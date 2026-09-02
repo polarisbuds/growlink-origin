@@ -18,9 +18,11 @@ type MeetingRepository interface {
 	GetByUUID(uuid uuid.UUID) (*entity.Meeting, error)
 	GetByPairingID(pairingID uint) ([]entity.Meeting, error)
 
+	Update(meetingID uint, meeting *entity.Meeting) error
 	UpdateStatus(meetingID uint, status valueobject.MeetingStatus) error
 	UpdateTemplate(meetingID, templateID uint) error
 	UpdatePairing(meetingID, pairingID uint) error
+	UpdateImplementDate(meetingID uint, implementDate time.Time) error
 
 	GetUntilToday(base time.Time) ([]entity.Meeting, error)
 	GetFromSpecificDateOnward(base time.Time) ([]entity.Meeting, error)

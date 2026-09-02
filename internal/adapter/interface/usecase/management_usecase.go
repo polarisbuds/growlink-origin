@@ -1,6 +1,9 @@
 package usecase_interface
 
-import "growlink/internal/domain/entity"
+import (
+	"growlink/internal/domain/entity"
+	"time"
+)
 
 //go:generate go tool mockgen -typed -source=$GOFILE -destination=mock/mock_$GOFILE -package=mock
 
@@ -39,13 +42,14 @@ type (
 		ListMeetingsByDepartment(departmentID uint) ([]entity.Meeting, error)
 	}
 	MeetingCreator interface {
-		CreateMeeting(pairingID, templateID uint) (*entity.Meeting, error)
-		CreateMeetingByAll() ([]entity.Meeting, error)
+		CreateMeeting(pairingID, templateID uint, implementDate time.Time) (*entity.Meeting, error)
+		CreateMeetingByAll(templateID uint, implementDate time.Time) ([]entity.Meeting, error)
 	}
 	MeetingUpdater interface {
-		UpdateMeeting(*entity.Meeting) error
-		ChangePairing(meetingID, newPairingID uint)
-		ChangeTemplate(meetingID, newTemplateID uint)
+		Update(meetingID uint, meeting *entity.Meeting) error
+		ChangeImplementDate(meetingID uint, implementDate time.Time) error
+		ChangePairing(meetingID, newPairingID uint) error
+		ChangeTemplate(meetingID, newTemplateID uint) error
 	}
 	MeetingDeleter interface {
 		DeleteMeeting(meetingID uint) (bool, error)

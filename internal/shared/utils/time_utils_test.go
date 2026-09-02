@@ -73,3 +73,63 @@ func TestGetEndOfDay(t *testing.T) {
 		})
 	}
 }
+
+func TestGetSpecificWeekday(t *testing.T) {
+	jst := time.FixedZone("JST", 9*60*60)
+
+	type args struct {
+		base    time.Time
+		weekNum int
+		weekday time.Weekday
+	}
+	tests := []struct {
+		name string
+		args args
+		want time.Time
+	}{
+		{
+			name: "通常系: 2006年1月第2月曜日",
+			args: args{
+				base:    time.Date(2006, time.January, 15, 15, 4, 5, 0, time.UTC),
+				weekNum: 2,
+				weekday: time.Monday,
+			},
+			want: time.Date(2006, time.January, 9, 0, 0, 0, 0, time.UTC),
+		},
+		{
+			name: "通常系: 月初が対象曜日なら第1週はその1日",
+			args: args{
+				base:    time.Date(2026, time.September, 20, 12, 0, 0, 0, time.UTC),
+				weekNum: 1,
+				weekday: time.Tuesday,
+			},
+			want: time.Date(2026, time.September, 1, 0, 0, 0, 0, time.UTC),
+		},
+		{
+			name: "通常系: タイムゾーンは基準日の Location を維持する",
+			args: args{
+				base:    time.Date(2026, time.September, 10, 12, 0, 0, 0, jst),
+				weekNum: 1,
+				weekday: time.Wednesday,
+			},
+			want: time.Date(2026, time.September, 2, 0, 0, 0, 0, jst),
+		},
+		{
+			name: "異常系: 第5週が月末を超えると翌月に正規化される",
+			args: args{
+				base:    time.Date(2026, time.September, 1, 0, 0, 0, 0, time.UTC),
+				weekNum: 5,
+				weekday: time.Thursday,
+			},
+			want: time.Date(2026, time.October, 1, 0, 0, 0, 0, time.UTC),
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := GetSpecificWeekday(tt.args.base, tt.args.weekNum, tt.args.weekday)
+			if !got.Equal(tt.want) || got.Location() != tt.want.Location() {
+				t.Errorf("GetSpecificWeekday() = %v (%s), want %v (%s)", got, got.Location(), tt.want, tt.want.Location())
+			}
+		})
+	}
+}

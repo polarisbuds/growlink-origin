@@ -148,6 +148,13 @@ func (repo *MeetingRepository) Create(meeting *entity.Meeting) (*entity.Meeting,
 	return meeting, nil
 }
 
+func (repo *MeetingRepository) Update(meetingID uint, meeting *entity.Meeting) error {
+	if _, err := repo.baseRepository.Updates(*meeting, "id = ?", meetingID); err != nil {
+		return fmt.Errorf("ミーティングデータの更新に失敗しました: %w", err)
+	}
+	return nil
+}
+
 func (repo *MeetingRepository) UpdateStatus(meetingID uint, status valueobject.MeetingStatus) error {
 	if _, err := repo.baseRepository.Update("status", status, "id = ?", meetingID); err != nil {
 		return fmt.Errorf("ミーティングステータスの更新に失敗しました: %w", err)
@@ -165,6 +172,13 @@ func (repo *MeetingRepository) UpdateTemplate(meetingID, templateID uint) error 
 func (repo *MeetingRepository) UpdatePairing(meetingID, pairingID uint) error {
 	if _, err := repo.baseRepository.Update("pairing_id", pairingID, "id = ?", meetingID); err != nil {
 		return fmt.Errorf("ペアリングの更新に失敗しました: %w", err)
+	}
+	return nil
+}
+
+func (repo *MeetingRepository) UpdateImplementDate(meetingID uint, implementDate time.Time) error {
+	if _, err := repo.baseRepository.Update("implemented_at", implementDate, "id = ?", meetingID); err != nil {
+		return fmt.Errorf("実施予定日の更新に失敗しました: %w", err)
 	}
 	return nil
 }
