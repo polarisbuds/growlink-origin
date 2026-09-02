@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"growlink/internal/domain/entity"
+	"growlink/internal/domain/valueobject"
 	"growlink/internal/shared/utils"
 	"time"
 
@@ -36,7 +37,6 @@ func preloadNone(_ gorm.PreloadBuilder) error {
 
 func preloadAll(chain gorm.ChainInterface[entity.Meeting]) gorm.ChainInterface[entity.Meeting] {
 	return chain.
-		Preload("Status", preloadNone).
 		Preload("Template", preloadNone).
 		Preload("Template.Topics", preloadNone).
 		Preload("Pairing", preloadNone).
@@ -50,7 +50,6 @@ func preloadAll(chain gorm.ChainInterface[entity.Meeting]) gorm.ChainInterface[e
 
 func preloadBasic(chain gorm.ChainInterface[entity.Meeting]) gorm.ChainInterface[entity.Meeting] {
 	return chain.
-		Preload("Status", preloadNone).
 		Preload("Template", preloadNone).
 		Preload("Pairing", preloadNone).
 		Preload("Pairing.Mentor", preloadNone).
@@ -128,4 +127,32 @@ func (repo *MeetingRepository) GetBetweenDates(from, to time.Time) ([]entity.Mee
 		return nil, fmt.Errorf("ミーティング情報の日付指定取得に失敗しました: %w", err)
 	}
 	return meetings, nil
+}
+
+func (repo *MeetingRepository) Create(meeting *entity.Meeting) (*entity.Meeting, error) {
+	if err := repo.baseRepository.Insert(meeting); err != nil {
+		return nil, fmt.Errorf("ミーティングの新規追加に失敗しました: %w", err)
+	}
+	return meeting, nil
+}
+
+func (repo *MeetingRepository) UpdateStatus(meetingID uint, status valueobject.MeetingStatus) error {
+	if _, err := repo.baseRepository.Update("status", status, "id = ?", meetingID); err != nil {
+		return fmt.Errorf("ミーティングステータスの更新に失敗しました: %w", err)
+	}
+	return nil
+}
+
+func (repo *MeetingRepository) UpdateTemplate(meetingID, templateID uint) error {
+	if _, err := repo.baseRepository.Update("template_id", templateID, "id = ?", meetingID); err != nil {
+		return fmt.Errorf("使用するテンプレートの更新に失敗しました: %w", err)
+	}
+	return nil
+}
+
+func (repo *MeetingRepository) UpdatePairing(meetingID, pairingID uint) error {
+	if _, err := repo.baseRepository.Update("pairing_id", pairingID, "id = ?", meetingID); err != nil {
+		return fmt.Errorf("ペアリングの更新に失敗しました: %w", err)
+	}
+	return nil
 }

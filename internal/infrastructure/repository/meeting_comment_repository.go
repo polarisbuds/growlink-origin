@@ -8,20 +8,17 @@ import (
 )
 
 type MeetingCommentRepository struct {
-	ctx                    context.Context
-	baseRepository         BaseRepository[entity.MeetingComment]
-	unScopedBaseRepository BaseUnScopedRepository[entity.MeetingComment]
+	ctx context.Context
+	Commenter[entity.MeetingComment]
 }
 
 func NewMeetingCommentRepository(ctx context.Context, dp *gorm.DB) *MeetingCommentRepository {
 	return &MeetingCommentRepository{
-		baseRepository: BaseRepository[entity.MeetingComment]{
-			dp:   dp,
-			bctx: ctx,
-		},
-		unScopedBaseRepository: BaseUnScopedRepository[entity.MeetingComment]{
-			udp:  dp.Unscoped(),
-			uctx: ctx,
+		Commenter: Commenter[entity.MeetingComment]{
+			BaseRepository[entity.MeetingComment]{
+				dp:   dp,
+				bctx: ctx,
+			},
 		},
 	}
 }
