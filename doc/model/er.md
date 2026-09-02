@@ -3,23 +3,23 @@ erDiagram
 
 %% 各テーブルは bigint id PKを所持
 %% 各テーブルは created_at, updated_at, deleted_atを所持
-%% tables { bigint id PK, datetime created_at, datetime updated_at, datetime deleted_at } が存在する前提とする。
+%% tables { bigint id PK, datetime created_at, datetime updated_at, deleted_at } が存在する前提とする。
+%% pending|draft|submitted|done / general|boss|owner / mentor|mentee|boss|subordinate / login|meeting.draft|meeting.submit は Domain Value Object（列挙体）。マスタテーブルは持たない。
 
 %% ユーザ系
 users {
     uuid uuid UK
     text name "not null"
     text email "not null"
-    text password "SAML認証時にのみ不要。Basic認証ユーザはパスワード認証となる。管理者アカウント（Authority == Owener）はBasic認証のみに制限。"
+    text password "SAML認証時にのみ不要。Basic認証ユーザはパスワード認証となる。管理者アカウント（Authority == Owner）はBasic認証のみに制限。"
     text image_uri "イメージ画像の保存先"
+    text authority "not null, general|boss|owner。参照権限（一般：自身のミーティングまたは、メンティーがいる場合はそのミーティングの内容の閲覧権限、上長：チーム配下の閲覧権限、オーナー：全ての閲覧権限）を付与。一般はPairingを参照し、上長・オーナーはReadCommentableで参照範囲を定義"
 
     bigint role_id FK
     bigint department_id FK
-    bigint authority_id FK
 }
 roles ||--o{ users: ""
 departments ||--|{ users: ""
-authorities ||--o{ users: "参照権限（一般：自身のミーティングまたは、メンティーがいる場合はそのミーティングの内容の閲覧権限、上長：チーム配下の閲覧権限、オーナー：全ての閲覧権限）を付与。一般はPairingを参照し、上長・オーナーはReadCommentableで参照範囲を定義"
 
 team_members {
     uuid uuid UK
@@ -59,24 +59,17 @@ users ||--o{ pairings: "Mentor"
 users ||--o{ pairings: "Mentee"
 
 %% ミーティング系
+%% ステータス submitted, done 以外では他ユーザから見られないようにする
 meetings {
     uuid uuid UK
     datetime Implemented_at "ミーティング実施日"
+    text status "not null, pending|draft|submitted|done"
 
-    bigint status_id FK "マスタテーブルは不要の可能性有"
     bigint template_id FK
     bigint pairing_id FK
 }
 templates ||--o{ meetings: "ミーティングにはテンプレートの指定が必須"
 pairings ||--o{ meetings: "ミーティング参加ユーザはペア指定（閲覧権限とは別管理）"
-meeting_status ||--o{ meetings: "不要になる可能性有り"
-
-%% ステータス submitted, done 以外では他ユーザから見られないようにする
-meeting_status {
-    uuid uuid UK
-    number code
-    text label "pending|draft|submitted|done"
-}
 
 templates {
     uuid uuid UK
@@ -139,40 +132,22 @@ read_commentables {
 meetings ||--o{ read_commentables: ""
 users ||--o{ read_commentables: ""
 
-authorities {
-    uuid uuid UK
-    text type "general|boss|owner"
-}
-
 %% 上司-部下、メンター-メンティーの関係性を設定、これを元にread_commentablesを設定する？
 user_relationships {
     uuid uuid UK
+    text relation_type "not null, mentor|mentee|boss|subordinate"
 
-    bigint relation_type_id FK
     bigint source_user_id FK
     bigint target_user_id FK
 }
-user_relationship_types ||--|{ user_relationships: "mentor|mentee|boss|subordinate"
 users ||--o{ user_relationships: "上司, boss_id"
 users ||--o{ user_relationships: "部下, subordinate_id"
 
-%% 関係性マスタ（テーブルは作成しなくてもよさそう。ソフト側で制御）
-user_relationship_types {
-    uuid uuid UK
-    text name "関係性名称（mentor|mentee|boss|subordinate)"
-}
-
 histories {
     uuid uuid UK
+    text event_type "not null, login|meeting.draft|meeting.submit"
 
     bigint user_id FK
-    bigint event_id FK
 }
-events ||--o{ users: "イベント発報者"
-events ||--o{ histories: "履歴のイベントタイプ（login/meeting.draft,meeting.submitなど）"
-
-events {
-    uuid uuid UK
-    text name "イベント名"
-}
+users ||--o{ histories: "イベント発報者"
 ```

@@ -22,7 +22,7 @@ subgraph growlink["1on1ミーティングシステム"]
         read[閲覧]
         draft[下書き]
         submit[提出]
-        topic_comment[トピックコメント]
+        answer_comment[トピックコメント]
         meeting_comment[ミーティングコメント]
     end
 
@@ -88,9 +88,9 @@ mentor -->|pairingを参照しmentorに指定されている場合| read
 mentor -->|pairingを参照しmentorに指定されている場合| topic_comment
 mentor -->|pairingを参照しmentorに指定されている場合| meeting_comment
 
-boss -->|authority_idがbossかつ、mentee.team_idのチームリーダーに指定されている場合| read
-boss -->|authority_idがbossかつ、mentee.team_idのチームリーダーに指定されている場合| topic_comment
-boss -->|authority_idがbossかつ、mentee.team_idのチームリーダーに指定されている場合| meeting_comment
+boss -->|authorityがbossかつ、mentee.team_idのチームリーダーに指定されている場合| read
+boss -->|authorityがbossかつ、mentee.team_idのチームリーダーに指定されている場合| topic_comment
+boss -->|authorityがbossかつ、mentee.team_idのチームリーダーに指定されている場合| meeting_comment
 boss --> mng_progress
 
 owner --> read
