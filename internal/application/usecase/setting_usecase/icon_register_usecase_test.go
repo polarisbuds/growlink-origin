@@ -233,7 +233,7 @@ func TestIconRegisterUsecase_RegistIcon(t *testing.T) {
 			wantErr:     true,
 			errContains: "ユーザアイコンのアップロードで存在しないユーザIDが指定されました",
 			setup: func(_ *testing.T, user *repomock.MockUserRepository, _ *repomock.MockUploadFileRepository, _ *iconRegisterCaptures) {
-				user.EXPECT().GetByID(int64(0)).Return(nil, errors.New("invalid user id"))
+				user.EXPECT().GetByID(uint(0)).Return(nil, errors.New("invalid user id"))
 			},
 		},
 		{

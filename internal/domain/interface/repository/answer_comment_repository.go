@@ -2,7 +2,7 @@ package repository_interface
 
 import "growlink/internal/domain/entity"
 
-//go:generate go tool mockgen -typed -source=$GOFILE -destination=mock/mock_$GOFILE -package=mock
+//go:generate go tool mockgen -typed -destination=mock/mock_answer_comment_repository.go -package=mock growlink/internal/domain/interface/repository AnswerCommentRepository
 
 type AnswerCommentRepository interface {
 	Commenter[entity.AnswerComment]
