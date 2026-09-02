@@ -34,7 +34,7 @@ func TestUserRepository_GetByID(t *testing.T) {
 	assert.Equal(t, want.Email, got.Email)
 	assert.Equal(t, want.RoleID, got.RoleID)
 	assert.Equal(t, want.DepartmentID, got.DepartmentID)
-	assert.Equal(t, want.AuthorityID, got.AuthorityID)
+	assert.Equal(t, want.Authority, got.Authority)
 }
 
 func TestUserRepository_GetByID_NotFound(t *testing.T) {

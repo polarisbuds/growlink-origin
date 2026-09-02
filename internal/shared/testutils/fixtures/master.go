@@ -10,20 +10,6 @@ import (
 	"gorm.io/gorm"
 )
 
-// createMeetingStatus inserts a MeetingStatus master record (Layer0).
-func createMeetingStatus(t *testing.T, tx *gorm.DB) *entity.MeetingStatus {
-	t.Helper()
-
-	status := &entity.MeetingStatus{
-		Code:  time.Now().UnixNano(),
-		Label: fmt.Sprintf("status-%d", time.Now().UnixNano()),
-	}
-	if err := tx.Create(status).Error; err != nil {
-		t.Fatalf("failed to create meeting status fixture: %v", err)
-	}
-	return status
-}
-
 // createRole inserts a Role master record (Layer0).
 func createRole(t *testing.T, tx *gorm.DB, prefix string) *entity.Role {
 	t.Helper()
@@ -44,15 +30,4 @@ func createDepartment(t *testing.T, tx *gorm.DB, prefix string) *entity.Departme
 		t.Fatalf("failed to create department fixture: %v", err)
 	}
 	return department
-}
-
-// createAuthority inserts an Authority master record (Layer0).
-func createAuthority(t *testing.T, tx *gorm.DB, prefix string) *entity.Authority {
-	t.Helper()
-
-	authority := &entity.Authority{Type: fmt.Sprintf("%s-auth-%d", prefix, time.Now().UnixNano())}
-	if err := tx.Create(authority).Error; err != nil {
-		t.Fatalf("failed to create authority fixture: %v", err)
-	}
-	return authority
 }

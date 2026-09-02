@@ -12,6 +12,7 @@ import (
 	"growlink/internal/shared/testutils/database"
 	"growlink/internal/shared/testutils/fixtures"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"gorm.io/gorm"
 )
@@ -74,7 +75,7 @@ func TestMeetingRepository_GetAll_OrderingAndAssociation(t *testing.T) {
 		require.NotNil(t, meeting.Pairing)
 		require.NotNil(t, meeting.Pairing.Mentor)
 		require.NotNil(t, meeting.Pairing.Mentee)
-		require.NotNil(t, meeting.Status)
+		assert.True(t, meeting.Status.IsValid())
 		require.NotNil(t, meeting.Template)
 	}
 }
@@ -88,7 +89,7 @@ func TestMeetingRepository_UniqueConstraint_UUID(t *testing.T) {
 	err := repo.Insert(&entity.Meeting{
 		UUID:          existing.UUID,
 		ImplementedAt: time.Now(),
-		StatusID:      existing.StatusID,
+		Status:        existing.Status,
 		TemplateID:    existing.TemplateID,
 		PairingID:     existing.PairingID,
 	})

@@ -1,6 +1,8 @@
 package entity
 
 import (
+	"growlink/internal/domain/valueobject"
+
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -14,13 +16,12 @@ type User struct {
 	Password *string   `gorm:"type:text"`
 	ImageURI *string   `gorm:"type:text"`
 
-	RoleID       uint `gorm:"not null;index"`
-	DepartmentID uint `gorm:"not null;index"`
-	AuthorityID  uint `gorm:"not null;index"`
+	RoleID       uint                  `gorm:"not null;index"`
+	DepartmentID uint                  `gorm:"not null;index"`
+	Authority    valueobject.Authority `gorm:"type:text;not null;index"`
 
 	Role       *Role       `gorm:"foreignKey:RoleID"`
 	Department *Department `gorm:"foreignKey:DepartmentID"`
-	Authority  *Authority  `gorm:"foreignKey:AuthorityID"`
 
 	TeamMembers                  []TeamMember       `gorm:"foreignKey:MemberID;references:ID"`
 	UserRelationshipsSourceUsers []UserRelationship `gorm:"foreignKey:SourceUserID;references:ID"`

@@ -30,7 +30,7 @@ func TestBaseRepository_CRUD(t *testing.T) {
 
 	toInsert := &entity.Meeting{
 		ImplementedAt: base.ImplementedAt,
-		StatusID:      base.StatusID,
+		Status:        base.Status,
 		TemplateID:    base.TemplateID,
 		PairingID:     base.PairingID,
 	}

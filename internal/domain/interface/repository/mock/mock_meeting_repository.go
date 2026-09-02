@@ -11,6 +11,7 @@ package mock
 
 import (
 	entity "growlink/internal/domain/entity"
+	valueobject "growlink/internal/domain/valueobject"
 	reflect "reflect"
 	time "time"
 
@@ -40,6 +41,45 @@ func NewMockMeetingRepository(ctrl *gomock.Controller) *MockMeetingRepository {
 // EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockMeetingRepository) EXPECT() *MockMeetingRepositoryMockRecorder {
 	return m.recorder
+}
+
+// Create mocks base method.
+func (m *MockMeetingRepository) Create(meeting *entity.Meeting) (*entity.Meeting, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Create", meeting)
+	ret0, _ := ret[0].(*entity.Meeting)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Create indicates an expected call of Create.
+func (mr *MockMeetingRepositoryMockRecorder) Create(meeting any) *MockMeetingRepositoryCreateCall {
+	mr.mock.ctrl.T.Helper()
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockMeetingRepository)(nil).Create), meeting)
+	return &MockMeetingRepositoryCreateCall{Call: call}
+}
+
+// MockMeetingRepositoryCreateCall wrap *gomock.Call
+type MockMeetingRepositoryCreateCall struct {
+	*gomock.Call
+}
+
+// Return rewrite *gomock.Call.Return
+func (c *MockMeetingRepositoryCreateCall) Return(arg0 *entity.Meeting, arg1 error) *MockMeetingRepositoryCreateCall {
+	c.Call = c.Call.Return(arg0, arg1)
+	return c
+}
+
+// Do rewrite *gomock.Call.Do
+func (c *MockMeetingRepositoryCreateCall) Do(f func(*entity.Meeting) (*entity.Meeting, error)) *MockMeetingRepositoryCreateCall {
+	c.Call = c.Call.Do(f)
+	return c
+}
+
+// DoAndReturn rewrite *gomock.Call.DoAndReturn
+func (c *MockMeetingRepositoryCreateCall) DoAndReturn(f func(*entity.Meeting) (*entity.Meeting, error)) *MockMeetingRepositoryCreateCall {
+	c.Call = c.Call.DoAndReturn(f)
+	return c
 }
 
 // GetAll mocks base method.
@@ -272,6 +312,120 @@ func (c *MockMeetingRepositoryGetUntilTodayCall) Do(f func(time.Time) ([]entity.
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
 func (c *MockMeetingRepositoryGetUntilTodayCall) DoAndReturn(f func(time.Time) ([]entity.Meeting, error)) *MockMeetingRepositoryGetUntilTodayCall {
+	c.Call = c.Call.DoAndReturn(f)
+	return c
+}
+
+// UpdatePairing mocks base method.
+func (m *MockMeetingRepository) UpdatePairing(meetingID, pairingID uint) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdatePairing", meetingID, pairingID)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdatePairing indicates an expected call of UpdatePairing.
+func (mr *MockMeetingRepositoryMockRecorder) UpdatePairing(meetingID, pairingID any) *MockMeetingRepositoryUpdatePairingCall {
+	mr.mock.ctrl.T.Helper()
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdatePairing", reflect.TypeOf((*MockMeetingRepository)(nil).UpdatePairing), meetingID, pairingID)
+	return &MockMeetingRepositoryUpdatePairingCall{Call: call}
+}
+
+// MockMeetingRepositoryUpdatePairingCall wrap *gomock.Call
+type MockMeetingRepositoryUpdatePairingCall struct {
+	*gomock.Call
+}
+
+// Return rewrite *gomock.Call.Return
+func (c *MockMeetingRepositoryUpdatePairingCall) Return(arg0 error) *MockMeetingRepositoryUpdatePairingCall {
+	c.Call = c.Call.Return(arg0)
+	return c
+}
+
+// Do rewrite *gomock.Call.Do
+func (c *MockMeetingRepositoryUpdatePairingCall) Do(f func(uint, uint) error) *MockMeetingRepositoryUpdatePairingCall {
+	c.Call = c.Call.Do(f)
+	return c
+}
+
+// DoAndReturn rewrite *gomock.Call.DoAndReturn
+func (c *MockMeetingRepositoryUpdatePairingCall) DoAndReturn(f func(uint, uint) error) *MockMeetingRepositoryUpdatePairingCall {
+	c.Call = c.Call.DoAndReturn(f)
+	return c
+}
+
+// UpdateStatus mocks base method.
+func (m *MockMeetingRepository) UpdateStatus(meetingID uint, status valueobject.MeetingStatus) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateStatus", meetingID, status)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateStatus indicates an expected call of UpdateStatus.
+func (mr *MockMeetingRepositoryMockRecorder) UpdateStatus(meetingID, status any) *MockMeetingRepositoryUpdateStatusCall {
+	mr.mock.ctrl.T.Helper()
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateStatus", reflect.TypeOf((*MockMeetingRepository)(nil).UpdateStatus), meetingID, status)
+	return &MockMeetingRepositoryUpdateStatusCall{Call: call}
+}
+
+// MockMeetingRepositoryUpdateStatusCall wrap *gomock.Call
+type MockMeetingRepositoryUpdateStatusCall struct {
+	*gomock.Call
+}
+
+// Return rewrite *gomock.Call.Return
+func (c *MockMeetingRepositoryUpdateStatusCall) Return(arg0 error) *MockMeetingRepositoryUpdateStatusCall {
+	c.Call = c.Call.Return(arg0)
+	return c
+}
+
+// Do rewrite *gomock.Call.Do
+func (c *MockMeetingRepositoryUpdateStatusCall) Do(f func(uint, valueobject.MeetingStatus) error) *MockMeetingRepositoryUpdateStatusCall {
+	c.Call = c.Call.Do(f)
+	return c
+}
+
+// DoAndReturn rewrite *gomock.Call.DoAndReturn
+func (c *MockMeetingRepositoryUpdateStatusCall) DoAndReturn(f func(uint, valueobject.MeetingStatus) error) *MockMeetingRepositoryUpdateStatusCall {
+	c.Call = c.Call.DoAndReturn(f)
+	return c
+}
+
+// UpdateTemplate mocks base method.
+func (m *MockMeetingRepository) UpdateTemplate(meetingID, templateID uint) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateTemplate", meetingID, templateID)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateTemplate indicates an expected call of UpdateTemplate.
+func (mr *MockMeetingRepositoryMockRecorder) UpdateTemplate(meetingID, templateID any) *MockMeetingRepositoryUpdateTemplateCall {
+	mr.mock.ctrl.T.Helper()
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateTemplate", reflect.TypeOf((*MockMeetingRepository)(nil).UpdateTemplate), meetingID, templateID)
+	return &MockMeetingRepositoryUpdateTemplateCall{Call: call}
+}
+
+// MockMeetingRepositoryUpdateTemplateCall wrap *gomock.Call
+type MockMeetingRepositoryUpdateTemplateCall struct {
+	*gomock.Call
+}
+
+// Return rewrite *gomock.Call.Return
+func (c *MockMeetingRepositoryUpdateTemplateCall) Return(arg0 error) *MockMeetingRepositoryUpdateTemplateCall {
+	c.Call = c.Call.Return(arg0)
+	return c
+}
+
+// Do rewrite *gomock.Call.Do
+func (c *MockMeetingRepositoryUpdateTemplateCall) Do(f func(uint, uint) error) *MockMeetingRepositoryUpdateTemplateCall {
+	c.Call = c.Call.Do(f)
+	return c
+}
+
+// DoAndReturn rewrite *gomock.Call.DoAndReturn
+func (c *MockMeetingRepositoryUpdateTemplateCall) DoAndReturn(f func(uint, uint) error) *MockMeetingRepositoryUpdateTemplateCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }

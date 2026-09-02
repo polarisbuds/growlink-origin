@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"growlink/internal/domain/entity"
+	"growlink/internal/domain/valueobject"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -15,7 +16,7 @@ type MeetingBuilder struct {
 	t             *testing.T
 	tx            *gorm.DB
 	implementedAt *time.Time
-	status        *entity.MeetingStatus
+	status        *valueobject.MeetingStatus
 	template      *entity.Template
 	pairing       *entity.Pairing
 	meetingUUID   *uuid.UUID
@@ -33,8 +34,8 @@ func (b *MeetingBuilder) WithImplementedAt(at time.Time) *MeetingBuilder {
 	return b
 }
 
-func (b *MeetingBuilder) WithStatus(status *entity.MeetingStatus) *MeetingBuilder {
-	b.status = status
+func (b *MeetingBuilder) WithStatus(status valueobject.MeetingStatus) *MeetingBuilder {
+	b.status = &status
 	return b
 }
 
@@ -59,13 +60,13 @@ func (b *MeetingBuilder) WithNestedPreloadGraph() *MeetingBuilder {
 }
 
 // Create persists the meeting graph in ER dependency order:
-// Layer0 Status -> Layer2 Pairing/Template -> Layer4 Meeting -> Layer5/6 children.
+// Layer2 Pairing/Template -> Layer4 Meeting -> Layer5/6 children.
 func (b *MeetingBuilder) Create() *entity.Meeting {
 	b.t.Helper()
 
-	status := b.status
-	if status == nil {
-		status = createMeetingStatus(b.t, b.tx)
+	status := valueobject.MeetingStatusPending
+	if b.status != nil {
+		status = *b.status
 	}
 
 	pairing := b.pairing
@@ -85,7 +86,7 @@ func (b *MeetingBuilder) Create() *entity.Meeting {
 
 	meeting := &entity.Meeting{
 		ImplementedAt: implementedAt,
-		StatusID:      status.ID,
+		Status:        status,
 		TemplateID:    template.ID,
 		PairingID:     pairing.ID,
 	}
@@ -121,7 +122,7 @@ func MeetingWithoutFK(t *testing.T, tx *gorm.DB) *entity.Meeting {
 
 	meeting := &entity.Meeting{
 		ImplementedAt: time.Now(),
-		StatusID:      999999999,
+		Status:        valueobject.MeetingStatusPending,
 		TemplateID:    999999999,
 		PairingID:     999999999,
 	}

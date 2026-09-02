@@ -53,10 +53,6 @@ func AutoMigrate(db *gorm.DB) error {
 		&entity.History{},
 
 		// マスタテーブル
-		&entity.Authority{},
 		&entity.Role{},
-		&entity.MeetingStatus{},
-		&entity.UserRelationshipType{},
-		&entity.Event{},
 	)
 }
