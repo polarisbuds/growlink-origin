@@ -17,7 +17,7 @@ func NewMeetingCommenterUsecase(meetingCommentRepo repository_interface.MeetingC
 }
 
 func (uc *MeetingCommenterUsecase) GetComment(commentID uint) (*entity.MeetingComment, error) {
-	comment, err := uc.GetComment(commentID)
+	comment, err := uc.meetingCommentRepo.GetComment(commentID)
 	if err != nil {
 		return nil, fmt.Errorf("ミーティングへのコメントの取得に失敗しました: %w", err)
 	}

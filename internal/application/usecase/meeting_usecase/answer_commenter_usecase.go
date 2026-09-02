@@ -17,7 +17,7 @@ func NewAnswerCommenterUsecase(answerCommentRepo repository_interface.AnswerComm
 }
 
 func (uc *AnswerCommenterUsecase) GetComment(commentID uint) (*entity.AnswerComment, error) {
-	comment, err := uc.GetComment(commentID)
+	comment, err := uc.answerCommentRepo.GetComment(commentID)
 	if err != nil {
 		return nil, fmt.Errorf("回答へのコメントの取得に失敗しました: %w", err)
 	}
