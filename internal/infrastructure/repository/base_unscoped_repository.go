@@ -69,6 +69,14 @@ func (repo *BaseUnScopedRepository[T]) UWhereInBatch(batchSize int, order, query
 	return result, nil
 }
 
+func (repo *BaseUnScopedRepository[T]) UChain(order string, preloads ...string) gorm.ChainInterface[T] {
+	chain := gorm.G[T](repo.udp).Order(order)
+	for _, preload := range preloads {
+		chain = chain.Preload(preload, nil)
+	}
+	return chain
+}
+
 func (repo *BaseUnScopedRepository[T]) UWhereChain(order, query string, args ...any) (gorm.ChainInterface[T], error) {
 	exists, err := repo.UExists(query, args...)
 	if err != nil {

@@ -77,6 +77,14 @@ func (repo *BaseRepository[T]) WhereInBatch(batchSize int, order, query string, 
 	return result, nil
 }
 
+func (repo *BaseRepository[T]) Chain(order string, preloads ...string) gorm.ChainInterface[T] {
+	chain := gorm.G[T](repo.dp).Order(order)
+	for _, preload := range preloads {
+		chain = chain.Preload(preload, nil)
+	}
+	return chain
+}
+
 func (repo *BaseRepository[T]) WhereChain(order, query string, args ...any) (gorm.ChainInterface[T], error) {
 	exists, err := repo.Exists(query, args...)
 	if err != nil {
