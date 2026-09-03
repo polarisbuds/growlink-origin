@@ -15,8 +15,8 @@ func NewMeetingDeleter(meetingRepo repository_interface.MeetingRepository) *Meet
 	}
 }
 
-func (deleter *MeetingDeleter) DeleteMeeting(meetingIDs ...uint) (bool, error) {
-	if err := deleter.meetingRepo.Delete(meetingIDs...); err != nil {
+func (uc *MeetingDeleter) DeleteMeeting(meetingIDs ...uint) (bool, error) {
+	if err := uc.meetingRepo.Delete(meetingIDs...); err != nil {
 		return false, fmt.Errorf("ミーティングの削除に失敗しました: %w", err)
 	}
 	return true, nil
