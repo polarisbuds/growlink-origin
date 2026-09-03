@@ -19,7 +19,13 @@ func Team(t *testing.T, tx *gorm.DB) *entity.Team {
 // TeamMember inserts a TeamMember with default dependencies.
 func TeamMember(t *testing.T, tx *gorm.DB, team *entity.Team, member *entity.User) *entity.TeamMember {
 	t.Helper()
-	return createTeamMember(t, tx, team, member)
+	return createTeamMember(t, tx, team, member, false)
+}
+
+// TeamMemberWithReader inserts a TeamMember with the given isReader flag.
+func TeamMemberWithReader(t *testing.T, tx *gorm.DB, team *entity.Team, member *entity.User, isReader bool) *entity.TeamMember {
+	t.Helper()
+	return createTeamMember(t, tx, team, member, isReader)
 }
 
 func createTeam(t *testing.T, tx *gorm.DB) *entity.Team {
@@ -36,7 +42,7 @@ func createTeam(t *testing.T, tx *gorm.DB) *entity.Team {
 	return team
 }
 
-func createTeamMember(t *testing.T, tx *gorm.DB, team *entity.Team, member *entity.User) *entity.TeamMember {
+func createTeamMember(t *testing.T, tx *gorm.DB, team *entity.Team, member *entity.User, isReader bool) *entity.TeamMember {
 	t.Helper()
 
 	if team == nil {
@@ -49,6 +55,7 @@ func createTeamMember(t *testing.T, tx *gorm.DB, team *entity.Team, member *enti
 	teamMember := &entity.TeamMember{
 		TeamID:   team.ID,
 		MemberID: member.ID,
+		IsReader: isReader,
 	}
 	if err := tx.Create(teamMember).Error; err != nil {
 		t.Fatalf("failed to create team member fixture: %v", err)

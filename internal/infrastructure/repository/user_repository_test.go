@@ -54,6 +54,7 @@ func TestUserRepository_UpdateByID(t *testing.T) {
 	want.Name = "updated-name"
 	want.ImageURI = &imageURI
 
+	// TODO; panic: reflect: reflect.Value.SetUint using unaddressable value [recovered, repanicked]
 	err := repo.UpdateByID(want)
 	assertions.NoError(t, err)
 
@@ -73,4 +74,37 @@ func TestUserRepository_UpdateByID_Nil(t *testing.T) {
 
 	err := repo.UpdateByID(nil)
 	assertions.NoError(t, err)
+}
+
+func TestUserRepository_GetByDepartmentID(t *testing.T) {
+	tx := testutils.Begin(t)
+	repo := newUserRepo(t, tx)
+
+	targetDept := fixtures.User(t, tx, "dept-target").Department
+	inDept := fixtures.UserInDepartment(t, tx, "dept-in", targetDept)
+	_ = fixtures.User(t, tx, "dept-out")
+
+	got, err := repo.GetByDepartmentID(targetDept.ID)
+	assertions.NoError(t, err)
+	require.Len(t, got, 2)
+
+	ids := map[uint]struct{}{got[0].ID: {}, got[1].ID: {}}
+	_, okTarget := ids[inDept.ID]
+	assert.True(t, okTarget)
+
+	for _, user := range got {
+		assert.Equal(t, targetDept.ID, user.DepartmentID)
+		require.NotNil(t, user.Department)
+		assert.Equal(t, targetDept.ID, user.Department.ID)
+		require.NotNil(t, user.Role)
+	}
+}
+
+func TestUserRepository_GetByDepartmentID_Empty(t *testing.T) {
+	tx := testutils.Begin(t)
+	repo := newUserRepo(t, tx)
+
+	got, err := repo.GetByDepartmentID(9_999_999)
+	assertions.NoError(t, err)
+	assert.Empty(t, got)
 }

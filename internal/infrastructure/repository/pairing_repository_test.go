@@ -162,3 +162,35 @@ func TestPairingRepository_BreakAllMenteePairing(t *testing.T) {
 	require.NotNil(t, gotKept)
 	assert.Equal(t, kept.ID, gotKept.ID)
 }
+
+func TestPairingRepository_GetAll(t *testing.T) {
+	tx := testutils.Begin(t)
+	repo := newPairingRepo(t, tx)
+
+	mentor := fixtures.User(t, tx, "getall-mentor")
+	mentee1 := fixtures.User(t, tx, "getall-mentee1")
+	mentee2 := fixtures.User(t, tx, "getall-mentee2")
+	first := insertPairing(t, tx, mentor, mentee1)
+	second := insertPairing(t, tx, mentor, mentee2)
+
+	got, err := repo.GetAll()
+	assertions.NoError(t, err)
+	require.Len(t, got, 2)
+	assert.Equal(t, first.ID, got[0].ID)
+	assert.Equal(t, second.ID, got[1].ID)
+
+	for _, pairing := range got {
+		require.NotNil(t, pairing.Mentor)
+		require.NotNil(t, pairing.Mentee)
+		assert.Equal(t, mentor.ID, pairing.Mentor.ID)
+	}
+}
+
+func TestPairingRepository_GetAll_Empty(t *testing.T) {
+	tx := testutils.Begin(t)
+	repo := newPairingRepo(t, tx)
+
+	got, err := repo.GetAll()
+	assertions.NoError(t, err)
+	assert.Empty(t, got)
+}

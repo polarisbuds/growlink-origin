@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"growlink/internal/domain/entity"
+	"growlink/internal/domain/valueobject"
 	"growlink/internal/infrastructure/repository"
 	"growlink/internal/shared/testutils"
 	"growlink/internal/shared/testutils/assertions"
@@ -190,6 +191,73 @@ func TestMeetingRepository_GetBetweenDates_reversedArguments(t *testing.T) {
 	got, err := repo.GetBetweenDates(from, to)
 	assertions.NoError(t, err)
 	assertions.MeetingIDs(t, []entity.Meeting{*inRange}, got)
+}
+
+func TestMeetingRepository_GetByPairingID(t *testing.T) {
+	tx := testutils.Begin(t)
+	repo := newMeetingRepo(t, tx)
+
+	pairing := fixtures.Pairing(t, tx)
+	otherPairing := fixtures.Pairing(t, tx)
+
+	first := fixtures.Meeting(t, tx).WithPairing(pairing).Create()
+	second := fixtures.Meeting(t, tx).WithPairing(pairing).Create()
+	_ = fixtures.Meeting(t, tx).WithPairing(otherPairing).Create()
+
+	got, err := repo.GetByPairingID(pairing.ID)
+	assertions.NoError(t, err)
+	require.Len(t, got, 2)
+	assertions.MeetingIDs(t, []entity.Meeting{*first, *second}, got)
+
+	for _, meeting := range got {
+		require.NotNil(t, meeting.Pairing)
+		require.NotNil(t, meeting.Pairing.Mentor)
+		require.NotNil(t, meeting.Pairing.Mentee)
+		assert.Nil(t, meeting.Template)
+	}
+}
+
+func TestMeetingRepository_GetByPairingID_Empty(t *testing.T) {
+	tx := testutils.Begin(t)
+	repo := newMeetingRepo(t, tx)
+
+	pairing := fixtures.Pairing(t, tx)
+
+	got, err := repo.GetByPairingID(pairing.ID)
+	assertions.NoError(t, err)
+	assert.Empty(t, got)
+}
+
+func TestMeetingRepository_Update(t *testing.T) {
+	tx := testutils.Begin(t)
+	repo := newMeetingRepo(t, tx)
+
+	want := fixtures.Meeting(t, tx).Create()
+	want.Status = valueobject.MeetingStatusDone
+
+	err := repo.Update(want.ID, want)
+	assertions.NoError(t, err)
+
+	got, err := repo.GetByID(want.ID)
+	assertions.NoError(t, err)
+	require.NotNil(t, got)
+	assert.Equal(t, valueobject.MeetingStatusDone, got.Status)
+}
+
+func TestMeetingRepository_UpdateImplementDate(t *testing.T) {
+	tx := testutils.Begin(t)
+	repo := newMeetingRepo(t, tx)
+
+	want := fixtures.Meeting(t, tx).Create()
+	newDate := atJST(2026, time.September, 10, 15, 30, 0)
+
+	err := repo.UpdateImplementDate(want.ID, newDate)
+	assertions.NoError(t, err)
+
+	got, err := repo.GetByID(want.ID)
+	assertions.NoError(t, err)
+	require.NotNil(t, got)
+	assert.True(t, got.ImplementedAt.Equal(newDate))
 }
 
 func TestMeetingRepository_TransactionRollbackIsolation(t *testing.T) {
