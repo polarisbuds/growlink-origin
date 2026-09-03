@@ -17,32 +17,32 @@ import (
 	gomock "go.uber.org/mock/gomock"
 )
 
-// MockManagementUsecase is a mock of ManagementUsecase interface.
-type MockManagementUsecase struct {
+// MockManager is a mock of Manager interface.
+type MockManager struct {
 	ctrl     *gomock.Controller
-	recorder *MockManagementUsecaseMockRecorder
+	recorder *MockManagerMockRecorder
 	isgomock struct{}
 }
 
-// MockManagementUsecaseMockRecorder is the mock recorder for MockManagementUsecase.
-type MockManagementUsecaseMockRecorder struct {
-	mock *MockManagementUsecase
+// MockManagerMockRecorder is the mock recorder for MockManager.
+type MockManagerMockRecorder struct {
+	mock *MockManager
 }
 
-// NewMockManagementUsecase creates a new mock instance.
-func NewMockManagementUsecase(ctrl *gomock.Controller) *MockManagementUsecase {
-	mock := &MockManagementUsecase{ctrl: ctrl}
-	mock.recorder = &MockManagementUsecaseMockRecorder{mock}
+// NewMockManager creates a new mock instance.
+func NewMockManager(ctrl *gomock.Controller) *MockManager {
+	mock := &MockManager{ctrl: ctrl}
+	mock.recorder = &MockManagerMockRecorder{mock}
 	return mock
 }
 
 // EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockManagementUsecase) EXPECT() *MockManagementUsecaseMockRecorder {
+func (m *MockManager) EXPECT() *MockManagerMockRecorder {
 	return m.recorder
 }
 
 // BreakPairing mocks base method.
-func (m *MockManagementUsecase) BreakPairing(pairingID uint) error {
+func (m *MockManager) BreakPairing(pairingID uint) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "BreakPairing", pairingID)
 	ret0, _ := ret[0].(error)
@@ -50,37 +50,37 @@ func (m *MockManagementUsecase) BreakPairing(pairingID uint) error {
 }
 
 // BreakPairing indicates an expected call of BreakPairing.
-func (mr *MockManagementUsecaseMockRecorder) BreakPairing(pairingID any) *MockManagementUsecaseBreakPairingCall {
+func (mr *MockManagerMockRecorder) BreakPairing(pairingID any) *MockManagerBreakPairingCall {
 	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BreakPairing", reflect.TypeOf((*MockManagementUsecase)(nil).BreakPairing), pairingID)
-	return &MockManagementUsecaseBreakPairingCall{Call: call}
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BreakPairing", reflect.TypeOf((*MockManager)(nil).BreakPairing), pairingID)
+	return &MockManagerBreakPairingCall{Call: call}
 }
 
-// MockManagementUsecaseBreakPairingCall wrap *gomock.Call
-type MockManagementUsecaseBreakPairingCall struct {
+// MockManagerBreakPairingCall wrap *gomock.Call
+type MockManagerBreakPairingCall struct {
 	*gomock.Call
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MockManagementUsecaseBreakPairingCall) Return(arg0 error) *MockManagementUsecaseBreakPairingCall {
+func (c *MockManagerBreakPairingCall) Return(arg0 error) *MockManagerBreakPairingCall {
 	c.Call = c.Call.Return(arg0)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockManagementUsecaseBreakPairingCall) Do(f func(uint) error) *MockManagementUsecaseBreakPairingCall {
+func (c *MockManagerBreakPairingCall) Do(f func(uint) error) *MockManagerBreakPairingCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockManagementUsecaseBreakPairingCall) DoAndReturn(f func(uint) error) *MockManagementUsecaseBreakPairingCall {
+func (c *MockManagerBreakPairingCall) DoAndReturn(f func(uint) error) *MockManagerBreakPairingCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
 // BreakPairings mocks base method.
-func (m *MockManagementUsecase) BreakPairings(pairingIDs ...uint) error {
+func (m *MockManager) BreakPairings(pairingIDs ...uint) error {
 	m.ctrl.T.Helper()
 	varargs := []any{}
 	for _, a := range pairingIDs {
@@ -92,37 +92,37 @@ func (m *MockManagementUsecase) BreakPairings(pairingIDs ...uint) error {
 }
 
 // BreakPairings indicates an expected call of BreakPairings.
-func (mr *MockManagementUsecaseMockRecorder) BreakPairings(pairingIDs ...any) *MockManagementUsecaseBreakPairingsCall {
+func (mr *MockManagerMockRecorder) BreakPairings(pairingIDs ...any) *MockManagerBreakPairingsCall {
 	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BreakPairings", reflect.TypeOf((*MockManagementUsecase)(nil).BreakPairings), pairingIDs...)
-	return &MockManagementUsecaseBreakPairingsCall{Call: call}
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BreakPairings", reflect.TypeOf((*MockManager)(nil).BreakPairings), pairingIDs...)
+	return &MockManagerBreakPairingsCall{Call: call}
 }
 
-// MockManagementUsecaseBreakPairingsCall wrap *gomock.Call
-type MockManagementUsecaseBreakPairingsCall struct {
+// MockManagerBreakPairingsCall wrap *gomock.Call
+type MockManagerBreakPairingsCall struct {
 	*gomock.Call
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MockManagementUsecaseBreakPairingsCall) Return(arg0 error) *MockManagementUsecaseBreakPairingsCall {
+func (c *MockManagerBreakPairingsCall) Return(arg0 error) *MockManagerBreakPairingsCall {
 	c.Call = c.Call.Return(arg0)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockManagementUsecaseBreakPairingsCall) Do(f func(...uint) error) *MockManagementUsecaseBreakPairingsCall {
+func (c *MockManagerBreakPairingsCall) Do(f func(...uint) error) *MockManagerBreakPairingsCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockManagementUsecaseBreakPairingsCall) DoAndReturn(f func(...uint) error) *MockManagementUsecaseBreakPairingsCall {
+func (c *MockManagerBreakPairingsCall) DoAndReturn(f func(...uint) error) *MockManagerBreakPairingsCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
 // ChangeImplementDate mocks base method.
-func (m *MockManagementUsecase) ChangeImplementDate(meetingID uint, implementDate time.Time) error {
+func (m *MockManager) ChangeImplementDate(meetingID uint, implementDate time.Time) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ChangeImplementDate", meetingID, implementDate)
 	ret0, _ := ret[0].(error)
@@ -130,37 +130,37 @@ func (m *MockManagementUsecase) ChangeImplementDate(meetingID uint, implementDat
 }
 
 // ChangeImplementDate indicates an expected call of ChangeImplementDate.
-func (mr *MockManagementUsecaseMockRecorder) ChangeImplementDate(meetingID, implementDate any) *MockManagementUsecaseChangeImplementDateCall {
+func (mr *MockManagerMockRecorder) ChangeImplementDate(meetingID, implementDate any) *MockManagerChangeImplementDateCall {
 	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ChangeImplementDate", reflect.TypeOf((*MockManagementUsecase)(nil).ChangeImplementDate), meetingID, implementDate)
-	return &MockManagementUsecaseChangeImplementDateCall{Call: call}
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ChangeImplementDate", reflect.TypeOf((*MockManager)(nil).ChangeImplementDate), meetingID, implementDate)
+	return &MockManagerChangeImplementDateCall{Call: call}
 }
 
-// MockManagementUsecaseChangeImplementDateCall wrap *gomock.Call
-type MockManagementUsecaseChangeImplementDateCall struct {
+// MockManagerChangeImplementDateCall wrap *gomock.Call
+type MockManagerChangeImplementDateCall struct {
 	*gomock.Call
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MockManagementUsecaseChangeImplementDateCall) Return(arg0 error) *MockManagementUsecaseChangeImplementDateCall {
+func (c *MockManagerChangeImplementDateCall) Return(arg0 error) *MockManagerChangeImplementDateCall {
 	c.Call = c.Call.Return(arg0)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockManagementUsecaseChangeImplementDateCall) Do(f func(uint, time.Time) error) *MockManagementUsecaseChangeImplementDateCall {
+func (c *MockManagerChangeImplementDateCall) Do(f func(uint, time.Time) error) *MockManagerChangeImplementDateCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockManagementUsecaseChangeImplementDateCall) DoAndReturn(f func(uint, time.Time) error) *MockManagementUsecaseChangeImplementDateCall {
+func (c *MockManagerChangeImplementDateCall) DoAndReturn(f func(uint, time.Time) error) *MockManagerChangeImplementDateCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
 // ChangePairing mocks base method.
-func (m *MockManagementUsecase) ChangePairing(meetingID, newPairingID uint) error {
+func (m *MockManager) ChangePairing(meetingID, newPairingID uint) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ChangePairing", meetingID, newPairingID)
 	ret0, _ := ret[0].(error)
@@ -168,37 +168,37 @@ func (m *MockManagementUsecase) ChangePairing(meetingID, newPairingID uint) erro
 }
 
 // ChangePairing indicates an expected call of ChangePairing.
-func (mr *MockManagementUsecaseMockRecorder) ChangePairing(meetingID, newPairingID any) *MockManagementUsecaseChangePairingCall {
+func (mr *MockManagerMockRecorder) ChangePairing(meetingID, newPairingID any) *MockManagerChangePairingCall {
 	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ChangePairing", reflect.TypeOf((*MockManagementUsecase)(nil).ChangePairing), meetingID, newPairingID)
-	return &MockManagementUsecaseChangePairingCall{Call: call}
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ChangePairing", reflect.TypeOf((*MockManager)(nil).ChangePairing), meetingID, newPairingID)
+	return &MockManagerChangePairingCall{Call: call}
 }
 
-// MockManagementUsecaseChangePairingCall wrap *gomock.Call
-type MockManagementUsecaseChangePairingCall struct {
+// MockManagerChangePairingCall wrap *gomock.Call
+type MockManagerChangePairingCall struct {
 	*gomock.Call
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MockManagementUsecaseChangePairingCall) Return(arg0 error) *MockManagementUsecaseChangePairingCall {
+func (c *MockManagerChangePairingCall) Return(arg0 error) *MockManagerChangePairingCall {
 	c.Call = c.Call.Return(arg0)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockManagementUsecaseChangePairingCall) Do(f func(uint, uint) error) *MockManagementUsecaseChangePairingCall {
+func (c *MockManagerChangePairingCall) Do(f func(uint, uint) error) *MockManagerChangePairingCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockManagementUsecaseChangePairingCall) DoAndReturn(f func(uint, uint) error) *MockManagementUsecaseChangePairingCall {
+func (c *MockManagerChangePairingCall) DoAndReturn(f func(uint, uint) error) *MockManagerChangePairingCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
 // ChangeTemplate mocks base method.
-func (m *MockManagementUsecase) ChangeTemplate(meetingID, newTemplateID uint) error {
+func (m *MockManager) ChangeTemplate(meetingID, newTemplateID uint) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ChangeTemplate", meetingID, newTemplateID)
 	ret0, _ := ret[0].(error)
@@ -206,37 +206,37 @@ func (m *MockManagementUsecase) ChangeTemplate(meetingID, newTemplateID uint) er
 }
 
 // ChangeTemplate indicates an expected call of ChangeTemplate.
-func (mr *MockManagementUsecaseMockRecorder) ChangeTemplate(meetingID, newTemplateID any) *MockManagementUsecaseChangeTemplateCall {
+func (mr *MockManagerMockRecorder) ChangeTemplate(meetingID, newTemplateID any) *MockManagerChangeTemplateCall {
 	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ChangeTemplate", reflect.TypeOf((*MockManagementUsecase)(nil).ChangeTemplate), meetingID, newTemplateID)
-	return &MockManagementUsecaseChangeTemplateCall{Call: call}
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ChangeTemplate", reflect.TypeOf((*MockManager)(nil).ChangeTemplate), meetingID, newTemplateID)
+	return &MockManagerChangeTemplateCall{Call: call}
 }
 
-// MockManagementUsecaseChangeTemplateCall wrap *gomock.Call
-type MockManagementUsecaseChangeTemplateCall struct {
+// MockManagerChangeTemplateCall wrap *gomock.Call
+type MockManagerChangeTemplateCall struct {
 	*gomock.Call
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MockManagementUsecaseChangeTemplateCall) Return(arg0 error) *MockManagementUsecaseChangeTemplateCall {
+func (c *MockManagerChangeTemplateCall) Return(arg0 error) *MockManagerChangeTemplateCall {
 	c.Call = c.Call.Return(arg0)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockManagementUsecaseChangeTemplateCall) Do(f func(uint, uint) error) *MockManagementUsecaseChangeTemplateCall {
+func (c *MockManagerChangeTemplateCall) Do(f func(uint, uint) error) *MockManagerChangeTemplateCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockManagementUsecaseChangeTemplateCall) DoAndReturn(f func(uint, uint) error) *MockManagementUsecaseChangeTemplateCall {
+func (c *MockManagerChangeTemplateCall) DoAndReturn(f func(uint, uint) error) *MockManagerChangeTemplateCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
 // CreateMeeting mocks base method.
-func (m *MockManagementUsecase) CreateMeeting(pairingID, templateID uint, implementDate time.Time) (*entity.Meeting, error) {
+func (m *MockManager) CreateMeeting(pairingID, templateID uint, implementDate time.Time) (*entity.Meeting, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateMeeting", pairingID, templateID, implementDate)
 	ret0, _ := ret[0].(*entity.Meeting)
@@ -245,37 +245,37 @@ func (m *MockManagementUsecase) CreateMeeting(pairingID, templateID uint, implem
 }
 
 // CreateMeeting indicates an expected call of CreateMeeting.
-func (mr *MockManagementUsecaseMockRecorder) CreateMeeting(pairingID, templateID, implementDate any) *MockManagementUsecaseCreateMeetingCall {
+func (mr *MockManagerMockRecorder) CreateMeeting(pairingID, templateID, implementDate any) *MockManagerCreateMeetingCall {
 	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateMeeting", reflect.TypeOf((*MockManagementUsecase)(nil).CreateMeeting), pairingID, templateID, implementDate)
-	return &MockManagementUsecaseCreateMeetingCall{Call: call}
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateMeeting", reflect.TypeOf((*MockManager)(nil).CreateMeeting), pairingID, templateID, implementDate)
+	return &MockManagerCreateMeetingCall{Call: call}
 }
 
-// MockManagementUsecaseCreateMeetingCall wrap *gomock.Call
-type MockManagementUsecaseCreateMeetingCall struct {
+// MockManagerCreateMeetingCall wrap *gomock.Call
+type MockManagerCreateMeetingCall struct {
 	*gomock.Call
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MockManagementUsecaseCreateMeetingCall) Return(arg0 *entity.Meeting, arg1 error) *MockManagementUsecaseCreateMeetingCall {
+func (c *MockManagerCreateMeetingCall) Return(arg0 *entity.Meeting, arg1 error) *MockManagerCreateMeetingCall {
 	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockManagementUsecaseCreateMeetingCall) Do(f func(uint, uint, time.Time) (*entity.Meeting, error)) *MockManagementUsecaseCreateMeetingCall {
+func (c *MockManagerCreateMeetingCall) Do(f func(uint, uint, time.Time) (*entity.Meeting, error)) *MockManagerCreateMeetingCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockManagementUsecaseCreateMeetingCall) DoAndReturn(f func(uint, uint, time.Time) (*entity.Meeting, error)) *MockManagementUsecaseCreateMeetingCall {
+func (c *MockManagerCreateMeetingCall) DoAndReturn(f func(uint, uint, time.Time) (*entity.Meeting, error)) *MockManagerCreateMeetingCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
 // CreateMeetingByAll mocks base method.
-func (m *MockManagementUsecase) CreateMeetingByAll(templateID uint, implementDate time.Time) ([]entity.Meeting, error) {
+func (m *MockManager) CreateMeetingByAll(templateID uint, implementDate time.Time) ([]entity.Meeting, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateMeetingByAll", templateID, implementDate)
 	ret0, _ := ret[0].([]entity.Meeting)
@@ -284,37 +284,37 @@ func (m *MockManagementUsecase) CreateMeetingByAll(templateID uint, implementDat
 }
 
 // CreateMeetingByAll indicates an expected call of CreateMeetingByAll.
-func (mr *MockManagementUsecaseMockRecorder) CreateMeetingByAll(templateID, implementDate any) *MockManagementUsecaseCreateMeetingByAllCall {
+func (mr *MockManagerMockRecorder) CreateMeetingByAll(templateID, implementDate any) *MockManagerCreateMeetingByAllCall {
 	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateMeetingByAll", reflect.TypeOf((*MockManagementUsecase)(nil).CreateMeetingByAll), templateID, implementDate)
-	return &MockManagementUsecaseCreateMeetingByAllCall{Call: call}
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateMeetingByAll", reflect.TypeOf((*MockManager)(nil).CreateMeetingByAll), templateID, implementDate)
+	return &MockManagerCreateMeetingByAllCall{Call: call}
 }
 
-// MockManagementUsecaseCreateMeetingByAllCall wrap *gomock.Call
-type MockManagementUsecaseCreateMeetingByAllCall struct {
+// MockManagerCreateMeetingByAllCall wrap *gomock.Call
+type MockManagerCreateMeetingByAllCall struct {
 	*gomock.Call
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MockManagementUsecaseCreateMeetingByAllCall) Return(arg0 []entity.Meeting, arg1 error) *MockManagementUsecaseCreateMeetingByAllCall {
+func (c *MockManagerCreateMeetingByAllCall) Return(arg0 []entity.Meeting, arg1 error) *MockManagerCreateMeetingByAllCall {
 	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockManagementUsecaseCreateMeetingByAllCall) Do(f func(uint, time.Time) ([]entity.Meeting, error)) *MockManagementUsecaseCreateMeetingByAllCall {
+func (c *MockManagerCreateMeetingByAllCall) Do(f func(uint, time.Time) ([]entity.Meeting, error)) *MockManagerCreateMeetingByAllCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockManagementUsecaseCreateMeetingByAllCall) DoAndReturn(f func(uint, time.Time) ([]entity.Meeting, error)) *MockManagementUsecaseCreateMeetingByAllCall {
+func (c *MockManagerCreateMeetingByAllCall) DoAndReturn(f func(uint, time.Time) ([]entity.Meeting, error)) *MockManagerCreateMeetingByAllCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
 // CreateMeetingEveryMonth mocks base method.
-func (m *MockManagementUsecase) CreateMeetingEveryMonth(templateID uint, baseDate time.Time, week int, weekday time.Weekday) ([]entity.Meeting, error) {
+func (m *MockManager) CreateMeetingEveryMonth(templateID uint, baseDate time.Time, week int, weekday time.Weekday) ([]entity.Meeting, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateMeetingEveryMonth", templateID, baseDate, week, weekday)
 	ret0, _ := ret[0].([]entity.Meeting)
@@ -323,37 +323,37 @@ func (m *MockManagementUsecase) CreateMeetingEveryMonth(templateID uint, baseDat
 }
 
 // CreateMeetingEveryMonth indicates an expected call of CreateMeetingEveryMonth.
-func (mr *MockManagementUsecaseMockRecorder) CreateMeetingEveryMonth(templateID, baseDate, week, weekday any) *MockManagementUsecaseCreateMeetingEveryMonthCall {
+func (mr *MockManagerMockRecorder) CreateMeetingEveryMonth(templateID, baseDate, week, weekday any) *MockManagerCreateMeetingEveryMonthCall {
 	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateMeetingEveryMonth", reflect.TypeOf((*MockManagementUsecase)(nil).CreateMeetingEveryMonth), templateID, baseDate, week, weekday)
-	return &MockManagementUsecaseCreateMeetingEveryMonthCall{Call: call}
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateMeetingEveryMonth", reflect.TypeOf((*MockManager)(nil).CreateMeetingEveryMonth), templateID, baseDate, week, weekday)
+	return &MockManagerCreateMeetingEveryMonthCall{Call: call}
 }
 
-// MockManagementUsecaseCreateMeetingEveryMonthCall wrap *gomock.Call
-type MockManagementUsecaseCreateMeetingEveryMonthCall struct {
+// MockManagerCreateMeetingEveryMonthCall wrap *gomock.Call
+type MockManagerCreateMeetingEveryMonthCall struct {
 	*gomock.Call
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MockManagementUsecaseCreateMeetingEveryMonthCall) Return(arg0 []entity.Meeting, arg1 error) *MockManagementUsecaseCreateMeetingEveryMonthCall {
+func (c *MockManagerCreateMeetingEveryMonthCall) Return(arg0 []entity.Meeting, arg1 error) *MockManagerCreateMeetingEveryMonthCall {
 	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockManagementUsecaseCreateMeetingEveryMonthCall) Do(f func(uint, time.Time, int, time.Weekday) ([]entity.Meeting, error)) *MockManagementUsecaseCreateMeetingEveryMonthCall {
+func (c *MockManagerCreateMeetingEveryMonthCall) Do(f func(uint, time.Time, int, time.Weekday) ([]entity.Meeting, error)) *MockManagerCreateMeetingEveryMonthCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockManagementUsecaseCreateMeetingEveryMonthCall) DoAndReturn(f func(uint, time.Time, int, time.Weekday) ([]entity.Meeting, error)) *MockManagementUsecaseCreateMeetingEveryMonthCall {
+func (c *MockManagerCreateMeetingEveryMonthCall) DoAndReturn(f func(uint, time.Time, int, time.Weekday) ([]entity.Meeting, error)) *MockManagerCreateMeetingEveryMonthCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
 // CreatePairing mocks base method.
-func (m *MockManagementUsecase) CreatePairing(menteeID, mentorID uint) error {
+func (m *MockManager) CreatePairing(menteeID, mentorID uint) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreatePairing", menteeID, mentorID)
 	ret0, _ := ret[0].(error)
@@ -361,37 +361,37 @@ func (m *MockManagementUsecase) CreatePairing(menteeID, mentorID uint) error {
 }
 
 // CreatePairing indicates an expected call of CreatePairing.
-func (mr *MockManagementUsecaseMockRecorder) CreatePairing(menteeID, mentorID any) *MockManagementUsecaseCreatePairingCall {
+func (mr *MockManagerMockRecorder) CreatePairing(menteeID, mentorID any) *MockManagerCreatePairingCall {
 	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreatePairing", reflect.TypeOf((*MockManagementUsecase)(nil).CreatePairing), menteeID, mentorID)
-	return &MockManagementUsecaseCreatePairingCall{Call: call}
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreatePairing", reflect.TypeOf((*MockManager)(nil).CreatePairing), menteeID, mentorID)
+	return &MockManagerCreatePairingCall{Call: call}
 }
 
-// MockManagementUsecaseCreatePairingCall wrap *gomock.Call
-type MockManagementUsecaseCreatePairingCall struct {
+// MockManagerCreatePairingCall wrap *gomock.Call
+type MockManagerCreatePairingCall struct {
 	*gomock.Call
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MockManagementUsecaseCreatePairingCall) Return(arg0 error) *MockManagementUsecaseCreatePairingCall {
+func (c *MockManagerCreatePairingCall) Return(arg0 error) *MockManagerCreatePairingCall {
 	c.Call = c.Call.Return(arg0)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockManagementUsecaseCreatePairingCall) Do(f func(uint, uint) error) *MockManagementUsecaseCreatePairingCall {
+func (c *MockManagerCreatePairingCall) Do(f func(uint, uint) error) *MockManagerCreatePairingCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockManagementUsecaseCreatePairingCall) DoAndReturn(f func(uint, uint) error) *MockManagementUsecaseCreatePairingCall {
+func (c *MockManagerCreatePairingCall) DoAndReturn(f func(uint, uint) error) *MockManagerCreatePairingCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
 // CreateTemplate mocks base method.
-func (m *MockManagementUsecase) CreateTemplate(newTemplate *entity.Template) error {
+func (m *MockManager) CreateTemplate(newTemplate *entity.Template) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateTemplate", newTemplate)
 	ret0, _ := ret[0].(error)
@@ -399,37 +399,37 @@ func (m *MockManagementUsecase) CreateTemplate(newTemplate *entity.Template) err
 }
 
 // CreateTemplate indicates an expected call of CreateTemplate.
-func (mr *MockManagementUsecaseMockRecorder) CreateTemplate(newTemplate any) *MockManagementUsecaseCreateTemplateCall {
+func (mr *MockManagerMockRecorder) CreateTemplate(newTemplate any) *MockManagerCreateTemplateCall {
 	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateTemplate", reflect.TypeOf((*MockManagementUsecase)(nil).CreateTemplate), newTemplate)
-	return &MockManagementUsecaseCreateTemplateCall{Call: call}
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateTemplate", reflect.TypeOf((*MockManager)(nil).CreateTemplate), newTemplate)
+	return &MockManagerCreateTemplateCall{Call: call}
 }
 
-// MockManagementUsecaseCreateTemplateCall wrap *gomock.Call
-type MockManagementUsecaseCreateTemplateCall struct {
+// MockManagerCreateTemplateCall wrap *gomock.Call
+type MockManagerCreateTemplateCall struct {
 	*gomock.Call
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MockManagementUsecaseCreateTemplateCall) Return(arg0 error) *MockManagementUsecaseCreateTemplateCall {
+func (c *MockManagerCreateTemplateCall) Return(arg0 error) *MockManagerCreateTemplateCall {
 	c.Call = c.Call.Return(arg0)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockManagementUsecaseCreateTemplateCall) Do(f func(*entity.Template) error) *MockManagementUsecaseCreateTemplateCall {
+func (c *MockManagerCreateTemplateCall) Do(f func(*entity.Template) error) *MockManagerCreateTemplateCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockManagementUsecaseCreateTemplateCall) DoAndReturn(f func(*entity.Template) error) *MockManagementUsecaseCreateTemplateCall {
+func (c *MockManagerCreateTemplateCall) DoAndReturn(f func(*entity.Template) error) *MockManagerCreateTemplateCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
 // DeleteMeeting mocks base method.
-func (m *MockManagementUsecase) DeleteMeeting(meetingID uint) (bool, error) {
+func (m *MockManager) DeleteMeeting(meetingID uint) (bool, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DeleteMeeting", meetingID)
 	ret0, _ := ret[0].(bool)
@@ -438,37 +438,37 @@ func (m *MockManagementUsecase) DeleteMeeting(meetingID uint) (bool, error) {
 }
 
 // DeleteMeeting indicates an expected call of DeleteMeeting.
-func (mr *MockManagementUsecaseMockRecorder) DeleteMeeting(meetingID any) *MockManagementUsecaseDeleteMeetingCall {
+func (mr *MockManagerMockRecorder) DeleteMeeting(meetingID any) *MockManagerDeleteMeetingCall {
 	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteMeeting", reflect.TypeOf((*MockManagementUsecase)(nil).DeleteMeeting), meetingID)
-	return &MockManagementUsecaseDeleteMeetingCall{Call: call}
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteMeeting", reflect.TypeOf((*MockManager)(nil).DeleteMeeting), meetingID)
+	return &MockManagerDeleteMeetingCall{Call: call}
 }
 
-// MockManagementUsecaseDeleteMeetingCall wrap *gomock.Call
-type MockManagementUsecaseDeleteMeetingCall struct {
+// MockManagerDeleteMeetingCall wrap *gomock.Call
+type MockManagerDeleteMeetingCall struct {
 	*gomock.Call
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MockManagementUsecaseDeleteMeetingCall) Return(arg0 bool, arg1 error) *MockManagementUsecaseDeleteMeetingCall {
+func (c *MockManagerDeleteMeetingCall) Return(arg0 bool, arg1 error) *MockManagerDeleteMeetingCall {
 	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockManagementUsecaseDeleteMeetingCall) Do(f func(uint) (bool, error)) *MockManagementUsecaseDeleteMeetingCall {
+func (c *MockManagerDeleteMeetingCall) Do(f func(uint) (bool, error)) *MockManagerDeleteMeetingCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockManagementUsecaseDeleteMeetingCall) DoAndReturn(f func(uint) (bool, error)) *MockManagementUsecaseDeleteMeetingCall {
+func (c *MockManagerDeleteMeetingCall) DoAndReturn(f func(uint) (bool, error)) *MockManagerDeleteMeetingCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
 // DeleteTemplate mocks base method.
-func (m *MockManagementUsecase) DeleteTemplate(templateID uint) (bool, error) {
+func (m *MockManager) DeleteTemplate(templateID uint) (bool, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DeleteTemplate", templateID)
 	ret0, _ := ret[0].(bool)
@@ -477,37 +477,37 @@ func (m *MockManagementUsecase) DeleteTemplate(templateID uint) (bool, error) {
 }
 
 // DeleteTemplate indicates an expected call of DeleteTemplate.
-func (mr *MockManagementUsecaseMockRecorder) DeleteTemplate(templateID any) *MockManagementUsecaseDeleteTemplateCall {
+func (mr *MockManagerMockRecorder) DeleteTemplate(templateID any) *MockManagerDeleteTemplateCall {
 	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteTemplate", reflect.TypeOf((*MockManagementUsecase)(nil).DeleteTemplate), templateID)
-	return &MockManagementUsecaseDeleteTemplateCall{Call: call}
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteTemplate", reflect.TypeOf((*MockManager)(nil).DeleteTemplate), templateID)
+	return &MockManagerDeleteTemplateCall{Call: call}
 }
 
-// MockManagementUsecaseDeleteTemplateCall wrap *gomock.Call
-type MockManagementUsecaseDeleteTemplateCall struct {
+// MockManagerDeleteTemplateCall wrap *gomock.Call
+type MockManagerDeleteTemplateCall struct {
 	*gomock.Call
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MockManagementUsecaseDeleteTemplateCall) Return(arg0 bool, arg1 error) *MockManagementUsecaseDeleteTemplateCall {
+func (c *MockManagerDeleteTemplateCall) Return(arg0 bool, arg1 error) *MockManagerDeleteTemplateCall {
 	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockManagementUsecaseDeleteTemplateCall) Do(f func(uint) (bool, error)) *MockManagementUsecaseDeleteTemplateCall {
+func (c *MockManagerDeleteTemplateCall) Do(f func(uint) (bool, error)) *MockManagerDeleteTemplateCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockManagementUsecaseDeleteTemplateCall) DoAndReturn(f func(uint) (bool, error)) *MockManagementUsecaseDeleteTemplateCall {
+func (c *MockManagerDeleteTemplateCall) DoAndReturn(f func(uint) (bool, error)) *MockManagerDeleteTemplateCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
 // GetPairing mocks base method.
-func (m *MockManagementUsecase) GetPairing(pairingID uint) (*entity.Pairing, error) {
+func (m *MockManager) GetPairing(pairingID uint) (*entity.Pairing, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetPairing", pairingID)
 	ret0, _ := ret[0].(*entity.Pairing)
@@ -516,37 +516,37 @@ func (m *MockManagementUsecase) GetPairing(pairingID uint) (*entity.Pairing, err
 }
 
 // GetPairing indicates an expected call of GetPairing.
-func (mr *MockManagementUsecaseMockRecorder) GetPairing(pairingID any) *MockManagementUsecaseGetPairingCall {
+func (mr *MockManagerMockRecorder) GetPairing(pairingID any) *MockManagerGetPairingCall {
 	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPairing", reflect.TypeOf((*MockManagementUsecase)(nil).GetPairing), pairingID)
-	return &MockManagementUsecaseGetPairingCall{Call: call}
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPairing", reflect.TypeOf((*MockManager)(nil).GetPairing), pairingID)
+	return &MockManagerGetPairingCall{Call: call}
 }
 
-// MockManagementUsecaseGetPairingCall wrap *gomock.Call
-type MockManagementUsecaseGetPairingCall struct {
+// MockManagerGetPairingCall wrap *gomock.Call
+type MockManagerGetPairingCall struct {
 	*gomock.Call
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MockManagementUsecaseGetPairingCall) Return(arg0 *entity.Pairing, arg1 error) *MockManagementUsecaseGetPairingCall {
+func (c *MockManagerGetPairingCall) Return(arg0 *entity.Pairing, arg1 error) *MockManagerGetPairingCall {
 	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockManagementUsecaseGetPairingCall) Do(f func(uint) (*entity.Pairing, error)) *MockManagementUsecaseGetPairingCall {
+func (c *MockManagerGetPairingCall) Do(f func(uint) (*entity.Pairing, error)) *MockManagerGetPairingCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockManagementUsecaseGetPairingCall) DoAndReturn(f func(uint) (*entity.Pairing, error)) *MockManagementUsecaseGetPairingCall {
+func (c *MockManagerGetPairingCall) DoAndReturn(f func(uint) (*entity.Pairing, error)) *MockManagerGetPairingCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
 // GetProgressByBossID mocks base method.
-func (m *MockManagementUsecase) GetProgressByBossID(bossID uint) error {
+func (m *MockManager) GetProgressByBossID(bossID uint) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetProgressByBossID", bossID)
 	ret0, _ := ret[0].(error)
@@ -554,37 +554,37 @@ func (m *MockManagementUsecase) GetProgressByBossID(bossID uint) error {
 }
 
 // GetProgressByBossID indicates an expected call of GetProgressByBossID.
-func (mr *MockManagementUsecaseMockRecorder) GetProgressByBossID(bossID any) *MockManagementUsecaseGetProgressByBossIDCall {
+func (mr *MockManagerMockRecorder) GetProgressByBossID(bossID any) *MockManagerGetProgressByBossIDCall {
 	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetProgressByBossID", reflect.TypeOf((*MockManagementUsecase)(nil).GetProgressByBossID), bossID)
-	return &MockManagementUsecaseGetProgressByBossIDCall{Call: call}
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetProgressByBossID", reflect.TypeOf((*MockManager)(nil).GetProgressByBossID), bossID)
+	return &MockManagerGetProgressByBossIDCall{Call: call}
 }
 
-// MockManagementUsecaseGetProgressByBossIDCall wrap *gomock.Call
-type MockManagementUsecaseGetProgressByBossIDCall struct {
+// MockManagerGetProgressByBossIDCall wrap *gomock.Call
+type MockManagerGetProgressByBossIDCall struct {
 	*gomock.Call
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MockManagementUsecaseGetProgressByBossIDCall) Return(arg0 error) *MockManagementUsecaseGetProgressByBossIDCall {
+func (c *MockManagerGetProgressByBossIDCall) Return(arg0 error) *MockManagerGetProgressByBossIDCall {
 	c.Call = c.Call.Return(arg0)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockManagementUsecaseGetProgressByBossIDCall) Do(f func(uint) error) *MockManagementUsecaseGetProgressByBossIDCall {
+func (c *MockManagerGetProgressByBossIDCall) Do(f func(uint) error) *MockManagerGetProgressByBossIDCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockManagementUsecaseGetProgressByBossIDCall) DoAndReturn(f func(uint) error) *MockManagementUsecaseGetProgressByBossIDCall {
+func (c *MockManagerGetProgressByBossIDCall) DoAndReturn(f func(uint) error) *MockManagerGetProgressByBossIDCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
 // GetProgressByDepartmentID mocks base method.
-func (m *MockManagementUsecase) GetProgressByDepartmentID(departmentID uint) error {
+func (m *MockManager) GetProgressByDepartmentID(departmentID uint) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetProgressByDepartmentID", departmentID)
 	ret0, _ := ret[0].(error)
@@ -592,37 +592,37 @@ func (m *MockManagementUsecase) GetProgressByDepartmentID(departmentID uint) err
 }
 
 // GetProgressByDepartmentID indicates an expected call of GetProgressByDepartmentID.
-func (mr *MockManagementUsecaseMockRecorder) GetProgressByDepartmentID(departmentID any) *MockManagementUsecaseGetProgressByDepartmentIDCall {
+func (mr *MockManagerMockRecorder) GetProgressByDepartmentID(departmentID any) *MockManagerGetProgressByDepartmentIDCall {
 	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetProgressByDepartmentID", reflect.TypeOf((*MockManagementUsecase)(nil).GetProgressByDepartmentID), departmentID)
-	return &MockManagementUsecaseGetProgressByDepartmentIDCall{Call: call}
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetProgressByDepartmentID", reflect.TypeOf((*MockManager)(nil).GetProgressByDepartmentID), departmentID)
+	return &MockManagerGetProgressByDepartmentIDCall{Call: call}
 }
 
-// MockManagementUsecaseGetProgressByDepartmentIDCall wrap *gomock.Call
-type MockManagementUsecaseGetProgressByDepartmentIDCall struct {
+// MockManagerGetProgressByDepartmentIDCall wrap *gomock.Call
+type MockManagerGetProgressByDepartmentIDCall struct {
 	*gomock.Call
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MockManagementUsecaseGetProgressByDepartmentIDCall) Return(arg0 error) *MockManagementUsecaseGetProgressByDepartmentIDCall {
+func (c *MockManagerGetProgressByDepartmentIDCall) Return(arg0 error) *MockManagerGetProgressByDepartmentIDCall {
 	c.Call = c.Call.Return(arg0)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockManagementUsecaseGetProgressByDepartmentIDCall) Do(f func(uint) error) *MockManagementUsecaseGetProgressByDepartmentIDCall {
+func (c *MockManagerGetProgressByDepartmentIDCall) Do(f func(uint) error) *MockManagerGetProgressByDepartmentIDCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockManagementUsecaseGetProgressByDepartmentIDCall) DoAndReturn(f func(uint) error) *MockManagementUsecaseGetProgressByDepartmentIDCall {
+func (c *MockManagerGetProgressByDepartmentIDCall) DoAndReturn(f func(uint) error) *MockManagerGetProgressByDepartmentIDCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
 // GetProgressByMentorID mocks base method.
-func (m *MockManagementUsecase) GetProgressByMentorID(mentorID uint) error {
+func (m *MockManager) GetProgressByMentorID(mentorID uint) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetProgressByMentorID", mentorID)
 	ret0, _ := ret[0].(error)
@@ -630,37 +630,37 @@ func (m *MockManagementUsecase) GetProgressByMentorID(mentorID uint) error {
 }
 
 // GetProgressByMentorID indicates an expected call of GetProgressByMentorID.
-func (mr *MockManagementUsecaseMockRecorder) GetProgressByMentorID(mentorID any) *MockManagementUsecaseGetProgressByMentorIDCall {
+func (mr *MockManagerMockRecorder) GetProgressByMentorID(mentorID any) *MockManagerGetProgressByMentorIDCall {
 	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetProgressByMentorID", reflect.TypeOf((*MockManagementUsecase)(nil).GetProgressByMentorID), mentorID)
-	return &MockManagementUsecaseGetProgressByMentorIDCall{Call: call}
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetProgressByMentorID", reflect.TypeOf((*MockManager)(nil).GetProgressByMentorID), mentorID)
+	return &MockManagerGetProgressByMentorIDCall{Call: call}
 }
 
-// MockManagementUsecaseGetProgressByMentorIDCall wrap *gomock.Call
-type MockManagementUsecaseGetProgressByMentorIDCall struct {
+// MockManagerGetProgressByMentorIDCall wrap *gomock.Call
+type MockManagerGetProgressByMentorIDCall struct {
 	*gomock.Call
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MockManagementUsecaseGetProgressByMentorIDCall) Return(arg0 error) *MockManagementUsecaseGetProgressByMentorIDCall {
+func (c *MockManagerGetProgressByMentorIDCall) Return(arg0 error) *MockManagerGetProgressByMentorIDCall {
 	c.Call = c.Call.Return(arg0)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockManagementUsecaseGetProgressByMentorIDCall) Do(f func(uint) error) *MockManagementUsecaseGetProgressByMentorIDCall {
+func (c *MockManagerGetProgressByMentorIDCall) Do(f func(uint) error) *MockManagerGetProgressByMentorIDCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockManagementUsecaseGetProgressByMentorIDCall) DoAndReturn(f func(uint) error) *MockManagementUsecaseGetProgressByMentorIDCall {
+func (c *MockManagerGetProgressByMentorIDCall) DoAndReturn(f func(uint) error) *MockManagerGetProgressByMentorIDCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
 // GetProgressByTeamID mocks base method.
-func (m *MockManagementUsecase) GetProgressByTeamID(teamID uint) error {
+func (m *MockManager) GetProgressByTeamID(teamID uint) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetProgressByTeamID", teamID)
 	ret0, _ := ret[0].(error)
@@ -668,37 +668,37 @@ func (m *MockManagementUsecase) GetProgressByTeamID(teamID uint) error {
 }
 
 // GetProgressByTeamID indicates an expected call of GetProgressByTeamID.
-func (mr *MockManagementUsecaseMockRecorder) GetProgressByTeamID(teamID any) *MockManagementUsecaseGetProgressByTeamIDCall {
+func (mr *MockManagerMockRecorder) GetProgressByTeamID(teamID any) *MockManagerGetProgressByTeamIDCall {
 	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetProgressByTeamID", reflect.TypeOf((*MockManagementUsecase)(nil).GetProgressByTeamID), teamID)
-	return &MockManagementUsecaseGetProgressByTeamIDCall{Call: call}
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetProgressByTeamID", reflect.TypeOf((*MockManager)(nil).GetProgressByTeamID), teamID)
+	return &MockManagerGetProgressByTeamIDCall{Call: call}
 }
 
-// MockManagementUsecaseGetProgressByTeamIDCall wrap *gomock.Call
-type MockManagementUsecaseGetProgressByTeamIDCall struct {
+// MockManagerGetProgressByTeamIDCall wrap *gomock.Call
+type MockManagerGetProgressByTeamIDCall struct {
 	*gomock.Call
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MockManagementUsecaseGetProgressByTeamIDCall) Return(arg0 error) *MockManagementUsecaseGetProgressByTeamIDCall {
+func (c *MockManagerGetProgressByTeamIDCall) Return(arg0 error) *MockManagerGetProgressByTeamIDCall {
 	c.Call = c.Call.Return(arg0)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockManagementUsecaseGetProgressByTeamIDCall) Do(f func(uint) error) *MockManagementUsecaseGetProgressByTeamIDCall {
+func (c *MockManagerGetProgressByTeamIDCall) Do(f func(uint) error) *MockManagerGetProgressByTeamIDCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockManagementUsecaseGetProgressByTeamIDCall) DoAndReturn(f func(uint) error) *MockManagementUsecaseGetProgressByTeamIDCall {
+func (c *MockManagerGetProgressByTeamIDCall) DoAndReturn(f func(uint) error) *MockManagerGetProgressByTeamIDCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
 // GetTemplate mocks base method.
-func (m *MockManagementUsecase) GetTemplate(templateID uint) (*entity.Template, error) {
+func (m *MockManager) GetTemplate(templateID uint) (*entity.Template, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetTemplate", templateID)
 	ret0, _ := ret[0].(*entity.Template)
@@ -707,37 +707,37 @@ func (m *MockManagementUsecase) GetTemplate(templateID uint) (*entity.Template, 
 }
 
 // GetTemplate indicates an expected call of GetTemplate.
-func (mr *MockManagementUsecaseMockRecorder) GetTemplate(templateID any) *MockManagementUsecaseGetTemplateCall {
+func (mr *MockManagerMockRecorder) GetTemplate(templateID any) *MockManagerGetTemplateCall {
 	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTemplate", reflect.TypeOf((*MockManagementUsecase)(nil).GetTemplate), templateID)
-	return &MockManagementUsecaseGetTemplateCall{Call: call}
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTemplate", reflect.TypeOf((*MockManager)(nil).GetTemplate), templateID)
+	return &MockManagerGetTemplateCall{Call: call}
 }
 
-// MockManagementUsecaseGetTemplateCall wrap *gomock.Call
-type MockManagementUsecaseGetTemplateCall struct {
+// MockManagerGetTemplateCall wrap *gomock.Call
+type MockManagerGetTemplateCall struct {
 	*gomock.Call
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MockManagementUsecaseGetTemplateCall) Return(arg0 *entity.Template, arg1 error) *MockManagementUsecaseGetTemplateCall {
+func (c *MockManagerGetTemplateCall) Return(arg0 *entity.Template, arg1 error) *MockManagerGetTemplateCall {
 	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockManagementUsecaseGetTemplateCall) Do(f func(uint) (*entity.Template, error)) *MockManagementUsecaseGetTemplateCall {
+func (c *MockManagerGetTemplateCall) Do(f func(uint) (*entity.Template, error)) *MockManagerGetTemplateCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockManagementUsecaseGetTemplateCall) DoAndReturn(f func(uint) (*entity.Template, error)) *MockManagementUsecaseGetTemplateCall {
+func (c *MockManagerGetTemplateCall) DoAndReturn(f func(uint) (*entity.Template, error)) *MockManagerGetTemplateCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
 // ListMeetingsByBoss mocks base method.
-func (m *MockManagementUsecase) ListMeetingsByBoss(bossID uint) ([]entity.Meeting, error) {
+func (m *MockManager) ListMeetingsByBoss(bossID uint) ([]entity.Meeting, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListMeetingsByBoss", bossID)
 	ret0, _ := ret[0].([]entity.Meeting)
@@ -746,37 +746,37 @@ func (m *MockManagementUsecase) ListMeetingsByBoss(bossID uint) ([]entity.Meetin
 }
 
 // ListMeetingsByBoss indicates an expected call of ListMeetingsByBoss.
-func (mr *MockManagementUsecaseMockRecorder) ListMeetingsByBoss(bossID any) *MockManagementUsecaseListMeetingsByBossCall {
+func (mr *MockManagerMockRecorder) ListMeetingsByBoss(bossID any) *MockManagerListMeetingsByBossCall {
 	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListMeetingsByBoss", reflect.TypeOf((*MockManagementUsecase)(nil).ListMeetingsByBoss), bossID)
-	return &MockManagementUsecaseListMeetingsByBossCall{Call: call}
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListMeetingsByBoss", reflect.TypeOf((*MockManager)(nil).ListMeetingsByBoss), bossID)
+	return &MockManagerListMeetingsByBossCall{Call: call}
 }
 
-// MockManagementUsecaseListMeetingsByBossCall wrap *gomock.Call
-type MockManagementUsecaseListMeetingsByBossCall struct {
+// MockManagerListMeetingsByBossCall wrap *gomock.Call
+type MockManagerListMeetingsByBossCall struct {
 	*gomock.Call
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MockManagementUsecaseListMeetingsByBossCall) Return(arg0 []entity.Meeting, arg1 error) *MockManagementUsecaseListMeetingsByBossCall {
+func (c *MockManagerListMeetingsByBossCall) Return(arg0 []entity.Meeting, arg1 error) *MockManagerListMeetingsByBossCall {
 	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockManagementUsecaseListMeetingsByBossCall) Do(f func(uint) ([]entity.Meeting, error)) *MockManagementUsecaseListMeetingsByBossCall {
+func (c *MockManagerListMeetingsByBossCall) Do(f func(uint) ([]entity.Meeting, error)) *MockManagerListMeetingsByBossCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockManagementUsecaseListMeetingsByBossCall) DoAndReturn(f func(uint) ([]entity.Meeting, error)) *MockManagementUsecaseListMeetingsByBossCall {
+func (c *MockManagerListMeetingsByBossCall) DoAndReturn(f func(uint) ([]entity.Meeting, error)) *MockManagerListMeetingsByBossCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
 // ListMeetingsByDepartment mocks base method.
-func (m *MockManagementUsecase) ListMeetingsByDepartment(departmentID uint) ([]entity.Meeting, error) {
+func (m *MockManager) ListMeetingsByDepartment(departmentID uint) ([]entity.Meeting, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListMeetingsByDepartment", departmentID)
 	ret0, _ := ret[0].([]entity.Meeting)
@@ -785,37 +785,37 @@ func (m *MockManagementUsecase) ListMeetingsByDepartment(departmentID uint) ([]e
 }
 
 // ListMeetingsByDepartment indicates an expected call of ListMeetingsByDepartment.
-func (mr *MockManagementUsecaseMockRecorder) ListMeetingsByDepartment(departmentID any) *MockManagementUsecaseListMeetingsByDepartmentCall {
+func (mr *MockManagerMockRecorder) ListMeetingsByDepartment(departmentID any) *MockManagerListMeetingsByDepartmentCall {
 	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListMeetingsByDepartment", reflect.TypeOf((*MockManagementUsecase)(nil).ListMeetingsByDepartment), departmentID)
-	return &MockManagementUsecaseListMeetingsByDepartmentCall{Call: call}
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListMeetingsByDepartment", reflect.TypeOf((*MockManager)(nil).ListMeetingsByDepartment), departmentID)
+	return &MockManagerListMeetingsByDepartmentCall{Call: call}
 }
 
-// MockManagementUsecaseListMeetingsByDepartmentCall wrap *gomock.Call
-type MockManagementUsecaseListMeetingsByDepartmentCall struct {
+// MockManagerListMeetingsByDepartmentCall wrap *gomock.Call
+type MockManagerListMeetingsByDepartmentCall struct {
 	*gomock.Call
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MockManagementUsecaseListMeetingsByDepartmentCall) Return(arg0 []entity.Meeting, arg1 error) *MockManagementUsecaseListMeetingsByDepartmentCall {
+func (c *MockManagerListMeetingsByDepartmentCall) Return(arg0 []entity.Meeting, arg1 error) *MockManagerListMeetingsByDepartmentCall {
 	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockManagementUsecaseListMeetingsByDepartmentCall) Do(f func(uint) ([]entity.Meeting, error)) *MockManagementUsecaseListMeetingsByDepartmentCall {
+func (c *MockManagerListMeetingsByDepartmentCall) Do(f func(uint) ([]entity.Meeting, error)) *MockManagerListMeetingsByDepartmentCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockManagementUsecaseListMeetingsByDepartmentCall) DoAndReturn(f func(uint) ([]entity.Meeting, error)) *MockManagementUsecaseListMeetingsByDepartmentCall {
+func (c *MockManagerListMeetingsByDepartmentCall) DoAndReturn(f func(uint) ([]entity.Meeting, error)) *MockManagerListMeetingsByDepartmentCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
 // ListMeetingsByMentor mocks base method.
-func (m *MockManagementUsecase) ListMeetingsByMentor(mentorID uint) ([]entity.Meeting, error) {
+func (m *MockManager) ListMeetingsByMentor(mentorID uint) ([]entity.Meeting, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListMeetingsByMentor", mentorID)
 	ret0, _ := ret[0].([]entity.Meeting)
@@ -824,37 +824,37 @@ func (m *MockManagementUsecase) ListMeetingsByMentor(mentorID uint) ([]entity.Me
 }
 
 // ListMeetingsByMentor indicates an expected call of ListMeetingsByMentor.
-func (mr *MockManagementUsecaseMockRecorder) ListMeetingsByMentor(mentorID any) *MockManagementUsecaseListMeetingsByMentorCall {
+func (mr *MockManagerMockRecorder) ListMeetingsByMentor(mentorID any) *MockManagerListMeetingsByMentorCall {
 	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListMeetingsByMentor", reflect.TypeOf((*MockManagementUsecase)(nil).ListMeetingsByMentor), mentorID)
-	return &MockManagementUsecaseListMeetingsByMentorCall{Call: call}
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListMeetingsByMentor", reflect.TypeOf((*MockManager)(nil).ListMeetingsByMentor), mentorID)
+	return &MockManagerListMeetingsByMentorCall{Call: call}
 }
 
-// MockManagementUsecaseListMeetingsByMentorCall wrap *gomock.Call
-type MockManagementUsecaseListMeetingsByMentorCall struct {
+// MockManagerListMeetingsByMentorCall wrap *gomock.Call
+type MockManagerListMeetingsByMentorCall struct {
 	*gomock.Call
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MockManagementUsecaseListMeetingsByMentorCall) Return(arg0 []entity.Meeting, arg1 error) *MockManagementUsecaseListMeetingsByMentorCall {
+func (c *MockManagerListMeetingsByMentorCall) Return(arg0 []entity.Meeting, arg1 error) *MockManagerListMeetingsByMentorCall {
 	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockManagementUsecaseListMeetingsByMentorCall) Do(f func(uint) ([]entity.Meeting, error)) *MockManagementUsecaseListMeetingsByMentorCall {
+func (c *MockManagerListMeetingsByMentorCall) Do(f func(uint) ([]entity.Meeting, error)) *MockManagerListMeetingsByMentorCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockManagementUsecaseListMeetingsByMentorCall) DoAndReturn(f func(uint) ([]entity.Meeting, error)) *MockManagementUsecaseListMeetingsByMentorCall {
+func (c *MockManagerListMeetingsByMentorCall) DoAndReturn(f func(uint) ([]entity.Meeting, error)) *MockManagerListMeetingsByMentorCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
 // ListMeetingsByTeam mocks base method.
-func (m *MockManagementUsecase) ListMeetingsByTeam(teamID uint) ([]entity.Meeting, error) {
+func (m *MockManager) ListMeetingsByTeam(teamID uint) ([]entity.Meeting, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListMeetingsByTeam", teamID)
 	ret0, _ := ret[0].([]entity.Meeting)
@@ -863,37 +863,37 @@ func (m *MockManagementUsecase) ListMeetingsByTeam(teamID uint) ([]entity.Meetin
 }
 
 // ListMeetingsByTeam indicates an expected call of ListMeetingsByTeam.
-func (mr *MockManagementUsecaseMockRecorder) ListMeetingsByTeam(teamID any) *MockManagementUsecaseListMeetingsByTeamCall {
+func (mr *MockManagerMockRecorder) ListMeetingsByTeam(teamID any) *MockManagerListMeetingsByTeamCall {
 	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListMeetingsByTeam", reflect.TypeOf((*MockManagementUsecase)(nil).ListMeetingsByTeam), teamID)
-	return &MockManagementUsecaseListMeetingsByTeamCall{Call: call}
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListMeetingsByTeam", reflect.TypeOf((*MockManager)(nil).ListMeetingsByTeam), teamID)
+	return &MockManagerListMeetingsByTeamCall{Call: call}
 }
 
-// MockManagementUsecaseListMeetingsByTeamCall wrap *gomock.Call
-type MockManagementUsecaseListMeetingsByTeamCall struct {
+// MockManagerListMeetingsByTeamCall wrap *gomock.Call
+type MockManagerListMeetingsByTeamCall struct {
 	*gomock.Call
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MockManagementUsecaseListMeetingsByTeamCall) Return(arg0 []entity.Meeting, arg1 error) *MockManagementUsecaseListMeetingsByTeamCall {
+func (c *MockManagerListMeetingsByTeamCall) Return(arg0 []entity.Meeting, arg1 error) *MockManagerListMeetingsByTeamCall {
 	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockManagementUsecaseListMeetingsByTeamCall) Do(f func(uint) ([]entity.Meeting, error)) *MockManagementUsecaseListMeetingsByTeamCall {
+func (c *MockManagerListMeetingsByTeamCall) Do(f func(uint) ([]entity.Meeting, error)) *MockManagerListMeetingsByTeamCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockManagementUsecaseListMeetingsByTeamCall) DoAndReturn(f func(uint) ([]entity.Meeting, error)) *MockManagementUsecaseListMeetingsByTeamCall {
+func (c *MockManagerListMeetingsByTeamCall) DoAndReturn(f func(uint) ([]entity.Meeting, error)) *MockManagerListMeetingsByTeamCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
 // ListPairingsByAll mocks base method.
-func (m *MockManagementUsecase) ListPairingsByAll() ([]entity.Pairing, error) {
+func (m *MockManager) ListPairingsByAll() ([]entity.Pairing, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListPairingsByAll")
 	ret0, _ := ret[0].([]entity.Pairing)
@@ -902,37 +902,37 @@ func (m *MockManagementUsecase) ListPairingsByAll() ([]entity.Pairing, error) {
 }
 
 // ListPairingsByAll indicates an expected call of ListPairingsByAll.
-func (mr *MockManagementUsecaseMockRecorder) ListPairingsByAll() *MockManagementUsecaseListPairingsByAllCall {
+func (mr *MockManagerMockRecorder) ListPairingsByAll() *MockManagerListPairingsByAllCall {
 	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListPairingsByAll", reflect.TypeOf((*MockManagementUsecase)(nil).ListPairingsByAll))
-	return &MockManagementUsecaseListPairingsByAllCall{Call: call}
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListPairingsByAll", reflect.TypeOf((*MockManager)(nil).ListPairingsByAll))
+	return &MockManagerListPairingsByAllCall{Call: call}
 }
 
-// MockManagementUsecaseListPairingsByAllCall wrap *gomock.Call
-type MockManagementUsecaseListPairingsByAllCall struct {
+// MockManagerListPairingsByAllCall wrap *gomock.Call
+type MockManagerListPairingsByAllCall struct {
 	*gomock.Call
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MockManagementUsecaseListPairingsByAllCall) Return(arg0 []entity.Pairing, arg1 error) *MockManagementUsecaseListPairingsByAllCall {
+func (c *MockManagerListPairingsByAllCall) Return(arg0 []entity.Pairing, arg1 error) *MockManagerListPairingsByAllCall {
 	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockManagementUsecaseListPairingsByAllCall) Do(f func() ([]entity.Pairing, error)) *MockManagementUsecaseListPairingsByAllCall {
+func (c *MockManagerListPairingsByAllCall) Do(f func() ([]entity.Pairing, error)) *MockManagerListPairingsByAllCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockManagementUsecaseListPairingsByAllCall) DoAndReturn(f func() ([]entity.Pairing, error)) *MockManagementUsecaseListPairingsByAllCall {
+func (c *MockManagerListPairingsByAllCall) DoAndReturn(f func() ([]entity.Pairing, error)) *MockManagerListPairingsByAllCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
 // ListPairingsByBoss mocks base method.
-func (m *MockManagementUsecase) ListPairingsByBoss(bossID uint) ([]entity.Pairing, error) {
+func (m *MockManager) ListPairingsByBoss(bossID uint) ([]entity.Pairing, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListPairingsByBoss", bossID)
 	ret0, _ := ret[0].([]entity.Pairing)
@@ -941,37 +941,37 @@ func (m *MockManagementUsecase) ListPairingsByBoss(bossID uint) ([]entity.Pairin
 }
 
 // ListPairingsByBoss indicates an expected call of ListPairingsByBoss.
-func (mr *MockManagementUsecaseMockRecorder) ListPairingsByBoss(bossID any) *MockManagementUsecaseListPairingsByBossCall {
+func (mr *MockManagerMockRecorder) ListPairingsByBoss(bossID any) *MockManagerListPairingsByBossCall {
 	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListPairingsByBoss", reflect.TypeOf((*MockManagementUsecase)(nil).ListPairingsByBoss), bossID)
-	return &MockManagementUsecaseListPairingsByBossCall{Call: call}
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListPairingsByBoss", reflect.TypeOf((*MockManager)(nil).ListPairingsByBoss), bossID)
+	return &MockManagerListPairingsByBossCall{Call: call}
 }
 
-// MockManagementUsecaseListPairingsByBossCall wrap *gomock.Call
-type MockManagementUsecaseListPairingsByBossCall struct {
+// MockManagerListPairingsByBossCall wrap *gomock.Call
+type MockManagerListPairingsByBossCall struct {
 	*gomock.Call
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MockManagementUsecaseListPairingsByBossCall) Return(arg0 []entity.Pairing, arg1 error) *MockManagementUsecaseListPairingsByBossCall {
+func (c *MockManagerListPairingsByBossCall) Return(arg0 []entity.Pairing, arg1 error) *MockManagerListPairingsByBossCall {
 	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockManagementUsecaseListPairingsByBossCall) Do(f func(uint) ([]entity.Pairing, error)) *MockManagementUsecaseListPairingsByBossCall {
+func (c *MockManagerListPairingsByBossCall) Do(f func(uint) ([]entity.Pairing, error)) *MockManagerListPairingsByBossCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockManagementUsecaseListPairingsByBossCall) DoAndReturn(f func(uint) ([]entity.Pairing, error)) *MockManagementUsecaseListPairingsByBossCall {
+func (c *MockManagerListPairingsByBossCall) DoAndReturn(f func(uint) ([]entity.Pairing, error)) *MockManagerListPairingsByBossCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
 // ListPairingsByDepartment mocks base method.
-func (m *MockManagementUsecase) ListPairingsByDepartment(departmentID uint) ([]entity.Pairing, error) {
+func (m *MockManager) ListPairingsByDepartment(departmentID uint) ([]entity.Pairing, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListPairingsByDepartment", departmentID)
 	ret0, _ := ret[0].([]entity.Pairing)
@@ -980,37 +980,37 @@ func (m *MockManagementUsecase) ListPairingsByDepartment(departmentID uint) ([]e
 }
 
 // ListPairingsByDepartment indicates an expected call of ListPairingsByDepartment.
-func (mr *MockManagementUsecaseMockRecorder) ListPairingsByDepartment(departmentID any) *MockManagementUsecaseListPairingsByDepartmentCall {
+func (mr *MockManagerMockRecorder) ListPairingsByDepartment(departmentID any) *MockManagerListPairingsByDepartmentCall {
 	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListPairingsByDepartment", reflect.TypeOf((*MockManagementUsecase)(nil).ListPairingsByDepartment), departmentID)
-	return &MockManagementUsecaseListPairingsByDepartmentCall{Call: call}
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListPairingsByDepartment", reflect.TypeOf((*MockManager)(nil).ListPairingsByDepartment), departmentID)
+	return &MockManagerListPairingsByDepartmentCall{Call: call}
 }
 
-// MockManagementUsecaseListPairingsByDepartmentCall wrap *gomock.Call
-type MockManagementUsecaseListPairingsByDepartmentCall struct {
+// MockManagerListPairingsByDepartmentCall wrap *gomock.Call
+type MockManagerListPairingsByDepartmentCall struct {
 	*gomock.Call
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MockManagementUsecaseListPairingsByDepartmentCall) Return(arg0 []entity.Pairing, arg1 error) *MockManagementUsecaseListPairingsByDepartmentCall {
+func (c *MockManagerListPairingsByDepartmentCall) Return(arg0 []entity.Pairing, arg1 error) *MockManagerListPairingsByDepartmentCall {
 	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockManagementUsecaseListPairingsByDepartmentCall) Do(f func(uint) ([]entity.Pairing, error)) *MockManagementUsecaseListPairingsByDepartmentCall {
+func (c *MockManagerListPairingsByDepartmentCall) Do(f func(uint) ([]entity.Pairing, error)) *MockManagerListPairingsByDepartmentCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockManagementUsecaseListPairingsByDepartmentCall) DoAndReturn(f func(uint) ([]entity.Pairing, error)) *MockManagementUsecaseListPairingsByDepartmentCall {
+func (c *MockManagerListPairingsByDepartmentCall) DoAndReturn(f func(uint) ([]entity.Pairing, error)) *MockManagerListPairingsByDepartmentCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
 // ListPairingsByMentor mocks base method.
-func (m *MockManagementUsecase) ListPairingsByMentor(mentorID uint) ([]entity.Pairing, error) {
+func (m *MockManager) ListPairingsByMentor(mentorID uint) ([]entity.Pairing, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListPairingsByMentor", mentorID)
 	ret0, _ := ret[0].([]entity.Pairing)
@@ -1019,37 +1019,37 @@ func (m *MockManagementUsecase) ListPairingsByMentor(mentorID uint) ([]entity.Pa
 }
 
 // ListPairingsByMentor indicates an expected call of ListPairingsByMentor.
-func (mr *MockManagementUsecaseMockRecorder) ListPairingsByMentor(mentorID any) *MockManagementUsecaseListPairingsByMentorCall {
+func (mr *MockManagerMockRecorder) ListPairingsByMentor(mentorID any) *MockManagerListPairingsByMentorCall {
 	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListPairingsByMentor", reflect.TypeOf((*MockManagementUsecase)(nil).ListPairingsByMentor), mentorID)
-	return &MockManagementUsecaseListPairingsByMentorCall{Call: call}
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListPairingsByMentor", reflect.TypeOf((*MockManager)(nil).ListPairingsByMentor), mentorID)
+	return &MockManagerListPairingsByMentorCall{Call: call}
 }
 
-// MockManagementUsecaseListPairingsByMentorCall wrap *gomock.Call
-type MockManagementUsecaseListPairingsByMentorCall struct {
+// MockManagerListPairingsByMentorCall wrap *gomock.Call
+type MockManagerListPairingsByMentorCall struct {
 	*gomock.Call
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MockManagementUsecaseListPairingsByMentorCall) Return(arg0 []entity.Pairing, arg1 error) *MockManagementUsecaseListPairingsByMentorCall {
+func (c *MockManagerListPairingsByMentorCall) Return(arg0 []entity.Pairing, arg1 error) *MockManagerListPairingsByMentorCall {
 	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockManagementUsecaseListPairingsByMentorCall) Do(f func(uint) ([]entity.Pairing, error)) *MockManagementUsecaseListPairingsByMentorCall {
+func (c *MockManagerListPairingsByMentorCall) Do(f func(uint) ([]entity.Pairing, error)) *MockManagerListPairingsByMentorCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockManagementUsecaseListPairingsByMentorCall) DoAndReturn(f func(uint) ([]entity.Pairing, error)) *MockManagementUsecaseListPairingsByMentorCall {
+func (c *MockManagerListPairingsByMentorCall) DoAndReturn(f func(uint) ([]entity.Pairing, error)) *MockManagerListPairingsByMentorCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
 // ListPairingsByTeam mocks base method.
-func (m *MockManagementUsecase) ListPairingsByTeam(teamID uint) ([]entity.Pairing, error) {
+func (m *MockManager) ListPairingsByTeam(teamID uint) ([]entity.Pairing, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListPairingsByTeam", teamID)
 	ret0, _ := ret[0].([]entity.Pairing)
@@ -1058,37 +1058,37 @@ func (m *MockManagementUsecase) ListPairingsByTeam(teamID uint) ([]entity.Pairin
 }
 
 // ListPairingsByTeam indicates an expected call of ListPairingsByTeam.
-func (mr *MockManagementUsecaseMockRecorder) ListPairingsByTeam(teamID any) *MockManagementUsecaseListPairingsByTeamCall {
+func (mr *MockManagerMockRecorder) ListPairingsByTeam(teamID any) *MockManagerListPairingsByTeamCall {
 	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListPairingsByTeam", reflect.TypeOf((*MockManagementUsecase)(nil).ListPairingsByTeam), teamID)
-	return &MockManagementUsecaseListPairingsByTeamCall{Call: call}
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListPairingsByTeam", reflect.TypeOf((*MockManager)(nil).ListPairingsByTeam), teamID)
+	return &MockManagerListPairingsByTeamCall{Call: call}
 }
 
-// MockManagementUsecaseListPairingsByTeamCall wrap *gomock.Call
-type MockManagementUsecaseListPairingsByTeamCall struct {
+// MockManagerListPairingsByTeamCall wrap *gomock.Call
+type MockManagerListPairingsByTeamCall struct {
 	*gomock.Call
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MockManagementUsecaseListPairingsByTeamCall) Return(arg0 []entity.Pairing, arg1 error) *MockManagementUsecaseListPairingsByTeamCall {
+func (c *MockManagerListPairingsByTeamCall) Return(arg0 []entity.Pairing, arg1 error) *MockManagerListPairingsByTeamCall {
 	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockManagementUsecaseListPairingsByTeamCall) Do(f func(uint) ([]entity.Pairing, error)) *MockManagementUsecaseListPairingsByTeamCall {
+func (c *MockManagerListPairingsByTeamCall) Do(f func(uint) ([]entity.Pairing, error)) *MockManagerListPairingsByTeamCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockManagementUsecaseListPairingsByTeamCall) DoAndReturn(f func(uint) ([]entity.Pairing, error)) *MockManagementUsecaseListPairingsByTeamCall {
+func (c *MockManagerListPairingsByTeamCall) DoAndReturn(f func(uint) ([]entity.Pairing, error)) *MockManagerListPairingsByTeamCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
 // ListTemplate mocks base method.
-func (m *MockManagementUsecase) ListTemplate() ([]entity.Template, error) {
+func (m *MockManager) ListTemplate() ([]entity.Template, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListTemplate")
 	ret0, _ := ret[0].([]entity.Template)
@@ -1097,37 +1097,37 @@ func (m *MockManagementUsecase) ListTemplate() ([]entity.Template, error) {
 }
 
 // ListTemplate indicates an expected call of ListTemplate.
-func (mr *MockManagementUsecaseMockRecorder) ListTemplate() *MockManagementUsecaseListTemplateCall {
+func (mr *MockManagerMockRecorder) ListTemplate() *MockManagerListTemplateCall {
 	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListTemplate", reflect.TypeOf((*MockManagementUsecase)(nil).ListTemplate))
-	return &MockManagementUsecaseListTemplateCall{Call: call}
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListTemplate", reflect.TypeOf((*MockManager)(nil).ListTemplate))
+	return &MockManagerListTemplateCall{Call: call}
 }
 
-// MockManagementUsecaseListTemplateCall wrap *gomock.Call
-type MockManagementUsecaseListTemplateCall struct {
+// MockManagerListTemplateCall wrap *gomock.Call
+type MockManagerListTemplateCall struct {
 	*gomock.Call
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MockManagementUsecaseListTemplateCall) Return(arg0 []entity.Template, arg1 error) *MockManagementUsecaseListTemplateCall {
+func (c *MockManagerListTemplateCall) Return(arg0 []entity.Template, arg1 error) *MockManagerListTemplateCall {
 	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockManagementUsecaseListTemplateCall) Do(f func() ([]entity.Template, error)) *MockManagementUsecaseListTemplateCall {
+func (c *MockManagerListTemplateCall) Do(f func() ([]entity.Template, error)) *MockManagerListTemplateCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockManagementUsecaseListTemplateCall) DoAndReturn(f func() ([]entity.Template, error)) *MockManagementUsecaseListTemplateCall {
+func (c *MockManagerListTemplateCall) DoAndReturn(f func() ([]entity.Template, error)) *MockManagerListTemplateCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
 // Update mocks base method.
-func (m *MockManagementUsecase) Update(meetingID uint, meeting *entity.Meeting) error {
+func (m *MockManager) Update(meetingID uint, meeting *entity.Meeting) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Update", meetingID, meeting)
 	ret0, _ := ret[0].(error)
@@ -1135,37 +1135,37 @@ func (m *MockManagementUsecase) Update(meetingID uint, meeting *entity.Meeting) 
 }
 
 // Update indicates an expected call of Update.
-func (mr *MockManagementUsecaseMockRecorder) Update(meetingID, meeting any) *MockManagementUsecaseUpdateCall {
+func (mr *MockManagerMockRecorder) Update(meetingID, meeting any) *MockManagerUpdateCall {
 	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockManagementUsecase)(nil).Update), meetingID, meeting)
-	return &MockManagementUsecaseUpdateCall{Call: call}
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockManager)(nil).Update), meetingID, meeting)
+	return &MockManagerUpdateCall{Call: call}
 }
 
-// MockManagementUsecaseUpdateCall wrap *gomock.Call
-type MockManagementUsecaseUpdateCall struct {
+// MockManagerUpdateCall wrap *gomock.Call
+type MockManagerUpdateCall struct {
 	*gomock.Call
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MockManagementUsecaseUpdateCall) Return(arg0 error) *MockManagementUsecaseUpdateCall {
+func (c *MockManagerUpdateCall) Return(arg0 error) *MockManagerUpdateCall {
 	c.Call = c.Call.Return(arg0)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockManagementUsecaseUpdateCall) Do(f func(uint, *entity.Meeting) error) *MockManagementUsecaseUpdateCall {
+func (c *MockManagerUpdateCall) Do(f func(uint, *entity.Meeting) error) *MockManagerUpdateCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockManagementUsecaseUpdateCall) DoAndReturn(f func(uint, *entity.Meeting) error) *MockManagementUsecaseUpdateCall {
+func (c *MockManagerUpdateCall) DoAndReturn(f func(uint, *entity.Meeting) error) *MockManagerUpdateCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
 // UpdatePairing mocks base method.
-func (m *MockManagementUsecase) UpdatePairing(newPairing *entity.Pairing) error {
+func (m *MockManager) UpdatePairing(newPairing *entity.Pairing) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdatePairing", newPairing)
 	ret0, _ := ret[0].(error)
@@ -1173,37 +1173,37 @@ func (m *MockManagementUsecase) UpdatePairing(newPairing *entity.Pairing) error 
 }
 
 // UpdatePairing indicates an expected call of UpdatePairing.
-func (mr *MockManagementUsecaseMockRecorder) UpdatePairing(newPairing any) *MockManagementUsecaseUpdatePairingCall {
+func (mr *MockManagerMockRecorder) UpdatePairing(newPairing any) *MockManagerUpdatePairingCall {
 	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdatePairing", reflect.TypeOf((*MockManagementUsecase)(nil).UpdatePairing), newPairing)
-	return &MockManagementUsecaseUpdatePairingCall{Call: call}
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdatePairing", reflect.TypeOf((*MockManager)(nil).UpdatePairing), newPairing)
+	return &MockManagerUpdatePairingCall{Call: call}
 }
 
-// MockManagementUsecaseUpdatePairingCall wrap *gomock.Call
-type MockManagementUsecaseUpdatePairingCall struct {
+// MockManagerUpdatePairingCall wrap *gomock.Call
+type MockManagerUpdatePairingCall struct {
 	*gomock.Call
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MockManagementUsecaseUpdatePairingCall) Return(arg0 error) *MockManagementUsecaseUpdatePairingCall {
+func (c *MockManagerUpdatePairingCall) Return(arg0 error) *MockManagerUpdatePairingCall {
 	c.Call = c.Call.Return(arg0)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockManagementUsecaseUpdatePairingCall) Do(f func(*entity.Pairing) error) *MockManagementUsecaseUpdatePairingCall {
+func (c *MockManagerUpdatePairingCall) Do(f func(*entity.Pairing) error) *MockManagerUpdatePairingCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockManagementUsecaseUpdatePairingCall) DoAndReturn(f func(*entity.Pairing) error) *MockManagementUsecaseUpdatePairingCall {
+func (c *MockManagerUpdatePairingCall) DoAndReturn(f func(*entity.Pairing) error) *MockManagerUpdatePairingCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
 // UpdateTemplate mocks base method.
-func (m *MockManagementUsecase) UpdateTemplate(newTemplate *entity.Template) error {
+func (m *MockManager) UpdateTemplate(newTemplate *entity.Template) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateTemplate", newTemplate)
 	ret0, _ := ret[0].(error)
@@ -1211,61 +1211,61 @@ func (m *MockManagementUsecase) UpdateTemplate(newTemplate *entity.Template) err
 }
 
 // UpdateTemplate indicates an expected call of UpdateTemplate.
-func (mr *MockManagementUsecaseMockRecorder) UpdateTemplate(newTemplate any) *MockManagementUsecaseUpdateTemplateCall {
+func (mr *MockManagerMockRecorder) UpdateTemplate(newTemplate any) *MockManagerUpdateTemplateCall {
 	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateTemplate", reflect.TypeOf((*MockManagementUsecase)(nil).UpdateTemplate), newTemplate)
-	return &MockManagementUsecaseUpdateTemplateCall{Call: call}
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateTemplate", reflect.TypeOf((*MockManager)(nil).UpdateTemplate), newTemplate)
+	return &MockManagerUpdateTemplateCall{Call: call}
 }
 
-// MockManagementUsecaseUpdateTemplateCall wrap *gomock.Call
-type MockManagementUsecaseUpdateTemplateCall struct {
+// MockManagerUpdateTemplateCall wrap *gomock.Call
+type MockManagerUpdateTemplateCall struct {
 	*gomock.Call
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MockManagementUsecaseUpdateTemplateCall) Return(arg0 error) *MockManagementUsecaseUpdateTemplateCall {
+func (c *MockManagerUpdateTemplateCall) Return(arg0 error) *MockManagerUpdateTemplateCall {
 	c.Call = c.Call.Return(arg0)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockManagementUsecaseUpdateTemplateCall) Do(f func(*entity.Template) error) *MockManagementUsecaseUpdateTemplateCall {
+func (c *MockManagerUpdateTemplateCall) Do(f func(*entity.Template) error) *MockManagerUpdateTemplateCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockManagementUsecaseUpdateTemplateCall) DoAndReturn(f func(*entity.Template) error) *MockManagementUsecaseUpdateTemplateCall {
+func (c *MockManagerUpdateTemplateCall) DoAndReturn(f func(*entity.Template) error) *MockManagerUpdateTemplateCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
-// MockProgressManagementUsecase is a mock of ProgressManagementUsecase interface.
-type MockProgressManagementUsecase struct {
+// MockProgressManager is a mock of ProgressManager interface.
+type MockProgressManager struct {
 	ctrl     *gomock.Controller
-	recorder *MockProgressManagementUsecaseMockRecorder
+	recorder *MockProgressManagerMockRecorder
 	isgomock struct{}
 }
 
-// MockProgressManagementUsecaseMockRecorder is the mock recorder for MockProgressManagementUsecase.
-type MockProgressManagementUsecaseMockRecorder struct {
-	mock *MockProgressManagementUsecase
+// MockProgressManagerMockRecorder is the mock recorder for MockProgressManager.
+type MockProgressManagerMockRecorder struct {
+	mock *MockProgressManager
 }
 
-// NewMockProgressManagementUsecase creates a new mock instance.
-func NewMockProgressManagementUsecase(ctrl *gomock.Controller) *MockProgressManagementUsecase {
-	mock := &MockProgressManagementUsecase{ctrl: ctrl}
-	mock.recorder = &MockProgressManagementUsecaseMockRecorder{mock}
+// NewMockProgressManager creates a new mock instance.
+func NewMockProgressManager(ctrl *gomock.Controller) *MockProgressManager {
+	mock := &MockProgressManager{ctrl: ctrl}
+	mock.recorder = &MockProgressManagerMockRecorder{mock}
 	return mock
 }
 
 // EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockProgressManagementUsecase) EXPECT() *MockProgressManagementUsecaseMockRecorder {
+func (m *MockProgressManager) EXPECT() *MockProgressManagerMockRecorder {
 	return m.recorder
 }
 
 // GetProgressByBossID mocks base method.
-func (m *MockProgressManagementUsecase) GetProgressByBossID(bossID uint) error {
+func (m *MockProgressManager) GetProgressByBossID(bossID uint) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetProgressByBossID", bossID)
 	ret0, _ := ret[0].(error)
@@ -1273,37 +1273,37 @@ func (m *MockProgressManagementUsecase) GetProgressByBossID(bossID uint) error {
 }
 
 // GetProgressByBossID indicates an expected call of GetProgressByBossID.
-func (mr *MockProgressManagementUsecaseMockRecorder) GetProgressByBossID(bossID any) *MockProgressManagementUsecaseGetProgressByBossIDCall {
+func (mr *MockProgressManagerMockRecorder) GetProgressByBossID(bossID any) *MockProgressManagerGetProgressByBossIDCall {
 	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetProgressByBossID", reflect.TypeOf((*MockProgressManagementUsecase)(nil).GetProgressByBossID), bossID)
-	return &MockProgressManagementUsecaseGetProgressByBossIDCall{Call: call}
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetProgressByBossID", reflect.TypeOf((*MockProgressManager)(nil).GetProgressByBossID), bossID)
+	return &MockProgressManagerGetProgressByBossIDCall{Call: call}
 }
 
-// MockProgressManagementUsecaseGetProgressByBossIDCall wrap *gomock.Call
-type MockProgressManagementUsecaseGetProgressByBossIDCall struct {
+// MockProgressManagerGetProgressByBossIDCall wrap *gomock.Call
+type MockProgressManagerGetProgressByBossIDCall struct {
 	*gomock.Call
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MockProgressManagementUsecaseGetProgressByBossIDCall) Return(arg0 error) *MockProgressManagementUsecaseGetProgressByBossIDCall {
+func (c *MockProgressManagerGetProgressByBossIDCall) Return(arg0 error) *MockProgressManagerGetProgressByBossIDCall {
 	c.Call = c.Call.Return(arg0)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockProgressManagementUsecaseGetProgressByBossIDCall) Do(f func(uint) error) *MockProgressManagementUsecaseGetProgressByBossIDCall {
+func (c *MockProgressManagerGetProgressByBossIDCall) Do(f func(uint) error) *MockProgressManagerGetProgressByBossIDCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockProgressManagementUsecaseGetProgressByBossIDCall) DoAndReturn(f func(uint) error) *MockProgressManagementUsecaseGetProgressByBossIDCall {
+func (c *MockProgressManagerGetProgressByBossIDCall) DoAndReturn(f func(uint) error) *MockProgressManagerGetProgressByBossIDCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
 // GetProgressByDepartmentID mocks base method.
-func (m *MockProgressManagementUsecase) GetProgressByDepartmentID(departmentID uint) error {
+func (m *MockProgressManager) GetProgressByDepartmentID(departmentID uint) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetProgressByDepartmentID", departmentID)
 	ret0, _ := ret[0].(error)
@@ -1311,37 +1311,37 @@ func (m *MockProgressManagementUsecase) GetProgressByDepartmentID(departmentID u
 }
 
 // GetProgressByDepartmentID indicates an expected call of GetProgressByDepartmentID.
-func (mr *MockProgressManagementUsecaseMockRecorder) GetProgressByDepartmentID(departmentID any) *MockProgressManagementUsecaseGetProgressByDepartmentIDCall {
+func (mr *MockProgressManagerMockRecorder) GetProgressByDepartmentID(departmentID any) *MockProgressManagerGetProgressByDepartmentIDCall {
 	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetProgressByDepartmentID", reflect.TypeOf((*MockProgressManagementUsecase)(nil).GetProgressByDepartmentID), departmentID)
-	return &MockProgressManagementUsecaseGetProgressByDepartmentIDCall{Call: call}
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetProgressByDepartmentID", reflect.TypeOf((*MockProgressManager)(nil).GetProgressByDepartmentID), departmentID)
+	return &MockProgressManagerGetProgressByDepartmentIDCall{Call: call}
 }
 
-// MockProgressManagementUsecaseGetProgressByDepartmentIDCall wrap *gomock.Call
-type MockProgressManagementUsecaseGetProgressByDepartmentIDCall struct {
+// MockProgressManagerGetProgressByDepartmentIDCall wrap *gomock.Call
+type MockProgressManagerGetProgressByDepartmentIDCall struct {
 	*gomock.Call
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MockProgressManagementUsecaseGetProgressByDepartmentIDCall) Return(arg0 error) *MockProgressManagementUsecaseGetProgressByDepartmentIDCall {
+func (c *MockProgressManagerGetProgressByDepartmentIDCall) Return(arg0 error) *MockProgressManagerGetProgressByDepartmentIDCall {
 	c.Call = c.Call.Return(arg0)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockProgressManagementUsecaseGetProgressByDepartmentIDCall) Do(f func(uint) error) *MockProgressManagementUsecaseGetProgressByDepartmentIDCall {
+func (c *MockProgressManagerGetProgressByDepartmentIDCall) Do(f func(uint) error) *MockProgressManagerGetProgressByDepartmentIDCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockProgressManagementUsecaseGetProgressByDepartmentIDCall) DoAndReturn(f func(uint) error) *MockProgressManagementUsecaseGetProgressByDepartmentIDCall {
+func (c *MockProgressManagerGetProgressByDepartmentIDCall) DoAndReturn(f func(uint) error) *MockProgressManagerGetProgressByDepartmentIDCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
 // GetProgressByMentorID mocks base method.
-func (m *MockProgressManagementUsecase) GetProgressByMentorID(mentorID uint) error {
+func (m *MockProgressManager) GetProgressByMentorID(mentorID uint) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetProgressByMentorID", mentorID)
 	ret0, _ := ret[0].(error)
@@ -1349,37 +1349,37 @@ func (m *MockProgressManagementUsecase) GetProgressByMentorID(mentorID uint) err
 }
 
 // GetProgressByMentorID indicates an expected call of GetProgressByMentorID.
-func (mr *MockProgressManagementUsecaseMockRecorder) GetProgressByMentorID(mentorID any) *MockProgressManagementUsecaseGetProgressByMentorIDCall {
+func (mr *MockProgressManagerMockRecorder) GetProgressByMentorID(mentorID any) *MockProgressManagerGetProgressByMentorIDCall {
 	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetProgressByMentorID", reflect.TypeOf((*MockProgressManagementUsecase)(nil).GetProgressByMentorID), mentorID)
-	return &MockProgressManagementUsecaseGetProgressByMentorIDCall{Call: call}
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetProgressByMentorID", reflect.TypeOf((*MockProgressManager)(nil).GetProgressByMentorID), mentorID)
+	return &MockProgressManagerGetProgressByMentorIDCall{Call: call}
 }
 
-// MockProgressManagementUsecaseGetProgressByMentorIDCall wrap *gomock.Call
-type MockProgressManagementUsecaseGetProgressByMentorIDCall struct {
+// MockProgressManagerGetProgressByMentorIDCall wrap *gomock.Call
+type MockProgressManagerGetProgressByMentorIDCall struct {
 	*gomock.Call
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MockProgressManagementUsecaseGetProgressByMentorIDCall) Return(arg0 error) *MockProgressManagementUsecaseGetProgressByMentorIDCall {
+func (c *MockProgressManagerGetProgressByMentorIDCall) Return(arg0 error) *MockProgressManagerGetProgressByMentorIDCall {
 	c.Call = c.Call.Return(arg0)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockProgressManagementUsecaseGetProgressByMentorIDCall) Do(f func(uint) error) *MockProgressManagementUsecaseGetProgressByMentorIDCall {
+func (c *MockProgressManagerGetProgressByMentorIDCall) Do(f func(uint) error) *MockProgressManagerGetProgressByMentorIDCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockProgressManagementUsecaseGetProgressByMentorIDCall) DoAndReturn(f func(uint) error) *MockProgressManagementUsecaseGetProgressByMentorIDCall {
+func (c *MockProgressManagerGetProgressByMentorIDCall) DoAndReturn(f func(uint) error) *MockProgressManagerGetProgressByMentorIDCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
 // GetProgressByTeamID mocks base method.
-func (m *MockProgressManagementUsecase) GetProgressByTeamID(teamID uint) error {
+func (m *MockProgressManager) GetProgressByTeamID(teamID uint) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetProgressByTeamID", teamID)
 	ret0, _ := ret[0].(error)
@@ -1387,31 +1387,31 @@ func (m *MockProgressManagementUsecase) GetProgressByTeamID(teamID uint) error {
 }
 
 // GetProgressByTeamID indicates an expected call of GetProgressByTeamID.
-func (mr *MockProgressManagementUsecaseMockRecorder) GetProgressByTeamID(teamID any) *MockProgressManagementUsecaseGetProgressByTeamIDCall {
+func (mr *MockProgressManagerMockRecorder) GetProgressByTeamID(teamID any) *MockProgressManagerGetProgressByTeamIDCall {
 	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetProgressByTeamID", reflect.TypeOf((*MockProgressManagementUsecase)(nil).GetProgressByTeamID), teamID)
-	return &MockProgressManagementUsecaseGetProgressByTeamIDCall{Call: call}
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetProgressByTeamID", reflect.TypeOf((*MockProgressManager)(nil).GetProgressByTeamID), teamID)
+	return &MockProgressManagerGetProgressByTeamIDCall{Call: call}
 }
 
-// MockProgressManagementUsecaseGetProgressByTeamIDCall wrap *gomock.Call
-type MockProgressManagementUsecaseGetProgressByTeamIDCall struct {
+// MockProgressManagerGetProgressByTeamIDCall wrap *gomock.Call
+type MockProgressManagerGetProgressByTeamIDCall struct {
 	*gomock.Call
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MockProgressManagementUsecaseGetProgressByTeamIDCall) Return(arg0 error) *MockProgressManagementUsecaseGetProgressByTeamIDCall {
+func (c *MockProgressManagerGetProgressByTeamIDCall) Return(arg0 error) *MockProgressManagerGetProgressByTeamIDCall {
 	c.Call = c.Call.Return(arg0)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockProgressManagementUsecaseGetProgressByTeamIDCall) Do(f func(uint) error) *MockProgressManagementUsecaseGetProgressByTeamIDCall {
+func (c *MockProgressManagerGetProgressByTeamIDCall) Do(f func(uint) error) *MockProgressManagerGetProgressByTeamIDCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockProgressManagementUsecaseGetProgressByTeamIDCall) DoAndReturn(f func(uint) error) *MockProgressManagementUsecaseGetProgressByTeamIDCall {
+func (c *MockProgressManagerGetProgressByTeamIDCall) DoAndReturn(f func(uint) error) *MockProgressManagerGetProgressByTeamIDCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
@@ -1592,32 +1592,32 @@ func (c *MockProgressViewerGetProgressByTeamIDCall) DoAndReturn(f func(uint) err
 	return c
 }
 
-// MockMeetingManagementUsecase is a mock of MeetingManagementUsecase interface.
-type MockMeetingManagementUsecase struct {
+// MockMeetingManager is a mock of MeetingManager interface.
+type MockMeetingManager struct {
 	ctrl     *gomock.Controller
-	recorder *MockMeetingManagementUsecaseMockRecorder
+	recorder *MockMeetingManagerMockRecorder
 	isgomock struct{}
 }
 
-// MockMeetingManagementUsecaseMockRecorder is the mock recorder for MockMeetingManagementUsecase.
-type MockMeetingManagementUsecaseMockRecorder struct {
-	mock *MockMeetingManagementUsecase
+// MockMeetingManagerMockRecorder is the mock recorder for MockMeetingManager.
+type MockMeetingManagerMockRecorder struct {
+	mock *MockMeetingManager
 }
 
-// NewMockMeetingManagementUsecase creates a new mock instance.
-func NewMockMeetingManagementUsecase(ctrl *gomock.Controller) *MockMeetingManagementUsecase {
-	mock := &MockMeetingManagementUsecase{ctrl: ctrl}
-	mock.recorder = &MockMeetingManagementUsecaseMockRecorder{mock}
+// NewMockMeetingManager creates a new mock instance.
+func NewMockMeetingManager(ctrl *gomock.Controller) *MockMeetingManager {
+	mock := &MockMeetingManager{ctrl: ctrl}
+	mock.recorder = &MockMeetingManagerMockRecorder{mock}
 	return mock
 }
 
 // EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockMeetingManagementUsecase) EXPECT() *MockMeetingManagementUsecaseMockRecorder {
+func (m *MockMeetingManager) EXPECT() *MockMeetingManagerMockRecorder {
 	return m.recorder
 }
 
 // ChangeImplementDate mocks base method.
-func (m *MockMeetingManagementUsecase) ChangeImplementDate(meetingID uint, implementDate time.Time) error {
+func (m *MockMeetingManager) ChangeImplementDate(meetingID uint, implementDate time.Time) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ChangeImplementDate", meetingID, implementDate)
 	ret0, _ := ret[0].(error)
@@ -1625,37 +1625,37 @@ func (m *MockMeetingManagementUsecase) ChangeImplementDate(meetingID uint, imple
 }
 
 // ChangeImplementDate indicates an expected call of ChangeImplementDate.
-func (mr *MockMeetingManagementUsecaseMockRecorder) ChangeImplementDate(meetingID, implementDate any) *MockMeetingManagementUsecaseChangeImplementDateCall {
+func (mr *MockMeetingManagerMockRecorder) ChangeImplementDate(meetingID, implementDate any) *MockMeetingManagerChangeImplementDateCall {
 	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ChangeImplementDate", reflect.TypeOf((*MockMeetingManagementUsecase)(nil).ChangeImplementDate), meetingID, implementDate)
-	return &MockMeetingManagementUsecaseChangeImplementDateCall{Call: call}
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ChangeImplementDate", reflect.TypeOf((*MockMeetingManager)(nil).ChangeImplementDate), meetingID, implementDate)
+	return &MockMeetingManagerChangeImplementDateCall{Call: call}
 }
 
-// MockMeetingManagementUsecaseChangeImplementDateCall wrap *gomock.Call
-type MockMeetingManagementUsecaseChangeImplementDateCall struct {
+// MockMeetingManagerChangeImplementDateCall wrap *gomock.Call
+type MockMeetingManagerChangeImplementDateCall struct {
 	*gomock.Call
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MockMeetingManagementUsecaseChangeImplementDateCall) Return(arg0 error) *MockMeetingManagementUsecaseChangeImplementDateCall {
+func (c *MockMeetingManagerChangeImplementDateCall) Return(arg0 error) *MockMeetingManagerChangeImplementDateCall {
 	c.Call = c.Call.Return(arg0)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockMeetingManagementUsecaseChangeImplementDateCall) Do(f func(uint, time.Time) error) *MockMeetingManagementUsecaseChangeImplementDateCall {
+func (c *MockMeetingManagerChangeImplementDateCall) Do(f func(uint, time.Time) error) *MockMeetingManagerChangeImplementDateCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockMeetingManagementUsecaseChangeImplementDateCall) DoAndReturn(f func(uint, time.Time) error) *MockMeetingManagementUsecaseChangeImplementDateCall {
+func (c *MockMeetingManagerChangeImplementDateCall) DoAndReturn(f func(uint, time.Time) error) *MockMeetingManagerChangeImplementDateCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
 // ChangePairing mocks base method.
-func (m *MockMeetingManagementUsecase) ChangePairing(meetingID, newPairingID uint) error {
+func (m *MockMeetingManager) ChangePairing(meetingID, newPairingID uint) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ChangePairing", meetingID, newPairingID)
 	ret0, _ := ret[0].(error)
@@ -1663,37 +1663,37 @@ func (m *MockMeetingManagementUsecase) ChangePairing(meetingID, newPairingID uin
 }
 
 // ChangePairing indicates an expected call of ChangePairing.
-func (mr *MockMeetingManagementUsecaseMockRecorder) ChangePairing(meetingID, newPairingID any) *MockMeetingManagementUsecaseChangePairingCall {
+func (mr *MockMeetingManagerMockRecorder) ChangePairing(meetingID, newPairingID any) *MockMeetingManagerChangePairingCall {
 	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ChangePairing", reflect.TypeOf((*MockMeetingManagementUsecase)(nil).ChangePairing), meetingID, newPairingID)
-	return &MockMeetingManagementUsecaseChangePairingCall{Call: call}
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ChangePairing", reflect.TypeOf((*MockMeetingManager)(nil).ChangePairing), meetingID, newPairingID)
+	return &MockMeetingManagerChangePairingCall{Call: call}
 }
 
-// MockMeetingManagementUsecaseChangePairingCall wrap *gomock.Call
-type MockMeetingManagementUsecaseChangePairingCall struct {
+// MockMeetingManagerChangePairingCall wrap *gomock.Call
+type MockMeetingManagerChangePairingCall struct {
 	*gomock.Call
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MockMeetingManagementUsecaseChangePairingCall) Return(arg0 error) *MockMeetingManagementUsecaseChangePairingCall {
+func (c *MockMeetingManagerChangePairingCall) Return(arg0 error) *MockMeetingManagerChangePairingCall {
 	c.Call = c.Call.Return(arg0)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockMeetingManagementUsecaseChangePairingCall) Do(f func(uint, uint) error) *MockMeetingManagementUsecaseChangePairingCall {
+func (c *MockMeetingManagerChangePairingCall) Do(f func(uint, uint) error) *MockMeetingManagerChangePairingCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockMeetingManagementUsecaseChangePairingCall) DoAndReturn(f func(uint, uint) error) *MockMeetingManagementUsecaseChangePairingCall {
+func (c *MockMeetingManagerChangePairingCall) DoAndReturn(f func(uint, uint) error) *MockMeetingManagerChangePairingCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
 // ChangeTemplate mocks base method.
-func (m *MockMeetingManagementUsecase) ChangeTemplate(meetingID, newTemplateID uint) error {
+func (m *MockMeetingManager) ChangeTemplate(meetingID, newTemplateID uint) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ChangeTemplate", meetingID, newTemplateID)
 	ret0, _ := ret[0].(error)
@@ -1701,37 +1701,37 @@ func (m *MockMeetingManagementUsecase) ChangeTemplate(meetingID, newTemplateID u
 }
 
 // ChangeTemplate indicates an expected call of ChangeTemplate.
-func (mr *MockMeetingManagementUsecaseMockRecorder) ChangeTemplate(meetingID, newTemplateID any) *MockMeetingManagementUsecaseChangeTemplateCall {
+func (mr *MockMeetingManagerMockRecorder) ChangeTemplate(meetingID, newTemplateID any) *MockMeetingManagerChangeTemplateCall {
 	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ChangeTemplate", reflect.TypeOf((*MockMeetingManagementUsecase)(nil).ChangeTemplate), meetingID, newTemplateID)
-	return &MockMeetingManagementUsecaseChangeTemplateCall{Call: call}
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ChangeTemplate", reflect.TypeOf((*MockMeetingManager)(nil).ChangeTemplate), meetingID, newTemplateID)
+	return &MockMeetingManagerChangeTemplateCall{Call: call}
 }
 
-// MockMeetingManagementUsecaseChangeTemplateCall wrap *gomock.Call
-type MockMeetingManagementUsecaseChangeTemplateCall struct {
+// MockMeetingManagerChangeTemplateCall wrap *gomock.Call
+type MockMeetingManagerChangeTemplateCall struct {
 	*gomock.Call
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MockMeetingManagementUsecaseChangeTemplateCall) Return(arg0 error) *MockMeetingManagementUsecaseChangeTemplateCall {
+func (c *MockMeetingManagerChangeTemplateCall) Return(arg0 error) *MockMeetingManagerChangeTemplateCall {
 	c.Call = c.Call.Return(arg0)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockMeetingManagementUsecaseChangeTemplateCall) Do(f func(uint, uint) error) *MockMeetingManagementUsecaseChangeTemplateCall {
+func (c *MockMeetingManagerChangeTemplateCall) Do(f func(uint, uint) error) *MockMeetingManagerChangeTemplateCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockMeetingManagementUsecaseChangeTemplateCall) DoAndReturn(f func(uint, uint) error) *MockMeetingManagementUsecaseChangeTemplateCall {
+func (c *MockMeetingManagerChangeTemplateCall) DoAndReturn(f func(uint, uint) error) *MockMeetingManagerChangeTemplateCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
 // CreateMeeting mocks base method.
-func (m *MockMeetingManagementUsecase) CreateMeeting(pairingID, templateID uint, implementDate time.Time) (*entity.Meeting, error) {
+func (m *MockMeetingManager) CreateMeeting(pairingID, templateID uint, implementDate time.Time) (*entity.Meeting, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateMeeting", pairingID, templateID, implementDate)
 	ret0, _ := ret[0].(*entity.Meeting)
@@ -1740,37 +1740,37 @@ func (m *MockMeetingManagementUsecase) CreateMeeting(pairingID, templateID uint,
 }
 
 // CreateMeeting indicates an expected call of CreateMeeting.
-func (mr *MockMeetingManagementUsecaseMockRecorder) CreateMeeting(pairingID, templateID, implementDate any) *MockMeetingManagementUsecaseCreateMeetingCall {
+func (mr *MockMeetingManagerMockRecorder) CreateMeeting(pairingID, templateID, implementDate any) *MockMeetingManagerCreateMeetingCall {
 	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateMeeting", reflect.TypeOf((*MockMeetingManagementUsecase)(nil).CreateMeeting), pairingID, templateID, implementDate)
-	return &MockMeetingManagementUsecaseCreateMeetingCall{Call: call}
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateMeeting", reflect.TypeOf((*MockMeetingManager)(nil).CreateMeeting), pairingID, templateID, implementDate)
+	return &MockMeetingManagerCreateMeetingCall{Call: call}
 }
 
-// MockMeetingManagementUsecaseCreateMeetingCall wrap *gomock.Call
-type MockMeetingManagementUsecaseCreateMeetingCall struct {
+// MockMeetingManagerCreateMeetingCall wrap *gomock.Call
+type MockMeetingManagerCreateMeetingCall struct {
 	*gomock.Call
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MockMeetingManagementUsecaseCreateMeetingCall) Return(arg0 *entity.Meeting, arg1 error) *MockMeetingManagementUsecaseCreateMeetingCall {
+func (c *MockMeetingManagerCreateMeetingCall) Return(arg0 *entity.Meeting, arg1 error) *MockMeetingManagerCreateMeetingCall {
 	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockMeetingManagementUsecaseCreateMeetingCall) Do(f func(uint, uint, time.Time) (*entity.Meeting, error)) *MockMeetingManagementUsecaseCreateMeetingCall {
+func (c *MockMeetingManagerCreateMeetingCall) Do(f func(uint, uint, time.Time) (*entity.Meeting, error)) *MockMeetingManagerCreateMeetingCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockMeetingManagementUsecaseCreateMeetingCall) DoAndReturn(f func(uint, uint, time.Time) (*entity.Meeting, error)) *MockMeetingManagementUsecaseCreateMeetingCall {
+func (c *MockMeetingManagerCreateMeetingCall) DoAndReturn(f func(uint, uint, time.Time) (*entity.Meeting, error)) *MockMeetingManagerCreateMeetingCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
 // CreateMeetingByAll mocks base method.
-func (m *MockMeetingManagementUsecase) CreateMeetingByAll(templateID uint, implementDate time.Time) ([]entity.Meeting, error) {
+func (m *MockMeetingManager) CreateMeetingByAll(templateID uint, implementDate time.Time) ([]entity.Meeting, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateMeetingByAll", templateID, implementDate)
 	ret0, _ := ret[0].([]entity.Meeting)
@@ -1779,37 +1779,37 @@ func (m *MockMeetingManagementUsecase) CreateMeetingByAll(templateID uint, imple
 }
 
 // CreateMeetingByAll indicates an expected call of CreateMeetingByAll.
-func (mr *MockMeetingManagementUsecaseMockRecorder) CreateMeetingByAll(templateID, implementDate any) *MockMeetingManagementUsecaseCreateMeetingByAllCall {
+func (mr *MockMeetingManagerMockRecorder) CreateMeetingByAll(templateID, implementDate any) *MockMeetingManagerCreateMeetingByAllCall {
 	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateMeetingByAll", reflect.TypeOf((*MockMeetingManagementUsecase)(nil).CreateMeetingByAll), templateID, implementDate)
-	return &MockMeetingManagementUsecaseCreateMeetingByAllCall{Call: call}
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateMeetingByAll", reflect.TypeOf((*MockMeetingManager)(nil).CreateMeetingByAll), templateID, implementDate)
+	return &MockMeetingManagerCreateMeetingByAllCall{Call: call}
 }
 
-// MockMeetingManagementUsecaseCreateMeetingByAllCall wrap *gomock.Call
-type MockMeetingManagementUsecaseCreateMeetingByAllCall struct {
+// MockMeetingManagerCreateMeetingByAllCall wrap *gomock.Call
+type MockMeetingManagerCreateMeetingByAllCall struct {
 	*gomock.Call
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MockMeetingManagementUsecaseCreateMeetingByAllCall) Return(arg0 []entity.Meeting, arg1 error) *MockMeetingManagementUsecaseCreateMeetingByAllCall {
+func (c *MockMeetingManagerCreateMeetingByAllCall) Return(arg0 []entity.Meeting, arg1 error) *MockMeetingManagerCreateMeetingByAllCall {
 	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockMeetingManagementUsecaseCreateMeetingByAllCall) Do(f func(uint, time.Time) ([]entity.Meeting, error)) *MockMeetingManagementUsecaseCreateMeetingByAllCall {
+func (c *MockMeetingManagerCreateMeetingByAllCall) Do(f func(uint, time.Time) ([]entity.Meeting, error)) *MockMeetingManagerCreateMeetingByAllCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockMeetingManagementUsecaseCreateMeetingByAllCall) DoAndReturn(f func(uint, time.Time) ([]entity.Meeting, error)) *MockMeetingManagementUsecaseCreateMeetingByAllCall {
+func (c *MockMeetingManagerCreateMeetingByAllCall) DoAndReturn(f func(uint, time.Time) ([]entity.Meeting, error)) *MockMeetingManagerCreateMeetingByAllCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
 // CreateMeetingEveryMonth mocks base method.
-func (m *MockMeetingManagementUsecase) CreateMeetingEveryMonth(templateID uint, baseDate time.Time, week int, weekday time.Weekday) ([]entity.Meeting, error) {
+func (m *MockMeetingManager) CreateMeetingEveryMonth(templateID uint, baseDate time.Time, week int, weekday time.Weekday) ([]entity.Meeting, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateMeetingEveryMonth", templateID, baseDate, week, weekday)
 	ret0, _ := ret[0].([]entity.Meeting)
@@ -1818,37 +1818,37 @@ func (m *MockMeetingManagementUsecase) CreateMeetingEveryMonth(templateID uint, 
 }
 
 // CreateMeetingEveryMonth indicates an expected call of CreateMeetingEveryMonth.
-func (mr *MockMeetingManagementUsecaseMockRecorder) CreateMeetingEveryMonth(templateID, baseDate, week, weekday any) *MockMeetingManagementUsecaseCreateMeetingEveryMonthCall {
+func (mr *MockMeetingManagerMockRecorder) CreateMeetingEveryMonth(templateID, baseDate, week, weekday any) *MockMeetingManagerCreateMeetingEveryMonthCall {
 	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateMeetingEveryMonth", reflect.TypeOf((*MockMeetingManagementUsecase)(nil).CreateMeetingEveryMonth), templateID, baseDate, week, weekday)
-	return &MockMeetingManagementUsecaseCreateMeetingEveryMonthCall{Call: call}
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateMeetingEveryMonth", reflect.TypeOf((*MockMeetingManager)(nil).CreateMeetingEveryMonth), templateID, baseDate, week, weekday)
+	return &MockMeetingManagerCreateMeetingEveryMonthCall{Call: call}
 }
 
-// MockMeetingManagementUsecaseCreateMeetingEveryMonthCall wrap *gomock.Call
-type MockMeetingManagementUsecaseCreateMeetingEveryMonthCall struct {
+// MockMeetingManagerCreateMeetingEveryMonthCall wrap *gomock.Call
+type MockMeetingManagerCreateMeetingEveryMonthCall struct {
 	*gomock.Call
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MockMeetingManagementUsecaseCreateMeetingEveryMonthCall) Return(arg0 []entity.Meeting, arg1 error) *MockMeetingManagementUsecaseCreateMeetingEveryMonthCall {
+func (c *MockMeetingManagerCreateMeetingEveryMonthCall) Return(arg0 []entity.Meeting, arg1 error) *MockMeetingManagerCreateMeetingEveryMonthCall {
 	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockMeetingManagementUsecaseCreateMeetingEveryMonthCall) Do(f func(uint, time.Time, int, time.Weekday) ([]entity.Meeting, error)) *MockMeetingManagementUsecaseCreateMeetingEveryMonthCall {
+func (c *MockMeetingManagerCreateMeetingEveryMonthCall) Do(f func(uint, time.Time, int, time.Weekday) ([]entity.Meeting, error)) *MockMeetingManagerCreateMeetingEveryMonthCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockMeetingManagementUsecaseCreateMeetingEveryMonthCall) DoAndReturn(f func(uint, time.Time, int, time.Weekday) ([]entity.Meeting, error)) *MockMeetingManagementUsecaseCreateMeetingEveryMonthCall {
+func (c *MockMeetingManagerCreateMeetingEveryMonthCall) DoAndReturn(f func(uint, time.Time, int, time.Weekday) ([]entity.Meeting, error)) *MockMeetingManagerCreateMeetingEveryMonthCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
 // DeleteMeeting mocks base method.
-func (m *MockMeetingManagementUsecase) DeleteMeeting(meetingID uint) (bool, error) {
+func (m *MockMeetingManager) DeleteMeeting(meetingID uint) (bool, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DeleteMeeting", meetingID)
 	ret0, _ := ret[0].(bool)
@@ -1857,37 +1857,37 @@ func (m *MockMeetingManagementUsecase) DeleteMeeting(meetingID uint) (bool, erro
 }
 
 // DeleteMeeting indicates an expected call of DeleteMeeting.
-func (mr *MockMeetingManagementUsecaseMockRecorder) DeleteMeeting(meetingID any) *MockMeetingManagementUsecaseDeleteMeetingCall {
+func (mr *MockMeetingManagerMockRecorder) DeleteMeeting(meetingID any) *MockMeetingManagerDeleteMeetingCall {
 	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteMeeting", reflect.TypeOf((*MockMeetingManagementUsecase)(nil).DeleteMeeting), meetingID)
-	return &MockMeetingManagementUsecaseDeleteMeetingCall{Call: call}
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteMeeting", reflect.TypeOf((*MockMeetingManager)(nil).DeleteMeeting), meetingID)
+	return &MockMeetingManagerDeleteMeetingCall{Call: call}
 }
 
-// MockMeetingManagementUsecaseDeleteMeetingCall wrap *gomock.Call
-type MockMeetingManagementUsecaseDeleteMeetingCall struct {
+// MockMeetingManagerDeleteMeetingCall wrap *gomock.Call
+type MockMeetingManagerDeleteMeetingCall struct {
 	*gomock.Call
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MockMeetingManagementUsecaseDeleteMeetingCall) Return(arg0 bool, arg1 error) *MockMeetingManagementUsecaseDeleteMeetingCall {
+func (c *MockMeetingManagerDeleteMeetingCall) Return(arg0 bool, arg1 error) *MockMeetingManagerDeleteMeetingCall {
 	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockMeetingManagementUsecaseDeleteMeetingCall) Do(f func(uint) (bool, error)) *MockMeetingManagementUsecaseDeleteMeetingCall {
+func (c *MockMeetingManagerDeleteMeetingCall) Do(f func(uint) (bool, error)) *MockMeetingManagerDeleteMeetingCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockMeetingManagementUsecaseDeleteMeetingCall) DoAndReturn(f func(uint) (bool, error)) *MockMeetingManagementUsecaseDeleteMeetingCall {
+func (c *MockMeetingManagerDeleteMeetingCall) DoAndReturn(f func(uint) (bool, error)) *MockMeetingManagerDeleteMeetingCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
 // ListMeetingsByBoss mocks base method.
-func (m *MockMeetingManagementUsecase) ListMeetingsByBoss(bossID uint) ([]entity.Meeting, error) {
+func (m *MockMeetingManager) ListMeetingsByBoss(bossID uint) ([]entity.Meeting, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListMeetingsByBoss", bossID)
 	ret0, _ := ret[0].([]entity.Meeting)
@@ -1896,37 +1896,37 @@ func (m *MockMeetingManagementUsecase) ListMeetingsByBoss(bossID uint) ([]entity
 }
 
 // ListMeetingsByBoss indicates an expected call of ListMeetingsByBoss.
-func (mr *MockMeetingManagementUsecaseMockRecorder) ListMeetingsByBoss(bossID any) *MockMeetingManagementUsecaseListMeetingsByBossCall {
+func (mr *MockMeetingManagerMockRecorder) ListMeetingsByBoss(bossID any) *MockMeetingManagerListMeetingsByBossCall {
 	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListMeetingsByBoss", reflect.TypeOf((*MockMeetingManagementUsecase)(nil).ListMeetingsByBoss), bossID)
-	return &MockMeetingManagementUsecaseListMeetingsByBossCall{Call: call}
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListMeetingsByBoss", reflect.TypeOf((*MockMeetingManager)(nil).ListMeetingsByBoss), bossID)
+	return &MockMeetingManagerListMeetingsByBossCall{Call: call}
 }
 
-// MockMeetingManagementUsecaseListMeetingsByBossCall wrap *gomock.Call
-type MockMeetingManagementUsecaseListMeetingsByBossCall struct {
+// MockMeetingManagerListMeetingsByBossCall wrap *gomock.Call
+type MockMeetingManagerListMeetingsByBossCall struct {
 	*gomock.Call
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MockMeetingManagementUsecaseListMeetingsByBossCall) Return(arg0 []entity.Meeting, arg1 error) *MockMeetingManagementUsecaseListMeetingsByBossCall {
+func (c *MockMeetingManagerListMeetingsByBossCall) Return(arg0 []entity.Meeting, arg1 error) *MockMeetingManagerListMeetingsByBossCall {
 	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockMeetingManagementUsecaseListMeetingsByBossCall) Do(f func(uint) ([]entity.Meeting, error)) *MockMeetingManagementUsecaseListMeetingsByBossCall {
+func (c *MockMeetingManagerListMeetingsByBossCall) Do(f func(uint) ([]entity.Meeting, error)) *MockMeetingManagerListMeetingsByBossCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockMeetingManagementUsecaseListMeetingsByBossCall) DoAndReturn(f func(uint) ([]entity.Meeting, error)) *MockMeetingManagementUsecaseListMeetingsByBossCall {
+func (c *MockMeetingManagerListMeetingsByBossCall) DoAndReturn(f func(uint) ([]entity.Meeting, error)) *MockMeetingManagerListMeetingsByBossCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
 // ListMeetingsByDepartment mocks base method.
-func (m *MockMeetingManagementUsecase) ListMeetingsByDepartment(departmentID uint) ([]entity.Meeting, error) {
+func (m *MockMeetingManager) ListMeetingsByDepartment(departmentID uint) ([]entity.Meeting, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListMeetingsByDepartment", departmentID)
 	ret0, _ := ret[0].([]entity.Meeting)
@@ -1935,37 +1935,37 @@ func (m *MockMeetingManagementUsecase) ListMeetingsByDepartment(departmentID uin
 }
 
 // ListMeetingsByDepartment indicates an expected call of ListMeetingsByDepartment.
-func (mr *MockMeetingManagementUsecaseMockRecorder) ListMeetingsByDepartment(departmentID any) *MockMeetingManagementUsecaseListMeetingsByDepartmentCall {
+func (mr *MockMeetingManagerMockRecorder) ListMeetingsByDepartment(departmentID any) *MockMeetingManagerListMeetingsByDepartmentCall {
 	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListMeetingsByDepartment", reflect.TypeOf((*MockMeetingManagementUsecase)(nil).ListMeetingsByDepartment), departmentID)
-	return &MockMeetingManagementUsecaseListMeetingsByDepartmentCall{Call: call}
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListMeetingsByDepartment", reflect.TypeOf((*MockMeetingManager)(nil).ListMeetingsByDepartment), departmentID)
+	return &MockMeetingManagerListMeetingsByDepartmentCall{Call: call}
 }
 
-// MockMeetingManagementUsecaseListMeetingsByDepartmentCall wrap *gomock.Call
-type MockMeetingManagementUsecaseListMeetingsByDepartmentCall struct {
+// MockMeetingManagerListMeetingsByDepartmentCall wrap *gomock.Call
+type MockMeetingManagerListMeetingsByDepartmentCall struct {
 	*gomock.Call
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MockMeetingManagementUsecaseListMeetingsByDepartmentCall) Return(arg0 []entity.Meeting, arg1 error) *MockMeetingManagementUsecaseListMeetingsByDepartmentCall {
+func (c *MockMeetingManagerListMeetingsByDepartmentCall) Return(arg0 []entity.Meeting, arg1 error) *MockMeetingManagerListMeetingsByDepartmentCall {
 	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockMeetingManagementUsecaseListMeetingsByDepartmentCall) Do(f func(uint) ([]entity.Meeting, error)) *MockMeetingManagementUsecaseListMeetingsByDepartmentCall {
+func (c *MockMeetingManagerListMeetingsByDepartmentCall) Do(f func(uint) ([]entity.Meeting, error)) *MockMeetingManagerListMeetingsByDepartmentCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockMeetingManagementUsecaseListMeetingsByDepartmentCall) DoAndReturn(f func(uint) ([]entity.Meeting, error)) *MockMeetingManagementUsecaseListMeetingsByDepartmentCall {
+func (c *MockMeetingManagerListMeetingsByDepartmentCall) DoAndReturn(f func(uint) ([]entity.Meeting, error)) *MockMeetingManagerListMeetingsByDepartmentCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
 // ListMeetingsByMentor mocks base method.
-func (m *MockMeetingManagementUsecase) ListMeetingsByMentor(mentorID uint) ([]entity.Meeting, error) {
+func (m *MockMeetingManager) ListMeetingsByMentor(mentorID uint) ([]entity.Meeting, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListMeetingsByMentor", mentorID)
 	ret0, _ := ret[0].([]entity.Meeting)
@@ -1974,37 +1974,37 @@ func (m *MockMeetingManagementUsecase) ListMeetingsByMentor(mentorID uint) ([]en
 }
 
 // ListMeetingsByMentor indicates an expected call of ListMeetingsByMentor.
-func (mr *MockMeetingManagementUsecaseMockRecorder) ListMeetingsByMentor(mentorID any) *MockMeetingManagementUsecaseListMeetingsByMentorCall {
+func (mr *MockMeetingManagerMockRecorder) ListMeetingsByMentor(mentorID any) *MockMeetingManagerListMeetingsByMentorCall {
 	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListMeetingsByMentor", reflect.TypeOf((*MockMeetingManagementUsecase)(nil).ListMeetingsByMentor), mentorID)
-	return &MockMeetingManagementUsecaseListMeetingsByMentorCall{Call: call}
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListMeetingsByMentor", reflect.TypeOf((*MockMeetingManager)(nil).ListMeetingsByMentor), mentorID)
+	return &MockMeetingManagerListMeetingsByMentorCall{Call: call}
 }
 
-// MockMeetingManagementUsecaseListMeetingsByMentorCall wrap *gomock.Call
-type MockMeetingManagementUsecaseListMeetingsByMentorCall struct {
+// MockMeetingManagerListMeetingsByMentorCall wrap *gomock.Call
+type MockMeetingManagerListMeetingsByMentorCall struct {
 	*gomock.Call
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MockMeetingManagementUsecaseListMeetingsByMentorCall) Return(arg0 []entity.Meeting, arg1 error) *MockMeetingManagementUsecaseListMeetingsByMentorCall {
+func (c *MockMeetingManagerListMeetingsByMentorCall) Return(arg0 []entity.Meeting, arg1 error) *MockMeetingManagerListMeetingsByMentorCall {
 	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockMeetingManagementUsecaseListMeetingsByMentorCall) Do(f func(uint) ([]entity.Meeting, error)) *MockMeetingManagementUsecaseListMeetingsByMentorCall {
+func (c *MockMeetingManagerListMeetingsByMentorCall) Do(f func(uint) ([]entity.Meeting, error)) *MockMeetingManagerListMeetingsByMentorCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockMeetingManagementUsecaseListMeetingsByMentorCall) DoAndReturn(f func(uint) ([]entity.Meeting, error)) *MockMeetingManagementUsecaseListMeetingsByMentorCall {
+func (c *MockMeetingManagerListMeetingsByMentorCall) DoAndReturn(f func(uint) ([]entity.Meeting, error)) *MockMeetingManagerListMeetingsByMentorCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
 // ListMeetingsByTeam mocks base method.
-func (m *MockMeetingManagementUsecase) ListMeetingsByTeam(teamID uint) ([]entity.Meeting, error) {
+func (m *MockMeetingManager) ListMeetingsByTeam(teamID uint) ([]entity.Meeting, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListMeetingsByTeam", teamID)
 	ret0, _ := ret[0].([]entity.Meeting)
@@ -2013,37 +2013,37 @@ func (m *MockMeetingManagementUsecase) ListMeetingsByTeam(teamID uint) ([]entity
 }
 
 // ListMeetingsByTeam indicates an expected call of ListMeetingsByTeam.
-func (mr *MockMeetingManagementUsecaseMockRecorder) ListMeetingsByTeam(teamID any) *MockMeetingManagementUsecaseListMeetingsByTeamCall {
+func (mr *MockMeetingManagerMockRecorder) ListMeetingsByTeam(teamID any) *MockMeetingManagerListMeetingsByTeamCall {
 	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListMeetingsByTeam", reflect.TypeOf((*MockMeetingManagementUsecase)(nil).ListMeetingsByTeam), teamID)
-	return &MockMeetingManagementUsecaseListMeetingsByTeamCall{Call: call}
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListMeetingsByTeam", reflect.TypeOf((*MockMeetingManager)(nil).ListMeetingsByTeam), teamID)
+	return &MockMeetingManagerListMeetingsByTeamCall{Call: call}
 }
 
-// MockMeetingManagementUsecaseListMeetingsByTeamCall wrap *gomock.Call
-type MockMeetingManagementUsecaseListMeetingsByTeamCall struct {
+// MockMeetingManagerListMeetingsByTeamCall wrap *gomock.Call
+type MockMeetingManagerListMeetingsByTeamCall struct {
 	*gomock.Call
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MockMeetingManagementUsecaseListMeetingsByTeamCall) Return(arg0 []entity.Meeting, arg1 error) *MockMeetingManagementUsecaseListMeetingsByTeamCall {
+func (c *MockMeetingManagerListMeetingsByTeamCall) Return(arg0 []entity.Meeting, arg1 error) *MockMeetingManagerListMeetingsByTeamCall {
 	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockMeetingManagementUsecaseListMeetingsByTeamCall) Do(f func(uint) ([]entity.Meeting, error)) *MockMeetingManagementUsecaseListMeetingsByTeamCall {
+func (c *MockMeetingManagerListMeetingsByTeamCall) Do(f func(uint) ([]entity.Meeting, error)) *MockMeetingManagerListMeetingsByTeamCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockMeetingManagementUsecaseListMeetingsByTeamCall) DoAndReturn(f func(uint) ([]entity.Meeting, error)) *MockMeetingManagementUsecaseListMeetingsByTeamCall {
+func (c *MockMeetingManagerListMeetingsByTeamCall) DoAndReturn(f func(uint) ([]entity.Meeting, error)) *MockMeetingManagerListMeetingsByTeamCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
 // Update mocks base method.
-func (m *MockMeetingManagementUsecase) Update(meetingID uint, meeting *entity.Meeting) error {
+func (m *MockMeetingManager) Update(meetingID uint, meeting *entity.Meeting) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Update", meetingID, meeting)
 	ret0, _ := ret[0].(error)
@@ -2051,31 +2051,31 @@ func (m *MockMeetingManagementUsecase) Update(meetingID uint, meeting *entity.Me
 }
 
 // Update indicates an expected call of Update.
-func (mr *MockMeetingManagementUsecaseMockRecorder) Update(meetingID, meeting any) *MockMeetingManagementUsecaseUpdateCall {
+func (mr *MockMeetingManagerMockRecorder) Update(meetingID, meeting any) *MockMeetingManagerUpdateCall {
 	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockMeetingManagementUsecase)(nil).Update), meetingID, meeting)
-	return &MockMeetingManagementUsecaseUpdateCall{Call: call}
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockMeetingManager)(nil).Update), meetingID, meeting)
+	return &MockMeetingManagerUpdateCall{Call: call}
 }
 
-// MockMeetingManagementUsecaseUpdateCall wrap *gomock.Call
-type MockMeetingManagementUsecaseUpdateCall struct {
+// MockMeetingManagerUpdateCall wrap *gomock.Call
+type MockMeetingManagerUpdateCall struct {
 	*gomock.Call
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MockMeetingManagementUsecaseUpdateCall) Return(arg0 error) *MockMeetingManagementUsecaseUpdateCall {
+func (c *MockMeetingManagerUpdateCall) Return(arg0 error) *MockMeetingManagerUpdateCall {
 	c.Call = c.Call.Return(arg0)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockMeetingManagementUsecaseUpdateCall) Do(f func(uint, *entity.Meeting) error) *MockMeetingManagementUsecaseUpdateCall {
+func (c *MockMeetingManagerUpdateCall) Do(f func(uint, *entity.Meeting) error) *MockMeetingManagerUpdateCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockMeetingManagementUsecaseUpdateCall) DoAndReturn(f func(uint, *entity.Meeting) error) *MockMeetingManagementUsecaseUpdateCall {
+func (c *MockMeetingManagerUpdateCall) DoAndReturn(f func(uint, *entity.Meeting) error) *MockMeetingManagerUpdateCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
@@ -2640,32 +2640,32 @@ func (c *MockMeetingDeleterDeleteMeetingCall) DoAndReturn(f func(uint) (bool, er
 	return c
 }
 
-// MockTemplateManagementUsecase is a mock of TemplateManagementUsecase interface.
-type MockTemplateManagementUsecase struct {
+// MockTemplateManager is a mock of TemplateManager interface.
+type MockTemplateManager struct {
 	ctrl     *gomock.Controller
-	recorder *MockTemplateManagementUsecaseMockRecorder
+	recorder *MockTemplateManagerMockRecorder
 	isgomock struct{}
 }
 
-// MockTemplateManagementUsecaseMockRecorder is the mock recorder for MockTemplateManagementUsecase.
-type MockTemplateManagementUsecaseMockRecorder struct {
-	mock *MockTemplateManagementUsecase
+// MockTemplateManagerMockRecorder is the mock recorder for MockTemplateManager.
+type MockTemplateManagerMockRecorder struct {
+	mock *MockTemplateManager
 }
 
-// NewMockTemplateManagementUsecase creates a new mock instance.
-func NewMockTemplateManagementUsecase(ctrl *gomock.Controller) *MockTemplateManagementUsecase {
-	mock := &MockTemplateManagementUsecase{ctrl: ctrl}
-	mock.recorder = &MockTemplateManagementUsecaseMockRecorder{mock}
+// NewMockTemplateManager creates a new mock instance.
+func NewMockTemplateManager(ctrl *gomock.Controller) *MockTemplateManager {
+	mock := &MockTemplateManager{ctrl: ctrl}
+	mock.recorder = &MockTemplateManagerMockRecorder{mock}
 	return mock
 }
 
 // EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockTemplateManagementUsecase) EXPECT() *MockTemplateManagementUsecaseMockRecorder {
+func (m *MockTemplateManager) EXPECT() *MockTemplateManagerMockRecorder {
 	return m.recorder
 }
 
 // CreateTemplate mocks base method.
-func (m *MockTemplateManagementUsecase) CreateTemplate(newTemplate *entity.Template) error {
+func (m *MockTemplateManager) CreateTemplate(newTemplate *entity.Template) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateTemplate", newTemplate)
 	ret0, _ := ret[0].(error)
@@ -2673,37 +2673,37 @@ func (m *MockTemplateManagementUsecase) CreateTemplate(newTemplate *entity.Templ
 }
 
 // CreateTemplate indicates an expected call of CreateTemplate.
-func (mr *MockTemplateManagementUsecaseMockRecorder) CreateTemplate(newTemplate any) *MockTemplateManagementUsecaseCreateTemplateCall {
+func (mr *MockTemplateManagerMockRecorder) CreateTemplate(newTemplate any) *MockTemplateManagerCreateTemplateCall {
 	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateTemplate", reflect.TypeOf((*MockTemplateManagementUsecase)(nil).CreateTemplate), newTemplate)
-	return &MockTemplateManagementUsecaseCreateTemplateCall{Call: call}
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateTemplate", reflect.TypeOf((*MockTemplateManager)(nil).CreateTemplate), newTemplate)
+	return &MockTemplateManagerCreateTemplateCall{Call: call}
 }
 
-// MockTemplateManagementUsecaseCreateTemplateCall wrap *gomock.Call
-type MockTemplateManagementUsecaseCreateTemplateCall struct {
+// MockTemplateManagerCreateTemplateCall wrap *gomock.Call
+type MockTemplateManagerCreateTemplateCall struct {
 	*gomock.Call
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MockTemplateManagementUsecaseCreateTemplateCall) Return(arg0 error) *MockTemplateManagementUsecaseCreateTemplateCall {
+func (c *MockTemplateManagerCreateTemplateCall) Return(arg0 error) *MockTemplateManagerCreateTemplateCall {
 	c.Call = c.Call.Return(arg0)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockTemplateManagementUsecaseCreateTemplateCall) Do(f func(*entity.Template) error) *MockTemplateManagementUsecaseCreateTemplateCall {
+func (c *MockTemplateManagerCreateTemplateCall) Do(f func(*entity.Template) error) *MockTemplateManagerCreateTemplateCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockTemplateManagementUsecaseCreateTemplateCall) DoAndReturn(f func(*entity.Template) error) *MockTemplateManagementUsecaseCreateTemplateCall {
+func (c *MockTemplateManagerCreateTemplateCall) DoAndReturn(f func(*entity.Template) error) *MockTemplateManagerCreateTemplateCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
 // DeleteTemplate mocks base method.
-func (m *MockTemplateManagementUsecase) DeleteTemplate(templateID uint) (bool, error) {
+func (m *MockTemplateManager) DeleteTemplate(templateID uint) (bool, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DeleteTemplate", templateID)
 	ret0, _ := ret[0].(bool)
@@ -2712,37 +2712,37 @@ func (m *MockTemplateManagementUsecase) DeleteTemplate(templateID uint) (bool, e
 }
 
 // DeleteTemplate indicates an expected call of DeleteTemplate.
-func (mr *MockTemplateManagementUsecaseMockRecorder) DeleteTemplate(templateID any) *MockTemplateManagementUsecaseDeleteTemplateCall {
+func (mr *MockTemplateManagerMockRecorder) DeleteTemplate(templateID any) *MockTemplateManagerDeleteTemplateCall {
 	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteTemplate", reflect.TypeOf((*MockTemplateManagementUsecase)(nil).DeleteTemplate), templateID)
-	return &MockTemplateManagementUsecaseDeleteTemplateCall{Call: call}
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteTemplate", reflect.TypeOf((*MockTemplateManager)(nil).DeleteTemplate), templateID)
+	return &MockTemplateManagerDeleteTemplateCall{Call: call}
 }
 
-// MockTemplateManagementUsecaseDeleteTemplateCall wrap *gomock.Call
-type MockTemplateManagementUsecaseDeleteTemplateCall struct {
+// MockTemplateManagerDeleteTemplateCall wrap *gomock.Call
+type MockTemplateManagerDeleteTemplateCall struct {
 	*gomock.Call
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MockTemplateManagementUsecaseDeleteTemplateCall) Return(arg0 bool, arg1 error) *MockTemplateManagementUsecaseDeleteTemplateCall {
+func (c *MockTemplateManagerDeleteTemplateCall) Return(arg0 bool, arg1 error) *MockTemplateManagerDeleteTemplateCall {
 	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockTemplateManagementUsecaseDeleteTemplateCall) Do(f func(uint) (bool, error)) *MockTemplateManagementUsecaseDeleteTemplateCall {
+func (c *MockTemplateManagerDeleteTemplateCall) Do(f func(uint) (bool, error)) *MockTemplateManagerDeleteTemplateCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockTemplateManagementUsecaseDeleteTemplateCall) DoAndReturn(f func(uint) (bool, error)) *MockTemplateManagementUsecaseDeleteTemplateCall {
+func (c *MockTemplateManagerDeleteTemplateCall) DoAndReturn(f func(uint) (bool, error)) *MockTemplateManagerDeleteTemplateCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
 // GetTemplate mocks base method.
-func (m *MockTemplateManagementUsecase) GetTemplate(templateID uint) (*entity.Template, error) {
+func (m *MockTemplateManager) GetTemplate(templateID uint) (*entity.Template, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetTemplate", templateID)
 	ret0, _ := ret[0].(*entity.Template)
@@ -2751,37 +2751,37 @@ func (m *MockTemplateManagementUsecase) GetTemplate(templateID uint) (*entity.Te
 }
 
 // GetTemplate indicates an expected call of GetTemplate.
-func (mr *MockTemplateManagementUsecaseMockRecorder) GetTemplate(templateID any) *MockTemplateManagementUsecaseGetTemplateCall {
+func (mr *MockTemplateManagerMockRecorder) GetTemplate(templateID any) *MockTemplateManagerGetTemplateCall {
 	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTemplate", reflect.TypeOf((*MockTemplateManagementUsecase)(nil).GetTemplate), templateID)
-	return &MockTemplateManagementUsecaseGetTemplateCall{Call: call}
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTemplate", reflect.TypeOf((*MockTemplateManager)(nil).GetTemplate), templateID)
+	return &MockTemplateManagerGetTemplateCall{Call: call}
 }
 
-// MockTemplateManagementUsecaseGetTemplateCall wrap *gomock.Call
-type MockTemplateManagementUsecaseGetTemplateCall struct {
+// MockTemplateManagerGetTemplateCall wrap *gomock.Call
+type MockTemplateManagerGetTemplateCall struct {
 	*gomock.Call
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MockTemplateManagementUsecaseGetTemplateCall) Return(arg0 *entity.Template, arg1 error) *MockTemplateManagementUsecaseGetTemplateCall {
+func (c *MockTemplateManagerGetTemplateCall) Return(arg0 *entity.Template, arg1 error) *MockTemplateManagerGetTemplateCall {
 	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockTemplateManagementUsecaseGetTemplateCall) Do(f func(uint) (*entity.Template, error)) *MockTemplateManagementUsecaseGetTemplateCall {
+func (c *MockTemplateManagerGetTemplateCall) Do(f func(uint) (*entity.Template, error)) *MockTemplateManagerGetTemplateCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockTemplateManagementUsecaseGetTemplateCall) DoAndReturn(f func(uint) (*entity.Template, error)) *MockTemplateManagementUsecaseGetTemplateCall {
+func (c *MockTemplateManagerGetTemplateCall) DoAndReturn(f func(uint) (*entity.Template, error)) *MockTemplateManagerGetTemplateCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
 // ListTemplate mocks base method.
-func (m *MockTemplateManagementUsecase) ListTemplate() ([]entity.Template, error) {
+func (m *MockTemplateManager) ListTemplate() ([]entity.Template, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListTemplate")
 	ret0, _ := ret[0].([]entity.Template)
@@ -2790,37 +2790,37 @@ func (m *MockTemplateManagementUsecase) ListTemplate() ([]entity.Template, error
 }
 
 // ListTemplate indicates an expected call of ListTemplate.
-func (mr *MockTemplateManagementUsecaseMockRecorder) ListTemplate() *MockTemplateManagementUsecaseListTemplateCall {
+func (mr *MockTemplateManagerMockRecorder) ListTemplate() *MockTemplateManagerListTemplateCall {
 	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListTemplate", reflect.TypeOf((*MockTemplateManagementUsecase)(nil).ListTemplate))
-	return &MockTemplateManagementUsecaseListTemplateCall{Call: call}
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListTemplate", reflect.TypeOf((*MockTemplateManager)(nil).ListTemplate))
+	return &MockTemplateManagerListTemplateCall{Call: call}
 }
 
-// MockTemplateManagementUsecaseListTemplateCall wrap *gomock.Call
-type MockTemplateManagementUsecaseListTemplateCall struct {
+// MockTemplateManagerListTemplateCall wrap *gomock.Call
+type MockTemplateManagerListTemplateCall struct {
 	*gomock.Call
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MockTemplateManagementUsecaseListTemplateCall) Return(arg0 []entity.Template, arg1 error) *MockTemplateManagementUsecaseListTemplateCall {
+func (c *MockTemplateManagerListTemplateCall) Return(arg0 []entity.Template, arg1 error) *MockTemplateManagerListTemplateCall {
 	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockTemplateManagementUsecaseListTemplateCall) Do(f func() ([]entity.Template, error)) *MockTemplateManagementUsecaseListTemplateCall {
+func (c *MockTemplateManagerListTemplateCall) Do(f func() ([]entity.Template, error)) *MockTemplateManagerListTemplateCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockTemplateManagementUsecaseListTemplateCall) DoAndReturn(f func() ([]entity.Template, error)) *MockTemplateManagementUsecaseListTemplateCall {
+func (c *MockTemplateManagerListTemplateCall) DoAndReturn(f func() ([]entity.Template, error)) *MockTemplateManagerListTemplateCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
 // UpdateTemplate mocks base method.
-func (m *MockTemplateManagementUsecase) UpdateTemplate(newTemplate *entity.Template) error {
+func (m *MockTemplateManager) UpdateTemplate(newTemplate *entity.Template) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateTemplate", newTemplate)
 	ret0, _ := ret[0].(error)
@@ -2828,31 +2828,31 @@ func (m *MockTemplateManagementUsecase) UpdateTemplate(newTemplate *entity.Templ
 }
 
 // UpdateTemplate indicates an expected call of UpdateTemplate.
-func (mr *MockTemplateManagementUsecaseMockRecorder) UpdateTemplate(newTemplate any) *MockTemplateManagementUsecaseUpdateTemplateCall {
+func (mr *MockTemplateManagerMockRecorder) UpdateTemplate(newTemplate any) *MockTemplateManagerUpdateTemplateCall {
 	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateTemplate", reflect.TypeOf((*MockTemplateManagementUsecase)(nil).UpdateTemplate), newTemplate)
-	return &MockTemplateManagementUsecaseUpdateTemplateCall{Call: call}
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateTemplate", reflect.TypeOf((*MockTemplateManager)(nil).UpdateTemplate), newTemplate)
+	return &MockTemplateManagerUpdateTemplateCall{Call: call}
 }
 
-// MockTemplateManagementUsecaseUpdateTemplateCall wrap *gomock.Call
-type MockTemplateManagementUsecaseUpdateTemplateCall struct {
+// MockTemplateManagerUpdateTemplateCall wrap *gomock.Call
+type MockTemplateManagerUpdateTemplateCall struct {
 	*gomock.Call
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MockTemplateManagementUsecaseUpdateTemplateCall) Return(arg0 error) *MockTemplateManagementUsecaseUpdateTemplateCall {
+func (c *MockTemplateManagerUpdateTemplateCall) Return(arg0 error) *MockTemplateManagerUpdateTemplateCall {
 	c.Call = c.Call.Return(arg0)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockTemplateManagementUsecaseUpdateTemplateCall) Do(f func(*entity.Template) error) *MockTemplateManagementUsecaseUpdateTemplateCall {
+func (c *MockTemplateManagerUpdateTemplateCall) Do(f func(*entity.Template) error) *MockTemplateManagerUpdateTemplateCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockTemplateManagementUsecaseUpdateTemplateCall) DoAndReturn(f func(*entity.Template) error) *MockTemplateManagementUsecaseUpdateTemplateCall {
+func (c *MockTemplateManagerUpdateTemplateCall) DoAndReturn(f func(*entity.Template) error) *MockTemplateManagerUpdateTemplateCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
@@ -3146,32 +3146,32 @@ func (c *MockTemplateDeleterDeleteTemplateCall) DoAndReturn(f func(uint) (bool, 
 	return c
 }
 
-// MockPairingManagementUsecase is a mock of PairingManagementUsecase interface.
-type MockPairingManagementUsecase struct {
+// MockPairingManager is a mock of PairingManager interface.
+type MockPairingManager struct {
 	ctrl     *gomock.Controller
-	recorder *MockPairingManagementUsecaseMockRecorder
+	recorder *MockPairingManagerMockRecorder
 	isgomock struct{}
 }
 
-// MockPairingManagementUsecaseMockRecorder is the mock recorder for MockPairingManagementUsecase.
-type MockPairingManagementUsecaseMockRecorder struct {
-	mock *MockPairingManagementUsecase
+// MockPairingManagerMockRecorder is the mock recorder for MockPairingManager.
+type MockPairingManagerMockRecorder struct {
+	mock *MockPairingManager
 }
 
-// NewMockPairingManagementUsecase creates a new mock instance.
-func NewMockPairingManagementUsecase(ctrl *gomock.Controller) *MockPairingManagementUsecase {
-	mock := &MockPairingManagementUsecase{ctrl: ctrl}
-	mock.recorder = &MockPairingManagementUsecaseMockRecorder{mock}
+// NewMockPairingManager creates a new mock instance.
+func NewMockPairingManager(ctrl *gomock.Controller) *MockPairingManager {
+	mock := &MockPairingManager{ctrl: ctrl}
+	mock.recorder = &MockPairingManagerMockRecorder{mock}
 	return mock
 }
 
 // EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockPairingManagementUsecase) EXPECT() *MockPairingManagementUsecaseMockRecorder {
+func (m *MockPairingManager) EXPECT() *MockPairingManagerMockRecorder {
 	return m.recorder
 }
 
 // BreakPairing mocks base method.
-func (m *MockPairingManagementUsecase) BreakPairing(pairingID uint) error {
+func (m *MockPairingManager) BreakPairing(pairingID uint) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "BreakPairing", pairingID)
 	ret0, _ := ret[0].(error)
@@ -3179,37 +3179,37 @@ func (m *MockPairingManagementUsecase) BreakPairing(pairingID uint) error {
 }
 
 // BreakPairing indicates an expected call of BreakPairing.
-func (mr *MockPairingManagementUsecaseMockRecorder) BreakPairing(pairingID any) *MockPairingManagementUsecaseBreakPairingCall {
+func (mr *MockPairingManagerMockRecorder) BreakPairing(pairingID any) *MockPairingManagerBreakPairingCall {
 	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BreakPairing", reflect.TypeOf((*MockPairingManagementUsecase)(nil).BreakPairing), pairingID)
-	return &MockPairingManagementUsecaseBreakPairingCall{Call: call}
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BreakPairing", reflect.TypeOf((*MockPairingManager)(nil).BreakPairing), pairingID)
+	return &MockPairingManagerBreakPairingCall{Call: call}
 }
 
-// MockPairingManagementUsecaseBreakPairingCall wrap *gomock.Call
-type MockPairingManagementUsecaseBreakPairingCall struct {
+// MockPairingManagerBreakPairingCall wrap *gomock.Call
+type MockPairingManagerBreakPairingCall struct {
 	*gomock.Call
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MockPairingManagementUsecaseBreakPairingCall) Return(arg0 error) *MockPairingManagementUsecaseBreakPairingCall {
+func (c *MockPairingManagerBreakPairingCall) Return(arg0 error) *MockPairingManagerBreakPairingCall {
 	c.Call = c.Call.Return(arg0)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockPairingManagementUsecaseBreakPairingCall) Do(f func(uint) error) *MockPairingManagementUsecaseBreakPairingCall {
+func (c *MockPairingManagerBreakPairingCall) Do(f func(uint) error) *MockPairingManagerBreakPairingCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockPairingManagementUsecaseBreakPairingCall) DoAndReturn(f func(uint) error) *MockPairingManagementUsecaseBreakPairingCall {
+func (c *MockPairingManagerBreakPairingCall) DoAndReturn(f func(uint) error) *MockPairingManagerBreakPairingCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
 // BreakPairings mocks base method.
-func (m *MockPairingManagementUsecase) BreakPairings(pairingIDs ...uint) error {
+func (m *MockPairingManager) BreakPairings(pairingIDs ...uint) error {
 	m.ctrl.T.Helper()
 	varargs := []any{}
 	for _, a := range pairingIDs {
@@ -3221,37 +3221,37 @@ func (m *MockPairingManagementUsecase) BreakPairings(pairingIDs ...uint) error {
 }
 
 // BreakPairings indicates an expected call of BreakPairings.
-func (mr *MockPairingManagementUsecaseMockRecorder) BreakPairings(pairingIDs ...any) *MockPairingManagementUsecaseBreakPairingsCall {
+func (mr *MockPairingManagerMockRecorder) BreakPairings(pairingIDs ...any) *MockPairingManagerBreakPairingsCall {
 	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BreakPairings", reflect.TypeOf((*MockPairingManagementUsecase)(nil).BreakPairings), pairingIDs...)
-	return &MockPairingManagementUsecaseBreakPairingsCall{Call: call}
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BreakPairings", reflect.TypeOf((*MockPairingManager)(nil).BreakPairings), pairingIDs...)
+	return &MockPairingManagerBreakPairingsCall{Call: call}
 }
 
-// MockPairingManagementUsecaseBreakPairingsCall wrap *gomock.Call
-type MockPairingManagementUsecaseBreakPairingsCall struct {
+// MockPairingManagerBreakPairingsCall wrap *gomock.Call
+type MockPairingManagerBreakPairingsCall struct {
 	*gomock.Call
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MockPairingManagementUsecaseBreakPairingsCall) Return(arg0 error) *MockPairingManagementUsecaseBreakPairingsCall {
+func (c *MockPairingManagerBreakPairingsCall) Return(arg0 error) *MockPairingManagerBreakPairingsCall {
 	c.Call = c.Call.Return(arg0)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockPairingManagementUsecaseBreakPairingsCall) Do(f func(...uint) error) *MockPairingManagementUsecaseBreakPairingsCall {
+func (c *MockPairingManagerBreakPairingsCall) Do(f func(...uint) error) *MockPairingManagerBreakPairingsCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockPairingManagementUsecaseBreakPairingsCall) DoAndReturn(f func(...uint) error) *MockPairingManagementUsecaseBreakPairingsCall {
+func (c *MockPairingManagerBreakPairingsCall) DoAndReturn(f func(...uint) error) *MockPairingManagerBreakPairingsCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
 // CreatePairing mocks base method.
-func (m *MockPairingManagementUsecase) CreatePairing(menteeID, mentorID uint) error {
+func (m *MockPairingManager) CreatePairing(menteeID, mentorID uint) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreatePairing", menteeID, mentorID)
 	ret0, _ := ret[0].(error)
@@ -3259,37 +3259,37 @@ func (m *MockPairingManagementUsecase) CreatePairing(menteeID, mentorID uint) er
 }
 
 // CreatePairing indicates an expected call of CreatePairing.
-func (mr *MockPairingManagementUsecaseMockRecorder) CreatePairing(menteeID, mentorID any) *MockPairingManagementUsecaseCreatePairingCall {
+func (mr *MockPairingManagerMockRecorder) CreatePairing(menteeID, mentorID any) *MockPairingManagerCreatePairingCall {
 	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreatePairing", reflect.TypeOf((*MockPairingManagementUsecase)(nil).CreatePairing), menteeID, mentorID)
-	return &MockPairingManagementUsecaseCreatePairingCall{Call: call}
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreatePairing", reflect.TypeOf((*MockPairingManager)(nil).CreatePairing), menteeID, mentorID)
+	return &MockPairingManagerCreatePairingCall{Call: call}
 }
 
-// MockPairingManagementUsecaseCreatePairingCall wrap *gomock.Call
-type MockPairingManagementUsecaseCreatePairingCall struct {
+// MockPairingManagerCreatePairingCall wrap *gomock.Call
+type MockPairingManagerCreatePairingCall struct {
 	*gomock.Call
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MockPairingManagementUsecaseCreatePairingCall) Return(arg0 error) *MockPairingManagementUsecaseCreatePairingCall {
+func (c *MockPairingManagerCreatePairingCall) Return(arg0 error) *MockPairingManagerCreatePairingCall {
 	c.Call = c.Call.Return(arg0)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockPairingManagementUsecaseCreatePairingCall) Do(f func(uint, uint) error) *MockPairingManagementUsecaseCreatePairingCall {
+func (c *MockPairingManagerCreatePairingCall) Do(f func(uint, uint) error) *MockPairingManagerCreatePairingCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockPairingManagementUsecaseCreatePairingCall) DoAndReturn(f func(uint, uint) error) *MockPairingManagementUsecaseCreatePairingCall {
+func (c *MockPairingManagerCreatePairingCall) DoAndReturn(f func(uint, uint) error) *MockPairingManagerCreatePairingCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
 // GetPairing mocks base method.
-func (m *MockPairingManagementUsecase) GetPairing(pairingID uint) (*entity.Pairing, error) {
+func (m *MockPairingManager) GetPairing(pairingID uint) (*entity.Pairing, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetPairing", pairingID)
 	ret0, _ := ret[0].(*entity.Pairing)
@@ -3298,37 +3298,37 @@ func (m *MockPairingManagementUsecase) GetPairing(pairingID uint) (*entity.Pairi
 }
 
 // GetPairing indicates an expected call of GetPairing.
-func (mr *MockPairingManagementUsecaseMockRecorder) GetPairing(pairingID any) *MockPairingManagementUsecaseGetPairingCall {
+func (mr *MockPairingManagerMockRecorder) GetPairing(pairingID any) *MockPairingManagerGetPairingCall {
 	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPairing", reflect.TypeOf((*MockPairingManagementUsecase)(nil).GetPairing), pairingID)
-	return &MockPairingManagementUsecaseGetPairingCall{Call: call}
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPairing", reflect.TypeOf((*MockPairingManager)(nil).GetPairing), pairingID)
+	return &MockPairingManagerGetPairingCall{Call: call}
 }
 
-// MockPairingManagementUsecaseGetPairingCall wrap *gomock.Call
-type MockPairingManagementUsecaseGetPairingCall struct {
+// MockPairingManagerGetPairingCall wrap *gomock.Call
+type MockPairingManagerGetPairingCall struct {
 	*gomock.Call
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MockPairingManagementUsecaseGetPairingCall) Return(arg0 *entity.Pairing, arg1 error) *MockPairingManagementUsecaseGetPairingCall {
+func (c *MockPairingManagerGetPairingCall) Return(arg0 *entity.Pairing, arg1 error) *MockPairingManagerGetPairingCall {
 	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockPairingManagementUsecaseGetPairingCall) Do(f func(uint) (*entity.Pairing, error)) *MockPairingManagementUsecaseGetPairingCall {
+func (c *MockPairingManagerGetPairingCall) Do(f func(uint) (*entity.Pairing, error)) *MockPairingManagerGetPairingCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockPairingManagementUsecaseGetPairingCall) DoAndReturn(f func(uint) (*entity.Pairing, error)) *MockPairingManagementUsecaseGetPairingCall {
+func (c *MockPairingManagerGetPairingCall) DoAndReturn(f func(uint) (*entity.Pairing, error)) *MockPairingManagerGetPairingCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
 // ListPairingsByAll mocks base method.
-func (m *MockPairingManagementUsecase) ListPairingsByAll() ([]entity.Pairing, error) {
+func (m *MockPairingManager) ListPairingsByAll() ([]entity.Pairing, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListPairingsByAll")
 	ret0, _ := ret[0].([]entity.Pairing)
@@ -3337,37 +3337,37 @@ func (m *MockPairingManagementUsecase) ListPairingsByAll() ([]entity.Pairing, er
 }
 
 // ListPairingsByAll indicates an expected call of ListPairingsByAll.
-func (mr *MockPairingManagementUsecaseMockRecorder) ListPairingsByAll() *MockPairingManagementUsecaseListPairingsByAllCall {
+func (mr *MockPairingManagerMockRecorder) ListPairingsByAll() *MockPairingManagerListPairingsByAllCall {
 	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListPairingsByAll", reflect.TypeOf((*MockPairingManagementUsecase)(nil).ListPairingsByAll))
-	return &MockPairingManagementUsecaseListPairingsByAllCall{Call: call}
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListPairingsByAll", reflect.TypeOf((*MockPairingManager)(nil).ListPairingsByAll))
+	return &MockPairingManagerListPairingsByAllCall{Call: call}
 }
 
-// MockPairingManagementUsecaseListPairingsByAllCall wrap *gomock.Call
-type MockPairingManagementUsecaseListPairingsByAllCall struct {
+// MockPairingManagerListPairingsByAllCall wrap *gomock.Call
+type MockPairingManagerListPairingsByAllCall struct {
 	*gomock.Call
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MockPairingManagementUsecaseListPairingsByAllCall) Return(arg0 []entity.Pairing, arg1 error) *MockPairingManagementUsecaseListPairingsByAllCall {
+func (c *MockPairingManagerListPairingsByAllCall) Return(arg0 []entity.Pairing, arg1 error) *MockPairingManagerListPairingsByAllCall {
 	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockPairingManagementUsecaseListPairingsByAllCall) Do(f func() ([]entity.Pairing, error)) *MockPairingManagementUsecaseListPairingsByAllCall {
+func (c *MockPairingManagerListPairingsByAllCall) Do(f func() ([]entity.Pairing, error)) *MockPairingManagerListPairingsByAllCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockPairingManagementUsecaseListPairingsByAllCall) DoAndReturn(f func() ([]entity.Pairing, error)) *MockPairingManagementUsecaseListPairingsByAllCall {
+func (c *MockPairingManagerListPairingsByAllCall) DoAndReturn(f func() ([]entity.Pairing, error)) *MockPairingManagerListPairingsByAllCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
 // ListPairingsByBoss mocks base method.
-func (m *MockPairingManagementUsecase) ListPairingsByBoss(bossID uint) ([]entity.Pairing, error) {
+func (m *MockPairingManager) ListPairingsByBoss(bossID uint) ([]entity.Pairing, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListPairingsByBoss", bossID)
 	ret0, _ := ret[0].([]entity.Pairing)
@@ -3376,37 +3376,37 @@ func (m *MockPairingManagementUsecase) ListPairingsByBoss(bossID uint) ([]entity
 }
 
 // ListPairingsByBoss indicates an expected call of ListPairingsByBoss.
-func (mr *MockPairingManagementUsecaseMockRecorder) ListPairingsByBoss(bossID any) *MockPairingManagementUsecaseListPairingsByBossCall {
+func (mr *MockPairingManagerMockRecorder) ListPairingsByBoss(bossID any) *MockPairingManagerListPairingsByBossCall {
 	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListPairingsByBoss", reflect.TypeOf((*MockPairingManagementUsecase)(nil).ListPairingsByBoss), bossID)
-	return &MockPairingManagementUsecaseListPairingsByBossCall{Call: call}
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListPairingsByBoss", reflect.TypeOf((*MockPairingManager)(nil).ListPairingsByBoss), bossID)
+	return &MockPairingManagerListPairingsByBossCall{Call: call}
 }
 
-// MockPairingManagementUsecaseListPairingsByBossCall wrap *gomock.Call
-type MockPairingManagementUsecaseListPairingsByBossCall struct {
+// MockPairingManagerListPairingsByBossCall wrap *gomock.Call
+type MockPairingManagerListPairingsByBossCall struct {
 	*gomock.Call
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MockPairingManagementUsecaseListPairingsByBossCall) Return(arg0 []entity.Pairing, arg1 error) *MockPairingManagementUsecaseListPairingsByBossCall {
+func (c *MockPairingManagerListPairingsByBossCall) Return(arg0 []entity.Pairing, arg1 error) *MockPairingManagerListPairingsByBossCall {
 	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockPairingManagementUsecaseListPairingsByBossCall) Do(f func(uint) ([]entity.Pairing, error)) *MockPairingManagementUsecaseListPairingsByBossCall {
+func (c *MockPairingManagerListPairingsByBossCall) Do(f func(uint) ([]entity.Pairing, error)) *MockPairingManagerListPairingsByBossCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockPairingManagementUsecaseListPairingsByBossCall) DoAndReturn(f func(uint) ([]entity.Pairing, error)) *MockPairingManagementUsecaseListPairingsByBossCall {
+func (c *MockPairingManagerListPairingsByBossCall) DoAndReturn(f func(uint) ([]entity.Pairing, error)) *MockPairingManagerListPairingsByBossCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
 // ListPairingsByDepartment mocks base method.
-func (m *MockPairingManagementUsecase) ListPairingsByDepartment(departmentID uint) ([]entity.Pairing, error) {
+func (m *MockPairingManager) ListPairingsByDepartment(departmentID uint) ([]entity.Pairing, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListPairingsByDepartment", departmentID)
 	ret0, _ := ret[0].([]entity.Pairing)
@@ -3415,37 +3415,37 @@ func (m *MockPairingManagementUsecase) ListPairingsByDepartment(departmentID uin
 }
 
 // ListPairingsByDepartment indicates an expected call of ListPairingsByDepartment.
-func (mr *MockPairingManagementUsecaseMockRecorder) ListPairingsByDepartment(departmentID any) *MockPairingManagementUsecaseListPairingsByDepartmentCall {
+func (mr *MockPairingManagerMockRecorder) ListPairingsByDepartment(departmentID any) *MockPairingManagerListPairingsByDepartmentCall {
 	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListPairingsByDepartment", reflect.TypeOf((*MockPairingManagementUsecase)(nil).ListPairingsByDepartment), departmentID)
-	return &MockPairingManagementUsecaseListPairingsByDepartmentCall{Call: call}
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListPairingsByDepartment", reflect.TypeOf((*MockPairingManager)(nil).ListPairingsByDepartment), departmentID)
+	return &MockPairingManagerListPairingsByDepartmentCall{Call: call}
 }
 
-// MockPairingManagementUsecaseListPairingsByDepartmentCall wrap *gomock.Call
-type MockPairingManagementUsecaseListPairingsByDepartmentCall struct {
+// MockPairingManagerListPairingsByDepartmentCall wrap *gomock.Call
+type MockPairingManagerListPairingsByDepartmentCall struct {
 	*gomock.Call
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MockPairingManagementUsecaseListPairingsByDepartmentCall) Return(arg0 []entity.Pairing, arg1 error) *MockPairingManagementUsecaseListPairingsByDepartmentCall {
+func (c *MockPairingManagerListPairingsByDepartmentCall) Return(arg0 []entity.Pairing, arg1 error) *MockPairingManagerListPairingsByDepartmentCall {
 	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockPairingManagementUsecaseListPairingsByDepartmentCall) Do(f func(uint) ([]entity.Pairing, error)) *MockPairingManagementUsecaseListPairingsByDepartmentCall {
+func (c *MockPairingManagerListPairingsByDepartmentCall) Do(f func(uint) ([]entity.Pairing, error)) *MockPairingManagerListPairingsByDepartmentCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockPairingManagementUsecaseListPairingsByDepartmentCall) DoAndReturn(f func(uint) ([]entity.Pairing, error)) *MockPairingManagementUsecaseListPairingsByDepartmentCall {
+func (c *MockPairingManagerListPairingsByDepartmentCall) DoAndReturn(f func(uint) ([]entity.Pairing, error)) *MockPairingManagerListPairingsByDepartmentCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
 // ListPairingsByMentor mocks base method.
-func (m *MockPairingManagementUsecase) ListPairingsByMentor(mentorID uint) ([]entity.Pairing, error) {
+func (m *MockPairingManager) ListPairingsByMentor(mentorID uint) ([]entity.Pairing, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListPairingsByMentor", mentorID)
 	ret0, _ := ret[0].([]entity.Pairing)
@@ -3454,37 +3454,37 @@ func (m *MockPairingManagementUsecase) ListPairingsByMentor(mentorID uint) ([]en
 }
 
 // ListPairingsByMentor indicates an expected call of ListPairingsByMentor.
-func (mr *MockPairingManagementUsecaseMockRecorder) ListPairingsByMentor(mentorID any) *MockPairingManagementUsecaseListPairingsByMentorCall {
+func (mr *MockPairingManagerMockRecorder) ListPairingsByMentor(mentorID any) *MockPairingManagerListPairingsByMentorCall {
 	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListPairingsByMentor", reflect.TypeOf((*MockPairingManagementUsecase)(nil).ListPairingsByMentor), mentorID)
-	return &MockPairingManagementUsecaseListPairingsByMentorCall{Call: call}
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListPairingsByMentor", reflect.TypeOf((*MockPairingManager)(nil).ListPairingsByMentor), mentorID)
+	return &MockPairingManagerListPairingsByMentorCall{Call: call}
 }
 
-// MockPairingManagementUsecaseListPairingsByMentorCall wrap *gomock.Call
-type MockPairingManagementUsecaseListPairingsByMentorCall struct {
+// MockPairingManagerListPairingsByMentorCall wrap *gomock.Call
+type MockPairingManagerListPairingsByMentorCall struct {
 	*gomock.Call
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MockPairingManagementUsecaseListPairingsByMentorCall) Return(arg0 []entity.Pairing, arg1 error) *MockPairingManagementUsecaseListPairingsByMentorCall {
+func (c *MockPairingManagerListPairingsByMentorCall) Return(arg0 []entity.Pairing, arg1 error) *MockPairingManagerListPairingsByMentorCall {
 	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockPairingManagementUsecaseListPairingsByMentorCall) Do(f func(uint) ([]entity.Pairing, error)) *MockPairingManagementUsecaseListPairingsByMentorCall {
+func (c *MockPairingManagerListPairingsByMentorCall) Do(f func(uint) ([]entity.Pairing, error)) *MockPairingManagerListPairingsByMentorCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockPairingManagementUsecaseListPairingsByMentorCall) DoAndReturn(f func(uint) ([]entity.Pairing, error)) *MockPairingManagementUsecaseListPairingsByMentorCall {
+func (c *MockPairingManagerListPairingsByMentorCall) DoAndReturn(f func(uint) ([]entity.Pairing, error)) *MockPairingManagerListPairingsByMentorCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
 // ListPairingsByTeam mocks base method.
-func (m *MockPairingManagementUsecase) ListPairingsByTeam(teamID uint) ([]entity.Pairing, error) {
+func (m *MockPairingManager) ListPairingsByTeam(teamID uint) ([]entity.Pairing, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListPairingsByTeam", teamID)
 	ret0, _ := ret[0].([]entity.Pairing)
@@ -3493,37 +3493,37 @@ func (m *MockPairingManagementUsecase) ListPairingsByTeam(teamID uint) ([]entity
 }
 
 // ListPairingsByTeam indicates an expected call of ListPairingsByTeam.
-func (mr *MockPairingManagementUsecaseMockRecorder) ListPairingsByTeam(teamID any) *MockPairingManagementUsecaseListPairingsByTeamCall {
+func (mr *MockPairingManagerMockRecorder) ListPairingsByTeam(teamID any) *MockPairingManagerListPairingsByTeamCall {
 	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListPairingsByTeam", reflect.TypeOf((*MockPairingManagementUsecase)(nil).ListPairingsByTeam), teamID)
-	return &MockPairingManagementUsecaseListPairingsByTeamCall{Call: call}
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListPairingsByTeam", reflect.TypeOf((*MockPairingManager)(nil).ListPairingsByTeam), teamID)
+	return &MockPairingManagerListPairingsByTeamCall{Call: call}
 }
 
-// MockPairingManagementUsecaseListPairingsByTeamCall wrap *gomock.Call
-type MockPairingManagementUsecaseListPairingsByTeamCall struct {
+// MockPairingManagerListPairingsByTeamCall wrap *gomock.Call
+type MockPairingManagerListPairingsByTeamCall struct {
 	*gomock.Call
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MockPairingManagementUsecaseListPairingsByTeamCall) Return(arg0 []entity.Pairing, arg1 error) *MockPairingManagementUsecaseListPairingsByTeamCall {
+func (c *MockPairingManagerListPairingsByTeamCall) Return(arg0 []entity.Pairing, arg1 error) *MockPairingManagerListPairingsByTeamCall {
 	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockPairingManagementUsecaseListPairingsByTeamCall) Do(f func(uint) ([]entity.Pairing, error)) *MockPairingManagementUsecaseListPairingsByTeamCall {
+func (c *MockPairingManagerListPairingsByTeamCall) Do(f func(uint) ([]entity.Pairing, error)) *MockPairingManagerListPairingsByTeamCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockPairingManagementUsecaseListPairingsByTeamCall) DoAndReturn(f func(uint) ([]entity.Pairing, error)) *MockPairingManagementUsecaseListPairingsByTeamCall {
+func (c *MockPairingManagerListPairingsByTeamCall) DoAndReturn(f func(uint) ([]entity.Pairing, error)) *MockPairingManagerListPairingsByTeamCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
 // UpdatePairing mocks base method.
-func (m *MockPairingManagementUsecase) UpdatePairing(newPairing *entity.Pairing) error {
+func (m *MockPairingManager) UpdatePairing(newPairing *entity.Pairing) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdatePairing", newPairing)
 	ret0, _ := ret[0].(error)
@@ -3531,31 +3531,31 @@ func (m *MockPairingManagementUsecase) UpdatePairing(newPairing *entity.Pairing)
 }
 
 // UpdatePairing indicates an expected call of UpdatePairing.
-func (mr *MockPairingManagementUsecaseMockRecorder) UpdatePairing(newPairing any) *MockPairingManagementUsecaseUpdatePairingCall {
+func (mr *MockPairingManagerMockRecorder) UpdatePairing(newPairing any) *MockPairingManagerUpdatePairingCall {
 	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdatePairing", reflect.TypeOf((*MockPairingManagementUsecase)(nil).UpdatePairing), newPairing)
-	return &MockPairingManagementUsecaseUpdatePairingCall{Call: call}
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdatePairing", reflect.TypeOf((*MockPairingManager)(nil).UpdatePairing), newPairing)
+	return &MockPairingManagerUpdatePairingCall{Call: call}
 }
 
-// MockPairingManagementUsecaseUpdatePairingCall wrap *gomock.Call
-type MockPairingManagementUsecaseUpdatePairingCall struct {
+// MockPairingManagerUpdatePairingCall wrap *gomock.Call
+type MockPairingManagerUpdatePairingCall struct {
 	*gomock.Call
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MockPairingManagementUsecaseUpdatePairingCall) Return(arg0 error) *MockPairingManagementUsecaseUpdatePairingCall {
+func (c *MockPairingManagerUpdatePairingCall) Return(arg0 error) *MockPairingManagerUpdatePairingCall {
 	c.Call = c.Call.Return(arg0)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockPairingManagementUsecaseUpdatePairingCall) Do(f func(*entity.Pairing) error) *MockPairingManagementUsecaseUpdatePairingCall {
+func (c *MockPairingManagerUpdatePairingCall) Do(f func(*entity.Pairing) error) *MockPairingManagerUpdatePairingCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockPairingManagementUsecaseUpdatePairingCall) DoAndReturn(f func(*entity.Pairing) error) *MockPairingManagementUsecaseUpdatePairingCall {
+func (c *MockPairingManagerUpdatePairingCall) DoAndReturn(f func(*entity.Pairing) error) *MockPairingManagerUpdatePairingCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }

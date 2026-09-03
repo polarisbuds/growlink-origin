@@ -7,15 +7,15 @@ import (
 
 //go:generate go tool mockgen -typed -source=$GOFILE -destination=mock/mock_$GOFILE -package=mock
 
-type ManagementUsecase interface {
-	ProgressManagementUsecase
-	MeetingManagementUsecase
-	TemplateManagementUsecase
-	PairingManagementUsecase
+type Manager interface {
+	ProgressManager
+	MeetingManager
+	TemplateManager
+	PairingManager
 }
 
 type (
-	ProgressManagementUsecase interface {
+	ProgressManager interface {
 		ProgressViewer
 	}
 
@@ -28,7 +28,7 @@ type (
 )
 
 type (
-	MeetingManagementUsecase interface {
+	MeetingManager interface {
 		MeetingViewer
 		MeetingCreator
 		MeetingUpdater
@@ -58,7 +58,7 @@ type (
 )
 
 type (
-	TemplateManagementUsecase interface {
+	TemplateManager interface {
 		TemplateViewer
 		TemplateCreator
 		TemplateUpdater
@@ -81,7 +81,7 @@ type (
 )
 
 type (
-	PairingManagementUsecase interface {
+	PairingManager interface {
 		PairingViewer
 		PairingCreator
 		PairingUpdater
