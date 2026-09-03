@@ -10,7 +10,8 @@
 package mock
 
 import (
-	entity "growlink/internal/domain/entity"
+	inputmodel "growlink/internal/application/model/input_model"
+	outputmodel "growlink/internal/application/model/output_model"
 	reflect "reflect"
 	time "time"
 
@@ -236,10 +237,10 @@ func (c *MockManagerChangeTemplateCall) DoAndReturn(f func(uint, uint) error) *M
 }
 
 // CreateMeeting mocks base method.
-func (m *MockManager) CreateMeeting(pairingID, templateID uint, implementDate time.Time) (*entity.Meeting, error) {
+func (m *MockManager) CreateMeeting(pairingID, templateID uint, implementDate time.Time) (*outputmodel.MeetingOutput, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateMeeting", pairingID, templateID, implementDate)
-	ret0, _ := ret[0].(*entity.Meeting)
+	ret0, _ := ret[0].(*outputmodel.MeetingOutput)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -257,28 +258,28 @@ type MockManagerCreateMeetingCall struct {
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MockManagerCreateMeetingCall) Return(arg0 *entity.Meeting, arg1 error) *MockManagerCreateMeetingCall {
+func (c *MockManagerCreateMeetingCall) Return(arg0 *outputmodel.MeetingOutput, arg1 error) *MockManagerCreateMeetingCall {
 	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockManagerCreateMeetingCall) Do(f func(uint, uint, time.Time) (*entity.Meeting, error)) *MockManagerCreateMeetingCall {
+func (c *MockManagerCreateMeetingCall) Do(f func(uint, uint, time.Time) (*outputmodel.MeetingOutput, error)) *MockManagerCreateMeetingCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockManagerCreateMeetingCall) DoAndReturn(f func(uint, uint, time.Time) (*entity.Meeting, error)) *MockManagerCreateMeetingCall {
+func (c *MockManagerCreateMeetingCall) DoAndReturn(f func(uint, uint, time.Time) (*outputmodel.MeetingOutput, error)) *MockManagerCreateMeetingCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
 // CreateMeetingByAll mocks base method.
-func (m *MockManager) CreateMeetingByAll(templateID uint, implementDate time.Time) ([]entity.Meeting, error) {
+func (m *MockManager) CreateMeetingByAll(templateID uint, implementDate time.Time) ([]outputmodel.MeetingOutput, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateMeetingByAll", templateID, implementDate)
-	ret0, _ := ret[0].([]entity.Meeting)
+	ret0, _ := ret[0].([]outputmodel.MeetingOutput)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -296,28 +297,28 @@ type MockManagerCreateMeetingByAllCall struct {
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MockManagerCreateMeetingByAllCall) Return(arg0 []entity.Meeting, arg1 error) *MockManagerCreateMeetingByAllCall {
+func (c *MockManagerCreateMeetingByAllCall) Return(arg0 []outputmodel.MeetingOutput, arg1 error) *MockManagerCreateMeetingByAllCall {
 	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockManagerCreateMeetingByAllCall) Do(f func(uint, time.Time) ([]entity.Meeting, error)) *MockManagerCreateMeetingByAllCall {
+func (c *MockManagerCreateMeetingByAllCall) Do(f func(uint, time.Time) ([]outputmodel.MeetingOutput, error)) *MockManagerCreateMeetingByAllCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockManagerCreateMeetingByAllCall) DoAndReturn(f func(uint, time.Time) ([]entity.Meeting, error)) *MockManagerCreateMeetingByAllCall {
+func (c *MockManagerCreateMeetingByAllCall) DoAndReturn(f func(uint, time.Time) ([]outputmodel.MeetingOutput, error)) *MockManagerCreateMeetingByAllCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
 // CreateMeetingEveryMonth mocks base method.
-func (m *MockManager) CreateMeetingEveryMonth(templateID uint, baseDate time.Time, week int, weekday time.Weekday) ([]entity.Meeting, error) {
+func (m *MockManager) CreateMeetingEveryMonth(templateID uint, baseDate time.Time, week int, weekday time.Weekday) ([]outputmodel.MeetingOutput, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateMeetingEveryMonth", templateID, baseDate, week, weekday)
-	ret0, _ := ret[0].([]entity.Meeting)
+	ret0, _ := ret[0].([]outputmodel.MeetingOutput)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -335,19 +336,19 @@ type MockManagerCreateMeetingEveryMonthCall struct {
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MockManagerCreateMeetingEveryMonthCall) Return(arg0 []entity.Meeting, arg1 error) *MockManagerCreateMeetingEveryMonthCall {
+func (c *MockManagerCreateMeetingEveryMonthCall) Return(arg0 []outputmodel.MeetingOutput, arg1 error) *MockManagerCreateMeetingEveryMonthCall {
 	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockManagerCreateMeetingEveryMonthCall) Do(f func(uint, time.Time, int, time.Weekday) ([]entity.Meeting, error)) *MockManagerCreateMeetingEveryMonthCall {
+func (c *MockManagerCreateMeetingEveryMonthCall) Do(f func(uint, time.Time, int, time.Weekday) ([]outputmodel.MeetingOutput, error)) *MockManagerCreateMeetingEveryMonthCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockManagerCreateMeetingEveryMonthCall) DoAndReturn(f func(uint, time.Time, int, time.Weekday) ([]entity.Meeting, error)) *MockManagerCreateMeetingEveryMonthCall {
+func (c *MockManagerCreateMeetingEveryMonthCall) DoAndReturn(f func(uint, time.Time, int, time.Weekday) ([]outputmodel.MeetingOutput, error)) *MockManagerCreateMeetingEveryMonthCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
@@ -391,17 +392,17 @@ func (c *MockManagerCreatePairingCall) DoAndReturn(f func(uint, uint) error) *Mo
 }
 
 // CreateTemplate mocks base method.
-func (m *MockManager) CreateTemplate(newTemplate *entity.Template) error {
+func (m *MockManager) CreateTemplate(input inputmodel.TemplateInput) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateTemplate", newTemplate)
+	ret := m.ctrl.Call(m, "CreateTemplate", input)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // CreateTemplate indicates an expected call of CreateTemplate.
-func (mr *MockManagerMockRecorder) CreateTemplate(newTemplate any) *MockManagerCreateTemplateCall {
+func (mr *MockManagerMockRecorder) CreateTemplate(input any) *MockManagerCreateTemplateCall {
 	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateTemplate", reflect.TypeOf((*MockManager)(nil).CreateTemplate), newTemplate)
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateTemplate", reflect.TypeOf((*MockManager)(nil).CreateTemplate), input)
 	return &MockManagerCreateTemplateCall{Call: call}
 }
 
@@ -417,13 +418,13 @@ func (c *MockManagerCreateTemplateCall) Return(arg0 error) *MockManagerCreateTem
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockManagerCreateTemplateCall) Do(f func(*entity.Template) error) *MockManagerCreateTemplateCall {
+func (c *MockManagerCreateTemplateCall) Do(f func(inputmodel.TemplateInput) error) *MockManagerCreateTemplateCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockManagerCreateTemplateCall) DoAndReturn(f func(*entity.Template) error) *MockManagerCreateTemplateCall {
+func (c *MockManagerCreateTemplateCall) DoAndReturn(f func(inputmodel.TemplateInput) error) *MockManagerCreateTemplateCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
@@ -511,10 +512,10 @@ func (c *MockManagerDeleteTemplateCall) DoAndReturn(f func(uint) (bool, error)) 
 }
 
 // GetPairing mocks base method.
-func (m *MockManager) GetPairing(pairingID uint) (*entity.Pairing, error) {
+func (m *MockManager) GetPairing(pairingID uint) (*outputmodel.PairingOutput, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetPairing", pairingID)
-	ret0, _ := ret[0].(*entity.Pairing)
+	ret0, _ := ret[0].(*outputmodel.PairingOutput)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -532,19 +533,19 @@ type MockManagerGetPairingCall struct {
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MockManagerGetPairingCall) Return(arg0 *entity.Pairing, arg1 error) *MockManagerGetPairingCall {
+func (c *MockManagerGetPairingCall) Return(arg0 *outputmodel.PairingOutput, arg1 error) *MockManagerGetPairingCall {
 	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockManagerGetPairingCall) Do(f func(uint) (*entity.Pairing, error)) *MockManagerGetPairingCall {
+func (c *MockManagerGetPairingCall) Do(f func(uint) (*outputmodel.PairingOutput, error)) *MockManagerGetPairingCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockManagerGetPairingCall) DoAndReturn(f func(uint) (*entity.Pairing, error)) *MockManagerGetPairingCall {
+func (c *MockManagerGetPairingCall) DoAndReturn(f func(uint) (*outputmodel.PairingOutput, error)) *MockManagerGetPairingCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
@@ -702,10 +703,10 @@ func (c *MockManagerGetProgressByTeamIDCall) DoAndReturn(f func(uint) error) *Mo
 }
 
 // GetTemplate mocks base method.
-func (m *MockManager) GetTemplate(templateID uint) (*entity.Template, error) {
+func (m *MockManager) GetTemplate(templateID uint) (*outputmodel.TemplateOutput, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetTemplate", templateID)
-	ret0, _ := ret[0].(*entity.Template)
+	ret0, _ := ret[0].(*outputmodel.TemplateOutput)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -723,28 +724,28 @@ type MockManagerGetTemplateCall struct {
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MockManagerGetTemplateCall) Return(arg0 *entity.Template, arg1 error) *MockManagerGetTemplateCall {
+func (c *MockManagerGetTemplateCall) Return(arg0 *outputmodel.TemplateOutput, arg1 error) *MockManagerGetTemplateCall {
 	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockManagerGetTemplateCall) Do(f func(uint) (*entity.Template, error)) *MockManagerGetTemplateCall {
+func (c *MockManagerGetTemplateCall) Do(f func(uint) (*outputmodel.TemplateOutput, error)) *MockManagerGetTemplateCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockManagerGetTemplateCall) DoAndReturn(f func(uint) (*entity.Template, error)) *MockManagerGetTemplateCall {
+func (c *MockManagerGetTemplateCall) DoAndReturn(f func(uint) (*outputmodel.TemplateOutput, error)) *MockManagerGetTemplateCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
 // ListMeetingsByBoss mocks base method.
-func (m *MockManager) ListMeetingsByBoss(bossID uint) ([]entity.Meeting, error) {
+func (m *MockManager) ListMeetingsByBoss(bossID uint) ([]outputmodel.MeetingOutput, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListMeetingsByBoss", bossID)
-	ret0, _ := ret[0].([]entity.Meeting)
+	ret0, _ := ret[0].([]outputmodel.MeetingOutput)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -762,28 +763,28 @@ type MockManagerListMeetingsByBossCall struct {
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MockManagerListMeetingsByBossCall) Return(arg0 []entity.Meeting, arg1 error) *MockManagerListMeetingsByBossCall {
+func (c *MockManagerListMeetingsByBossCall) Return(arg0 []outputmodel.MeetingOutput, arg1 error) *MockManagerListMeetingsByBossCall {
 	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockManagerListMeetingsByBossCall) Do(f func(uint) ([]entity.Meeting, error)) *MockManagerListMeetingsByBossCall {
+func (c *MockManagerListMeetingsByBossCall) Do(f func(uint) ([]outputmodel.MeetingOutput, error)) *MockManagerListMeetingsByBossCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockManagerListMeetingsByBossCall) DoAndReturn(f func(uint) ([]entity.Meeting, error)) *MockManagerListMeetingsByBossCall {
+func (c *MockManagerListMeetingsByBossCall) DoAndReturn(f func(uint) ([]outputmodel.MeetingOutput, error)) *MockManagerListMeetingsByBossCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
 // ListMeetingsByDepartment mocks base method.
-func (m *MockManager) ListMeetingsByDepartment(departmentID uint) ([]entity.Meeting, error) {
+func (m *MockManager) ListMeetingsByDepartment(departmentID uint) ([]outputmodel.MeetingOutput, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListMeetingsByDepartment", departmentID)
-	ret0, _ := ret[0].([]entity.Meeting)
+	ret0, _ := ret[0].([]outputmodel.MeetingOutput)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -801,28 +802,28 @@ type MockManagerListMeetingsByDepartmentCall struct {
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MockManagerListMeetingsByDepartmentCall) Return(arg0 []entity.Meeting, arg1 error) *MockManagerListMeetingsByDepartmentCall {
+func (c *MockManagerListMeetingsByDepartmentCall) Return(arg0 []outputmodel.MeetingOutput, arg1 error) *MockManagerListMeetingsByDepartmentCall {
 	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockManagerListMeetingsByDepartmentCall) Do(f func(uint) ([]entity.Meeting, error)) *MockManagerListMeetingsByDepartmentCall {
+func (c *MockManagerListMeetingsByDepartmentCall) Do(f func(uint) ([]outputmodel.MeetingOutput, error)) *MockManagerListMeetingsByDepartmentCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockManagerListMeetingsByDepartmentCall) DoAndReturn(f func(uint) ([]entity.Meeting, error)) *MockManagerListMeetingsByDepartmentCall {
+func (c *MockManagerListMeetingsByDepartmentCall) DoAndReturn(f func(uint) ([]outputmodel.MeetingOutput, error)) *MockManagerListMeetingsByDepartmentCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
 // ListMeetingsByMentor mocks base method.
-func (m *MockManager) ListMeetingsByMentor(mentorID uint) ([]entity.Meeting, error) {
+func (m *MockManager) ListMeetingsByMentor(mentorID uint) ([]outputmodel.MeetingOutput, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListMeetingsByMentor", mentorID)
-	ret0, _ := ret[0].([]entity.Meeting)
+	ret0, _ := ret[0].([]outputmodel.MeetingOutput)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -840,28 +841,28 @@ type MockManagerListMeetingsByMentorCall struct {
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MockManagerListMeetingsByMentorCall) Return(arg0 []entity.Meeting, arg1 error) *MockManagerListMeetingsByMentorCall {
+func (c *MockManagerListMeetingsByMentorCall) Return(arg0 []outputmodel.MeetingOutput, arg1 error) *MockManagerListMeetingsByMentorCall {
 	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockManagerListMeetingsByMentorCall) Do(f func(uint) ([]entity.Meeting, error)) *MockManagerListMeetingsByMentorCall {
+func (c *MockManagerListMeetingsByMentorCall) Do(f func(uint) ([]outputmodel.MeetingOutput, error)) *MockManagerListMeetingsByMentorCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockManagerListMeetingsByMentorCall) DoAndReturn(f func(uint) ([]entity.Meeting, error)) *MockManagerListMeetingsByMentorCall {
+func (c *MockManagerListMeetingsByMentorCall) DoAndReturn(f func(uint) ([]outputmodel.MeetingOutput, error)) *MockManagerListMeetingsByMentorCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
 // ListMeetingsByTeam mocks base method.
-func (m *MockManager) ListMeetingsByTeam(teamID uint) ([]entity.Meeting, error) {
+func (m *MockManager) ListMeetingsByTeam(teamID uint) ([]outputmodel.MeetingOutput, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListMeetingsByTeam", teamID)
-	ret0, _ := ret[0].([]entity.Meeting)
+	ret0, _ := ret[0].([]outputmodel.MeetingOutput)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -879,28 +880,28 @@ type MockManagerListMeetingsByTeamCall struct {
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MockManagerListMeetingsByTeamCall) Return(arg0 []entity.Meeting, arg1 error) *MockManagerListMeetingsByTeamCall {
+func (c *MockManagerListMeetingsByTeamCall) Return(arg0 []outputmodel.MeetingOutput, arg1 error) *MockManagerListMeetingsByTeamCall {
 	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockManagerListMeetingsByTeamCall) Do(f func(uint) ([]entity.Meeting, error)) *MockManagerListMeetingsByTeamCall {
+func (c *MockManagerListMeetingsByTeamCall) Do(f func(uint) ([]outputmodel.MeetingOutput, error)) *MockManagerListMeetingsByTeamCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockManagerListMeetingsByTeamCall) DoAndReturn(f func(uint) ([]entity.Meeting, error)) *MockManagerListMeetingsByTeamCall {
+func (c *MockManagerListMeetingsByTeamCall) DoAndReturn(f func(uint) ([]outputmodel.MeetingOutput, error)) *MockManagerListMeetingsByTeamCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
 // ListPairingsByAll mocks base method.
-func (m *MockManager) ListPairingsByAll() ([]entity.Pairing, error) {
+func (m *MockManager) ListPairingsByAll() ([]outputmodel.PairingOutput, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListPairingsByAll")
-	ret0, _ := ret[0].([]entity.Pairing)
+	ret0, _ := ret[0].([]outputmodel.PairingOutput)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -918,28 +919,28 @@ type MockManagerListPairingsByAllCall struct {
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MockManagerListPairingsByAllCall) Return(arg0 []entity.Pairing, arg1 error) *MockManagerListPairingsByAllCall {
+func (c *MockManagerListPairingsByAllCall) Return(arg0 []outputmodel.PairingOutput, arg1 error) *MockManagerListPairingsByAllCall {
 	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockManagerListPairingsByAllCall) Do(f func() ([]entity.Pairing, error)) *MockManagerListPairingsByAllCall {
+func (c *MockManagerListPairingsByAllCall) Do(f func() ([]outputmodel.PairingOutput, error)) *MockManagerListPairingsByAllCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockManagerListPairingsByAllCall) DoAndReturn(f func() ([]entity.Pairing, error)) *MockManagerListPairingsByAllCall {
+func (c *MockManagerListPairingsByAllCall) DoAndReturn(f func() ([]outputmodel.PairingOutput, error)) *MockManagerListPairingsByAllCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
 // ListPairingsByBoss mocks base method.
-func (m *MockManager) ListPairingsByBoss(bossID uint) ([]entity.Pairing, error) {
+func (m *MockManager) ListPairingsByBoss(bossID uint) ([]outputmodel.PairingOutput, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListPairingsByBoss", bossID)
-	ret0, _ := ret[0].([]entity.Pairing)
+	ret0, _ := ret[0].([]outputmodel.PairingOutput)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -957,28 +958,28 @@ type MockManagerListPairingsByBossCall struct {
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MockManagerListPairingsByBossCall) Return(arg0 []entity.Pairing, arg1 error) *MockManagerListPairingsByBossCall {
+func (c *MockManagerListPairingsByBossCall) Return(arg0 []outputmodel.PairingOutput, arg1 error) *MockManagerListPairingsByBossCall {
 	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockManagerListPairingsByBossCall) Do(f func(uint) ([]entity.Pairing, error)) *MockManagerListPairingsByBossCall {
+func (c *MockManagerListPairingsByBossCall) Do(f func(uint) ([]outputmodel.PairingOutput, error)) *MockManagerListPairingsByBossCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockManagerListPairingsByBossCall) DoAndReturn(f func(uint) ([]entity.Pairing, error)) *MockManagerListPairingsByBossCall {
+func (c *MockManagerListPairingsByBossCall) DoAndReturn(f func(uint) ([]outputmodel.PairingOutput, error)) *MockManagerListPairingsByBossCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
 // ListPairingsByDepartment mocks base method.
-func (m *MockManager) ListPairingsByDepartment(departmentID uint) ([]entity.Pairing, error) {
+func (m *MockManager) ListPairingsByDepartment(departmentID uint) ([]outputmodel.PairingOutput, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListPairingsByDepartment", departmentID)
-	ret0, _ := ret[0].([]entity.Pairing)
+	ret0, _ := ret[0].([]outputmodel.PairingOutput)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -996,28 +997,28 @@ type MockManagerListPairingsByDepartmentCall struct {
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MockManagerListPairingsByDepartmentCall) Return(arg0 []entity.Pairing, arg1 error) *MockManagerListPairingsByDepartmentCall {
+func (c *MockManagerListPairingsByDepartmentCall) Return(arg0 []outputmodel.PairingOutput, arg1 error) *MockManagerListPairingsByDepartmentCall {
 	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockManagerListPairingsByDepartmentCall) Do(f func(uint) ([]entity.Pairing, error)) *MockManagerListPairingsByDepartmentCall {
+func (c *MockManagerListPairingsByDepartmentCall) Do(f func(uint) ([]outputmodel.PairingOutput, error)) *MockManagerListPairingsByDepartmentCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockManagerListPairingsByDepartmentCall) DoAndReturn(f func(uint) ([]entity.Pairing, error)) *MockManagerListPairingsByDepartmentCall {
+func (c *MockManagerListPairingsByDepartmentCall) DoAndReturn(f func(uint) ([]outputmodel.PairingOutput, error)) *MockManagerListPairingsByDepartmentCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
 // ListPairingsByMentor mocks base method.
-func (m *MockManager) ListPairingsByMentor(mentorID uint) ([]entity.Pairing, error) {
+func (m *MockManager) ListPairingsByMentor(mentorID uint) ([]outputmodel.PairingOutput, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListPairingsByMentor", mentorID)
-	ret0, _ := ret[0].([]entity.Pairing)
+	ret0, _ := ret[0].([]outputmodel.PairingOutput)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -1035,28 +1036,28 @@ type MockManagerListPairingsByMentorCall struct {
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MockManagerListPairingsByMentorCall) Return(arg0 []entity.Pairing, arg1 error) *MockManagerListPairingsByMentorCall {
+func (c *MockManagerListPairingsByMentorCall) Return(arg0 []outputmodel.PairingOutput, arg1 error) *MockManagerListPairingsByMentorCall {
 	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockManagerListPairingsByMentorCall) Do(f func(uint) ([]entity.Pairing, error)) *MockManagerListPairingsByMentorCall {
+func (c *MockManagerListPairingsByMentorCall) Do(f func(uint) ([]outputmodel.PairingOutput, error)) *MockManagerListPairingsByMentorCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockManagerListPairingsByMentorCall) DoAndReturn(f func(uint) ([]entity.Pairing, error)) *MockManagerListPairingsByMentorCall {
+func (c *MockManagerListPairingsByMentorCall) DoAndReturn(f func(uint) ([]outputmodel.PairingOutput, error)) *MockManagerListPairingsByMentorCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
 // ListPairingsByTeam mocks base method.
-func (m *MockManager) ListPairingsByTeam(teamID uint) ([]entity.Pairing, error) {
+func (m *MockManager) ListPairingsByTeam(teamID uint) ([]outputmodel.PairingOutput, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListPairingsByTeam", teamID)
-	ret0, _ := ret[0].([]entity.Pairing)
+	ret0, _ := ret[0].([]outputmodel.PairingOutput)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -1074,28 +1075,28 @@ type MockManagerListPairingsByTeamCall struct {
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MockManagerListPairingsByTeamCall) Return(arg0 []entity.Pairing, arg1 error) *MockManagerListPairingsByTeamCall {
+func (c *MockManagerListPairingsByTeamCall) Return(arg0 []outputmodel.PairingOutput, arg1 error) *MockManagerListPairingsByTeamCall {
 	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockManagerListPairingsByTeamCall) Do(f func(uint) ([]entity.Pairing, error)) *MockManagerListPairingsByTeamCall {
+func (c *MockManagerListPairingsByTeamCall) Do(f func(uint) ([]outputmodel.PairingOutput, error)) *MockManagerListPairingsByTeamCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockManagerListPairingsByTeamCall) DoAndReturn(f func(uint) ([]entity.Pairing, error)) *MockManagerListPairingsByTeamCall {
+func (c *MockManagerListPairingsByTeamCall) DoAndReturn(f func(uint) ([]outputmodel.PairingOutput, error)) *MockManagerListPairingsByTeamCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
 // ListTemplate mocks base method.
-func (m *MockManager) ListTemplate() ([]entity.Template, error) {
+func (m *MockManager) ListTemplate() ([]outputmodel.TemplateOutput, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListTemplate")
-	ret0, _ := ret[0].([]entity.Template)
+	ret0, _ := ret[0].([]outputmodel.TemplateOutput)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -1113,25 +1114,25 @@ type MockManagerListTemplateCall struct {
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MockManagerListTemplateCall) Return(arg0 []entity.Template, arg1 error) *MockManagerListTemplateCall {
+func (c *MockManagerListTemplateCall) Return(arg0 []outputmodel.TemplateOutput, arg1 error) *MockManagerListTemplateCall {
 	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockManagerListTemplateCall) Do(f func() ([]entity.Template, error)) *MockManagerListTemplateCall {
+func (c *MockManagerListTemplateCall) Do(f func() ([]outputmodel.TemplateOutput, error)) *MockManagerListTemplateCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockManagerListTemplateCall) DoAndReturn(f func() ([]entity.Template, error)) *MockManagerListTemplateCall {
+func (c *MockManagerListTemplateCall) DoAndReturn(f func() ([]outputmodel.TemplateOutput, error)) *MockManagerListTemplateCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
 // Update mocks base method.
-func (m *MockManager) Update(meetingID uint, meeting *entity.Meeting) error {
+func (m *MockManager) Update(meetingID uint, meeting inputmodel.MeetingInput) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Update", meetingID, meeting)
 	ret0, _ := ret[0].(error)
@@ -1157,29 +1158,29 @@ func (c *MockManagerUpdateCall) Return(arg0 error) *MockManagerUpdateCall {
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockManagerUpdateCall) Do(f func(uint, *entity.Meeting) error) *MockManagerUpdateCall {
+func (c *MockManagerUpdateCall) Do(f func(uint, inputmodel.MeetingInput) error) *MockManagerUpdateCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockManagerUpdateCall) DoAndReturn(f func(uint, *entity.Meeting) error) *MockManagerUpdateCall {
+func (c *MockManagerUpdateCall) DoAndReturn(f func(uint, inputmodel.MeetingInput) error) *MockManagerUpdateCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
 // UpdatePairing mocks base method.
-func (m *MockManager) UpdatePairing(newPairing *entity.Pairing) error {
+func (m *MockManager) UpdatePairing(pairingID uint, input inputmodel.PairingInput) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdatePairing", newPairing)
+	ret := m.ctrl.Call(m, "UpdatePairing", pairingID, input)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // UpdatePairing indicates an expected call of UpdatePairing.
-func (mr *MockManagerMockRecorder) UpdatePairing(newPairing any) *MockManagerUpdatePairingCall {
+func (mr *MockManagerMockRecorder) UpdatePairing(pairingID, input any) *MockManagerUpdatePairingCall {
 	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdatePairing", reflect.TypeOf((*MockManager)(nil).UpdatePairing), newPairing)
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdatePairing", reflect.TypeOf((*MockManager)(nil).UpdatePairing), pairingID, input)
 	return &MockManagerUpdatePairingCall{Call: call}
 }
 
@@ -1195,29 +1196,29 @@ func (c *MockManagerUpdatePairingCall) Return(arg0 error) *MockManagerUpdatePair
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockManagerUpdatePairingCall) Do(f func(*entity.Pairing) error) *MockManagerUpdatePairingCall {
+func (c *MockManagerUpdatePairingCall) Do(f func(uint, inputmodel.PairingInput) error) *MockManagerUpdatePairingCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockManagerUpdatePairingCall) DoAndReturn(f func(*entity.Pairing) error) *MockManagerUpdatePairingCall {
+func (c *MockManagerUpdatePairingCall) DoAndReturn(f func(uint, inputmodel.PairingInput) error) *MockManagerUpdatePairingCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
 // UpdateTemplate mocks base method.
-func (m *MockManager) UpdateTemplate(newTemplate *entity.Template) error {
+func (m *MockManager) UpdateTemplate(templateID uint, input inputmodel.TemplateInput) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateTemplate", newTemplate)
+	ret := m.ctrl.Call(m, "UpdateTemplate", templateID, input)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // UpdateTemplate indicates an expected call of UpdateTemplate.
-func (mr *MockManagerMockRecorder) UpdateTemplate(newTemplate any) *MockManagerUpdateTemplateCall {
+func (mr *MockManagerMockRecorder) UpdateTemplate(templateID, input any) *MockManagerUpdateTemplateCall {
 	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateTemplate", reflect.TypeOf((*MockManager)(nil).UpdateTemplate), newTemplate)
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateTemplate", reflect.TypeOf((*MockManager)(nil).UpdateTemplate), templateID, input)
 	return &MockManagerUpdateTemplateCall{Call: call}
 }
 
@@ -1233,13 +1234,13 @@ func (c *MockManagerUpdateTemplateCall) Return(arg0 error) *MockManagerUpdateTem
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockManagerUpdateTemplateCall) Do(f func(*entity.Template) error) *MockManagerUpdateTemplateCall {
+func (c *MockManagerUpdateTemplateCall) Do(f func(uint, inputmodel.TemplateInput) error) *MockManagerUpdateTemplateCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockManagerUpdateTemplateCall) DoAndReturn(f func(*entity.Template) error) *MockManagerUpdateTemplateCall {
+func (c *MockManagerUpdateTemplateCall) DoAndReturn(f func(uint, inputmodel.TemplateInput) error) *MockManagerUpdateTemplateCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
@@ -1735,10 +1736,10 @@ func (c *MockMeetingManagerChangeTemplateCall) DoAndReturn(f func(uint, uint) er
 }
 
 // CreateMeeting mocks base method.
-func (m *MockMeetingManager) CreateMeeting(pairingID, templateID uint, implementDate time.Time) (*entity.Meeting, error) {
+func (m *MockMeetingManager) CreateMeeting(pairingID, templateID uint, implementDate time.Time) (*outputmodel.MeetingOutput, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateMeeting", pairingID, templateID, implementDate)
-	ret0, _ := ret[0].(*entity.Meeting)
+	ret0, _ := ret[0].(*outputmodel.MeetingOutput)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -1756,28 +1757,28 @@ type MockMeetingManagerCreateMeetingCall struct {
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MockMeetingManagerCreateMeetingCall) Return(arg0 *entity.Meeting, arg1 error) *MockMeetingManagerCreateMeetingCall {
+func (c *MockMeetingManagerCreateMeetingCall) Return(arg0 *outputmodel.MeetingOutput, arg1 error) *MockMeetingManagerCreateMeetingCall {
 	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockMeetingManagerCreateMeetingCall) Do(f func(uint, uint, time.Time) (*entity.Meeting, error)) *MockMeetingManagerCreateMeetingCall {
+func (c *MockMeetingManagerCreateMeetingCall) Do(f func(uint, uint, time.Time) (*outputmodel.MeetingOutput, error)) *MockMeetingManagerCreateMeetingCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockMeetingManagerCreateMeetingCall) DoAndReturn(f func(uint, uint, time.Time) (*entity.Meeting, error)) *MockMeetingManagerCreateMeetingCall {
+func (c *MockMeetingManagerCreateMeetingCall) DoAndReturn(f func(uint, uint, time.Time) (*outputmodel.MeetingOutput, error)) *MockMeetingManagerCreateMeetingCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
 // CreateMeetingByAll mocks base method.
-func (m *MockMeetingManager) CreateMeetingByAll(templateID uint, implementDate time.Time) ([]entity.Meeting, error) {
+func (m *MockMeetingManager) CreateMeetingByAll(templateID uint, implementDate time.Time) ([]outputmodel.MeetingOutput, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateMeetingByAll", templateID, implementDate)
-	ret0, _ := ret[0].([]entity.Meeting)
+	ret0, _ := ret[0].([]outputmodel.MeetingOutput)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -1795,28 +1796,28 @@ type MockMeetingManagerCreateMeetingByAllCall struct {
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MockMeetingManagerCreateMeetingByAllCall) Return(arg0 []entity.Meeting, arg1 error) *MockMeetingManagerCreateMeetingByAllCall {
+func (c *MockMeetingManagerCreateMeetingByAllCall) Return(arg0 []outputmodel.MeetingOutput, arg1 error) *MockMeetingManagerCreateMeetingByAllCall {
 	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockMeetingManagerCreateMeetingByAllCall) Do(f func(uint, time.Time) ([]entity.Meeting, error)) *MockMeetingManagerCreateMeetingByAllCall {
+func (c *MockMeetingManagerCreateMeetingByAllCall) Do(f func(uint, time.Time) ([]outputmodel.MeetingOutput, error)) *MockMeetingManagerCreateMeetingByAllCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockMeetingManagerCreateMeetingByAllCall) DoAndReturn(f func(uint, time.Time) ([]entity.Meeting, error)) *MockMeetingManagerCreateMeetingByAllCall {
+func (c *MockMeetingManagerCreateMeetingByAllCall) DoAndReturn(f func(uint, time.Time) ([]outputmodel.MeetingOutput, error)) *MockMeetingManagerCreateMeetingByAllCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
 // CreateMeetingEveryMonth mocks base method.
-func (m *MockMeetingManager) CreateMeetingEveryMonth(templateID uint, baseDate time.Time, week int, weekday time.Weekday) ([]entity.Meeting, error) {
+func (m *MockMeetingManager) CreateMeetingEveryMonth(templateID uint, baseDate time.Time, week int, weekday time.Weekday) ([]outputmodel.MeetingOutput, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateMeetingEveryMonth", templateID, baseDate, week, weekday)
-	ret0, _ := ret[0].([]entity.Meeting)
+	ret0, _ := ret[0].([]outputmodel.MeetingOutput)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -1834,19 +1835,19 @@ type MockMeetingManagerCreateMeetingEveryMonthCall struct {
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MockMeetingManagerCreateMeetingEveryMonthCall) Return(arg0 []entity.Meeting, arg1 error) *MockMeetingManagerCreateMeetingEveryMonthCall {
+func (c *MockMeetingManagerCreateMeetingEveryMonthCall) Return(arg0 []outputmodel.MeetingOutput, arg1 error) *MockMeetingManagerCreateMeetingEveryMonthCall {
 	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockMeetingManagerCreateMeetingEveryMonthCall) Do(f func(uint, time.Time, int, time.Weekday) ([]entity.Meeting, error)) *MockMeetingManagerCreateMeetingEveryMonthCall {
+func (c *MockMeetingManagerCreateMeetingEveryMonthCall) Do(f func(uint, time.Time, int, time.Weekday) ([]outputmodel.MeetingOutput, error)) *MockMeetingManagerCreateMeetingEveryMonthCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockMeetingManagerCreateMeetingEveryMonthCall) DoAndReturn(f func(uint, time.Time, int, time.Weekday) ([]entity.Meeting, error)) *MockMeetingManagerCreateMeetingEveryMonthCall {
+func (c *MockMeetingManagerCreateMeetingEveryMonthCall) DoAndReturn(f func(uint, time.Time, int, time.Weekday) ([]outputmodel.MeetingOutput, error)) *MockMeetingManagerCreateMeetingEveryMonthCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
@@ -1895,10 +1896,10 @@ func (c *MockMeetingManagerDeleteMeetingCall) DoAndReturn(f func(...uint) (bool,
 }
 
 // ListMeetingsByBoss mocks base method.
-func (m *MockMeetingManager) ListMeetingsByBoss(bossID uint) ([]entity.Meeting, error) {
+func (m *MockMeetingManager) ListMeetingsByBoss(bossID uint) ([]outputmodel.MeetingOutput, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListMeetingsByBoss", bossID)
-	ret0, _ := ret[0].([]entity.Meeting)
+	ret0, _ := ret[0].([]outputmodel.MeetingOutput)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -1916,28 +1917,28 @@ type MockMeetingManagerListMeetingsByBossCall struct {
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MockMeetingManagerListMeetingsByBossCall) Return(arg0 []entity.Meeting, arg1 error) *MockMeetingManagerListMeetingsByBossCall {
+func (c *MockMeetingManagerListMeetingsByBossCall) Return(arg0 []outputmodel.MeetingOutput, arg1 error) *MockMeetingManagerListMeetingsByBossCall {
 	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockMeetingManagerListMeetingsByBossCall) Do(f func(uint) ([]entity.Meeting, error)) *MockMeetingManagerListMeetingsByBossCall {
+func (c *MockMeetingManagerListMeetingsByBossCall) Do(f func(uint) ([]outputmodel.MeetingOutput, error)) *MockMeetingManagerListMeetingsByBossCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockMeetingManagerListMeetingsByBossCall) DoAndReturn(f func(uint) ([]entity.Meeting, error)) *MockMeetingManagerListMeetingsByBossCall {
+func (c *MockMeetingManagerListMeetingsByBossCall) DoAndReturn(f func(uint) ([]outputmodel.MeetingOutput, error)) *MockMeetingManagerListMeetingsByBossCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
 // ListMeetingsByDepartment mocks base method.
-func (m *MockMeetingManager) ListMeetingsByDepartment(departmentID uint) ([]entity.Meeting, error) {
+func (m *MockMeetingManager) ListMeetingsByDepartment(departmentID uint) ([]outputmodel.MeetingOutput, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListMeetingsByDepartment", departmentID)
-	ret0, _ := ret[0].([]entity.Meeting)
+	ret0, _ := ret[0].([]outputmodel.MeetingOutput)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -1955,28 +1956,28 @@ type MockMeetingManagerListMeetingsByDepartmentCall struct {
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MockMeetingManagerListMeetingsByDepartmentCall) Return(arg0 []entity.Meeting, arg1 error) *MockMeetingManagerListMeetingsByDepartmentCall {
+func (c *MockMeetingManagerListMeetingsByDepartmentCall) Return(arg0 []outputmodel.MeetingOutput, arg1 error) *MockMeetingManagerListMeetingsByDepartmentCall {
 	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockMeetingManagerListMeetingsByDepartmentCall) Do(f func(uint) ([]entity.Meeting, error)) *MockMeetingManagerListMeetingsByDepartmentCall {
+func (c *MockMeetingManagerListMeetingsByDepartmentCall) Do(f func(uint) ([]outputmodel.MeetingOutput, error)) *MockMeetingManagerListMeetingsByDepartmentCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockMeetingManagerListMeetingsByDepartmentCall) DoAndReturn(f func(uint) ([]entity.Meeting, error)) *MockMeetingManagerListMeetingsByDepartmentCall {
+func (c *MockMeetingManagerListMeetingsByDepartmentCall) DoAndReturn(f func(uint) ([]outputmodel.MeetingOutput, error)) *MockMeetingManagerListMeetingsByDepartmentCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
 // ListMeetingsByMentor mocks base method.
-func (m *MockMeetingManager) ListMeetingsByMentor(mentorID uint) ([]entity.Meeting, error) {
+func (m *MockMeetingManager) ListMeetingsByMentor(mentorID uint) ([]outputmodel.MeetingOutput, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListMeetingsByMentor", mentorID)
-	ret0, _ := ret[0].([]entity.Meeting)
+	ret0, _ := ret[0].([]outputmodel.MeetingOutput)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -1994,28 +1995,28 @@ type MockMeetingManagerListMeetingsByMentorCall struct {
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MockMeetingManagerListMeetingsByMentorCall) Return(arg0 []entity.Meeting, arg1 error) *MockMeetingManagerListMeetingsByMentorCall {
+func (c *MockMeetingManagerListMeetingsByMentorCall) Return(arg0 []outputmodel.MeetingOutput, arg1 error) *MockMeetingManagerListMeetingsByMentorCall {
 	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockMeetingManagerListMeetingsByMentorCall) Do(f func(uint) ([]entity.Meeting, error)) *MockMeetingManagerListMeetingsByMentorCall {
+func (c *MockMeetingManagerListMeetingsByMentorCall) Do(f func(uint) ([]outputmodel.MeetingOutput, error)) *MockMeetingManagerListMeetingsByMentorCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockMeetingManagerListMeetingsByMentorCall) DoAndReturn(f func(uint) ([]entity.Meeting, error)) *MockMeetingManagerListMeetingsByMentorCall {
+func (c *MockMeetingManagerListMeetingsByMentorCall) DoAndReturn(f func(uint) ([]outputmodel.MeetingOutput, error)) *MockMeetingManagerListMeetingsByMentorCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
 // ListMeetingsByTeam mocks base method.
-func (m *MockMeetingManager) ListMeetingsByTeam(teamID uint) ([]entity.Meeting, error) {
+func (m *MockMeetingManager) ListMeetingsByTeam(teamID uint) ([]outputmodel.MeetingOutput, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListMeetingsByTeam", teamID)
-	ret0, _ := ret[0].([]entity.Meeting)
+	ret0, _ := ret[0].([]outputmodel.MeetingOutput)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -2033,25 +2034,25 @@ type MockMeetingManagerListMeetingsByTeamCall struct {
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MockMeetingManagerListMeetingsByTeamCall) Return(arg0 []entity.Meeting, arg1 error) *MockMeetingManagerListMeetingsByTeamCall {
+func (c *MockMeetingManagerListMeetingsByTeamCall) Return(arg0 []outputmodel.MeetingOutput, arg1 error) *MockMeetingManagerListMeetingsByTeamCall {
 	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockMeetingManagerListMeetingsByTeamCall) Do(f func(uint) ([]entity.Meeting, error)) *MockMeetingManagerListMeetingsByTeamCall {
+func (c *MockMeetingManagerListMeetingsByTeamCall) Do(f func(uint) ([]outputmodel.MeetingOutput, error)) *MockMeetingManagerListMeetingsByTeamCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockMeetingManagerListMeetingsByTeamCall) DoAndReturn(f func(uint) ([]entity.Meeting, error)) *MockMeetingManagerListMeetingsByTeamCall {
+func (c *MockMeetingManagerListMeetingsByTeamCall) DoAndReturn(f func(uint) ([]outputmodel.MeetingOutput, error)) *MockMeetingManagerListMeetingsByTeamCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
 // Update mocks base method.
-func (m *MockMeetingManager) Update(meetingID uint, meeting *entity.Meeting) error {
+func (m *MockMeetingManager) Update(meetingID uint, meeting inputmodel.MeetingInput) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Update", meetingID, meeting)
 	ret0, _ := ret[0].(error)
@@ -2077,13 +2078,13 @@ func (c *MockMeetingManagerUpdateCall) Return(arg0 error) *MockMeetingManagerUpd
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockMeetingManagerUpdateCall) Do(f func(uint, *entity.Meeting) error) *MockMeetingManagerUpdateCall {
+func (c *MockMeetingManagerUpdateCall) Do(f func(uint, inputmodel.MeetingInput) error) *MockMeetingManagerUpdateCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockMeetingManagerUpdateCall) DoAndReturn(f func(uint, *entity.Meeting) error) *MockMeetingManagerUpdateCall {
+func (c *MockMeetingManagerUpdateCall) DoAndReturn(f func(uint, inputmodel.MeetingInput) error) *MockMeetingManagerUpdateCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
@@ -2113,10 +2114,10 @@ func (m *MockMeetingViewer) EXPECT() *MockMeetingViewerMockRecorder {
 }
 
 // ListMeetingsByBoss mocks base method.
-func (m *MockMeetingViewer) ListMeetingsByBoss(bossID uint) ([]entity.Meeting, error) {
+func (m *MockMeetingViewer) ListMeetingsByBoss(bossID uint) ([]outputmodel.MeetingOutput, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListMeetingsByBoss", bossID)
-	ret0, _ := ret[0].([]entity.Meeting)
+	ret0, _ := ret[0].([]outputmodel.MeetingOutput)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -2134,28 +2135,28 @@ type MockMeetingViewerListMeetingsByBossCall struct {
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MockMeetingViewerListMeetingsByBossCall) Return(arg0 []entity.Meeting, arg1 error) *MockMeetingViewerListMeetingsByBossCall {
+func (c *MockMeetingViewerListMeetingsByBossCall) Return(arg0 []outputmodel.MeetingOutput, arg1 error) *MockMeetingViewerListMeetingsByBossCall {
 	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockMeetingViewerListMeetingsByBossCall) Do(f func(uint) ([]entity.Meeting, error)) *MockMeetingViewerListMeetingsByBossCall {
+func (c *MockMeetingViewerListMeetingsByBossCall) Do(f func(uint) ([]outputmodel.MeetingOutput, error)) *MockMeetingViewerListMeetingsByBossCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockMeetingViewerListMeetingsByBossCall) DoAndReturn(f func(uint) ([]entity.Meeting, error)) *MockMeetingViewerListMeetingsByBossCall {
+func (c *MockMeetingViewerListMeetingsByBossCall) DoAndReturn(f func(uint) ([]outputmodel.MeetingOutput, error)) *MockMeetingViewerListMeetingsByBossCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
 // ListMeetingsByDepartment mocks base method.
-func (m *MockMeetingViewer) ListMeetingsByDepartment(departmentID uint) ([]entity.Meeting, error) {
+func (m *MockMeetingViewer) ListMeetingsByDepartment(departmentID uint) ([]outputmodel.MeetingOutput, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListMeetingsByDepartment", departmentID)
-	ret0, _ := ret[0].([]entity.Meeting)
+	ret0, _ := ret[0].([]outputmodel.MeetingOutput)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -2173,28 +2174,28 @@ type MockMeetingViewerListMeetingsByDepartmentCall struct {
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MockMeetingViewerListMeetingsByDepartmentCall) Return(arg0 []entity.Meeting, arg1 error) *MockMeetingViewerListMeetingsByDepartmentCall {
+func (c *MockMeetingViewerListMeetingsByDepartmentCall) Return(arg0 []outputmodel.MeetingOutput, arg1 error) *MockMeetingViewerListMeetingsByDepartmentCall {
 	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockMeetingViewerListMeetingsByDepartmentCall) Do(f func(uint) ([]entity.Meeting, error)) *MockMeetingViewerListMeetingsByDepartmentCall {
+func (c *MockMeetingViewerListMeetingsByDepartmentCall) Do(f func(uint) ([]outputmodel.MeetingOutput, error)) *MockMeetingViewerListMeetingsByDepartmentCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockMeetingViewerListMeetingsByDepartmentCall) DoAndReturn(f func(uint) ([]entity.Meeting, error)) *MockMeetingViewerListMeetingsByDepartmentCall {
+func (c *MockMeetingViewerListMeetingsByDepartmentCall) DoAndReturn(f func(uint) ([]outputmodel.MeetingOutput, error)) *MockMeetingViewerListMeetingsByDepartmentCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
 // ListMeetingsByMentor mocks base method.
-func (m *MockMeetingViewer) ListMeetingsByMentor(mentorID uint) ([]entity.Meeting, error) {
+func (m *MockMeetingViewer) ListMeetingsByMentor(mentorID uint) ([]outputmodel.MeetingOutput, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListMeetingsByMentor", mentorID)
-	ret0, _ := ret[0].([]entity.Meeting)
+	ret0, _ := ret[0].([]outputmodel.MeetingOutput)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -2212,28 +2213,28 @@ type MockMeetingViewerListMeetingsByMentorCall struct {
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MockMeetingViewerListMeetingsByMentorCall) Return(arg0 []entity.Meeting, arg1 error) *MockMeetingViewerListMeetingsByMentorCall {
+func (c *MockMeetingViewerListMeetingsByMentorCall) Return(arg0 []outputmodel.MeetingOutput, arg1 error) *MockMeetingViewerListMeetingsByMentorCall {
 	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockMeetingViewerListMeetingsByMentorCall) Do(f func(uint) ([]entity.Meeting, error)) *MockMeetingViewerListMeetingsByMentorCall {
+func (c *MockMeetingViewerListMeetingsByMentorCall) Do(f func(uint) ([]outputmodel.MeetingOutput, error)) *MockMeetingViewerListMeetingsByMentorCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockMeetingViewerListMeetingsByMentorCall) DoAndReturn(f func(uint) ([]entity.Meeting, error)) *MockMeetingViewerListMeetingsByMentorCall {
+func (c *MockMeetingViewerListMeetingsByMentorCall) DoAndReturn(f func(uint) ([]outputmodel.MeetingOutput, error)) *MockMeetingViewerListMeetingsByMentorCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
 // ListMeetingsByTeam mocks base method.
-func (m *MockMeetingViewer) ListMeetingsByTeam(teamID uint) ([]entity.Meeting, error) {
+func (m *MockMeetingViewer) ListMeetingsByTeam(teamID uint) ([]outputmodel.MeetingOutput, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListMeetingsByTeam", teamID)
-	ret0, _ := ret[0].([]entity.Meeting)
+	ret0, _ := ret[0].([]outputmodel.MeetingOutput)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -2251,19 +2252,19 @@ type MockMeetingViewerListMeetingsByTeamCall struct {
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MockMeetingViewerListMeetingsByTeamCall) Return(arg0 []entity.Meeting, arg1 error) *MockMeetingViewerListMeetingsByTeamCall {
+func (c *MockMeetingViewerListMeetingsByTeamCall) Return(arg0 []outputmodel.MeetingOutput, arg1 error) *MockMeetingViewerListMeetingsByTeamCall {
 	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockMeetingViewerListMeetingsByTeamCall) Do(f func(uint) ([]entity.Meeting, error)) *MockMeetingViewerListMeetingsByTeamCall {
+func (c *MockMeetingViewerListMeetingsByTeamCall) Do(f func(uint) ([]outputmodel.MeetingOutput, error)) *MockMeetingViewerListMeetingsByTeamCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockMeetingViewerListMeetingsByTeamCall) DoAndReturn(f func(uint) ([]entity.Meeting, error)) *MockMeetingViewerListMeetingsByTeamCall {
+func (c *MockMeetingViewerListMeetingsByTeamCall) DoAndReturn(f func(uint) ([]outputmodel.MeetingOutput, error)) *MockMeetingViewerListMeetingsByTeamCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
@@ -2293,10 +2294,10 @@ func (m *MockMeetingCreator) EXPECT() *MockMeetingCreatorMockRecorder {
 }
 
 // CreateMeeting mocks base method.
-func (m *MockMeetingCreator) CreateMeeting(pairingID, templateID uint, implementDate time.Time) (*entity.Meeting, error) {
+func (m *MockMeetingCreator) CreateMeeting(pairingID, templateID uint, implementDate time.Time) (*outputmodel.MeetingOutput, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateMeeting", pairingID, templateID, implementDate)
-	ret0, _ := ret[0].(*entity.Meeting)
+	ret0, _ := ret[0].(*outputmodel.MeetingOutput)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -2314,28 +2315,28 @@ type MockMeetingCreatorCreateMeetingCall struct {
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MockMeetingCreatorCreateMeetingCall) Return(arg0 *entity.Meeting, arg1 error) *MockMeetingCreatorCreateMeetingCall {
+func (c *MockMeetingCreatorCreateMeetingCall) Return(arg0 *outputmodel.MeetingOutput, arg1 error) *MockMeetingCreatorCreateMeetingCall {
 	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockMeetingCreatorCreateMeetingCall) Do(f func(uint, uint, time.Time) (*entity.Meeting, error)) *MockMeetingCreatorCreateMeetingCall {
+func (c *MockMeetingCreatorCreateMeetingCall) Do(f func(uint, uint, time.Time) (*outputmodel.MeetingOutput, error)) *MockMeetingCreatorCreateMeetingCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockMeetingCreatorCreateMeetingCall) DoAndReturn(f func(uint, uint, time.Time) (*entity.Meeting, error)) *MockMeetingCreatorCreateMeetingCall {
+func (c *MockMeetingCreatorCreateMeetingCall) DoAndReturn(f func(uint, uint, time.Time) (*outputmodel.MeetingOutput, error)) *MockMeetingCreatorCreateMeetingCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
 // CreateMeetingByAll mocks base method.
-func (m *MockMeetingCreator) CreateMeetingByAll(templateID uint, implementDate time.Time) ([]entity.Meeting, error) {
+func (m *MockMeetingCreator) CreateMeetingByAll(templateID uint, implementDate time.Time) ([]outputmodel.MeetingOutput, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateMeetingByAll", templateID, implementDate)
-	ret0, _ := ret[0].([]entity.Meeting)
+	ret0, _ := ret[0].([]outputmodel.MeetingOutput)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -2353,28 +2354,28 @@ type MockMeetingCreatorCreateMeetingByAllCall struct {
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MockMeetingCreatorCreateMeetingByAllCall) Return(arg0 []entity.Meeting, arg1 error) *MockMeetingCreatorCreateMeetingByAllCall {
+func (c *MockMeetingCreatorCreateMeetingByAllCall) Return(arg0 []outputmodel.MeetingOutput, arg1 error) *MockMeetingCreatorCreateMeetingByAllCall {
 	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockMeetingCreatorCreateMeetingByAllCall) Do(f func(uint, time.Time) ([]entity.Meeting, error)) *MockMeetingCreatorCreateMeetingByAllCall {
+func (c *MockMeetingCreatorCreateMeetingByAllCall) Do(f func(uint, time.Time) ([]outputmodel.MeetingOutput, error)) *MockMeetingCreatorCreateMeetingByAllCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockMeetingCreatorCreateMeetingByAllCall) DoAndReturn(f func(uint, time.Time) ([]entity.Meeting, error)) *MockMeetingCreatorCreateMeetingByAllCall {
+func (c *MockMeetingCreatorCreateMeetingByAllCall) DoAndReturn(f func(uint, time.Time) ([]outputmodel.MeetingOutput, error)) *MockMeetingCreatorCreateMeetingByAllCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
 // CreateMeetingEveryMonth mocks base method.
-func (m *MockMeetingCreator) CreateMeetingEveryMonth(templateID uint, baseDate time.Time, week int, weekday time.Weekday) ([]entity.Meeting, error) {
+func (m *MockMeetingCreator) CreateMeetingEveryMonth(templateID uint, baseDate time.Time, week int, weekday time.Weekday) ([]outputmodel.MeetingOutput, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateMeetingEveryMonth", templateID, baseDate, week, weekday)
-	ret0, _ := ret[0].([]entity.Meeting)
+	ret0, _ := ret[0].([]outputmodel.MeetingOutput)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -2392,19 +2393,19 @@ type MockMeetingCreatorCreateMeetingEveryMonthCall struct {
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MockMeetingCreatorCreateMeetingEveryMonthCall) Return(arg0 []entity.Meeting, arg1 error) *MockMeetingCreatorCreateMeetingEveryMonthCall {
+func (c *MockMeetingCreatorCreateMeetingEveryMonthCall) Return(arg0 []outputmodel.MeetingOutput, arg1 error) *MockMeetingCreatorCreateMeetingEveryMonthCall {
 	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockMeetingCreatorCreateMeetingEveryMonthCall) Do(f func(uint, time.Time, int, time.Weekday) ([]entity.Meeting, error)) *MockMeetingCreatorCreateMeetingEveryMonthCall {
+func (c *MockMeetingCreatorCreateMeetingEveryMonthCall) Do(f func(uint, time.Time, int, time.Weekday) ([]outputmodel.MeetingOutput, error)) *MockMeetingCreatorCreateMeetingEveryMonthCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockMeetingCreatorCreateMeetingEveryMonthCall) DoAndReturn(f func(uint, time.Time, int, time.Weekday) ([]entity.Meeting, error)) *MockMeetingCreatorCreateMeetingEveryMonthCall {
+func (c *MockMeetingCreatorCreateMeetingEveryMonthCall) DoAndReturn(f func(uint, time.Time, int, time.Weekday) ([]outputmodel.MeetingOutput, error)) *MockMeetingCreatorCreateMeetingEveryMonthCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
@@ -2548,7 +2549,7 @@ func (c *MockMeetingUpdaterChangeTemplateCall) DoAndReturn(f func(uint, uint) er
 }
 
 // Update mocks base method.
-func (m *MockMeetingUpdater) Update(meetingID uint, meeting *entity.Meeting) error {
+func (m *MockMeetingUpdater) Update(meetingID uint, meeting inputmodel.MeetingInput) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Update", meetingID, meeting)
 	ret0, _ := ret[0].(error)
@@ -2574,13 +2575,13 @@ func (c *MockMeetingUpdaterUpdateCall) Return(arg0 error) *MockMeetingUpdaterUpd
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockMeetingUpdaterUpdateCall) Do(f func(uint, *entity.Meeting) error) *MockMeetingUpdaterUpdateCall {
+func (c *MockMeetingUpdaterUpdateCall) Do(f func(uint, inputmodel.MeetingInput) error) *MockMeetingUpdaterUpdateCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockMeetingUpdaterUpdateCall) DoAndReturn(f func(uint, *entity.Meeting) error) *MockMeetingUpdaterUpdateCall {
+func (c *MockMeetingUpdaterUpdateCall) DoAndReturn(f func(uint, inputmodel.MeetingInput) error) *MockMeetingUpdaterUpdateCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
@@ -2677,17 +2678,17 @@ func (m *MockTemplateManager) EXPECT() *MockTemplateManagerMockRecorder {
 }
 
 // CreateTemplate mocks base method.
-func (m *MockTemplateManager) CreateTemplate(newTemplate *entity.Template) error {
+func (m *MockTemplateManager) CreateTemplate(input inputmodel.TemplateInput) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateTemplate", newTemplate)
+	ret := m.ctrl.Call(m, "CreateTemplate", input)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // CreateTemplate indicates an expected call of CreateTemplate.
-func (mr *MockTemplateManagerMockRecorder) CreateTemplate(newTemplate any) *MockTemplateManagerCreateTemplateCall {
+func (mr *MockTemplateManagerMockRecorder) CreateTemplate(input any) *MockTemplateManagerCreateTemplateCall {
 	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateTemplate", reflect.TypeOf((*MockTemplateManager)(nil).CreateTemplate), newTemplate)
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateTemplate", reflect.TypeOf((*MockTemplateManager)(nil).CreateTemplate), input)
 	return &MockTemplateManagerCreateTemplateCall{Call: call}
 }
 
@@ -2703,13 +2704,13 @@ func (c *MockTemplateManagerCreateTemplateCall) Return(arg0 error) *MockTemplate
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockTemplateManagerCreateTemplateCall) Do(f func(*entity.Template) error) *MockTemplateManagerCreateTemplateCall {
+func (c *MockTemplateManagerCreateTemplateCall) Do(f func(inputmodel.TemplateInput) error) *MockTemplateManagerCreateTemplateCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockTemplateManagerCreateTemplateCall) DoAndReturn(f func(*entity.Template) error) *MockTemplateManagerCreateTemplateCall {
+func (c *MockTemplateManagerCreateTemplateCall) DoAndReturn(f func(inputmodel.TemplateInput) error) *MockTemplateManagerCreateTemplateCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
@@ -2754,10 +2755,10 @@ func (c *MockTemplateManagerDeleteTemplateCall) DoAndReturn(f func(uint) (bool, 
 }
 
 // GetTemplate mocks base method.
-func (m *MockTemplateManager) GetTemplate(templateID uint) (*entity.Template, error) {
+func (m *MockTemplateManager) GetTemplate(templateID uint) (*outputmodel.TemplateOutput, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetTemplate", templateID)
-	ret0, _ := ret[0].(*entity.Template)
+	ret0, _ := ret[0].(*outputmodel.TemplateOutput)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -2775,28 +2776,28 @@ type MockTemplateManagerGetTemplateCall struct {
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MockTemplateManagerGetTemplateCall) Return(arg0 *entity.Template, arg1 error) *MockTemplateManagerGetTemplateCall {
+func (c *MockTemplateManagerGetTemplateCall) Return(arg0 *outputmodel.TemplateOutput, arg1 error) *MockTemplateManagerGetTemplateCall {
 	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockTemplateManagerGetTemplateCall) Do(f func(uint) (*entity.Template, error)) *MockTemplateManagerGetTemplateCall {
+func (c *MockTemplateManagerGetTemplateCall) Do(f func(uint) (*outputmodel.TemplateOutput, error)) *MockTemplateManagerGetTemplateCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockTemplateManagerGetTemplateCall) DoAndReturn(f func(uint) (*entity.Template, error)) *MockTemplateManagerGetTemplateCall {
+func (c *MockTemplateManagerGetTemplateCall) DoAndReturn(f func(uint) (*outputmodel.TemplateOutput, error)) *MockTemplateManagerGetTemplateCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
 // ListTemplate mocks base method.
-func (m *MockTemplateManager) ListTemplate() ([]entity.Template, error) {
+func (m *MockTemplateManager) ListTemplate() ([]outputmodel.TemplateOutput, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListTemplate")
-	ret0, _ := ret[0].([]entity.Template)
+	ret0, _ := ret[0].([]outputmodel.TemplateOutput)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -2814,35 +2815,35 @@ type MockTemplateManagerListTemplateCall struct {
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MockTemplateManagerListTemplateCall) Return(arg0 []entity.Template, arg1 error) *MockTemplateManagerListTemplateCall {
+func (c *MockTemplateManagerListTemplateCall) Return(arg0 []outputmodel.TemplateOutput, arg1 error) *MockTemplateManagerListTemplateCall {
 	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockTemplateManagerListTemplateCall) Do(f func() ([]entity.Template, error)) *MockTemplateManagerListTemplateCall {
+func (c *MockTemplateManagerListTemplateCall) Do(f func() ([]outputmodel.TemplateOutput, error)) *MockTemplateManagerListTemplateCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockTemplateManagerListTemplateCall) DoAndReturn(f func() ([]entity.Template, error)) *MockTemplateManagerListTemplateCall {
+func (c *MockTemplateManagerListTemplateCall) DoAndReturn(f func() ([]outputmodel.TemplateOutput, error)) *MockTemplateManagerListTemplateCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
 // UpdateTemplate mocks base method.
-func (m *MockTemplateManager) UpdateTemplate(newTemplate *entity.Template) error {
+func (m *MockTemplateManager) UpdateTemplate(templateID uint, input inputmodel.TemplateInput) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateTemplate", newTemplate)
+	ret := m.ctrl.Call(m, "UpdateTemplate", templateID, input)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // UpdateTemplate indicates an expected call of UpdateTemplate.
-func (mr *MockTemplateManagerMockRecorder) UpdateTemplate(newTemplate any) *MockTemplateManagerUpdateTemplateCall {
+func (mr *MockTemplateManagerMockRecorder) UpdateTemplate(templateID, input any) *MockTemplateManagerUpdateTemplateCall {
 	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateTemplate", reflect.TypeOf((*MockTemplateManager)(nil).UpdateTemplate), newTemplate)
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateTemplate", reflect.TypeOf((*MockTemplateManager)(nil).UpdateTemplate), templateID, input)
 	return &MockTemplateManagerUpdateTemplateCall{Call: call}
 }
 
@@ -2858,13 +2859,13 @@ func (c *MockTemplateManagerUpdateTemplateCall) Return(arg0 error) *MockTemplate
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockTemplateManagerUpdateTemplateCall) Do(f func(*entity.Template) error) *MockTemplateManagerUpdateTemplateCall {
+func (c *MockTemplateManagerUpdateTemplateCall) Do(f func(uint, inputmodel.TemplateInput) error) *MockTemplateManagerUpdateTemplateCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockTemplateManagerUpdateTemplateCall) DoAndReturn(f func(*entity.Template) error) *MockTemplateManagerUpdateTemplateCall {
+func (c *MockTemplateManagerUpdateTemplateCall) DoAndReturn(f func(uint, inputmodel.TemplateInput) error) *MockTemplateManagerUpdateTemplateCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
@@ -2894,10 +2895,10 @@ func (m *MockTemplateViewer) EXPECT() *MockTemplateViewerMockRecorder {
 }
 
 // GetTemplate mocks base method.
-func (m *MockTemplateViewer) GetTemplate(templateID uint) (*entity.Template, error) {
+func (m *MockTemplateViewer) GetTemplate(templateID uint) (*outputmodel.TemplateOutput, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetTemplate", templateID)
-	ret0, _ := ret[0].(*entity.Template)
+	ret0, _ := ret[0].(*outputmodel.TemplateOutput)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -2915,28 +2916,28 @@ type MockTemplateViewerGetTemplateCall struct {
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MockTemplateViewerGetTemplateCall) Return(arg0 *entity.Template, arg1 error) *MockTemplateViewerGetTemplateCall {
+func (c *MockTemplateViewerGetTemplateCall) Return(arg0 *outputmodel.TemplateOutput, arg1 error) *MockTemplateViewerGetTemplateCall {
 	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockTemplateViewerGetTemplateCall) Do(f func(uint) (*entity.Template, error)) *MockTemplateViewerGetTemplateCall {
+func (c *MockTemplateViewerGetTemplateCall) Do(f func(uint) (*outputmodel.TemplateOutput, error)) *MockTemplateViewerGetTemplateCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockTemplateViewerGetTemplateCall) DoAndReturn(f func(uint) (*entity.Template, error)) *MockTemplateViewerGetTemplateCall {
+func (c *MockTemplateViewerGetTemplateCall) DoAndReturn(f func(uint) (*outputmodel.TemplateOutput, error)) *MockTemplateViewerGetTemplateCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
 // ListTemplate mocks base method.
-func (m *MockTemplateViewer) ListTemplate() ([]entity.Template, error) {
+func (m *MockTemplateViewer) ListTemplate() ([]outputmodel.TemplateOutput, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListTemplate")
-	ret0, _ := ret[0].([]entity.Template)
+	ret0, _ := ret[0].([]outputmodel.TemplateOutput)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -2954,19 +2955,19 @@ type MockTemplateViewerListTemplateCall struct {
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MockTemplateViewerListTemplateCall) Return(arg0 []entity.Template, arg1 error) *MockTemplateViewerListTemplateCall {
+func (c *MockTemplateViewerListTemplateCall) Return(arg0 []outputmodel.TemplateOutput, arg1 error) *MockTemplateViewerListTemplateCall {
 	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockTemplateViewerListTemplateCall) Do(f func() ([]entity.Template, error)) *MockTemplateViewerListTemplateCall {
+func (c *MockTemplateViewerListTemplateCall) Do(f func() ([]outputmodel.TemplateOutput, error)) *MockTemplateViewerListTemplateCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockTemplateViewerListTemplateCall) DoAndReturn(f func() ([]entity.Template, error)) *MockTemplateViewerListTemplateCall {
+func (c *MockTemplateViewerListTemplateCall) DoAndReturn(f func() ([]outputmodel.TemplateOutput, error)) *MockTemplateViewerListTemplateCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
@@ -2996,17 +2997,17 @@ func (m *MockTemplateCreator) EXPECT() *MockTemplateCreatorMockRecorder {
 }
 
 // CreateTemplate mocks base method.
-func (m *MockTemplateCreator) CreateTemplate(newTemplate *entity.Template) error {
+func (m *MockTemplateCreator) CreateTemplate(input inputmodel.TemplateInput) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateTemplate", newTemplate)
+	ret := m.ctrl.Call(m, "CreateTemplate", input)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // CreateTemplate indicates an expected call of CreateTemplate.
-func (mr *MockTemplateCreatorMockRecorder) CreateTemplate(newTemplate any) *MockTemplateCreatorCreateTemplateCall {
+func (mr *MockTemplateCreatorMockRecorder) CreateTemplate(input any) *MockTemplateCreatorCreateTemplateCall {
 	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateTemplate", reflect.TypeOf((*MockTemplateCreator)(nil).CreateTemplate), newTemplate)
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateTemplate", reflect.TypeOf((*MockTemplateCreator)(nil).CreateTemplate), input)
 	return &MockTemplateCreatorCreateTemplateCall{Call: call}
 }
 
@@ -3022,13 +3023,13 @@ func (c *MockTemplateCreatorCreateTemplateCall) Return(arg0 error) *MockTemplate
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockTemplateCreatorCreateTemplateCall) Do(f func(*entity.Template) error) *MockTemplateCreatorCreateTemplateCall {
+func (c *MockTemplateCreatorCreateTemplateCall) Do(f func(inputmodel.TemplateInput) error) *MockTemplateCreatorCreateTemplateCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockTemplateCreatorCreateTemplateCall) DoAndReturn(f func(*entity.Template) error) *MockTemplateCreatorCreateTemplateCall {
+func (c *MockTemplateCreatorCreateTemplateCall) DoAndReturn(f func(inputmodel.TemplateInput) error) *MockTemplateCreatorCreateTemplateCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
@@ -3058,17 +3059,17 @@ func (m *MockTemplateUpdater) EXPECT() *MockTemplateUpdaterMockRecorder {
 }
 
 // UpdateTemplate mocks base method.
-func (m *MockTemplateUpdater) UpdateTemplate(newTemplate *entity.Template) error {
+func (m *MockTemplateUpdater) UpdateTemplate(templateID uint, input inputmodel.TemplateInput) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateTemplate", newTemplate)
+	ret := m.ctrl.Call(m, "UpdateTemplate", templateID, input)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // UpdateTemplate indicates an expected call of UpdateTemplate.
-func (mr *MockTemplateUpdaterMockRecorder) UpdateTemplate(newTemplate any) *MockTemplateUpdaterUpdateTemplateCall {
+func (mr *MockTemplateUpdaterMockRecorder) UpdateTemplate(templateID, input any) *MockTemplateUpdaterUpdateTemplateCall {
 	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateTemplate", reflect.TypeOf((*MockTemplateUpdater)(nil).UpdateTemplate), newTemplate)
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateTemplate", reflect.TypeOf((*MockTemplateUpdater)(nil).UpdateTemplate), templateID, input)
 	return &MockTemplateUpdaterUpdateTemplateCall{Call: call}
 }
 
@@ -3084,13 +3085,13 @@ func (c *MockTemplateUpdaterUpdateTemplateCall) Return(arg0 error) *MockTemplate
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockTemplateUpdaterUpdateTemplateCall) Do(f func(*entity.Template) error) *MockTemplateUpdaterUpdateTemplateCall {
+func (c *MockTemplateUpdaterUpdateTemplateCall) Do(f func(uint, inputmodel.TemplateInput) error) *MockTemplateUpdaterUpdateTemplateCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockTemplateUpdaterUpdateTemplateCall) DoAndReturn(f func(*entity.Template) error) *MockTemplateUpdaterUpdateTemplateCall {
+func (c *MockTemplateUpdaterUpdateTemplateCall) DoAndReturn(f func(uint, inputmodel.TemplateInput) error) *MockTemplateUpdaterUpdateTemplateCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
@@ -3301,10 +3302,10 @@ func (c *MockPairingManagerCreatePairingCall) DoAndReturn(f func(uint, uint) err
 }
 
 // GetPairing mocks base method.
-func (m *MockPairingManager) GetPairing(pairingID uint) (*entity.Pairing, error) {
+func (m *MockPairingManager) GetPairing(pairingID uint) (*outputmodel.PairingOutput, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetPairing", pairingID)
-	ret0, _ := ret[0].(*entity.Pairing)
+	ret0, _ := ret[0].(*outputmodel.PairingOutput)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -3322,28 +3323,28 @@ type MockPairingManagerGetPairingCall struct {
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MockPairingManagerGetPairingCall) Return(arg0 *entity.Pairing, arg1 error) *MockPairingManagerGetPairingCall {
+func (c *MockPairingManagerGetPairingCall) Return(arg0 *outputmodel.PairingOutput, arg1 error) *MockPairingManagerGetPairingCall {
 	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockPairingManagerGetPairingCall) Do(f func(uint) (*entity.Pairing, error)) *MockPairingManagerGetPairingCall {
+func (c *MockPairingManagerGetPairingCall) Do(f func(uint) (*outputmodel.PairingOutput, error)) *MockPairingManagerGetPairingCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockPairingManagerGetPairingCall) DoAndReturn(f func(uint) (*entity.Pairing, error)) *MockPairingManagerGetPairingCall {
+func (c *MockPairingManagerGetPairingCall) DoAndReturn(f func(uint) (*outputmodel.PairingOutput, error)) *MockPairingManagerGetPairingCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
 // ListPairingsByAll mocks base method.
-func (m *MockPairingManager) ListPairingsByAll() ([]entity.Pairing, error) {
+func (m *MockPairingManager) ListPairingsByAll() ([]outputmodel.PairingOutput, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListPairingsByAll")
-	ret0, _ := ret[0].([]entity.Pairing)
+	ret0, _ := ret[0].([]outputmodel.PairingOutput)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -3361,28 +3362,28 @@ type MockPairingManagerListPairingsByAllCall struct {
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MockPairingManagerListPairingsByAllCall) Return(arg0 []entity.Pairing, arg1 error) *MockPairingManagerListPairingsByAllCall {
+func (c *MockPairingManagerListPairingsByAllCall) Return(arg0 []outputmodel.PairingOutput, arg1 error) *MockPairingManagerListPairingsByAllCall {
 	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockPairingManagerListPairingsByAllCall) Do(f func() ([]entity.Pairing, error)) *MockPairingManagerListPairingsByAllCall {
+func (c *MockPairingManagerListPairingsByAllCall) Do(f func() ([]outputmodel.PairingOutput, error)) *MockPairingManagerListPairingsByAllCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockPairingManagerListPairingsByAllCall) DoAndReturn(f func() ([]entity.Pairing, error)) *MockPairingManagerListPairingsByAllCall {
+func (c *MockPairingManagerListPairingsByAllCall) DoAndReturn(f func() ([]outputmodel.PairingOutput, error)) *MockPairingManagerListPairingsByAllCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
 // ListPairingsByBoss mocks base method.
-func (m *MockPairingManager) ListPairingsByBoss(bossID uint) ([]entity.Pairing, error) {
+func (m *MockPairingManager) ListPairingsByBoss(bossID uint) ([]outputmodel.PairingOutput, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListPairingsByBoss", bossID)
-	ret0, _ := ret[0].([]entity.Pairing)
+	ret0, _ := ret[0].([]outputmodel.PairingOutput)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -3400,28 +3401,28 @@ type MockPairingManagerListPairingsByBossCall struct {
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MockPairingManagerListPairingsByBossCall) Return(arg0 []entity.Pairing, arg1 error) *MockPairingManagerListPairingsByBossCall {
+func (c *MockPairingManagerListPairingsByBossCall) Return(arg0 []outputmodel.PairingOutput, arg1 error) *MockPairingManagerListPairingsByBossCall {
 	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockPairingManagerListPairingsByBossCall) Do(f func(uint) ([]entity.Pairing, error)) *MockPairingManagerListPairingsByBossCall {
+func (c *MockPairingManagerListPairingsByBossCall) Do(f func(uint) ([]outputmodel.PairingOutput, error)) *MockPairingManagerListPairingsByBossCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockPairingManagerListPairingsByBossCall) DoAndReturn(f func(uint) ([]entity.Pairing, error)) *MockPairingManagerListPairingsByBossCall {
+func (c *MockPairingManagerListPairingsByBossCall) DoAndReturn(f func(uint) ([]outputmodel.PairingOutput, error)) *MockPairingManagerListPairingsByBossCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
 // ListPairingsByDepartment mocks base method.
-func (m *MockPairingManager) ListPairingsByDepartment(departmentID uint) ([]entity.Pairing, error) {
+func (m *MockPairingManager) ListPairingsByDepartment(departmentID uint) ([]outputmodel.PairingOutput, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListPairingsByDepartment", departmentID)
-	ret0, _ := ret[0].([]entity.Pairing)
+	ret0, _ := ret[0].([]outputmodel.PairingOutput)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -3439,28 +3440,28 @@ type MockPairingManagerListPairingsByDepartmentCall struct {
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MockPairingManagerListPairingsByDepartmentCall) Return(arg0 []entity.Pairing, arg1 error) *MockPairingManagerListPairingsByDepartmentCall {
+func (c *MockPairingManagerListPairingsByDepartmentCall) Return(arg0 []outputmodel.PairingOutput, arg1 error) *MockPairingManagerListPairingsByDepartmentCall {
 	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockPairingManagerListPairingsByDepartmentCall) Do(f func(uint) ([]entity.Pairing, error)) *MockPairingManagerListPairingsByDepartmentCall {
+func (c *MockPairingManagerListPairingsByDepartmentCall) Do(f func(uint) ([]outputmodel.PairingOutput, error)) *MockPairingManagerListPairingsByDepartmentCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockPairingManagerListPairingsByDepartmentCall) DoAndReturn(f func(uint) ([]entity.Pairing, error)) *MockPairingManagerListPairingsByDepartmentCall {
+func (c *MockPairingManagerListPairingsByDepartmentCall) DoAndReturn(f func(uint) ([]outputmodel.PairingOutput, error)) *MockPairingManagerListPairingsByDepartmentCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
 // ListPairingsByMentor mocks base method.
-func (m *MockPairingManager) ListPairingsByMentor(mentorID uint) ([]entity.Pairing, error) {
+func (m *MockPairingManager) ListPairingsByMentor(mentorID uint) ([]outputmodel.PairingOutput, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListPairingsByMentor", mentorID)
-	ret0, _ := ret[0].([]entity.Pairing)
+	ret0, _ := ret[0].([]outputmodel.PairingOutput)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -3478,28 +3479,28 @@ type MockPairingManagerListPairingsByMentorCall struct {
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MockPairingManagerListPairingsByMentorCall) Return(arg0 []entity.Pairing, arg1 error) *MockPairingManagerListPairingsByMentorCall {
+func (c *MockPairingManagerListPairingsByMentorCall) Return(arg0 []outputmodel.PairingOutput, arg1 error) *MockPairingManagerListPairingsByMentorCall {
 	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockPairingManagerListPairingsByMentorCall) Do(f func(uint) ([]entity.Pairing, error)) *MockPairingManagerListPairingsByMentorCall {
+func (c *MockPairingManagerListPairingsByMentorCall) Do(f func(uint) ([]outputmodel.PairingOutput, error)) *MockPairingManagerListPairingsByMentorCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockPairingManagerListPairingsByMentorCall) DoAndReturn(f func(uint) ([]entity.Pairing, error)) *MockPairingManagerListPairingsByMentorCall {
+func (c *MockPairingManagerListPairingsByMentorCall) DoAndReturn(f func(uint) ([]outputmodel.PairingOutput, error)) *MockPairingManagerListPairingsByMentorCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
 // ListPairingsByTeam mocks base method.
-func (m *MockPairingManager) ListPairingsByTeam(teamID uint) ([]entity.Pairing, error) {
+func (m *MockPairingManager) ListPairingsByTeam(teamID uint) ([]outputmodel.PairingOutput, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListPairingsByTeam", teamID)
-	ret0, _ := ret[0].([]entity.Pairing)
+	ret0, _ := ret[0].([]outputmodel.PairingOutput)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -3517,35 +3518,35 @@ type MockPairingManagerListPairingsByTeamCall struct {
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MockPairingManagerListPairingsByTeamCall) Return(arg0 []entity.Pairing, arg1 error) *MockPairingManagerListPairingsByTeamCall {
+func (c *MockPairingManagerListPairingsByTeamCall) Return(arg0 []outputmodel.PairingOutput, arg1 error) *MockPairingManagerListPairingsByTeamCall {
 	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockPairingManagerListPairingsByTeamCall) Do(f func(uint) ([]entity.Pairing, error)) *MockPairingManagerListPairingsByTeamCall {
+func (c *MockPairingManagerListPairingsByTeamCall) Do(f func(uint) ([]outputmodel.PairingOutput, error)) *MockPairingManagerListPairingsByTeamCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockPairingManagerListPairingsByTeamCall) DoAndReturn(f func(uint) ([]entity.Pairing, error)) *MockPairingManagerListPairingsByTeamCall {
+func (c *MockPairingManagerListPairingsByTeamCall) DoAndReturn(f func(uint) ([]outputmodel.PairingOutput, error)) *MockPairingManagerListPairingsByTeamCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
 // UpdatePairing mocks base method.
-func (m *MockPairingManager) UpdatePairing(newPairing *entity.Pairing) error {
+func (m *MockPairingManager) UpdatePairing(pairingID uint, input inputmodel.PairingInput) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdatePairing", newPairing)
+	ret := m.ctrl.Call(m, "UpdatePairing", pairingID, input)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // UpdatePairing indicates an expected call of UpdatePairing.
-func (mr *MockPairingManagerMockRecorder) UpdatePairing(newPairing any) *MockPairingManagerUpdatePairingCall {
+func (mr *MockPairingManagerMockRecorder) UpdatePairing(pairingID, input any) *MockPairingManagerUpdatePairingCall {
 	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdatePairing", reflect.TypeOf((*MockPairingManager)(nil).UpdatePairing), newPairing)
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdatePairing", reflect.TypeOf((*MockPairingManager)(nil).UpdatePairing), pairingID, input)
 	return &MockPairingManagerUpdatePairingCall{Call: call}
 }
 
@@ -3561,13 +3562,13 @@ func (c *MockPairingManagerUpdatePairingCall) Return(arg0 error) *MockPairingMan
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockPairingManagerUpdatePairingCall) Do(f func(*entity.Pairing) error) *MockPairingManagerUpdatePairingCall {
+func (c *MockPairingManagerUpdatePairingCall) Do(f func(uint, inputmodel.PairingInput) error) *MockPairingManagerUpdatePairingCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockPairingManagerUpdatePairingCall) DoAndReturn(f func(*entity.Pairing) error) *MockPairingManagerUpdatePairingCall {
+func (c *MockPairingManagerUpdatePairingCall) DoAndReturn(f func(uint, inputmodel.PairingInput) error) *MockPairingManagerUpdatePairingCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
@@ -3597,10 +3598,10 @@ func (m *MockPairingViewer) EXPECT() *MockPairingViewerMockRecorder {
 }
 
 // GetPairing mocks base method.
-func (m *MockPairingViewer) GetPairing(pairingID uint) (*entity.Pairing, error) {
+func (m *MockPairingViewer) GetPairing(pairingID uint) (*outputmodel.PairingOutput, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetPairing", pairingID)
-	ret0, _ := ret[0].(*entity.Pairing)
+	ret0, _ := ret[0].(*outputmodel.PairingOutput)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -3618,28 +3619,28 @@ type MockPairingViewerGetPairingCall struct {
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MockPairingViewerGetPairingCall) Return(arg0 *entity.Pairing, arg1 error) *MockPairingViewerGetPairingCall {
+func (c *MockPairingViewerGetPairingCall) Return(arg0 *outputmodel.PairingOutput, arg1 error) *MockPairingViewerGetPairingCall {
 	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockPairingViewerGetPairingCall) Do(f func(uint) (*entity.Pairing, error)) *MockPairingViewerGetPairingCall {
+func (c *MockPairingViewerGetPairingCall) Do(f func(uint) (*outputmodel.PairingOutput, error)) *MockPairingViewerGetPairingCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockPairingViewerGetPairingCall) DoAndReturn(f func(uint) (*entity.Pairing, error)) *MockPairingViewerGetPairingCall {
+func (c *MockPairingViewerGetPairingCall) DoAndReturn(f func(uint) (*outputmodel.PairingOutput, error)) *MockPairingViewerGetPairingCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
 // ListPairingsByAll mocks base method.
-func (m *MockPairingViewer) ListPairingsByAll() ([]entity.Pairing, error) {
+func (m *MockPairingViewer) ListPairingsByAll() ([]outputmodel.PairingOutput, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListPairingsByAll")
-	ret0, _ := ret[0].([]entity.Pairing)
+	ret0, _ := ret[0].([]outputmodel.PairingOutput)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -3657,28 +3658,28 @@ type MockPairingViewerListPairingsByAllCall struct {
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MockPairingViewerListPairingsByAllCall) Return(arg0 []entity.Pairing, arg1 error) *MockPairingViewerListPairingsByAllCall {
+func (c *MockPairingViewerListPairingsByAllCall) Return(arg0 []outputmodel.PairingOutput, arg1 error) *MockPairingViewerListPairingsByAllCall {
 	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockPairingViewerListPairingsByAllCall) Do(f func() ([]entity.Pairing, error)) *MockPairingViewerListPairingsByAllCall {
+func (c *MockPairingViewerListPairingsByAllCall) Do(f func() ([]outputmodel.PairingOutput, error)) *MockPairingViewerListPairingsByAllCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockPairingViewerListPairingsByAllCall) DoAndReturn(f func() ([]entity.Pairing, error)) *MockPairingViewerListPairingsByAllCall {
+func (c *MockPairingViewerListPairingsByAllCall) DoAndReturn(f func() ([]outputmodel.PairingOutput, error)) *MockPairingViewerListPairingsByAllCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
 // ListPairingsByBoss mocks base method.
-func (m *MockPairingViewer) ListPairingsByBoss(bossID uint) ([]entity.Pairing, error) {
+func (m *MockPairingViewer) ListPairingsByBoss(bossID uint) ([]outputmodel.PairingOutput, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListPairingsByBoss", bossID)
-	ret0, _ := ret[0].([]entity.Pairing)
+	ret0, _ := ret[0].([]outputmodel.PairingOutput)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -3696,28 +3697,28 @@ type MockPairingViewerListPairingsByBossCall struct {
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MockPairingViewerListPairingsByBossCall) Return(arg0 []entity.Pairing, arg1 error) *MockPairingViewerListPairingsByBossCall {
+func (c *MockPairingViewerListPairingsByBossCall) Return(arg0 []outputmodel.PairingOutput, arg1 error) *MockPairingViewerListPairingsByBossCall {
 	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockPairingViewerListPairingsByBossCall) Do(f func(uint) ([]entity.Pairing, error)) *MockPairingViewerListPairingsByBossCall {
+func (c *MockPairingViewerListPairingsByBossCall) Do(f func(uint) ([]outputmodel.PairingOutput, error)) *MockPairingViewerListPairingsByBossCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockPairingViewerListPairingsByBossCall) DoAndReturn(f func(uint) ([]entity.Pairing, error)) *MockPairingViewerListPairingsByBossCall {
+func (c *MockPairingViewerListPairingsByBossCall) DoAndReturn(f func(uint) ([]outputmodel.PairingOutput, error)) *MockPairingViewerListPairingsByBossCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
 // ListPairingsByDepartment mocks base method.
-func (m *MockPairingViewer) ListPairingsByDepartment(departmentID uint) ([]entity.Pairing, error) {
+func (m *MockPairingViewer) ListPairingsByDepartment(departmentID uint) ([]outputmodel.PairingOutput, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListPairingsByDepartment", departmentID)
-	ret0, _ := ret[0].([]entity.Pairing)
+	ret0, _ := ret[0].([]outputmodel.PairingOutput)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -3735,28 +3736,28 @@ type MockPairingViewerListPairingsByDepartmentCall struct {
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MockPairingViewerListPairingsByDepartmentCall) Return(arg0 []entity.Pairing, arg1 error) *MockPairingViewerListPairingsByDepartmentCall {
+func (c *MockPairingViewerListPairingsByDepartmentCall) Return(arg0 []outputmodel.PairingOutput, arg1 error) *MockPairingViewerListPairingsByDepartmentCall {
 	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockPairingViewerListPairingsByDepartmentCall) Do(f func(uint) ([]entity.Pairing, error)) *MockPairingViewerListPairingsByDepartmentCall {
+func (c *MockPairingViewerListPairingsByDepartmentCall) Do(f func(uint) ([]outputmodel.PairingOutput, error)) *MockPairingViewerListPairingsByDepartmentCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockPairingViewerListPairingsByDepartmentCall) DoAndReturn(f func(uint) ([]entity.Pairing, error)) *MockPairingViewerListPairingsByDepartmentCall {
+func (c *MockPairingViewerListPairingsByDepartmentCall) DoAndReturn(f func(uint) ([]outputmodel.PairingOutput, error)) *MockPairingViewerListPairingsByDepartmentCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
 // ListPairingsByMentor mocks base method.
-func (m *MockPairingViewer) ListPairingsByMentor(mentorID uint) ([]entity.Pairing, error) {
+func (m *MockPairingViewer) ListPairingsByMentor(mentorID uint) ([]outputmodel.PairingOutput, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListPairingsByMentor", mentorID)
-	ret0, _ := ret[0].([]entity.Pairing)
+	ret0, _ := ret[0].([]outputmodel.PairingOutput)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -3774,28 +3775,28 @@ type MockPairingViewerListPairingsByMentorCall struct {
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MockPairingViewerListPairingsByMentorCall) Return(arg0 []entity.Pairing, arg1 error) *MockPairingViewerListPairingsByMentorCall {
+func (c *MockPairingViewerListPairingsByMentorCall) Return(arg0 []outputmodel.PairingOutput, arg1 error) *MockPairingViewerListPairingsByMentorCall {
 	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockPairingViewerListPairingsByMentorCall) Do(f func(uint) ([]entity.Pairing, error)) *MockPairingViewerListPairingsByMentorCall {
+func (c *MockPairingViewerListPairingsByMentorCall) Do(f func(uint) ([]outputmodel.PairingOutput, error)) *MockPairingViewerListPairingsByMentorCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockPairingViewerListPairingsByMentorCall) DoAndReturn(f func(uint) ([]entity.Pairing, error)) *MockPairingViewerListPairingsByMentorCall {
+func (c *MockPairingViewerListPairingsByMentorCall) DoAndReturn(f func(uint) ([]outputmodel.PairingOutput, error)) *MockPairingViewerListPairingsByMentorCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
 // ListPairingsByTeam mocks base method.
-func (m *MockPairingViewer) ListPairingsByTeam(teamID uint) ([]entity.Pairing, error) {
+func (m *MockPairingViewer) ListPairingsByTeam(teamID uint) ([]outputmodel.PairingOutput, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListPairingsByTeam", teamID)
-	ret0, _ := ret[0].([]entity.Pairing)
+	ret0, _ := ret[0].([]outputmodel.PairingOutput)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -3813,19 +3814,19 @@ type MockPairingViewerListPairingsByTeamCall struct {
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MockPairingViewerListPairingsByTeamCall) Return(arg0 []entity.Pairing, arg1 error) *MockPairingViewerListPairingsByTeamCall {
+func (c *MockPairingViewerListPairingsByTeamCall) Return(arg0 []outputmodel.PairingOutput, arg1 error) *MockPairingViewerListPairingsByTeamCall {
 	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockPairingViewerListPairingsByTeamCall) Do(f func(uint) ([]entity.Pairing, error)) *MockPairingViewerListPairingsByTeamCall {
+func (c *MockPairingViewerListPairingsByTeamCall) Do(f func(uint) ([]outputmodel.PairingOutput, error)) *MockPairingViewerListPairingsByTeamCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockPairingViewerListPairingsByTeamCall) DoAndReturn(f func(uint) ([]entity.Pairing, error)) *MockPairingViewerListPairingsByTeamCall {
+func (c *MockPairingViewerListPairingsByTeamCall) DoAndReturn(f func(uint) ([]outputmodel.PairingOutput, error)) *MockPairingViewerListPairingsByTeamCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
@@ -3917,17 +3918,17 @@ func (m *MockPairingUpdater) EXPECT() *MockPairingUpdaterMockRecorder {
 }
 
 // UpdatePairing mocks base method.
-func (m *MockPairingUpdater) UpdatePairing(newPairing *entity.Pairing) error {
+func (m *MockPairingUpdater) UpdatePairing(pairingID uint, input inputmodel.PairingInput) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdatePairing", newPairing)
+	ret := m.ctrl.Call(m, "UpdatePairing", pairingID, input)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // UpdatePairing indicates an expected call of UpdatePairing.
-func (mr *MockPairingUpdaterMockRecorder) UpdatePairing(newPairing any) *MockPairingUpdaterUpdatePairingCall {
+func (mr *MockPairingUpdaterMockRecorder) UpdatePairing(pairingID, input any) *MockPairingUpdaterUpdatePairingCall {
 	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdatePairing", reflect.TypeOf((*MockPairingUpdater)(nil).UpdatePairing), newPairing)
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdatePairing", reflect.TypeOf((*MockPairingUpdater)(nil).UpdatePairing), pairingID, input)
 	return &MockPairingUpdaterUpdatePairingCall{Call: call}
 }
 
@@ -3943,13 +3944,13 @@ func (c *MockPairingUpdaterUpdatePairingCall) Return(arg0 error) *MockPairingUpd
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockPairingUpdaterUpdatePairingCall) Do(f func(*entity.Pairing) error) *MockPairingUpdaterUpdatePairingCall {
+func (c *MockPairingUpdaterUpdatePairingCall) Do(f func(uint, inputmodel.PairingInput) error) *MockPairingUpdaterUpdatePairingCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockPairingUpdaterUpdatePairingCall) DoAndReturn(f func(*entity.Pairing) error) *MockPairingUpdaterUpdatePairingCall {
+func (c *MockPairingUpdaterUpdatePairingCall) DoAndReturn(f func(uint, inputmodel.PairingInput) error) *MockPairingUpdaterUpdatePairingCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }

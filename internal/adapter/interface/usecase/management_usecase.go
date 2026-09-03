@@ -1,12 +1,12 @@
 package usecase_interface
 
 import (
-	"growlink/internal/domain/entity"
+	inputmodel "growlink/internal/application/model/input_model"
+	outputmodel "growlink/internal/application/model/output_model"
 	"time"
 )
 
 //go:generate go tool mockgen -typed -source=$GOFILE -destination=mock/mock_$GOFILE -package=mock
-
 type Manager interface {
 	ProgressManager
 	MeetingManager
@@ -18,12 +18,11 @@ type (
 	ProgressManager interface {
 		ProgressViewer
 	}
-
 	ProgressViewer interface {
 		GetProgressByDepartmentID(departmentID uint) error // TODO; 実施状況の見た目が確定後に決定
-		GetProgressByTeamID(teamID uint) error             // TODO; 実施状況の見た目が確定後に決定
-		GetProgressByBossID(bossID uint) error             // TODO; 実施状況の見た目が確定後に決定
-		GetProgressByMentorID(mentorID uint) error         // TODO; 実施状況の見た目が確定後に決定
+		// 		GetProgressByTeamID(teamID uint) error // TODO; 実施状況の見た目が確定後に決定
+		// 		GetProgressByBossID(bossID uint) error // TODO; 実施状況の見た目が確定後に決定
+		// 		GetProgressByMentorID(mentorID uint) error // TODO; 実施状況の見た目が確定後に決定
 	}
 )
 
@@ -34,20 +33,19 @@ type (
 		MeetingUpdater
 		MeetingDeleter
 	}
-
 	MeetingViewer interface {
-		ListMeetingsByMentor(mentorID uint) ([]entity.Meeting, error)
-		ListMeetingsByBoss(bossID uint) ([]entity.Meeting, error)
-		ListMeetingsByTeam(teamID uint) ([]entity.Meeting, error)
-		ListMeetingsByDepartment(departmentID uint) ([]entity.Meeting, error)
+		ListMeetingsByMentor(mentorID uint) ([]outputmodel.MeetingOutput, error)
+		ListMeetingsByBoss(bossID uint) ([]outputmodel.MeetingOutput, error)
+		ListMeetingsByTeam(teamID uint) ([]outputmodel.MeetingOutput, error)
+		ListMeetingsByDepartment(departmentID uint) ([]outputmodel.MeetingOutput, error)
 	}
 	MeetingCreator interface {
-		CreateMeetingEveryMonth(templateID uint, baseDate time.Time, week int, weekday time.Weekday) ([]entity.Meeting, error)
-		CreateMeeting(pairingID, templateID uint, implementDate time.Time) (*entity.Meeting, error)
-		CreateMeetingByAll(templateID uint, implementDate time.Time) ([]entity.Meeting, error)
+		CreateMeetingEveryMonth(templateID uint, baseDate time.Time, week int, weekday time.Weekday) ([]outputmodel.MeetingOutput, error)
+		CreateMeeting(pairingID, templateID uint, implementDate time.Time) (*outputmodel.MeetingOutput, error)
+		CreateMeetingByAll(templateID uint, implementDate time.Time) ([]outputmodel.MeetingOutput, error)
 	}
 	MeetingUpdater interface {
-		Update(meetingID uint, meeting *entity.Meeting) error
+		Update(meetingID uint, meeting inputmodel.MeetingInput) error
 		ChangeImplementDate(meetingID uint, implementDate time.Time) error
 		ChangePairing(meetingID, newPairingID uint) error
 		ChangeTemplate(meetingID, newTemplateID uint) error
@@ -64,16 +62,15 @@ type (
 		TemplateUpdater
 		TemplateDeleter
 	}
-
 	TemplateViewer interface {
-		ListTemplate() ([]entity.Template, error)
-		GetTemplate(templateID uint) (*entity.Template, error)
+		ListTemplate() ([]outputmodel.TemplateOutput, error)
+		GetTemplate(templateID uint) (*outputmodel.TemplateOutput, error)
 	}
 	TemplateCreator interface {
-		CreateTemplate(newTemplate *entity.Template) error
+		CreateTemplate(input inputmodel.TemplateInput) error
 	}
 	TemplateUpdater interface {
-		UpdateTemplate(newTemplate *entity.Template) error
+		UpdateTemplate(templateID uint, input inputmodel.TemplateInput) error
 	}
 	TemplateDeleter interface {
 		DeleteTemplate(templateID uint) (bool, error)
@@ -87,20 +84,19 @@ type (
 		PairingUpdater
 		PairingDeleter
 	}
-
 	PairingViewer interface {
-		GetPairing(pairingID uint) (*entity.Pairing, error)
-		ListPairingsByAll() ([]entity.Pairing, error)
-		ListPairingsByMentor(mentorID uint) ([]entity.Pairing, error)
-		ListPairingsByBoss(bossID uint) ([]entity.Pairing, error)
-		ListPairingsByTeam(teamID uint) ([]entity.Pairing, error)
-		ListPairingsByDepartment(departmentID uint) ([]entity.Pairing, error)
+		GetPairing(pairingID uint) (*outputmodel.PairingOutput, error)
+		ListPairingsByAll() ([]outputmodel.PairingOutput, error)
+		ListPairingsByMentor(mentorID uint) ([]outputmodel.PairingOutput, error)
+		ListPairingsByBoss(bossID uint) ([]outputmodel.PairingOutput, error)
+		ListPairingsByTeam(teamID uint) ([]outputmodel.PairingOutput, error)
+		ListPairingsByDepartment(departmentID uint) ([]outputmodel.PairingOutput, error)
 	}
 	PairingCreator interface {
 		CreatePairing(menteeID, mentorID uint) error
 	}
 	PairingUpdater interface {
-		UpdatePairing(newPairing *entity.Pairing) error
+		UpdatePairing(pairingID uint, input inputmodel.PairingInput) error
 	}
 	PairingDeleter interface {
 		BreakPairing(pairingID uint) error

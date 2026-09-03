@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	meeting_mng_usecase "growlink/internal/application/usecase/management_usecase/meeting_management_usecase"
+	outputmodel "growlink/internal/application/model/output_model"
 	"growlink/internal/domain/entity"
 	repomock "growlink/internal/domain/interface/repository/mock"
 
@@ -45,7 +46,7 @@ func TestMeetingViewer_ListMeetingsByMentor(t *testing.T) {
 		wantErr     bool
 		errContains string
 		setup       func(m *meetingViewerMocks)
-		assertFn    func(t *testing.T, got []entity.Meeting)
+		assertFn    func(t *testing.T, got []outputmodel.MeetingOutput)
 	}{
 		{
 			name:     "通常系_複数ペアリングのミーティングをマージ",
@@ -59,8 +60,8 @@ func TestMeetingViewer_ListMeetingsByMentor(t *testing.T) {
 				m.meeting.EXPECT().GetByPairingID(pairingID1).Return([]entity.Meeting{newTestMeeting(meetingID1, pairingID1)}, nil)
 				m.meeting.EXPECT().GetByPairingID(pairingID2).Return([]entity.Meeting{newTestMeeting(meetingID2, pairingID2)}, nil)
 			},
-			assertFn: func(t *testing.T, got []entity.Meeting) {
-				assertMeetingIDSet(t, []uint{meetingID1, meetingID2}, got)
+			assertFn: func(t *testing.T, got []outputmodel.MeetingOutput) {
+				assertMeetingOutputIDSet(t, []uint{meetingID1, meetingID2}, got)
 			},
 		},
 		{
@@ -70,8 +71,8 @@ func TestMeetingViewer_ListMeetingsByMentor(t *testing.T) {
 			setup: func(m *meetingViewerMocks) {
 				m.pairing.EXPECT().GetByMentorID(validMentorID).Return([]entity.Pairing{}, nil)
 			},
-			assertFn: func(t *testing.T, got []entity.Meeting) {
-				assertMeetingIDSet(t, nil, got)
+			assertFn: func(t *testing.T, got []outputmodel.MeetingOutput) {
+				assertMeetingOutputIDSet(t, nil, got)
 			},
 		},
 		{
@@ -123,7 +124,7 @@ func TestMeetingViewer_ListMeetingsByBoss(t *testing.T) {
 		wantErr     bool
 		errContains string
 		setup       func(m *meetingViewerMocks)
-		assertFn    func(t *testing.T, got []entity.Meeting)
+		assertFn    func(t *testing.T, got []outputmodel.MeetingOutput)
 	}{
 		{
 			name:   "通常系_部下のミーティングを取得",
@@ -136,8 +137,8 @@ func TestMeetingViewer_ListMeetingsByBoss(t *testing.T) {
 				m.pairing.EXPECT().GetByMenteeID(validMenteeID).Return(newTestPairing(pairingID1, validMenteeID, validMentorID), nil)
 				m.meeting.EXPECT().GetByPairingID(pairingID1).Return([]entity.Meeting{newTestMeeting(meetingID1, pairingID1)}, nil)
 			},
-			assertFn: func(t *testing.T, got []entity.Meeting) {
-				assertMeetingIDSet(t, []uint{meetingID1}, got)
+			assertFn: func(t *testing.T, got []outputmodel.MeetingOutput) {
+				assertMeetingOutputIDSet(t, []uint{meetingID1}, got)
 			},
 		},
 		{
@@ -147,8 +148,8 @@ func TestMeetingViewer_ListMeetingsByBoss(t *testing.T) {
 			setup: func(m *meetingViewerMocks) {
 				m.userRelationship.EXPECT().GetByBossID(validBossID).Return([]entity.UserRelationship{}, nil)
 			},
-			assertFn: func(t *testing.T, got []entity.Meeting) {
-				assertMeetingIDSet(t, nil, got)
+			assertFn: func(t *testing.T, got []outputmodel.MeetingOutput) {
+				assertMeetingOutputIDSet(t, nil, got)
 			},
 		},
 		{
@@ -213,7 +214,7 @@ func TestMeetingViewer_ListMeetingsByTeam(t *testing.T) {
 		wantErr     bool
 		errContains string
 		setup       func(m *meetingViewerMocks)
-		assertFn    func(t *testing.T, got []entity.Meeting)
+		assertFn    func(t *testing.T, got []outputmodel.MeetingOutput)
 	}{
 		{
 			name:   "通常系_チームメンバーのミーティングを取得",
@@ -226,8 +227,8 @@ func TestMeetingViewer_ListMeetingsByTeam(t *testing.T) {
 				m.pairing.EXPECT().GetByMenteeID(validMemberID).Return(newTestPairing(pairingID1, validMemberID, validMentorID), nil)
 				m.meeting.EXPECT().GetByPairingID(pairingID1).Return([]entity.Meeting{newTestMeeting(meetingID1, pairingID1)}, nil)
 			},
-			assertFn: func(t *testing.T, got []entity.Meeting) {
-				assertMeetingIDSet(t, []uint{meetingID1}, got)
+			assertFn: func(t *testing.T, got []outputmodel.MeetingOutput) {
+				assertMeetingOutputIDSet(t, []uint{meetingID1}, got)
 			},
 		},
 		{
@@ -237,8 +238,8 @@ func TestMeetingViewer_ListMeetingsByTeam(t *testing.T) {
 			setup: func(m *meetingViewerMocks) {
 				m.teamMember.EXPECT().GetByTeamID(validTeamID).Return([]entity.TeamMember{}, nil)
 			},
-			assertFn: func(t *testing.T, got []entity.Meeting) {
-				assertMeetingIDSet(t, nil, got)
+			assertFn: func(t *testing.T, got []outputmodel.MeetingOutput) {
+				assertMeetingOutputIDSet(t, nil, got)
 			},
 		},
 		{
@@ -303,7 +304,7 @@ func TestMeetingViewer_ListMeetingsByDepartment(t *testing.T) {
 		wantErr      bool
 		errContains  string
 		setup        func(m *meetingViewerMocks)
-		assertFn     func(t *testing.T, got []entity.Meeting)
+		assertFn     func(t *testing.T, got []outputmodel.MeetingOutput)
 	}{
 		{
 			name:         "通常系_部署ユーザのミーティングを取得",
@@ -316,8 +317,8 @@ func TestMeetingViewer_ListMeetingsByDepartment(t *testing.T) {
 				m.pairing.EXPECT().GetByMenteeID(validMenteeID).Return(newTestPairing(pairingID1, validMenteeID, validMentorID), nil)
 				m.meeting.EXPECT().GetByPairingID(pairingID1).Return([]entity.Meeting{newTestMeeting(meetingID1, pairingID1)}, nil)
 			},
-			assertFn: func(t *testing.T, got []entity.Meeting) {
-				assertMeetingIDSet(t, []uint{meetingID1}, got)
+			assertFn: func(t *testing.T, got []outputmodel.MeetingOutput) {
+				assertMeetingOutputIDSet(t, []uint{meetingID1}, got)
 			},
 		},
 		{
@@ -327,8 +328,8 @@ func TestMeetingViewer_ListMeetingsByDepartment(t *testing.T) {
 			setup: func(m *meetingViewerMocks) {
 				m.user.EXPECT().GetByDepartmentID(validDepartmentID).Return([]entity.User{}, nil)
 			},
-			assertFn: func(t *testing.T, got []entity.Meeting) {
-				assertMeetingIDSet(t, nil, got)
+			assertFn: func(t *testing.T, got []outputmodel.MeetingOutput) {
+				assertMeetingOutputIDSet(t, nil, got)
 			},
 		},
 		{

@@ -5,6 +5,7 @@ import (
 	"time"
 
 	meeting_mng_usecase "growlink/internal/application/usecase/management_usecase/meeting_management_usecase"
+	inputmodel "growlink/internal/application/model/input_model"
 	"growlink/internal/domain/entity"
 	"growlink/internal/domain/valueobject"
 	repomock "growlink/internal/domain/interface/repository/mock"
@@ -32,7 +33,7 @@ func newMeetingUpdater(t *testing.T) (
 }
 
 func TestMeetingUpdater_Update(t *testing.T) {
-	meeting := &entity.Meeting{
+	meeting := inputmodel.MeetingInput{
 		Status:     valueobject.MeetingStatusDone,
 		TemplateID: validTemplateID,
 		PairingID:  pairingID1,
@@ -41,7 +42,7 @@ func TestMeetingUpdater_Update(t *testing.T) {
 	tests := []struct {
 		name        string
 		meetingID   uint
-		meeting     *entity.Meeting
+		meeting     inputmodel.MeetingInput
 		wantErr     bool
 		errContains string
 		setup       func(repo *repomock.MockMeetingRepository, cap *meetingUpdaterCaptures)
@@ -53,7 +54,7 @@ func TestMeetingUpdater_Update(t *testing.T) {
 			meeting:   meeting,
 			wantErr:   false,
 			setup: func(repo *repomock.MockMeetingRepository, cap *meetingUpdaterCaptures) {
-				repo.EXPECT().Update(meetingID1, meeting).DoAndReturn(func(id uint, m *entity.Meeting) error {
+				repo.EXPECT().Update(meetingID1, gomock.Any()).DoAndReturn(func(id uint, m *entity.Meeting) error {
 					cap.meetingID = id
 					cap.meeting = m
 					return nil
@@ -71,7 +72,7 @@ func TestMeetingUpdater_Update(t *testing.T) {
 			wantErr:     true,
 			errContains: "ミーティングの更新に失敗しました",
 			setup: func(repo *repomock.MockMeetingRepository, _ *meetingUpdaterCaptures) {
-				repo.EXPECT().Update(meetingID1, meeting).Return(errUpdateMeetingFailed)
+				repo.EXPECT().Update(meetingID1, gomock.Any()).Return(errUpdateMeetingFailed)
 			},
 		},
 	}

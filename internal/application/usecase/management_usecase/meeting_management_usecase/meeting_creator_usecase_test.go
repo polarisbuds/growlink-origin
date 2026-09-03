@@ -5,6 +5,7 @@ import (
 	"time"
 
 	meeting_mng_usecase "growlink/internal/application/usecase/management_usecase/meeting_management_usecase"
+	outputmodel "growlink/internal/application/model/output_model"
 	"growlink/internal/domain/entity"
 	"growlink/internal/domain/valueobject"
 	repomock "growlink/internal/domain/interface/repository/mock"
@@ -44,7 +45,7 @@ func TestMeetingCreator_CreateMeeting(t *testing.T) {
 		wantErr       bool
 		errContains   string
 		setup         func(meeting *repomock.MockMeetingRepository, cap *meetingCreatorCaptures)
-		assertFn      func(t *testing.T, got *entity.Meeting, cap *meetingCreatorCaptures)
+		assertFn      func(t *testing.T, got *outputmodel.MeetingOutput, cap *meetingCreatorCaptures)
 	}{
 		{
 			name:          "通常系_平日の実施日",
@@ -60,7 +61,7 @@ func TestMeetingCreator_CreateMeeting(t *testing.T) {
 					return &created, nil
 				})
 			},
-			assertFn: func(t *testing.T, got *entity.Meeting, cap *meetingCreatorCaptures) {
+			assertFn: func(t *testing.T, got *outputmodel.MeetingOutput, cap *meetingCreatorCaptures) {
 				t.Helper()
 				require.NotNil(t, got)
 				require.Len(t, cap.createdMeetings, 1)
@@ -68,6 +69,7 @@ func TestMeetingCreator_CreateMeeting(t *testing.T) {
 				assert.Equal(t, validTemplateID, cap.createdMeetings[0].TemplateID)
 				assert.Equal(t, valueobject.MeetingStatusPending, cap.createdMeetings[0].Status)
 				assert.True(t, cap.createdMeetings[0].ImplementedAt.Equal(weekday))
+				assert.Equal(t, meetingID1, got.ID)
 			},
 		},
 		{
@@ -84,7 +86,7 @@ func TestMeetingCreator_CreateMeeting(t *testing.T) {
 					return &created, nil
 				})
 			},
-			assertFn: func(t *testing.T, got *entity.Meeting, cap *meetingCreatorCaptures) {
+			assertFn: func(t *testing.T, got *outputmodel.MeetingOutput, cap *meetingCreatorCaptures) {
 				t.Helper()
 				require.Len(t, cap.createdMeetings, 1)
 				assert.True(t, cap.createdMeetings[0].ImplementedAt.Equal(expectedAfterHoliday))
@@ -136,7 +138,7 @@ func TestMeetingCreator_CreateMeetingEveryMonth(t *testing.T) {
 		wantErr    bool
 		errContains string
 		setup      func(meeting *repomock.MockMeetingRepository, pairing *repomock.MockPairingRepository, cap *meetingCreatorCaptures)
-		assertFn   func(t *testing.T, got []entity.Meeting, cap *meetingCreatorCaptures)
+		assertFn   func(t *testing.T, got []outputmodel.MeetingOutput, cap *meetingCreatorCaptures)
 	}{
 		{
 			name:       "通常系_全ペアリング分の定期ミーティング作成",
@@ -161,8 +163,8 @@ func TestMeetingCreator_CreateMeetingEveryMonth(t *testing.T) {
 					return &created, nil
 				}).Times(2)
 			},
-			assertFn: func(t *testing.T, got []entity.Meeting, cap *meetingCreatorCaptures) {
-				assertMeetingIDSet(t, []uint{meetingID1, meetingID2}, got)
+			assertFn: func(t *testing.T, got []outputmodel.MeetingOutput, cap *meetingCreatorCaptures) {
+				assertMeetingOutputIDSet(t, []uint{meetingID1, meetingID2}, got)
 				require.Len(t, cap.createdMeetings, 2)
 				for _, m := range cap.createdMeetings {
 					assert.Equal(t, validTemplateID, m.TemplateID)
@@ -185,8 +187,8 @@ func TestMeetingCreator_CreateMeetingEveryMonth(t *testing.T) {
 			setup: func(_ *repomock.MockMeetingRepository, pairing *repomock.MockPairingRepository, _ *meetingCreatorCaptures) {
 				pairing.EXPECT().GetAll().Return([]entity.Pairing{}, nil)
 			},
-			assertFn: func(t *testing.T, got []entity.Meeting, _ *meetingCreatorCaptures) {
-				assertMeetingIDSet(t, nil, got)
+			assertFn: func(t *testing.T, got []outputmodel.MeetingOutput, _ *meetingCreatorCaptures) {
+				assertMeetingOutputIDSet(t, nil, got)
 			},
 		},
 		{
@@ -248,7 +250,7 @@ func TestMeetingCreator_CreateMeetingByAll(t *testing.T) {
 		wantErr       bool
 		errContains   string
 		setup         func(meeting *repomock.MockMeetingRepository, pairing *repomock.MockPairingRepository, cap *meetingCreatorCaptures)
-		assertFn      func(t *testing.T, got []entity.Meeting, cap *meetingCreatorCaptures)
+		assertFn      func(t *testing.T, got []outputmodel.MeetingOutput, cap *meetingCreatorCaptures)
 	}{
 		{
 			name:          "通常系_全ペアリング分作成",
@@ -271,8 +273,8 @@ func TestMeetingCreator_CreateMeetingByAll(t *testing.T) {
 					return &created, nil
 				}).Times(2)
 			},
-			assertFn: func(t *testing.T, got []entity.Meeting, cap *meetingCreatorCaptures) {
-				assertMeetingIDSet(t, []uint{meetingID1, meetingID2}, got)
+			assertFn: func(t *testing.T, got []outputmodel.MeetingOutput, cap *meetingCreatorCaptures) {
+				assertMeetingOutputIDSet(t, []uint{meetingID1, meetingID2}, got)
 				require.Len(t, cap.createdMeetings, 2)
 				pairingIDs := map[uint]struct{}{cap.createdMeetings[0].PairingID: {}, cap.createdMeetings[1].PairingID: {}}
 				_, ok1 := pairingIDs[pairingID1]
@@ -288,8 +290,8 @@ func TestMeetingCreator_CreateMeetingByAll(t *testing.T) {
 			setup: func(_ *repomock.MockMeetingRepository, pairing *repomock.MockPairingRepository, _ *meetingCreatorCaptures) {
 				pairing.EXPECT().GetAll().Return([]entity.Pairing{}, nil)
 			},
-			assertFn: func(t *testing.T, got []entity.Meeting, _ *meetingCreatorCaptures) {
-				assertMeetingIDSet(t, nil, got)
+			assertFn: func(t *testing.T, got []outputmodel.MeetingOutput, _ *meetingCreatorCaptures) {
+				assertMeetingOutputIDSet(t, nil, got)
 			},
 		},
 		{

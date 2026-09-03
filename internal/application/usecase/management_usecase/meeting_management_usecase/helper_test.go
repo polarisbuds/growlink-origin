@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	outputmodel "growlink/internal/application/model/output_model"
 	"growlink/internal/domain/entity"
 	"growlink/internal/domain/valueobject"
 
@@ -98,7 +99,7 @@ func assertUsecaseErr(t *testing.T, gotErr error, wantErr bool, errContains, met
 	}
 }
 
-func meetingIDSet(meetings []entity.Meeting) map[uint]struct{} {
+func meetingOutputIDSet(meetings []outputmodel.MeetingOutput) map[uint]struct{} {
 	set := make(map[uint]struct{}, len(meetings))
 	for _, m := range meetings {
 		set[m.ID] = struct{}{}
@@ -106,9 +107,9 @@ func meetingIDSet(meetings []entity.Meeting) map[uint]struct{} {
 	return set
 }
 
-func assertMeetingIDSet(t *testing.T, wantIDs []uint, got []entity.Meeting) {
+func assertMeetingOutputIDSet(t *testing.T, wantIDs []uint, got []outputmodel.MeetingOutput) {
 	t.Helper()
-	gotSet := meetingIDSet(got)
+	gotSet := meetingOutputIDSet(got)
 	assert.Len(t, got, len(wantIDs))
 	for _, id := range wantIDs {
 		_, ok := gotSet[id]
