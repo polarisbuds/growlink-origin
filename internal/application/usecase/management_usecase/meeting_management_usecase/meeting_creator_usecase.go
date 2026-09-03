@@ -10,13 +10,13 @@ import (
 	"time"
 )
 
-type MeetingCreatorUsecase struct {
+type MeetingCreator struct {
 	meetingRepo repository_interface.MeetingRepository
 	pairingRepo repository_interface.PairingRepository
 }
 
-func NewMeetingCreatorUsecase(meetingRepo repository_interface.MeetingRepository, pairingRepo repository_interface.PairingRepository) *MeetingCreatorUsecase {
-	return &MeetingCreatorUsecase{
+func NewMeetingCreator(meetingRepo repository_interface.MeetingRepository, pairingRepo repository_interface.PairingRepository) *MeetingCreator {
+	return &MeetingCreator{
 		meetingRepo: meetingRepo,
 		pairingRepo: pairingRepo,
 	}
@@ -31,7 +31,7 @@ func calcImplementedAt(base time.Time) time.Time {
 	return nextImplementDay
 }
 
-func (uc *MeetingCreatorUsecase) CreateMeetingEveryMonth(templateID uint, baseDate time.Time, week int, weekday time.Weekday) ([]entity.Meeting, error) {
+func (uc *MeetingCreator) CreateMeetingEveryMonth(templateID uint, baseDate time.Time, week int, weekday time.Weekday) ([]entity.Meeting, error) {
 	pairings, err := uc.pairingRepo.GetAll()
 	if err != nil {
 		return nil, fmt.Errorf("定期ミーティング作成処理時に全てのペアリング情報の取得に失敗しました: %w", err)
@@ -79,7 +79,7 @@ func (uc *MeetingCreatorUsecase) CreateMeetingEveryMonth(templateID uint, baseDa
 	return result, nil
 }
 
-func (uc *MeetingCreatorUsecase) CreateMeeting(pairingID, templateID uint, implementDate time.Time) (*entity.Meeting, error) {
+func (uc *MeetingCreator) CreateMeeting(pairingID, templateID uint, implementDate time.Time) (*entity.Meeting, error) {
 	meeting, err := uc.meetingRepo.Create(&entity.Meeting{
 		Status:        valueobject.MeetingStatusPending,
 		ImplementedAt: calcImplementedAt(implementDate),
@@ -92,7 +92,7 @@ func (uc *MeetingCreatorUsecase) CreateMeeting(pairingID, templateID uint, imple
 	return meeting, nil
 }
 
-func (uc *MeetingCreatorUsecase) CreateMeetingByAll(templateID uint, implementDate time.Time) ([]entity.Meeting, error) {
+func (uc *MeetingCreator) CreateMeetingByAll(templateID uint, implementDate time.Time) ([]entity.Meeting, error) {
 	pairings, err := uc.pairingRepo.GetAll()
 	if err != nil {
 		return nil, fmt.Errorf("ミーティング作成時に全てのペアリング情報の取得に失敗しました: %w", err)

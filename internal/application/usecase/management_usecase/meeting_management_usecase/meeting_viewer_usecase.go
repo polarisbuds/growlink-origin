@@ -7,7 +7,7 @@ import (
 	"sync"
 )
 
-type MeetingViewerUsecase struct {
+type MeetingViewer struct {
 	userRepo             repository_interface.UserRepository
 	teamMemberRepo       repository_interface.TeamMemberRepository
 	meetingRepo          repository_interface.MeetingRepository
@@ -15,11 +15,11 @@ type MeetingViewerUsecase struct {
 	userRelationshipRepo repository_interface.UserRelationshipRepository
 }
 
-func NewMeetingViewerUsecase(
+func NewMeetingViewer(
 	meetingRepo repository_interface.MeetingRepository, pairingRepo repository_interface.PairingRepository,
 	userRelationshipRepo repository_interface.UserRelationshipRepository,
-	userRepo repository_interface.UserRepository, teamMemberRepo repository_interface.TeamMemberRepository) *MeetingViewerUsecase {
-	return &MeetingViewerUsecase{
+	userRepo repository_interface.UserRepository, teamMemberRepo repository_interface.TeamMemberRepository) *MeetingViewer {
+	return &MeetingViewer{
 		meetingRepo:          meetingRepo,
 		pairingRepo:          pairingRepo,
 		userRepo:             userRepo,
@@ -28,7 +28,7 @@ func NewMeetingViewerUsecase(
 	}
 }
 
-func (uc *MeetingViewerUsecase) ListMeetingsByMentor(mentorID uint) ([]entity.Meeting, error) {
+func (uc *MeetingViewer) ListMeetingsByMentor(mentorID uint) ([]entity.Meeting, error) {
 	pairings, err := uc.pairingRepo.GetByMentorID(mentorID)
 	if err != nil {
 		return nil, fmt.Errorf("ミーティングリストのメンターID指定取得に失敗しました: %w", err)
@@ -71,7 +71,7 @@ func (uc *MeetingViewerUsecase) ListMeetingsByMentor(mentorID uint) ([]entity.Me
 	return resultMeetings, nil
 }
 
-func (uc *MeetingViewerUsecase) ListMeetingsByBoss(bossID uint) ([]entity.Meeting, error) {
+func (uc *MeetingViewer) ListMeetingsByBoss(bossID uint) ([]entity.Meeting, error) {
 	relationships, err := uc.userRelationshipRepo.GetByBossID(bossID)
 	if err != nil {
 		return nil, fmt.Errorf("上司ユーザID指定でのミーティングリスト作成のユーザリレーション情報取得に失敗しました: %w", err)
@@ -118,7 +118,7 @@ func (uc *MeetingViewerUsecase) ListMeetingsByBoss(bossID uint) ([]entity.Meetin
 	return result, nil
 }
 
-func (uc *MeetingViewerUsecase) ListMeetingsByTeam(teamID uint) ([]entity.Meeting, error) {
+func (uc *MeetingViewer) ListMeetingsByTeam(teamID uint) ([]entity.Meeting, error) {
 	teamMembers, err := uc.teamMemberRepo.GetByTeamID(teamID)
 	if err != nil {
 		return nil, fmt.Errorf("チームID指定でのチームメンバー情報取得に失敗しました: %w", err)
@@ -168,7 +168,7 @@ func (uc *MeetingViewerUsecase) ListMeetingsByTeam(teamID uint) ([]entity.Meetin
 	return resultMeetings, nil
 }
 
-func (uc *MeetingViewerUsecase) ListMeetingsByDepartment(departmentID uint) ([]entity.Meeting, error) {
+func (uc *MeetingViewer) ListMeetingsByDepartment(departmentID uint) ([]entity.Meeting, error) {
 	users, err := uc.userRepo.GetByDepartmentID(departmentID)
 	if err != nil {
 		return nil, fmt.Errorf("部署ID指定でのユーザ取得に失敗しました: %w", err)

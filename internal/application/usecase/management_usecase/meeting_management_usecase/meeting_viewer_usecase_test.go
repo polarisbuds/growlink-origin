@@ -18,7 +18,7 @@ type meetingViewerMocks struct {
 	teamMember       *repomock.MockTeamMemberRepository
 }
 
-func newMeetingViewerUsecase(t *testing.T) (*meeting_mng_usecase.MeetingViewerUsecase, *meetingViewerMocks) {
+func newMeetingViewer(t *testing.T) (*meeting_mng_usecase.MeetingViewer, *meetingViewerMocks) {
 	t.Helper()
 	ctrl := gomock.NewController(t)
 	mocks := &meetingViewerMocks{
@@ -28,7 +28,7 @@ func newMeetingViewerUsecase(t *testing.T) (*meeting_mng_usecase.MeetingViewerUs
 		user:             repomock.NewMockUserRepository(ctrl),
 		teamMember:       repomock.NewMockTeamMemberRepository(ctrl),
 	}
-	uc := meeting_mng_usecase.NewMeetingViewerUsecase(
+	uc := meeting_mng_usecase.NewMeetingViewer(
 		mocks.meeting,
 		mocks.pairing,
 		mocks.userRelationship,
@@ -38,7 +38,7 @@ func newMeetingViewerUsecase(t *testing.T) (*meeting_mng_usecase.MeetingViewerUs
 	return uc, mocks
 }
 
-func TestMeetingViewerUsecase_ListMeetingsByMentor(t *testing.T) {
+func TestMeetingViewer_ListMeetingsByMentor(t *testing.T) {
 	tests := []struct {
 		name        string
 		mentorID    uint
@@ -99,7 +99,7 @@ func TestMeetingViewerUsecase_ListMeetingsByMentor(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			uc, mocks := newMeetingViewerUsecase(t)
+			uc, mocks := newMeetingViewer(t)
 			if tt.setup != nil {
 				tt.setup(mocks)
 			}
@@ -116,7 +116,7 @@ func TestMeetingViewerUsecase_ListMeetingsByMentor(t *testing.T) {
 	}
 }
 
-func TestMeetingViewerUsecase_ListMeetingsByBoss(t *testing.T) {
+func TestMeetingViewer_ListMeetingsByBoss(t *testing.T) {
 	tests := []struct {
 		name        string
 		bossID      uint
@@ -189,7 +189,7 @@ func TestMeetingViewerUsecase_ListMeetingsByBoss(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			uc, mocks := newMeetingViewerUsecase(t)
+			uc, mocks := newMeetingViewer(t)
 			if tt.setup != nil {
 				tt.setup(mocks)
 			}
@@ -206,7 +206,7 @@ func TestMeetingViewerUsecase_ListMeetingsByBoss(t *testing.T) {
 	}
 }
 
-func TestMeetingViewerUsecase_ListMeetingsByTeam(t *testing.T) {
+func TestMeetingViewer_ListMeetingsByTeam(t *testing.T) {
 	tests := []struct {
 		name        string
 		teamID      uint
@@ -279,7 +279,7 @@ func TestMeetingViewerUsecase_ListMeetingsByTeam(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			uc, mocks := newMeetingViewerUsecase(t)
+			uc, mocks := newMeetingViewer(t)
 			if tt.setup != nil {
 				tt.setup(mocks)
 			}
@@ -296,7 +296,7 @@ func TestMeetingViewerUsecase_ListMeetingsByTeam(t *testing.T) {
 	}
 }
 
-func TestMeetingViewerUsecase_ListMeetingsByDepartment(t *testing.T) {
+func TestMeetingViewer_ListMeetingsByDepartment(t *testing.T) {
 	tests := []struct {
 		name         string
 		departmentID uint
@@ -369,7 +369,7 @@ func TestMeetingViewerUsecase_ListMeetingsByDepartment(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			uc, mocks := newMeetingViewerUsecase(t)
+			uc, mocks := newMeetingViewer(t)
 			if tt.setup != nil {
 				tt.setup(mocks)
 			}

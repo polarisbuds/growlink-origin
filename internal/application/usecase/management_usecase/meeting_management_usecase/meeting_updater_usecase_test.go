@@ -21,17 +21,17 @@ type meetingUpdaterCaptures struct {
 	templateID    uint
 }
 
-func newMeetingUpdaterUsecase(t *testing.T) (
-	*meeting_mng_usecase.MeetingUpdaterUsecase,
+func newMeetingUpdater(t *testing.T) (
+	*meeting_mng_usecase.MeetingUpdater,
 	*repomock.MockMeetingRepository,
 ) {
 	t.Helper()
 	ctrl := gomock.NewController(t)
 	meetingRepo := repomock.NewMockMeetingRepository(ctrl)
-	return meeting_mng_usecase.NewMeetingUpdaterUsecase(meetingRepo), meetingRepo
+	return meeting_mng_usecase.NewMeetingUpdater(meetingRepo), meetingRepo
 }
 
-func TestMeetingUpdaterUsecase_Update(t *testing.T) {
+func TestMeetingUpdater_Update(t *testing.T) {
 	meeting := &entity.Meeting{
 		Status:     valueobject.MeetingStatusDone,
 		TemplateID: validTemplateID,
@@ -78,7 +78,7 @@ func TestMeetingUpdaterUsecase_Update(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			uc, repo := newMeetingUpdaterUsecase(t)
+			uc, repo := newMeetingUpdater(t)
 			cap := &meetingUpdaterCaptures{}
 			if tt.setup != nil {
 				tt.setup(repo, cap)
@@ -96,7 +96,7 @@ func TestMeetingUpdaterUsecase_Update(t *testing.T) {
 	}
 }
 
-func TestMeetingUpdaterUsecase_ChangeImplementDate(t *testing.T) {
+func TestMeetingUpdater_ChangeImplementDate(t *testing.T) {
 	newDate := time.Date(2026, time.March, 15, 10, 0, 0, 0, time.UTC)
 
 	tests := []struct {
@@ -139,7 +139,7 @@ func TestMeetingUpdaterUsecase_ChangeImplementDate(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			uc, repo := newMeetingUpdaterUsecase(t)
+			uc, repo := newMeetingUpdater(t)
 			cap := &meetingUpdaterCaptures{}
 			if tt.setup != nil {
 				tt.setup(repo, cap)
@@ -157,7 +157,7 @@ func TestMeetingUpdaterUsecase_ChangeImplementDate(t *testing.T) {
 	}
 }
 
-func TestMeetingUpdaterUsecase_ChangePairing(t *testing.T) {
+func TestMeetingUpdater_ChangePairing(t *testing.T) {
 	newPairingID := pairingID2
 
 	tests := []struct {
@@ -200,7 +200,7 @@ func TestMeetingUpdaterUsecase_ChangePairing(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			uc, repo := newMeetingUpdaterUsecase(t)
+			uc, repo := newMeetingUpdater(t)
 			cap := &meetingUpdaterCaptures{}
 			if tt.setup != nil {
 				tt.setup(repo, cap)
@@ -218,7 +218,7 @@ func TestMeetingUpdaterUsecase_ChangePairing(t *testing.T) {
 	}
 }
 
-func TestMeetingUpdaterUsecase_ChangeTemplate(t *testing.T) {
+func TestMeetingUpdater_ChangeTemplate(t *testing.T) {
 	newTemplateID := uint(999)
 
 	tests := []struct {
@@ -261,7 +261,7 @@ func TestMeetingUpdaterUsecase_ChangeTemplate(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			uc, repo := newMeetingUpdaterUsecase(t)
+			uc, repo := newMeetingUpdater(t)
 			cap := &meetingUpdaterCaptures{}
 			if tt.setup != nil {
 				tt.setup(repo, cap)

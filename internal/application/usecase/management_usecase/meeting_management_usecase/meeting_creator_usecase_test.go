@@ -19,8 +19,8 @@ type meetingCreatorCaptures struct {
 	createdMeetings []entity.Meeting
 }
 
-func newMeetingCreatorUsecase(t *testing.T) (
-	*meeting_mng_usecase.MeetingCreatorUsecase,
+func newMeetingCreator(t *testing.T) (
+	*meeting_mng_usecase.MeetingCreator,
 	*repomock.MockMeetingRepository,
 	*repomock.MockPairingRepository,
 ) {
@@ -28,10 +28,10 @@ func newMeetingCreatorUsecase(t *testing.T) (
 	ctrl := gomock.NewController(t)
 	meetingRepo := repomock.NewMockMeetingRepository(ctrl)
 	pairingRepo := repomock.NewMockPairingRepository(ctrl)
-	return meeting_mng_usecase.NewMeetingCreatorUsecase(meetingRepo, pairingRepo), meetingRepo, pairingRepo
+	return meeting_mng_usecase.NewMeetingCreator(meetingRepo, pairingRepo), meetingRepo, pairingRepo
 }
 
-func TestMeetingCreatorUsecase_CreateMeeting(t *testing.T) {
+func TestMeetingCreator_CreateMeeting(t *testing.T) {
 	weekday := time.Date(2026, time.January, 2, 9, 0, 0, 0, time.UTC)
 	holiday := time.Date(2026, time.January, 1, 9, 0, 0, 0, time.UTC)
 	expectedAfterHoliday := time.Date(2026, time.January, 2, 9, 0, 0, 0, time.UTC)
@@ -105,7 +105,7 @@ func TestMeetingCreatorUsecase_CreateMeeting(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			uc, meetingRepo, _ := newMeetingCreatorUsecase(t)
+			uc, meetingRepo, _ := newMeetingCreator(t)
 			cap := &meetingCreatorCaptures{}
 			if tt.setup != nil {
 				tt.setup(meetingRepo, cap)
@@ -123,7 +123,7 @@ func TestMeetingCreatorUsecase_CreateMeeting(t *testing.T) {
 	}
 }
 
-func TestMeetingCreatorUsecase_CreateMeetingEveryMonth(t *testing.T) {
+func TestMeetingCreator_CreateMeetingEveryMonth(t *testing.T) {
 	baseDate := time.Date(2026, time.January, 1, 0, 0, 0, 0, time.UTC)
 	expectedImplementDate := utils.GetSpecificWeekday(baseDate, 2, time.Wednesday)
 
@@ -220,7 +220,7 @@ func TestMeetingCreatorUsecase_CreateMeetingEveryMonth(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			uc, meetingRepo, pairingRepo := newMeetingCreatorUsecase(t)
+			uc, meetingRepo, pairingRepo := newMeetingCreator(t)
 			cap := &meetingCreatorCaptures{}
 			if tt.setup != nil {
 				tt.setup(meetingRepo, pairingRepo, cap)
@@ -238,7 +238,7 @@ func TestMeetingCreatorUsecase_CreateMeetingEveryMonth(t *testing.T) {
 	}
 }
 
-func TestMeetingCreatorUsecase_CreateMeetingByAll(t *testing.T) {
+func TestMeetingCreator_CreateMeetingByAll(t *testing.T) {
 	implementDate := time.Date(2026, time.January, 2, 9, 0, 0, 0, time.UTC)
 
 	tests := []struct {
@@ -319,7 +319,7 @@ func TestMeetingCreatorUsecase_CreateMeetingByAll(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			uc, meetingRepo, pairingRepo := newMeetingCreatorUsecase(t)
+			uc, meetingRepo, pairingRepo := newMeetingCreator(t)
 			cap := &meetingCreatorCaptures{}
 			if tt.setup != nil {
 				tt.setup(meetingRepo, pairingRepo, cap)
