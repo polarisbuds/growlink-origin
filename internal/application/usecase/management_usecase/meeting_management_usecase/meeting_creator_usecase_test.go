@@ -8,6 +8,7 @@ import (
 	"growlink/internal/domain/entity"
 	"growlink/internal/domain/valueobject"
 	repomock "growlink/internal/domain/interface/repository/mock"
+	"growlink/internal/shared/utils"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -112,6 +113,121 @@ func TestMeetingCreatorUsecase_CreateMeeting(t *testing.T) {
 
 			got, gotErr := uc.CreateMeeting(tt.pairingID, tt.templateID, tt.implementDate)
 			assertUsecaseErr(t, gotErr, tt.wantErr, tt.errContains, "CreateMeeting")
+			if t.Failed() {
+				return
+			}
+			if tt.assertFn != nil {
+				tt.assertFn(t, got, cap)
+			}
+		})
+	}
+}
+
+func TestMeetingCreatorUsecase_CreateMeetingEveryMonth(t *testing.T) {
+	baseDate := time.Date(2026, time.January, 1, 0, 0, 0, 0, time.UTC)
+	expectedImplementDate := utils.GetSpecificWeekday(baseDate, 2, time.Wednesday)
+
+	tests := []struct {
+		name       string
+		templateID uint
+		baseDate   time.Time
+		week       int
+		weekday    time.Weekday
+		wantErr    bool
+		errContains string
+		setup      func(meeting *repomock.MockMeetingRepository, pairing *repomock.MockPairingRepository, cap *meetingCreatorCaptures)
+		assertFn   func(t *testing.T, got []entity.Meeting, cap *meetingCreatorCaptures)
+	}{
+		{
+			name:       "通常系_全ペアリング分の定期ミーティング作成",
+			templateID: validTemplateID,
+			baseDate:   baseDate,
+			week:       2,
+			weekday:    time.Wednesday,
+			wantErr:    false,
+			setup: func(meeting *repomock.MockMeetingRepository, pairing *repomock.MockPairingRepository, cap *meetingCreatorCaptures) {
+				pairing.EXPECT().GetAll().Return([]entity.Pairing{
+					*newTestPairing(pairingID1, validMenteeID, validMentorID),
+					*newTestPairing(pairingID2, validMemberID, validMentorID),
+				}, nil)
+				meeting.EXPECT().Create(gomock.Any()).DoAndReturn(func(m *entity.Meeting) (*entity.Meeting, error) {
+					cap.createdMeetings = append(cap.createdMeetings, *m)
+					created := *m
+					if m.PairingID == pairingID1 {
+						created.ID = meetingID1
+					} else {
+						created.ID = meetingID2
+					}
+					return &created, nil
+				}).Times(2)
+			},
+			assertFn: func(t *testing.T, got []entity.Meeting, cap *meetingCreatorCaptures) {
+				assertMeetingIDSet(t, []uint{meetingID1, meetingID2}, got)
+				require.Len(t, cap.createdMeetings, 2)
+				for _, m := range cap.createdMeetings {
+					assert.Equal(t, validTemplateID, m.TemplateID)
+					assert.Equal(t, valueobject.MeetingStatusPending, m.Status)
+					assert.True(t, m.ImplementedAt.Equal(expectedImplementDate))
+				}
+				pairingIDs := map[uint]struct{}{cap.createdMeetings[0].PairingID: {}, cap.createdMeetings[1].PairingID: {}}
+				_, ok1 := pairingIDs[pairingID1]
+				_, ok2 := pairingIDs[pairingID2]
+				assert.True(t, ok1 && ok2)
+			},
+		},
+		{
+			name:       "通常系_ペアリングが空",
+			templateID: validTemplateID,
+			baseDate:   baseDate,
+			week:       2,
+			weekday:    time.Wednesday,
+			wantErr:    false,
+			setup: func(_ *repomock.MockMeetingRepository, pairing *repomock.MockPairingRepository, _ *meetingCreatorCaptures) {
+				pairing.EXPECT().GetAll().Return([]entity.Pairing{}, nil)
+			},
+			assertFn: func(t *testing.T, got []entity.Meeting, _ *meetingCreatorCaptures) {
+				assertMeetingIDSet(t, nil, got)
+			},
+		},
+		{
+			name:        "異常系_GetAll失敗",
+			templateID:  validTemplateID,
+			baseDate:    baseDate,
+			week:        2,
+			weekday:     time.Wednesday,
+			wantErr:     true,
+			errContains: "定期ミーティング作成処理時に全てのペアリング情報の取得に失敗しました",
+			setup: func(_ *repomock.MockMeetingRepository, pairing *repomock.MockPairingRepository, _ *meetingCreatorCaptures) {
+				pairing.EXPECT().GetAll().Return(nil, errGetPairingsFailed)
+			},
+		},
+		{
+			name:        "異常系_Create失敗",
+			templateID:  validTemplateID,
+			baseDate:    baseDate,
+			week:        2,
+			weekday:     time.Wednesday,
+			wantErr:     true,
+			errContains: "定期ミーティングのペアリングのミーティング作成に失敗しました",
+			setup: func(meeting *repomock.MockMeetingRepository, pairing *repomock.MockPairingRepository, _ *meetingCreatorCaptures) {
+				pairing.EXPECT().GetAll().Return([]entity.Pairing{
+					*newTestPairing(pairingID1, validMenteeID, validMentorID),
+				}, nil)
+				meeting.EXPECT().Create(gomock.Any()).Return(nil, errCreateMeetingFailed)
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			uc, meetingRepo, pairingRepo := newMeetingCreatorUsecase(t)
+			cap := &meetingCreatorCaptures{}
+			if tt.setup != nil {
+				tt.setup(meetingRepo, pairingRepo, cap)
+			}
+
+			got, gotErr := uc.CreateMeetingEveryMonth(tt.templateID, tt.baseDate, tt.week, tt.weekday)
+			assertUsecaseErr(t, gotErr, tt.wantErr, tt.errContains, "CreateMeetingEveryMonth")
 			if t.Failed() {
 				return
 			}

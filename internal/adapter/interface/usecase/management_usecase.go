@@ -42,6 +42,7 @@ type (
 		ListMeetingsByDepartment(departmentID uint) ([]entity.Meeting, error)
 	}
 	MeetingCreator interface {
+		CreateMeetingEveryMonth(templateID uint, baseDate time.Time, week int, weekday time.Weekday) ([]entity.Meeting, error)
 		CreateMeeting(pairingID, templateID uint, implementDate time.Time) (*entity.Meeting, error)
 		CreateMeetingByAll(templateID uint, implementDate time.Time) ([]entity.Meeting, error)
 	}
