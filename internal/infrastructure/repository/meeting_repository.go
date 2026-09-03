@@ -154,7 +154,7 @@ func (repo *MeetingRepository) Create(meeting *entity.Meeting) (*entity.Meeting,
 }
 
 func (repo *MeetingRepository) Update(meetingID uint, meeting *entity.Meeting) error {
-	if _, err := repo.baseRepository.Updates(*meeting, "id = ?", meetingID); err != nil {
+	if _, err := repo.baseRepository.Updates(meeting, "id = ?", meetingID); err != nil {
 		return fmt.Errorf("ミーティングデータの更新に失敗しました: %w", err)
 	}
 	return nil

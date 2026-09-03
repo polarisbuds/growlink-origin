@@ -121,7 +121,7 @@ func (repo *UserRelationshipRepository) Update(relationshipID uint, relationship
 		return nil
 	}
 
-	if _, err := repo.baseRepository.Updates(*relationship, "id = ?", relationshipID); err != nil {
+	if _, err := repo.baseRepository.Updates(relationship, "id = ?", relationshipID); err != nil {
 		return fmt.Errorf("ユーザリレーションシップの更新に失敗しました: %w", err)
 	}
 	return nil

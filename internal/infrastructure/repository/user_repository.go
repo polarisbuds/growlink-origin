@@ -70,7 +70,7 @@ func (repo *UserRepository) UpdateByID(user *entity.User) error {
 		return nil
 	}
 
-	if _, err := repo.baseRepository.Updates(*user, "id = ?", user.ID); err != nil {
+	if _, err := repo.baseRepository.Updates(user, "id = ?", user.ID); err != nil {
 		return fmt.Errorf("ユーザ情報の更新に失敗しました: %w", err)
 	}
 	return nil

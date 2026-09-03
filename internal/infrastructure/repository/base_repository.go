@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type BaseRepository[T any] struct {
@@ -130,7 +131,7 @@ func (repo *BaseRepository[T]) Update(name string, value any, query string, args
 	return gorm.G[T](repo.dp).Where(query, args...).Update(repo.bctx, name, value)
 }
 
-func (repo *BaseRepository[T]) Updates(value T, query string, args ...any) (int, error) {
+func (repo *BaseRepository[T]) Updates(value *T, query string, args ...any) (int, error) {
 	exists, err := repo.Exists(query, args...)
 	if err != nil {
 		return 0, fmt.Errorf("レコードの参照で問題が発生しました: %w", err)
@@ -138,5 +139,5 @@ func (repo *BaseRepository[T]) Updates(value T, query string, args ...any) (int,
 	if !exists {
 		return 0, nil
 	}
-	return gorm.G[T](repo.dp).Where(query, args...).Updates(repo.bctx, value)
+	return gorm.G[T](repo.dp).Where(query, args...).Omit(clause.Associations).Updates(repo.bctx, *value)
 }

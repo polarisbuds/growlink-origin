@@ -39,7 +39,7 @@ func (repo *TeamMemberRepository) Create(teamID, memberID uint, isReader bool) e
 }
 
 func (repo *TeamMemberRepository) Update(teamMemberID uint, member *entity.TeamMember) error {
-	if _, err := repo.baseRepository.Updates(*member, "id = ?", teamMemberID); err != nil {
+	if _, err := repo.baseRepository.Updates(member, "id = ?", teamMemberID); err != nil {
 		return fmt.Errorf("チームメンバーの更新に失敗しました: %w", err)
 	}
 	return nil
