@@ -473,12 +473,11 @@ func (c *MockManagerDeleteMeetingCall) DoAndReturn(f func(...uint) (bool, error)
 }
 
 // DeleteTemplate mocks base method.
-func (m *MockManager) DeleteTemplate(templateID uint) (bool, error) {
+func (m *MockManager) DeleteTemplate(templateID uint) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DeleteTemplate", templateID)
-	ret0, _ := ret[0].(bool)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
+	ret0, _ := ret[0].(error)
+	return ret0
 }
 
 // DeleteTemplate indicates an expected call of DeleteTemplate.
@@ -494,19 +493,19 @@ type MockManagerDeleteTemplateCall struct {
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MockManagerDeleteTemplateCall) Return(arg0 bool, arg1 error) *MockManagerDeleteTemplateCall {
-	c.Call = c.Call.Return(arg0, arg1)
+func (c *MockManagerDeleteTemplateCall) Return(arg0 error) *MockManagerDeleteTemplateCall {
+	c.Call = c.Call.Return(arg0)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockManagerDeleteTemplateCall) Do(f func(uint) (bool, error)) *MockManagerDeleteTemplateCall {
+func (c *MockManagerDeleteTemplateCall) Do(f func(uint) error) *MockManagerDeleteTemplateCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockManagerDeleteTemplateCall) DoAndReturn(f func(uint) (bool, error)) *MockManagerDeleteTemplateCall {
+func (c *MockManagerDeleteTemplateCall) DoAndReturn(f func(uint) error) *MockManagerDeleteTemplateCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
@@ -550,44 +549,6 @@ func (c *MockManagerGetPairingCall) DoAndReturn(f func(uint) (*outputmodel.Pairi
 	return c
 }
 
-// GetProgressByBossID mocks base method.
-func (m *MockManager) GetProgressByBossID(bossID uint) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetProgressByBossID", bossID)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// GetProgressByBossID indicates an expected call of GetProgressByBossID.
-func (mr *MockManagerMockRecorder) GetProgressByBossID(bossID any) *MockManagerGetProgressByBossIDCall {
-	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetProgressByBossID", reflect.TypeOf((*MockManager)(nil).GetProgressByBossID), bossID)
-	return &MockManagerGetProgressByBossIDCall{Call: call}
-}
-
-// MockManagerGetProgressByBossIDCall wrap *gomock.Call
-type MockManagerGetProgressByBossIDCall struct {
-	*gomock.Call
-}
-
-// Return rewrite *gomock.Call.Return
-func (c *MockManagerGetProgressByBossIDCall) Return(arg0 error) *MockManagerGetProgressByBossIDCall {
-	c.Call = c.Call.Return(arg0)
-	return c
-}
-
-// Do rewrite *gomock.Call.Do
-func (c *MockManagerGetProgressByBossIDCall) Do(f func(uint) error) *MockManagerGetProgressByBossIDCall {
-	c.Call = c.Call.Do(f)
-	return c
-}
-
-// DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockManagerGetProgressByBossIDCall) DoAndReturn(f func(uint) error) *MockManagerGetProgressByBossIDCall {
-	c.Call = c.Call.DoAndReturn(f)
-	return c
-}
-
 // GetProgressByDepartmentID mocks base method.
 func (m *MockManager) GetProgressByDepartmentID(departmentID uint) error {
 	m.ctrl.T.Helper()
@@ -622,82 +583,6 @@ func (c *MockManagerGetProgressByDepartmentIDCall) Do(f func(uint) error) *MockM
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
 func (c *MockManagerGetProgressByDepartmentIDCall) DoAndReturn(f func(uint) error) *MockManagerGetProgressByDepartmentIDCall {
-	c.Call = c.Call.DoAndReturn(f)
-	return c
-}
-
-// GetProgressByMentorID mocks base method.
-func (m *MockManager) GetProgressByMentorID(mentorID uint) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetProgressByMentorID", mentorID)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// GetProgressByMentorID indicates an expected call of GetProgressByMentorID.
-func (mr *MockManagerMockRecorder) GetProgressByMentorID(mentorID any) *MockManagerGetProgressByMentorIDCall {
-	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetProgressByMentorID", reflect.TypeOf((*MockManager)(nil).GetProgressByMentorID), mentorID)
-	return &MockManagerGetProgressByMentorIDCall{Call: call}
-}
-
-// MockManagerGetProgressByMentorIDCall wrap *gomock.Call
-type MockManagerGetProgressByMentorIDCall struct {
-	*gomock.Call
-}
-
-// Return rewrite *gomock.Call.Return
-func (c *MockManagerGetProgressByMentorIDCall) Return(arg0 error) *MockManagerGetProgressByMentorIDCall {
-	c.Call = c.Call.Return(arg0)
-	return c
-}
-
-// Do rewrite *gomock.Call.Do
-func (c *MockManagerGetProgressByMentorIDCall) Do(f func(uint) error) *MockManagerGetProgressByMentorIDCall {
-	c.Call = c.Call.Do(f)
-	return c
-}
-
-// DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockManagerGetProgressByMentorIDCall) DoAndReturn(f func(uint) error) *MockManagerGetProgressByMentorIDCall {
-	c.Call = c.Call.DoAndReturn(f)
-	return c
-}
-
-// GetProgressByTeamID mocks base method.
-func (m *MockManager) GetProgressByTeamID(teamID uint) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetProgressByTeamID", teamID)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// GetProgressByTeamID indicates an expected call of GetProgressByTeamID.
-func (mr *MockManagerMockRecorder) GetProgressByTeamID(teamID any) *MockManagerGetProgressByTeamIDCall {
-	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetProgressByTeamID", reflect.TypeOf((*MockManager)(nil).GetProgressByTeamID), teamID)
-	return &MockManagerGetProgressByTeamIDCall{Call: call}
-}
-
-// MockManagerGetProgressByTeamIDCall wrap *gomock.Call
-type MockManagerGetProgressByTeamIDCall struct {
-	*gomock.Call
-}
-
-// Return rewrite *gomock.Call.Return
-func (c *MockManagerGetProgressByTeamIDCall) Return(arg0 error) *MockManagerGetProgressByTeamIDCall {
-	c.Call = c.Call.Return(arg0)
-	return c
-}
-
-// Do rewrite *gomock.Call.Do
-func (c *MockManagerGetProgressByTeamIDCall) Do(f func(uint) error) *MockManagerGetProgressByTeamIDCall {
-	c.Call = c.Call.Do(f)
-	return c
-}
-
-// DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockManagerGetProgressByTeamIDCall) DoAndReturn(f func(uint) error) *MockManagerGetProgressByTeamIDCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
@@ -1269,44 +1154,6 @@ func (m *MockProgressManager) EXPECT() *MockProgressManagerMockRecorder {
 	return m.recorder
 }
 
-// GetProgressByBossID mocks base method.
-func (m *MockProgressManager) GetProgressByBossID(bossID uint) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetProgressByBossID", bossID)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// GetProgressByBossID indicates an expected call of GetProgressByBossID.
-func (mr *MockProgressManagerMockRecorder) GetProgressByBossID(bossID any) *MockProgressManagerGetProgressByBossIDCall {
-	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetProgressByBossID", reflect.TypeOf((*MockProgressManager)(nil).GetProgressByBossID), bossID)
-	return &MockProgressManagerGetProgressByBossIDCall{Call: call}
-}
-
-// MockProgressManagerGetProgressByBossIDCall wrap *gomock.Call
-type MockProgressManagerGetProgressByBossIDCall struct {
-	*gomock.Call
-}
-
-// Return rewrite *gomock.Call.Return
-func (c *MockProgressManagerGetProgressByBossIDCall) Return(arg0 error) *MockProgressManagerGetProgressByBossIDCall {
-	c.Call = c.Call.Return(arg0)
-	return c
-}
-
-// Do rewrite *gomock.Call.Do
-func (c *MockProgressManagerGetProgressByBossIDCall) Do(f func(uint) error) *MockProgressManagerGetProgressByBossIDCall {
-	c.Call = c.Call.Do(f)
-	return c
-}
-
-// DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockProgressManagerGetProgressByBossIDCall) DoAndReturn(f func(uint) error) *MockProgressManagerGetProgressByBossIDCall {
-	c.Call = c.Call.DoAndReturn(f)
-	return c
-}
-
 // GetProgressByDepartmentID mocks base method.
 func (m *MockProgressManager) GetProgressByDepartmentID(departmentID uint) error {
 	m.ctrl.T.Helper()
@@ -1345,82 +1192,6 @@ func (c *MockProgressManagerGetProgressByDepartmentIDCall) DoAndReturn(f func(ui
 	return c
 }
 
-// GetProgressByMentorID mocks base method.
-func (m *MockProgressManager) GetProgressByMentorID(mentorID uint) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetProgressByMentorID", mentorID)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// GetProgressByMentorID indicates an expected call of GetProgressByMentorID.
-func (mr *MockProgressManagerMockRecorder) GetProgressByMentorID(mentorID any) *MockProgressManagerGetProgressByMentorIDCall {
-	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetProgressByMentorID", reflect.TypeOf((*MockProgressManager)(nil).GetProgressByMentorID), mentorID)
-	return &MockProgressManagerGetProgressByMentorIDCall{Call: call}
-}
-
-// MockProgressManagerGetProgressByMentorIDCall wrap *gomock.Call
-type MockProgressManagerGetProgressByMentorIDCall struct {
-	*gomock.Call
-}
-
-// Return rewrite *gomock.Call.Return
-func (c *MockProgressManagerGetProgressByMentorIDCall) Return(arg0 error) *MockProgressManagerGetProgressByMentorIDCall {
-	c.Call = c.Call.Return(arg0)
-	return c
-}
-
-// Do rewrite *gomock.Call.Do
-func (c *MockProgressManagerGetProgressByMentorIDCall) Do(f func(uint) error) *MockProgressManagerGetProgressByMentorIDCall {
-	c.Call = c.Call.Do(f)
-	return c
-}
-
-// DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockProgressManagerGetProgressByMentorIDCall) DoAndReturn(f func(uint) error) *MockProgressManagerGetProgressByMentorIDCall {
-	c.Call = c.Call.DoAndReturn(f)
-	return c
-}
-
-// GetProgressByTeamID mocks base method.
-func (m *MockProgressManager) GetProgressByTeamID(teamID uint) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetProgressByTeamID", teamID)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// GetProgressByTeamID indicates an expected call of GetProgressByTeamID.
-func (mr *MockProgressManagerMockRecorder) GetProgressByTeamID(teamID any) *MockProgressManagerGetProgressByTeamIDCall {
-	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetProgressByTeamID", reflect.TypeOf((*MockProgressManager)(nil).GetProgressByTeamID), teamID)
-	return &MockProgressManagerGetProgressByTeamIDCall{Call: call}
-}
-
-// MockProgressManagerGetProgressByTeamIDCall wrap *gomock.Call
-type MockProgressManagerGetProgressByTeamIDCall struct {
-	*gomock.Call
-}
-
-// Return rewrite *gomock.Call.Return
-func (c *MockProgressManagerGetProgressByTeamIDCall) Return(arg0 error) *MockProgressManagerGetProgressByTeamIDCall {
-	c.Call = c.Call.Return(arg0)
-	return c
-}
-
-// Do rewrite *gomock.Call.Do
-func (c *MockProgressManagerGetProgressByTeamIDCall) Do(f func(uint) error) *MockProgressManagerGetProgressByTeamIDCall {
-	c.Call = c.Call.Do(f)
-	return c
-}
-
-// DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockProgressManagerGetProgressByTeamIDCall) DoAndReturn(f func(uint) error) *MockProgressManagerGetProgressByTeamIDCall {
-	c.Call = c.Call.DoAndReturn(f)
-	return c
-}
-
 // MockProgressViewer is a mock of ProgressViewer interface.
 type MockProgressViewer struct {
 	ctrl     *gomock.Controller
@@ -1443,44 +1214,6 @@ func NewMockProgressViewer(ctrl *gomock.Controller) *MockProgressViewer {
 // EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockProgressViewer) EXPECT() *MockProgressViewerMockRecorder {
 	return m.recorder
-}
-
-// GetProgressByBossID mocks base method.
-func (m *MockProgressViewer) GetProgressByBossID(bossID uint) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetProgressByBossID", bossID)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// GetProgressByBossID indicates an expected call of GetProgressByBossID.
-func (mr *MockProgressViewerMockRecorder) GetProgressByBossID(bossID any) *MockProgressViewerGetProgressByBossIDCall {
-	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetProgressByBossID", reflect.TypeOf((*MockProgressViewer)(nil).GetProgressByBossID), bossID)
-	return &MockProgressViewerGetProgressByBossIDCall{Call: call}
-}
-
-// MockProgressViewerGetProgressByBossIDCall wrap *gomock.Call
-type MockProgressViewerGetProgressByBossIDCall struct {
-	*gomock.Call
-}
-
-// Return rewrite *gomock.Call.Return
-func (c *MockProgressViewerGetProgressByBossIDCall) Return(arg0 error) *MockProgressViewerGetProgressByBossIDCall {
-	c.Call = c.Call.Return(arg0)
-	return c
-}
-
-// Do rewrite *gomock.Call.Do
-func (c *MockProgressViewerGetProgressByBossIDCall) Do(f func(uint) error) *MockProgressViewerGetProgressByBossIDCall {
-	c.Call = c.Call.Do(f)
-	return c
-}
-
-// DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockProgressViewerGetProgressByBossIDCall) DoAndReturn(f func(uint) error) *MockProgressViewerGetProgressByBossIDCall {
-	c.Call = c.Call.DoAndReturn(f)
-	return c
 }
 
 // GetProgressByDepartmentID mocks base method.
@@ -1517,82 +1250,6 @@ func (c *MockProgressViewerGetProgressByDepartmentIDCall) Do(f func(uint) error)
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
 func (c *MockProgressViewerGetProgressByDepartmentIDCall) DoAndReturn(f func(uint) error) *MockProgressViewerGetProgressByDepartmentIDCall {
-	c.Call = c.Call.DoAndReturn(f)
-	return c
-}
-
-// GetProgressByMentorID mocks base method.
-func (m *MockProgressViewer) GetProgressByMentorID(mentorID uint) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetProgressByMentorID", mentorID)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// GetProgressByMentorID indicates an expected call of GetProgressByMentorID.
-func (mr *MockProgressViewerMockRecorder) GetProgressByMentorID(mentorID any) *MockProgressViewerGetProgressByMentorIDCall {
-	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetProgressByMentorID", reflect.TypeOf((*MockProgressViewer)(nil).GetProgressByMentorID), mentorID)
-	return &MockProgressViewerGetProgressByMentorIDCall{Call: call}
-}
-
-// MockProgressViewerGetProgressByMentorIDCall wrap *gomock.Call
-type MockProgressViewerGetProgressByMentorIDCall struct {
-	*gomock.Call
-}
-
-// Return rewrite *gomock.Call.Return
-func (c *MockProgressViewerGetProgressByMentorIDCall) Return(arg0 error) *MockProgressViewerGetProgressByMentorIDCall {
-	c.Call = c.Call.Return(arg0)
-	return c
-}
-
-// Do rewrite *gomock.Call.Do
-func (c *MockProgressViewerGetProgressByMentorIDCall) Do(f func(uint) error) *MockProgressViewerGetProgressByMentorIDCall {
-	c.Call = c.Call.Do(f)
-	return c
-}
-
-// DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockProgressViewerGetProgressByMentorIDCall) DoAndReturn(f func(uint) error) *MockProgressViewerGetProgressByMentorIDCall {
-	c.Call = c.Call.DoAndReturn(f)
-	return c
-}
-
-// GetProgressByTeamID mocks base method.
-func (m *MockProgressViewer) GetProgressByTeamID(teamID uint) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetProgressByTeamID", teamID)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// GetProgressByTeamID indicates an expected call of GetProgressByTeamID.
-func (mr *MockProgressViewerMockRecorder) GetProgressByTeamID(teamID any) *MockProgressViewerGetProgressByTeamIDCall {
-	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetProgressByTeamID", reflect.TypeOf((*MockProgressViewer)(nil).GetProgressByTeamID), teamID)
-	return &MockProgressViewerGetProgressByTeamIDCall{Call: call}
-}
-
-// MockProgressViewerGetProgressByTeamIDCall wrap *gomock.Call
-type MockProgressViewerGetProgressByTeamIDCall struct {
-	*gomock.Call
-}
-
-// Return rewrite *gomock.Call.Return
-func (c *MockProgressViewerGetProgressByTeamIDCall) Return(arg0 error) *MockProgressViewerGetProgressByTeamIDCall {
-	c.Call = c.Call.Return(arg0)
-	return c
-}
-
-// Do rewrite *gomock.Call.Do
-func (c *MockProgressViewerGetProgressByTeamIDCall) Do(f func(uint) error) *MockProgressViewerGetProgressByTeamIDCall {
-	c.Call = c.Call.Do(f)
-	return c
-}
-
-// DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockProgressViewerGetProgressByTeamIDCall) DoAndReturn(f func(uint) error) *MockProgressViewerGetProgressByTeamIDCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
@@ -2716,12 +2373,11 @@ func (c *MockTemplateManagerCreateTemplateCall) DoAndReturn(f func(inputmodel.Te
 }
 
 // DeleteTemplate mocks base method.
-func (m *MockTemplateManager) DeleteTemplate(templateID uint) (bool, error) {
+func (m *MockTemplateManager) DeleteTemplate(templateID uint) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DeleteTemplate", templateID)
-	ret0, _ := ret[0].(bool)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
+	ret0, _ := ret[0].(error)
+	return ret0
 }
 
 // DeleteTemplate indicates an expected call of DeleteTemplate.
@@ -2737,19 +2393,19 @@ type MockTemplateManagerDeleteTemplateCall struct {
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MockTemplateManagerDeleteTemplateCall) Return(arg0 bool, arg1 error) *MockTemplateManagerDeleteTemplateCall {
-	c.Call = c.Call.Return(arg0, arg1)
+func (c *MockTemplateManagerDeleteTemplateCall) Return(arg0 error) *MockTemplateManagerDeleteTemplateCall {
+	c.Call = c.Call.Return(arg0)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockTemplateManagerDeleteTemplateCall) Do(f func(uint) (bool, error)) *MockTemplateManagerDeleteTemplateCall {
+func (c *MockTemplateManagerDeleteTemplateCall) Do(f func(uint) error) *MockTemplateManagerDeleteTemplateCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockTemplateManagerDeleteTemplateCall) DoAndReturn(f func(uint) (bool, error)) *MockTemplateManagerDeleteTemplateCall {
+func (c *MockTemplateManagerDeleteTemplateCall) DoAndReturn(f func(uint) error) *MockTemplateManagerDeleteTemplateCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
@@ -3121,12 +2777,11 @@ func (m *MockTemplateDeleter) EXPECT() *MockTemplateDeleterMockRecorder {
 }
 
 // DeleteTemplate mocks base method.
-func (m *MockTemplateDeleter) DeleteTemplate(templateID uint) (bool, error) {
+func (m *MockTemplateDeleter) DeleteTemplate(templateID uint) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DeleteTemplate", templateID)
-	ret0, _ := ret[0].(bool)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
+	ret0, _ := ret[0].(error)
+	return ret0
 }
 
 // DeleteTemplate indicates an expected call of DeleteTemplate.
@@ -3142,19 +2797,19 @@ type MockTemplateDeleterDeleteTemplateCall struct {
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MockTemplateDeleterDeleteTemplateCall) Return(arg0 bool, arg1 error) *MockTemplateDeleterDeleteTemplateCall {
-	c.Call = c.Call.Return(arg0, arg1)
+func (c *MockTemplateDeleterDeleteTemplateCall) Return(arg0 error) *MockTemplateDeleterDeleteTemplateCall {
+	c.Call = c.Call.Return(arg0)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockTemplateDeleterDeleteTemplateCall) Do(f func(uint) (bool, error)) *MockTemplateDeleterDeleteTemplateCall {
+func (c *MockTemplateDeleterDeleteTemplateCall) Do(f func(uint) error) *MockTemplateDeleterDeleteTemplateCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockTemplateDeleterDeleteTemplateCall) DoAndReturn(f func(uint) (bool, error)) *MockTemplateDeleterDeleteTemplateCall {
+func (c *MockTemplateDeleterDeleteTemplateCall) DoAndReturn(f func(uint) error) *MockTemplateDeleterDeleteTemplateCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }

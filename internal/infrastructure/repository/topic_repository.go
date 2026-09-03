@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"fmt"
 	"growlink/internal/domain/entity"
 
 	"gorm.io/gorm"
@@ -24,4 +25,11 @@ func NewTopicRepository(ctx context.Context, dp *gorm.DB) *TopicRepository {
 			uctx: ctx,
 		},
 	}
+}
+
+func (repo *TopicRepository) Create(topic *entity.Topic) error {
+	if err := repo.baseRepository.Insert(topic); err != nil {
+		return fmt.Errorf("トピックの作成に失敗しました: %w", err)
+	}
+	return nil
 }

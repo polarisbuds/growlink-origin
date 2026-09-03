@@ -73,7 +73,7 @@ type (
 		UpdateTemplate(templateID uint, input inputmodel.TemplateInput) error
 	}
 	TemplateDeleter interface {
-		DeleteTemplate(templateID uint) (bool, error)
+		DeleteTemplate(templateID uint) error
 	}
 )
 

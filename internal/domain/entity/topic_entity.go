@@ -9,7 +9,7 @@ type Topic struct {
 	gorm.Model
 
 	UUID      uuid.UUID `gorm:"type:uuid;not null;uniqueIndex;default:gen_random_uuid()"`
-	DisplayNo int64     `gorm:"not null"`
+	DisplayNo uint      `gorm:"not null"`
 	Question  string    `gorm:"type:text;not null"`
 	IsRequire bool      `gorm:"not null"`
 

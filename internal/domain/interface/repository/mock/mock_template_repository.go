@@ -10,6 +10,9 @@
 package mock
 
 import (
+	entity "growlink/internal/domain/entity"
+	reflect "reflect"
+
 	gomock "go.uber.org/mock/gomock"
 )
 
@@ -35,4 +38,196 @@ func NewMockTemplateRepository(ctrl *gomock.Controller) *MockTemplateRepository 
 // EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockTemplateRepository) EXPECT() *MockTemplateRepositoryMockRecorder {
 	return m.recorder
+}
+
+// Create mocks base method.
+func (m *MockTemplateRepository) Create(input *entity.Template) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Create", input)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Create indicates an expected call of Create.
+func (mr *MockTemplateRepositoryMockRecorder) Create(input any) *MockTemplateRepositoryCreateCall {
+	mr.mock.ctrl.T.Helper()
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockTemplateRepository)(nil).Create), input)
+	return &MockTemplateRepositoryCreateCall{Call: call}
+}
+
+// MockTemplateRepositoryCreateCall wrap *gomock.Call
+type MockTemplateRepositoryCreateCall struct {
+	*gomock.Call
+}
+
+// Return rewrite *gomock.Call.Return
+func (c *MockTemplateRepositoryCreateCall) Return(arg0 error) *MockTemplateRepositoryCreateCall {
+	c.Call = c.Call.Return(arg0)
+	return c
+}
+
+// Do rewrite *gomock.Call.Do
+func (c *MockTemplateRepositoryCreateCall) Do(f func(*entity.Template) error) *MockTemplateRepositoryCreateCall {
+	c.Call = c.Call.Do(f)
+	return c
+}
+
+// DoAndReturn rewrite *gomock.Call.DoAndReturn
+func (c *MockTemplateRepositoryCreateCall) DoAndReturn(f func(*entity.Template) error) *MockTemplateRepositoryCreateCall {
+	c.Call = c.Call.DoAndReturn(f)
+	return c
+}
+
+// Delete mocks base method.
+func (m *MockTemplateRepository) Delete(templateID uint) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Delete", templateID)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Delete indicates an expected call of Delete.
+func (mr *MockTemplateRepositoryMockRecorder) Delete(templateID any) *MockTemplateRepositoryDeleteCall {
+	mr.mock.ctrl.T.Helper()
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockTemplateRepository)(nil).Delete), templateID)
+	return &MockTemplateRepositoryDeleteCall{Call: call}
+}
+
+// MockTemplateRepositoryDeleteCall wrap *gomock.Call
+type MockTemplateRepositoryDeleteCall struct {
+	*gomock.Call
+}
+
+// Return rewrite *gomock.Call.Return
+func (c *MockTemplateRepositoryDeleteCall) Return(arg0 error) *MockTemplateRepositoryDeleteCall {
+	c.Call = c.Call.Return(arg0)
+	return c
+}
+
+// Do rewrite *gomock.Call.Do
+func (c *MockTemplateRepositoryDeleteCall) Do(f func(uint) error) *MockTemplateRepositoryDeleteCall {
+	c.Call = c.Call.Do(f)
+	return c
+}
+
+// DoAndReturn rewrite *gomock.Call.DoAndReturn
+func (c *MockTemplateRepositoryDeleteCall) DoAndReturn(f func(uint) error) *MockTemplateRepositoryDeleteCall {
+	c.Call = c.Call.DoAndReturn(f)
+	return c
+}
+
+// Get mocks base method.
+func (m *MockTemplateRepository) Get(templateID uint) (*entity.Template, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Get", templateID)
+	ret0, _ := ret[0].(*entity.Template)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Get indicates an expected call of Get.
+func (mr *MockTemplateRepositoryMockRecorder) Get(templateID any) *MockTemplateRepositoryGetCall {
+	mr.mock.ctrl.T.Helper()
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockTemplateRepository)(nil).Get), templateID)
+	return &MockTemplateRepositoryGetCall{Call: call}
+}
+
+// MockTemplateRepositoryGetCall wrap *gomock.Call
+type MockTemplateRepositoryGetCall struct {
+	*gomock.Call
+}
+
+// Return rewrite *gomock.Call.Return
+func (c *MockTemplateRepositoryGetCall) Return(arg0 *entity.Template, arg1 error) *MockTemplateRepositoryGetCall {
+	c.Call = c.Call.Return(arg0, arg1)
+	return c
+}
+
+// Do rewrite *gomock.Call.Do
+func (c *MockTemplateRepositoryGetCall) Do(f func(uint) (*entity.Template, error)) *MockTemplateRepositoryGetCall {
+	c.Call = c.Call.Do(f)
+	return c
+}
+
+// DoAndReturn rewrite *gomock.Call.DoAndReturn
+func (c *MockTemplateRepositoryGetCall) DoAndReturn(f func(uint) (*entity.Template, error)) *MockTemplateRepositoryGetCall {
+	c.Call = c.Call.DoAndReturn(f)
+	return c
+}
+
+// GetAll mocks base method.
+func (m *MockTemplateRepository) GetAll() ([]entity.Template, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetAll")
+	ret0, _ := ret[0].([]entity.Template)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetAll indicates an expected call of GetAll.
+func (mr *MockTemplateRepositoryMockRecorder) GetAll() *MockTemplateRepositoryGetAllCall {
+	mr.mock.ctrl.T.Helper()
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAll", reflect.TypeOf((*MockTemplateRepository)(nil).GetAll))
+	return &MockTemplateRepositoryGetAllCall{Call: call}
+}
+
+// MockTemplateRepositoryGetAllCall wrap *gomock.Call
+type MockTemplateRepositoryGetAllCall struct {
+	*gomock.Call
+}
+
+// Return rewrite *gomock.Call.Return
+func (c *MockTemplateRepositoryGetAllCall) Return(arg0 []entity.Template, arg1 error) *MockTemplateRepositoryGetAllCall {
+	c.Call = c.Call.Return(arg0, arg1)
+	return c
+}
+
+// Do rewrite *gomock.Call.Do
+func (c *MockTemplateRepositoryGetAllCall) Do(f func() ([]entity.Template, error)) *MockTemplateRepositoryGetAllCall {
+	c.Call = c.Call.Do(f)
+	return c
+}
+
+// DoAndReturn rewrite *gomock.Call.DoAndReturn
+func (c *MockTemplateRepositoryGetAllCall) DoAndReturn(f func() ([]entity.Template, error)) *MockTemplateRepositoryGetAllCall {
+	c.Call = c.Call.DoAndReturn(f)
+	return c
+}
+
+// Update mocks base method.
+func (m *MockTemplateRepository) Update(templateID uint, newTemplate *entity.Template) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Update", templateID, newTemplate)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Update indicates an expected call of Update.
+func (mr *MockTemplateRepositoryMockRecorder) Update(templateID, newTemplate any) *MockTemplateRepositoryUpdateCall {
+	mr.mock.ctrl.T.Helper()
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockTemplateRepository)(nil).Update), templateID, newTemplate)
+	return &MockTemplateRepositoryUpdateCall{Call: call}
+}
+
+// MockTemplateRepositoryUpdateCall wrap *gomock.Call
+type MockTemplateRepositoryUpdateCall struct {
+	*gomock.Call
+}
+
+// Return rewrite *gomock.Call.Return
+func (c *MockTemplateRepositoryUpdateCall) Return(arg0 error) *MockTemplateRepositoryUpdateCall {
+	c.Call = c.Call.Return(arg0)
+	return c
+}
+
+// Do rewrite *gomock.Call.Do
+func (c *MockTemplateRepositoryUpdateCall) Do(f func(uint, *entity.Template) error) *MockTemplateRepositoryUpdateCall {
+	c.Call = c.Call.Do(f)
+	return c
+}
+
+// DoAndReturn rewrite *gomock.Call.DoAndReturn
+func (c *MockTemplateRepositoryUpdateCall) DoAndReturn(f func(uint, *entity.Template) error) *MockTemplateRepositoryUpdateCall {
+	c.Call = c.Call.DoAndReturn(f)
+	return c
 }

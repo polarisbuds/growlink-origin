@@ -10,6 +10,9 @@
 package mock
 
 import (
+	entity "growlink/internal/domain/entity"
+	reflect "reflect"
+
 	gomock "go.uber.org/mock/gomock"
 )
 
@@ -35,4 +38,42 @@ func NewMockTopicRepository(ctrl *gomock.Controller) *MockTopicRepository {
 // EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockTopicRepository) EXPECT() *MockTopicRepositoryMockRecorder {
 	return m.recorder
+}
+
+// Create mocks base method.
+func (m *MockTopicRepository) Create(topic *entity.Topic) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Create", topic)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Create indicates an expected call of Create.
+func (mr *MockTopicRepositoryMockRecorder) Create(topic any) *MockTopicRepositoryCreateCall {
+	mr.mock.ctrl.T.Helper()
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockTopicRepository)(nil).Create), topic)
+	return &MockTopicRepositoryCreateCall{Call: call}
+}
+
+// MockTopicRepositoryCreateCall wrap *gomock.Call
+type MockTopicRepositoryCreateCall struct {
+	*gomock.Call
+}
+
+// Return rewrite *gomock.Call.Return
+func (c *MockTopicRepositoryCreateCall) Return(arg0 error) *MockTopicRepositoryCreateCall {
+	c.Call = c.Call.Return(arg0)
+	return c
+}
+
+// Do rewrite *gomock.Call.Do
+func (c *MockTopicRepositoryCreateCall) Do(f func(*entity.Topic) error) *MockTopicRepositoryCreateCall {
+	c.Call = c.Call.Do(f)
+	return c
+}
+
+// DoAndReturn rewrite *gomock.Call.DoAndReturn
+func (c *MockTopicRepositoryCreateCall) DoAndReturn(f func(*entity.Topic) error) *MockTopicRepositoryCreateCall {
+	c.Call = c.Call.DoAndReturn(f)
+	return c
 }
