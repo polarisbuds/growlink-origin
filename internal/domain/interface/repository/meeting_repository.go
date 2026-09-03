@@ -27,4 +27,6 @@ type MeetingRepository interface {
 	GetUntilToday(base time.Time) ([]entity.Meeting, error)
 	GetFromSpecificDateOnward(base time.Time) ([]entity.Meeting, error)
 	GetBetweenDates(from, to time.Time) ([]entity.Meeting, error)
+
+	Delete(meetingIDs ...uint) error
 }

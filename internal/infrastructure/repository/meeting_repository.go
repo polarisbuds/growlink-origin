@@ -187,3 +187,14 @@ func (repo *MeetingRepository) UpdateImplementDate(meetingID uint, implementDate
 	}
 	return nil
 }
+
+func (repo *MeetingRepository) Delete(meetingIDs ...uint) error {
+	if len(meetingIDs) == 0 {
+		return nil
+	}
+
+	if _, err := repo.baseRepository.Delete(len(meetingIDs), "id IN ?", meetingIDs); err != nil {
+		return fmt.Errorf("ミーティングの削除に失敗しました: %w", err)
+	}
+	return nil
+}

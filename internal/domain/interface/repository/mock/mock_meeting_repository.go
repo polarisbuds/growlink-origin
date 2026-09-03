@@ -82,6 +82,48 @@ func (c *MockMeetingRepositoryCreateCall) DoAndReturn(f func(*entity.Meeting) (*
 	return c
 }
 
+// Delete mocks base method.
+func (m *MockMeetingRepository) Delete(meetingIDs ...uint) error {
+	m.ctrl.T.Helper()
+	varargs := []any{}
+	for _, a := range meetingIDs {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "Delete", varargs...)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Delete indicates an expected call of Delete.
+func (mr *MockMeetingRepositoryMockRecorder) Delete(meetingIDs ...any) *MockMeetingRepositoryDeleteCall {
+	mr.mock.ctrl.T.Helper()
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockMeetingRepository)(nil).Delete), meetingIDs...)
+	return &MockMeetingRepositoryDeleteCall{Call: call}
+}
+
+// MockMeetingRepositoryDeleteCall wrap *gomock.Call
+type MockMeetingRepositoryDeleteCall struct {
+	*gomock.Call
+}
+
+// Return rewrite *gomock.Call.Return
+func (c *MockMeetingRepositoryDeleteCall) Return(arg0 error) *MockMeetingRepositoryDeleteCall {
+	c.Call = c.Call.Return(arg0)
+	return c
+}
+
+// Do rewrite *gomock.Call.Do
+func (c *MockMeetingRepositoryDeleteCall) Do(f func(...uint) error) *MockMeetingRepositoryDeleteCall {
+	c.Call = c.Call.Do(f)
+	return c
+}
+
+// DoAndReturn rewrite *gomock.Call.DoAndReturn
+func (c *MockMeetingRepositoryDeleteCall) DoAndReturn(f func(...uint) error) *MockMeetingRepositoryDeleteCall {
+	c.Call = c.Call.DoAndReturn(f)
+	return c
+}
+
 // GetAll mocks base method.
 func (m *MockMeetingRepository) GetAll() ([]entity.Meeting, error) {
 	m.ctrl.T.Helper()

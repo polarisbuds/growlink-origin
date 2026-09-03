@@ -53,7 +53,7 @@ type (
 		ChangeTemplate(meetingID, newTemplateID uint) error
 	}
 	MeetingDeleter interface {
-		DeleteMeeting(meetingID uint) (bool, error)
+		DeleteMeeting(meetingIDs ...uint) (bool, error)
 	}
 )
 

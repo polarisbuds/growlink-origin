@@ -429,18 +429,22 @@ func (c *MockManagerCreateTemplateCall) DoAndReturn(f func(*entity.Template) err
 }
 
 // DeleteMeeting mocks base method.
-func (m *MockManager) DeleteMeeting(meetingID uint) (bool, error) {
+func (m *MockManager) DeleteMeeting(meetingIDs ...uint) (bool, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeleteMeeting", meetingID)
+	varargs := []any{}
+	for _, a := range meetingIDs {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "DeleteMeeting", varargs...)
 	ret0, _ := ret[0].(bool)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // DeleteMeeting indicates an expected call of DeleteMeeting.
-func (mr *MockManagerMockRecorder) DeleteMeeting(meetingID any) *MockManagerDeleteMeetingCall {
+func (mr *MockManagerMockRecorder) DeleteMeeting(meetingIDs ...any) *MockManagerDeleteMeetingCall {
 	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteMeeting", reflect.TypeOf((*MockManager)(nil).DeleteMeeting), meetingID)
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteMeeting", reflect.TypeOf((*MockManager)(nil).DeleteMeeting), meetingIDs...)
 	return &MockManagerDeleteMeetingCall{Call: call}
 }
 
@@ -456,13 +460,13 @@ func (c *MockManagerDeleteMeetingCall) Return(arg0 bool, arg1 error) *MockManage
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockManagerDeleteMeetingCall) Do(f func(uint) (bool, error)) *MockManagerDeleteMeetingCall {
+func (c *MockManagerDeleteMeetingCall) Do(f func(...uint) (bool, error)) *MockManagerDeleteMeetingCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockManagerDeleteMeetingCall) DoAndReturn(f func(uint) (bool, error)) *MockManagerDeleteMeetingCall {
+func (c *MockManagerDeleteMeetingCall) DoAndReturn(f func(...uint) (bool, error)) *MockManagerDeleteMeetingCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
@@ -1848,18 +1852,22 @@ func (c *MockMeetingManagerCreateMeetingEveryMonthCall) DoAndReturn(f func(uint,
 }
 
 // DeleteMeeting mocks base method.
-func (m *MockMeetingManager) DeleteMeeting(meetingID uint) (bool, error) {
+func (m *MockMeetingManager) DeleteMeeting(meetingIDs ...uint) (bool, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeleteMeeting", meetingID)
+	varargs := []any{}
+	for _, a := range meetingIDs {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "DeleteMeeting", varargs...)
 	ret0, _ := ret[0].(bool)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // DeleteMeeting indicates an expected call of DeleteMeeting.
-func (mr *MockMeetingManagerMockRecorder) DeleteMeeting(meetingID any) *MockMeetingManagerDeleteMeetingCall {
+func (mr *MockMeetingManagerMockRecorder) DeleteMeeting(meetingIDs ...any) *MockMeetingManagerDeleteMeetingCall {
 	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteMeeting", reflect.TypeOf((*MockMeetingManager)(nil).DeleteMeeting), meetingID)
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteMeeting", reflect.TypeOf((*MockMeetingManager)(nil).DeleteMeeting), meetingIDs...)
 	return &MockMeetingManagerDeleteMeetingCall{Call: call}
 }
 
@@ -1875,13 +1883,13 @@ func (c *MockMeetingManagerDeleteMeetingCall) Return(arg0 bool, arg1 error) *Moc
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockMeetingManagerDeleteMeetingCall) Do(f func(uint) (bool, error)) *MockMeetingManagerDeleteMeetingCall {
+func (c *MockMeetingManagerDeleteMeetingCall) Do(f func(...uint) (bool, error)) *MockMeetingManagerDeleteMeetingCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockMeetingManagerDeleteMeetingCall) DoAndReturn(f func(uint) (bool, error)) *MockMeetingManagerDeleteMeetingCall {
+func (c *MockMeetingManagerDeleteMeetingCall) DoAndReturn(f func(...uint) (bool, error)) *MockMeetingManagerDeleteMeetingCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
@@ -2602,18 +2610,22 @@ func (m *MockMeetingDeleter) EXPECT() *MockMeetingDeleterMockRecorder {
 }
 
 // DeleteMeeting mocks base method.
-func (m *MockMeetingDeleter) DeleteMeeting(meetingID uint) (bool, error) {
+func (m *MockMeetingDeleter) DeleteMeeting(meetingIDs ...uint) (bool, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeleteMeeting", meetingID)
+	varargs := []any{}
+	for _, a := range meetingIDs {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "DeleteMeeting", varargs...)
 	ret0, _ := ret[0].(bool)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // DeleteMeeting indicates an expected call of DeleteMeeting.
-func (mr *MockMeetingDeleterMockRecorder) DeleteMeeting(meetingID any) *MockMeetingDeleterDeleteMeetingCall {
+func (mr *MockMeetingDeleterMockRecorder) DeleteMeeting(meetingIDs ...any) *MockMeetingDeleterDeleteMeetingCall {
 	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteMeeting", reflect.TypeOf((*MockMeetingDeleter)(nil).DeleteMeeting), meetingID)
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteMeeting", reflect.TypeOf((*MockMeetingDeleter)(nil).DeleteMeeting), meetingIDs...)
 	return &MockMeetingDeleterDeleteMeetingCall{Call: call}
 }
 
@@ -2629,13 +2641,13 @@ func (c *MockMeetingDeleterDeleteMeetingCall) Return(arg0 bool, arg1 error) *Moc
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockMeetingDeleterDeleteMeetingCall) Do(f func(uint) (bool, error)) *MockMeetingDeleterDeleteMeetingCall {
+func (c *MockMeetingDeleterDeleteMeetingCall) Do(f func(...uint) (bool, error)) *MockMeetingDeleterDeleteMeetingCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockMeetingDeleterDeleteMeetingCall) DoAndReturn(f func(uint) (bool, error)) *MockMeetingDeleterDeleteMeetingCall {
+func (c *MockMeetingDeleterDeleteMeetingCall) DoAndReturn(f func(...uint) (bool, error)) *MockMeetingDeleterDeleteMeetingCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
