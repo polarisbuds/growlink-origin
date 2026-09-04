@@ -1,14 +1,15 @@
 package meeting_mng_usecase_test
 
 import (
+	"sync"
 	"testing"
 	"time"
 
-	meeting_mng_usecase "growlink/internal/application/usecase/management_usecase/meeting_management_usecase"
 	outputmodel "growlink/internal/application/model/output_model"
+	meeting_mng_usecase "growlink/internal/application/usecase/management_usecase/meeting_management_usecase"
 	"growlink/internal/domain/entity"
-	"growlink/internal/domain/valueobject"
 	repomock "growlink/internal/domain/interface/repository/mock"
+	"growlink/internal/domain/valueobject"
 	"growlink/internal/shared/utils"
 
 	"github.com/stretchr/testify/assert"
@@ -54,8 +55,11 @@ func TestMeetingCreator_CreateMeeting(t *testing.T) {
 			implementDate: weekday,
 			wantErr:       false,
 			setup: func(meeting *repomock.MockMeetingRepository, cap *meetingCreatorCaptures) {
+				var mux = sync.Mutex{}
 				meeting.EXPECT().Create(gomock.Any()).DoAndReturn(func(m *entity.Meeting) (*entity.Meeting, error) {
+					mux.Lock()
 					cap.createdMeetings = append(cap.createdMeetings, *m)
+					mux.Unlock()
 					created := *m
 					created.ID = meetingID1
 					return &created, nil
@@ -79,8 +83,11 @@ func TestMeetingCreator_CreateMeeting(t *testing.T) {
 			implementDate: holiday,
 			wantErr:       false,
 			setup: func(meeting *repomock.MockMeetingRepository, cap *meetingCreatorCaptures) {
+				var mux = sync.Mutex{}
 				meeting.EXPECT().Create(gomock.Any()).DoAndReturn(func(m *entity.Meeting) (*entity.Meeting, error) {
+					mux.Lock()
 					cap.createdMeetings = append(cap.createdMeetings, *m)
+					mux.Unlock()
 					created := *m
 					created.ID = meetingID1
 					return &created, nil
@@ -130,15 +137,15 @@ func TestMeetingCreator_CreateMeetingEveryMonth(t *testing.T) {
 	expectedImplementDate := utils.GetSpecificWeekday(baseDate, 2, time.Wednesday)
 
 	tests := []struct {
-		name       string
-		templateID uint
-		baseDate   time.Time
-		week       int
-		weekday    time.Weekday
-		wantErr    bool
+		name        string
+		templateID  uint
+		baseDate    time.Time
+		week        int
+		weekday     time.Weekday
+		wantErr     bool
 		errContains string
-		setup      func(meeting *repomock.MockMeetingRepository, pairing *repomock.MockPairingRepository, cap *meetingCreatorCaptures)
-		assertFn   func(t *testing.T, got []outputmodel.MeetingOutput, cap *meetingCreatorCaptures)
+		setup       func(meeting *repomock.MockMeetingRepository, pairing *repomock.MockPairingRepository, cap *meetingCreatorCaptures)
+		assertFn    func(t *testing.T, got []outputmodel.MeetingOutput, cap *meetingCreatorCaptures)
 	}{
 		{
 			name:       "通常系_全ペアリング分の定期ミーティング作成",
@@ -152,8 +159,11 @@ func TestMeetingCreator_CreateMeetingEveryMonth(t *testing.T) {
 					*newTestPairing(pairingID1, validMenteeID, validMentorID),
 					*newTestPairing(pairingID2, validMemberID, validMentorID),
 				}, nil)
+				var mux = sync.Mutex{}
 				meeting.EXPECT().Create(gomock.Any()).DoAndReturn(func(m *entity.Meeting) (*entity.Meeting, error) {
+					mux.Lock()
 					cap.createdMeetings = append(cap.createdMeetings, *m)
+					mux.Unlock()
 					created := *m
 					if m.PairingID == pairingID1 {
 						created.ID = meetingID1
@@ -262,8 +272,11 @@ func TestMeetingCreator_CreateMeetingByAll(t *testing.T) {
 					*newTestPairing(pairingID1, validMenteeID, validMentorID),
 					*newTestPairing(pairingID2, validMemberID, validMentorID),
 				}, nil)
+				var mux = sync.Mutex{}
 				meeting.EXPECT().Create(gomock.Any()).DoAndReturn(func(m *entity.Meeting) (*entity.Meeting, error) {
+					mux.Lock()
 					cap.createdMeetings = append(cap.createdMeetings, *m)
+					mux.Unlock()
 					created := *m
 					if m.PairingID == pairingID1 {
 						created.ID = meetingID1
