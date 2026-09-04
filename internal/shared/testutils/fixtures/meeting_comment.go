@@ -24,9 +24,8 @@ func createMeetingComment(t *testing.T, tx *gorm.DB, meeting *entity.Meeting, us
 		user = createUser(t, tx, "meeting-comment")
 	}
 
-	meetingCommentContent := "meeting comment"
 	meetingComment := &entity.MeetingComment{
-		Content:   &meetingCommentContent,
+		Content:   "meeting comment",
 		MeetingID: meeting.ID,
 		UserID:    user.ID,
 	}

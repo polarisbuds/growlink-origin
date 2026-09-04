@@ -22,6 +22,7 @@ subgraph growlink["1on1ミーティングシステム"]
         read[閲覧]
         draft[下書き]
         submit[提出]
+        cancel_submit[提出キャンセル]
         answer_comment[トピックコメント]
         meeting_comment[ミーティングコメント]
     end
@@ -34,8 +35,11 @@ subgraph growlink["1on1ミーティングシステム"]
     end
 
     subgraph management["管理者機能"]
+        %% Owner: 全タブ
+        %% Boss: 進捗＋ミーティングログ閲覧＋ペアリング設定（部下のみ、user_relationships参照）
+        %% Mentor: メンティのミーティングログ閲覧
+
         subgraph mng_pairing[ペアリング管理]
-            %% 一覧表示
             read_pairing[ペアリング閲覧]
             create_pairing[ペアリング作成]
             update_pairing[ペアリング更新]
@@ -43,7 +47,6 @@ subgraph growlink["1on1ミーティングシステム"]
         end
 
         subgraph mng_template[テンプレート管理]
-            %% 一覧表示や詳細表示
             read_template[テンプレート閲覧]
             create_template[テンプレート作成]
             update_template[テンプレート更新]
@@ -51,15 +54,17 @@ subgraph growlink["1on1ミーティングシステム"]
         end
 
         subgraph mng_meeting[ミーティング管理]
+            read_meeting_log[ミーティングログ閲覧]
             create_meeting[ミーティング作成]
             update_meeting[ミーティング更新]
             delete_meeting[ミーティング削除]
         end
 
-        subgraph read_history[履歴管理]
-            meeting_history[ミーティング履歴閲覧]
-            %% ログイン/操作(簡易)
-            user_history[ユーザ履歴閲覧]
+        subgraph mng_department[部署管理]
+            read_department[部署閲覧]
+            create_department[部署作成]
+            update_department[部署更新]
+            delete_department[部署削除]
         end
 
         subgraph mng_progress[進捗管理]
@@ -81,24 +86,32 @@ mentee --> answer
 mentee --> read
 mentee --> draft
 mentee --> submit
-mentee --> topic_comment
+mentee --> cancel_submit
+mentee --> answer_comment
 mentee --> meeting_comment
 
-mentor -->|pairingを参照しmentorに指定されている場合| read
-mentor -->|pairingを参照しmentorに指定されている場合| topic_comment
-mentor -->|pairingを参照しmentorに指定されている場合| meeting_comment
+mentor -->|pairingsを参照しmentorに指定されている場合| read
+mentor -->|pairingsを参照しmentorに指定されている場合| answer_comment
+mentor -->|pairingsを参照しmentorに指定されている場合| meeting_comment
+mentor --> read_meeting_log
 
-boss -->|authorityがbossかつ、mentee.team_idのチームリーダーに指定されている場合| read
-boss -->|authorityがbossかつ、mentee.team_idのチームリーダーに指定されている場合| topic_comment
-boss -->|authorityがbossかつ、mentee.team_idのチームリーダーに指定されている場合| meeting_comment
+boss -->|user_relationshipsで部下に指定されている場合| read
+boss -->|user_relationshipsで部下に指定されている場合| answer_comment
+boss -->|user_relationshipsで部下に指定されている場合| meeting_comment
+boss --> read_meeting_log
+boss --> read_pairing
+boss --> create_pairing
+boss --> update_pairing
+boss --> delete_pairing
 boss --> mng_progress
 
 owner --> read
-owner --> topic_comment
+owner --> answer_comment
 owner --> meeting_comment
 owner --> mng_pairing
 owner --> mng_meeting
 owner --> mng_template
+owner --> mng_department
 owner --> mng_progress
 
 mentee --> ldap_login

@@ -49,7 +49,8 @@ func TestBaseRepository_CRUD(t *testing.T) {
 	got, err = repo.First("id DESC", "id = ?", toInsert.ID)
 	assertions.NoError(t, err)
 	require.NotNil(t, got)
-	assert.True(t, updatedAt.Equal(got.ImplementedAt))
+	require.NotNil(t, got.ImplementedAt)
+	assert.True(t, updatedAt.Equal(*got.ImplementedAt))
 
 	deleted, err := repo.Delete(1, "id = ?", toInsert.ID)
 	assertions.NoError(t, err)

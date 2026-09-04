@@ -72,6 +72,7 @@ func TestMeetingCreator_CreateMeeting(t *testing.T) {
 				assert.Equal(t, pairingID1, cap.createdMeetings[0].PairingID)
 				assert.Equal(t, validTemplateID, cap.createdMeetings[0].TemplateID)
 				assert.Equal(t, valueobject.MeetingStatusPending, cap.createdMeetings[0].Status)
+				require.NotNil(t, cap.createdMeetings[0].ImplementedAt)
 				assert.True(t, cap.createdMeetings[0].ImplementedAt.Equal(weekday))
 				assert.Equal(t, meetingID1, got.ID)
 			},
@@ -96,6 +97,7 @@ func TestMeetingCreator_CreateMeeting(t *testing.T) {
 			assertFn: func(t *testing.T, got *outputmodel.MeetingOutput, cap *meetingCreatorCaptures) {
 				t.Helper()
 				require.Len(t, cap.createdMeetings, 1)
+				require.NotNil(t, cap.createdMeetings[0].ImplementedAt)
 				assert.True(t, cap.createdMeetings[0].ImplementedAt.Equal(expectedAfterHoliday))
 			},
 		},
@@ -179,6 +181,7 @@ func TestMeetingCreator_CreateMeetingEveryMonth(t *testing.T) {
 				for _, m := range cap.createdMeetings {
 					assert.Equal(t, validTemplateID, m.TemplateID)
 					assert.Equal(t, valueobject.MeetingStatusPending, m.Status)
+					require.NotNil(t, m.ImplementedAt)
 					assert.True(t, m.ImplementedAt.Equal(expectedImplementDate))
 				}
 				pairingIDs := map[uint]struct{}{cap.createdMeetings[0].PairingID: {}, cap.createdMeetings[1].PairingID: {}}

@@ -46,43 +46,6 @@ func TestAuthority_Invalid(t *testing.T) {
 	require.Error(t, err)
 }
 
-func TestEventType_String_Parse_Int_UInt(t *testing.T) {
-	tests := []struct {
-		name   string
-		value  valueobject.EventType
-		str    string
-		intVal int
-	}{
-		{name: "login", value: valueobject.EventTypeLogin, str: "login", intVal: 1},
-		{name: "meeting.draft", value: valueobject.EventTypeMeetingDraft, str: "meeting.draft", intVal: 2},
-		{name: "meeting.submit", value: valueobject.EventTypeMeetingSubmit, str: "meeting.submit", intVal: 3},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			assert.True(t, tt.value.IsValid())
-			assert.Equal(t, tt.str, tt.value.String())
-			assert.Equal(t, tt.intVal, tt.value.Int())
-			assert.Equal(t, uint(tt.intVal), tt.value.UInt())
-
-			parsed, err := valueobject.ParseEventType(tt.str)
-			require.NoError(t, err)
-			assert.Equal(t, tt.value, parsed)
-		})
-	}
-}
-
-func TestEventType_Invalid(t *testing.T) {
-	invalid := valueobject.EventType(0)
-	assert.False(t, invalid.IsValid())
-	assert.Equal(t, "", invalid.String())
-	assert.Equal(t, 0, invalid.Int())
-	assert.Equal(t, uint(0), invalid.UInt())
-
-	_, err := valueobject.ParseEventType("invalid")
-	require.Error(t, err)
-}
-
 func TestMeetingStatus_String_Parse_Int_UInt(t *testing.T) {
 	tests := []struct {
 		name   string
@@ -92,8 +55,7 @@ func TestMeetingStatus_String_Parse_Int_UInt(t *testing.T) {
 	}{
 		{name: "pending", value: valueobject.MeetingStatusPending, str: "pending", intVal: 1},
 		{name: "draft", value: valueobject.MeetingStatusDraft, str: "draft", intVal: 2},
-		{name: "submitted", value: valueobject.MeetingStatusSubmitted, str: "submitted", intVal: 3},
-		{name: "done", value: valueobject.MeetingStatusDone, str: "done", intVal: 4},
+		{name: "done", value: valueobject.MeetingStatusDone, str: "done", intVal: 3},
 	}
 
 	for _, tt := range tests {
@@ -128,10 +90,8 @@ func TestRelationshipType_String_Parse_Int_UInt(t *testing.T) {
 		str    string
 		intVal int
 	}{
-		{name: "mentor", value: valueobject.RelationshipTypeMentor, str: "mentor", intVal: 1},
-		{name: "mentee", value: valueobject.RelationshipTypeMentee, str: "mentee", intVal: 2},
-		{name: "boss", value: valueobject.RelationshipTypeBoss, str: "boss", intVal: 3},
-		{name: "subordinate", value: valueobject.RelationshipTypeSubordinate, str: "subordinate", intVal: 4},
+		{name: "boss", value: valueobject.RelationshipTypeBoss, str: "boss", intVal: 1},
+		{name: "subordinate", value: valueobject.RelationshipTypeSubordinate, str: "subordinate", intVal: 2},
 	}
 
 	for _, tt := range tests {

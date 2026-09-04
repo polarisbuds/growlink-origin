@@ -5,9 +5,8 @@ import "fmt"
 type MeetingStatus int
 
 const (
-	MeetingStatusPending   MeetingStatus = iota + 1
+	MeetingStatusPending MeetingStatus = iota + 1
 	MeetingStatusDraft
-	MeetingStatusSubmitted
 	MeetingStatusDone
 )
 
@@ -17,8 +16,6 @@ func (s MeetingStatus) String() string {
 		return "pending"
 	case MeetingStatusDraft:
 		return "draft"
-	case MeetingStatusSubmitted:
-		return "submitted"
 	case MeetingStatusDone:
 		return "done"
 	default:
@@ -36,7 +33,7 @@ func (s MeetingStatus) UInt() uint {
 
 func (s MeetingStatus) IsValid() bool {
 	switch s {
-	case MeetingStatusPending, MeetingStatusDraft, MeetingStatusSubmitted, MeetingStatusDone:
+	case MeetingStatusPending, MeetingStatusDraft, MeetingStatusDone:
 		return true
 	default:
 		return false
@@ -49,8 +46,6 @@ func ParseMeetingStatus(s string) (MeetingStatus, error) {
 		return MeetingStatusPending, nil
 	case MeetingStatusDraft.String():
 		return MeetingStatusDraft, nil
-	case MeetingStatusSubmitted.String():
-		return MeetingStatusSubmitted, nil
 	case MeetingStatusDone.String():
 		return MeetingStatusDone, nil
 	default:

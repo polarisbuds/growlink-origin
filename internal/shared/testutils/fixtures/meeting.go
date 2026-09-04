@@ -11,6 +11,10 @@ import (
 	"gorm.io/gorm"
 )
 
+func ptrTime(t time.Time) *time.Time {
+	return &t
+}
+
 // MeetingBuilder builds Meeting test data via GORM (not Repository).
 type MeetingBuilder struct {
 	t             *testing.T
@@ -85,7 +89,7 @@ func (b *MeetingBuilder) Create() *entity.Meeting {
 	}
 
 	meeting := &entity.Meeting{
-		ImplementedAt: implementedAt,
+		ImplementedAt: &implementedAt,
 		Status:        status,
 		TemplateID:    template.ID,
 		PairingID:     pairing.ID,
@@ -121,7 +125,7 @@ func MeetingWithoutFK(t *testing.T, tx *gorm.DB) *entity.Meeting {
 	t.Helper()
 
 	meeting := &entity.Meeting{
-		ImplementedAt: time.Now(),
+		ImplementedAt: ptrTime(time.Now()),
 		Status:        valueobject.MeetingStatusPending,
 		TemplateID:    999999999,
 		PairingID:     999999999,

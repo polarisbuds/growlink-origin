@@ -27,7 +27,7 @@ func (uc *MeetingCommenterUsecase) GetComment(commentID uint) (*entity.MeetingCo
 func (uc *MeetingCommenterUsecase) PostComment(meetingID uint, content string) error {
 	if err := uc.meetingCommentRepo.PostComment(&entity.MeetingComment{
 		MeetingID: meetingID,
-		Content:   &content,
+		Content:   content,
 	}); err != nil {
 		return fmt.Errorf("ミーティングへのコメントの作成に失敗しました: %w", err)
 	}

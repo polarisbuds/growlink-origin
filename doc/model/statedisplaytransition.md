@@ -5,30 +5,34 @@ login: ログイン[/login]
 logout: ログアウト[/logout]
 logout --> login: ３秒経過
 
-
-%% ログイン判定
-state if_ldap_authonicate <<choice>>
-login --> if_ldap_authonicate: ログインボタン押下
-if_ldap_authonicate --> growlink: 成功（認証OK）
-if_ldap_authonicate --> login: 失敗（認証NG）
+%% ログイン判定（一般ユーザ: LDAP、Owner: BASIC）
+state login_method <<choice>>
+login --> login_method: ログインボタン押下
+login_method --> USE_LDAP: LDAP認証（mentee/mentor/boss）
+login_method --> USE_BASIC: BASIC認証（owner）
+USE_LDAP --> growlink: 成功（認証OK）
+USE_LDAP --> login: 失敗（認証NG）
+USE_BASIC --> growlink: 成功（認証OK）
+USE_BASIC --> login: 失敗（認証NG）
 
 growlink: Growlink
 state growlink {
     [*] --> home: 初期表示
     home: ホーム[/]
+    note left of home: 面談サマリ一覧（meetings.status + pairings）
     state switch_change_tab <<choice>>
     home --> switch_change_tab: タブ操作
     switch_change_tab --> meeting: ミーティングタブ押下
     switch_change_tab --> setting: 設定ボタン押下
-    switch_change_tab --> progress: 進捗ボタン押下
-    switch_change_tab --> management: 管理ボタン押下
+    switch_change_tab --> progress: 進捗ボタン押下（boss/owner のみ表示）
+    switch_change_tab --> management: 管理ボタン押下（owner/boss/mentor。タブ内容は権限で制限）
 
     meeting --> [*]: 重大なエラー発生
     setting --> [*]: 重大なエラー発生
     progress --> [*]: 重大なエラー発生
     management --> [*]: 重大なエラー発生
-    
     home --> [*]: ページ遷移
+
     --
 
     meeting: ミーティング画面
@@ -56,35 +60,42 @@ state growlink {
         meeting_view --> meeting_init: 戻るボタンの押下
         meeting_setting --> meeting_init: 戻るボタンの押下
 
-        meeting_answer --> toast_meeting_controll: 下書き保存ボタン押下[POST /api/v1/meeting/:uuid/draft]
-        meeting_answer --> toast_meeting_controll: 提出ボタン押下[POST /api/v1/meeting/:uuid]
+        meeting_answer --> toast_meeting_controll: 下書き保存ボタン押下[POST /api/v1/meeting/:uuid/draft]（status: draft）
+        meeting_answer --> toast_meeting_controll: 提出ボタン押下[POST /api/v1/meeting/:uuid]（status: done）
+        meeting_answer --> toast_meeting_controll: 提出キャンセルボタン押下[POST /api/v1/meeting/:uuid/draft/cancel]（status: draft）
         meeting_view --> toast_meeting_controll: コメント投稿[POST /api/v1/meeting/:uuid/comment/:topic_uuid]
         meeting_view --> toast_meeting_controll: コメント更新[PUT /api/v1/meeting/:uuid/comment/:topic_uuid]
         meeting_view --> toast_meeting_controll: コメント削除[DELETE /api/v1/meeting/:uuid/comment/:topic_uuid]
+        meeting_view --> toast_meeting_controll: ミーティングコメント投稿[POST /api/v1/meeting/:uuid/meeting-comment]
+        meeting_view --> toast_meeting_controll: ミーティングコメント更新[PUT /api/v1/meeting/:uuid/meeting-comment/:comment_uuid]
+        meeting_view --> toast_meeting_controll: ミーティングコメント削除[DELETE /api/v1/meeting/:uuid/meeting-comment/:comment_uuid]
 
         meeting_setting --> toast_meeting_controll: 設定保存[PUT /api/v1/meeting/:uuid/setting]
-        
         meeting_init--> [*]: ページ遷移
     }
 
     --
+
     setting: 設定画面
     state setting {
         [*] --> setting_init
         setting_init: 設定初期画面[/setting]
         toast_setting_controll: トースト通知
-        
         setting_init --> toast_setting_controll: 保存ボタンの押下[PUT /api/v1/setting]
+        setting_init --> toast_setting_controll: アイコンアップロード[POST /api/v1/setting/icon]
+        setting_init --> toast_setting_controll: アイコン削除[DELETE /api/v1/setting/icon]
         setting_init --> [*]: ページ遷移
     }
 
     --
+
     management: 管理画面
     state management {
         [*] --> management_init
         management_init --> [*]: ページ遷移
 
         management_init: 管理初期画面[/management]
+        note left of management_init: Owner=全タブ、Boss=進捗+ログ+部下ペア設定、Mentor=メンティのログ閲覧
         mng_meeting_tab: ミーティング管理画面
         mng_pairing_tab: ペアリング管理画面
         mng_department_tab: 部署管理画面
@@ -95,7 +106,9 @@ state growlink {
         management_init --> change_mng_tab: タブ操作
         change_mng_tab --> mng_meeting_tab: ミーティング管理タブ押下
         change_mng_tab --> mng_pairing_tab: ペアリング管理タブ押下
+        change_mng_tab --> mng_department_tab: 部署管理タブ押下
         change_mng_tab --> mng_template_tab: テンプレート管理タブ押下
+        change_mng_tab --> mng_setting_tab: 管理設定タブ押下
 
         note left of toast_management_controll: 操作結果のトースト通知
         toast_management_controll: トースト通知
@@ -103,7 +116,7 @@ state growlink {
         state mng_meeting_tab {
             [*] --> mng_meeting_tab_init
             mng_meeting_tab_init --> [*]
-            note left of mng_meeting_tab_init: 今月分のミーティングのリスト表示、次回のミーティング自動登録の年月日表示（/settingで指定した 第2週の木曜日などの指定日を表示）
+            note left of mng_meeting_tab_init: 今月分のミーティングのリスト表示、次回のミーティング自動登録の年月日表示（system_settingsで指定した 第2週の木曜日などの指定日を表示）
             mng_meeting_tab_init: タブ初期画面[/management/meeting]
             note left of mng_meeting_detail: 過去に行われたミーティングの内容を閲覧（ミーティング詳細の情報を表示）
             mng_meeting_detail: ミーティングログ詳細閲覧画面[/management/meeting/:uuid]
@@ -111,7 +124,11 @@ state growlink {
             note left of mng_meeting_log: 部署名、チーム(SMやリーダー)や従業員名指定でのフィルタリング
             mng_meeting_log: ミーティングログ閲覧画面[/management/meeting/log]
 
-            
+            mng_meeting_tab_init --> mng_meeting_detail: 詳細ボタン押下[GET /api/v1/management/meeting/:uuid]
+            mng_meeting_tab_init --> mng_meeting_log: ログ閲覧ボタン押下[GET /api/v1/management/meeting/log]
+            mng_meeting_tab_init --> toast_management_controll: ミーティング作成[POST /api/v1/management/meeting]
+            mng_meeting_tab_init --> toast_management_controll: ミーティング更新[PUT /api/v1/management/meeting/:uuid]
+            mng_meeting_tab_init --> toast_management_controll: ミーティング削除[DELETE /api/v1/management/meeting/:uuid]
         }
 
         state mng_pairing_tab {
@@ -119,11 +136,11 @@ state growlink {
             mng_pairing_tab_init --> [*]
             mng_pairing_tab_init: タブ初期画面[/management/pairing]
             mng_pairing_create: ペアリング新規作成画面[/management/pairing/create]
-            mng_pairing_edit: ペアリング編集画面[/management/pairing/create]
+            mng_pairing_edit: ペアリング編集画面[/management/pairing/:uuid/edit]
 
             mng_pairing_department: 部単位表示画面[/management/pairing/department]
             mng_pairing_department_detail: 部署詳細画面[/management/pairing/department/:uuid]
-            note left of mng_pairing_department_edit: 部署内のチーム(SM)単位で一気に従業員登録を実施可能
+            note left of mng_pairing_department_edit: 部署単位でペアリングを決定する画面（部署管理タブとは無関係）。チーム(SM)単位で一気に従業員登録を実施可能
             mng_pairing_department_edit: 部署編集画面[/management/pairing/department/:uuid/edit]
 
             note left of modal_mng_pairing_detail: ペアリングの詳細（メンター-メンティーの情報）を表示するモーダル
@@ -133,23 +150,23 @@ state growlink {
 
             mng_pairing_tab_init --> mng_pairing_create: 新規作成ボタン押下
             mng_pairing_tab_init --> mng_pairing_edit: 編集ボタン押下
-            mng_pairing_tab_init --> modal_mng_pairing_detail: 詳細ボタン押下[GET /api/v1/pairing/:uuid]
-            mng_pairing_tab_init --> modal_mng_pairing_delete: 削除ボタン押下[GET /api/v1/pairing/:uuid]
+            mng_pairing_tab_init --> modal_mng_pairing_detail: 詳細ボタン押下
+            mng_pairing_tab_init --> modal_mng_pairing_delete: 削除ボタン押下
             mng_pairing_tab_init --> mng_pairing_department: 表示ボタンを押下
             mng_pairing_tab_init --> mng_pairing_department_edit: 編集ボタンを押下
-            mng_pairing_create --> toast_management_controll: 作成ボタン押下[POST /api/v1/pairing]
-            mng_pairing_edit --> toast_management_controll: 保存ボタン押下[PUT /api/v1/pairing/:uuid]
+            mng_pairing_create --> toast_management_controll: 作成ボタン押下[POST /api/v1/management/pairing]
+            mng_pairing_edit --> toast_management_controll: 保存ボタン押下[PUT /api/v1/management/pairing/:uuid]
 
             modal_mng_pairing_detail --> mng_pairing_edit: 編集ボタン押下
-            modal_mng_pairing_detail --> modal_mng_pairing_delete: 削除ボタン押下[GET /api/v1/pairing/:uuid]
-            modal_mng_pairing_delete --> toast_management_controll: 削除確定ボタン押下[DELETE /api/v1/pairing/:uuid] 
+            modal_mng_pairing_detail --> modal_mng_pairing_delete: 削除ボタン押下
+            modal_mng_pairing_delete --> toast_management_controll: 削除確定ボタン押下[DELETE /api/v1/management/pairing/:uuid]
 
             mng_pairing_department --> mng_pairing_department_detail: 詳細ボタンを押下
             mng_pairing_department --> mng_pairing_department_edit: 編集ボタンを押下
             mng_pairing_department_detail --> mng_pairing_department_edit: 編集ボタンを押下
-            mng_pairing_department_edit --> modal_mng_pairing_delete: 削除ボタン押下[GET /api/v1/pairing/department/:uuid]
-            mng_pairing_department_edit --> toast_management_controll: 更新ボタン押下[PUT /api/v1/pairing/department/:uuid]
-            
+            mng_pairing_department_edit --> modal_mng_pairing_delete: 削除ボタン押下
+            mng_pairing_department_edit --> toast_management_controll: 更新ボタン押下[PUT /api/v1/management/pairing/department/:uuid]
+
         }
 
         state mng_department_tab {
@@ -169,9 +186,9 @@ state growlink {
             mng_department_detail --> mng_department_edit: 編集ボタンの押下
             mng_department_detail --> modal_mng_department_delete: 削除ボタンの押下
 
-            mng_department_create --> toast_management_controll: 作成ボタンの押下[POST /api/v1/department]
-            mng_department_edit --> toast_management_controll: 保存ボタンの押下[PUT /api/v1/department/:uuid]
-            modal_mng_department_delete --> toast_management_controll: 完全に削除ボタンの押下[DELETE /api/v1/department/:uuid]
+            mng_department_create --> toast_management_controll: 作成ボタンの押下[POST /api/v1/management/department]
+            mng_department_edit --> toast_management_controll: 保存ボタンの押下[PUT /api/v1/management/department/:uuid]
+            modal_mng_department_delete --> toast_management_controll: 完全に削除ボタンの押下[DELETE /api/v1/management/department/:uuid]
         }
 
         state mng_template_tab {
@@ -189,22 +206,22 @@ state growlink {
 
             mng_template_tab_init --> mng_template_create: 新規作成ボタン押下
             mng_template_tab_init --> mng_template_edit: 更新ボタン押下
-            mng_template_tab_init --> modal_mng_template_delete: 削除ボタン押下[GET /api/v1/management/template/:uuid]
+            mng_template_tab_init --> modal_mng_template_delete: 削除ボタン押下
             mng_template_tab_init --> modal_mng_template_detail: 詳細ボタン押下[GET /api/v1/management/template/:uuid]
             mng_template_create --> toast_management_controll: 保存ボタン押下[POST /api/v1/management/template]
             mng_template_edit --> toast_management_controll: 更新ボタン押下[PUT /api/v1/management/template/:uuid]
 
             modal_mng_template_detail --> mng_template_edit: 更新ボタン押下
-            modal_mng_template_detail --> modal_mng_template_delete: 削除ボタン押下[GET /api/v1/management/template/:uuid]
+            modal_mng_template_detail --> modal_mng_template_delete: 削除ボタン押下
             modal_mng_template_delete --> toast_management_controll: 削除確定ボタン押下[DELETE /api/v1/management/template/:uuid]
         }
 
         state mng_setting_tab {
             [*] --> mng_setting_tab_init
             mng_setting_tab_init --> [*]
-            mng_setting_tab_init: タブ初期画面
+            mng_setting_tab_init: タブ初期画面[/management/setting]
 
-            note left of mng_setting_meeting_tab: 定期的な面談実施予定日の入力、使用するテンプレートの設定など
+            note left of mng_setting_meeting_tab: 定期的な面談実施予定日の入力、デフォルトテンプレートの設定（system_settings）
             mng_setting_meeting_tab: ミーティング設定タブ
             mng_setting_meeting_tab --> toast_management_controll: 保存ボタンを押下[PUT /api/v1/management/setting/meeting]
 
@@ -212,13 +229,15 @@ state growlink {
             mng_setting_log_tab: ログ設定タブ
             mng_setting_log_tab --> toast_management_controll: 保存ボタンを押下[PUT /api/v1/management/setting/log]
         }
+
     }
 
     --
+
     progress: 進捗管理画面[/management/progress]
     state progress {
         [*] --> progress_init
-        note left of progress_init: 表示切替（単位の変更や検索のみ）に対応
+        note left of progress_init: boss/owner のみアクセス可。department/team/pairing 単位で集計・表示切替
         progress_init: 進捗管理初期画面
         progress_init-->[*]: ページ遷移
     }

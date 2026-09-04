@@ -87,9 +87,10 @@ func TestMeetingRepository_UniqueConstraint_UUID(t *testing.T) {
 
 	existing := fixtures.Meeting(t, tx).Create()
 
+	now := time.Now()
 	err := repo.Insert(&entity.Meeting{
 		UUID:          existing.UUID,
-		ImplementedAt: time.Now(),
+		ImplementedAt: &now,
 		Status:        existing.Status,
 		TemplateID:    existing.TemplateID,
 		PairingID:     existing.PairingID,
@@ -257,6 +258,7 @@ func TestMeetingRepository_UpdateImplementDate(t *testing.T) {
 	got, err := repo.GetByID(want.ID)
 	assertions.NoError(t, err)
 	require.NotNil(t, got)
+	require.NotNil(t, got.ImplementedAt)
 	assert.True(t, got.ImplementedAt.Equal(newDate))
 }
 

@@ -12,8 +12,6 @@ type UserRelationshipRepository interface {
 	GetByRelationType(relationshipType valueobject.RelationshipType) ([]entity.UserRelationship, error)
 	GetByBossID(bossID uint) (subordinates []entity.UserRelationship, err error)
 	GetBySubordinateID(subordinateID uint) (bosses []entity.UserRelationship, err error)
-	GetByMenteeID(menteeID uint) (mentors []entity.UserRelationship, err error)
-	GetByMentorID(mentorID uint) (mentees []entity.UserRelationship, err error)
 	Create(sourceUserID, targetUserID uint, relationshipType valueobject.RelationshipType) error
 	Update(relationshipID uint, relationship *entity.UserRelationship) error
 	Delete(relationshipID uint) error

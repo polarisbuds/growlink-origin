@@ -34,6 +34,11 @@ func calcImplementedAt(base time.Time) time.Time {
 	return nextImplementDay
 }
 
+func implementedAtPtr(base time.Time) *time.Time {
+	at := calcImplementedAt(base)
+	return &at
+}
+
 func (uc *MeetingCreator) CreateMeetingEveryMonth(templateID uint, baseDate time.Time, week int, weekday time.Weekday) ([]outputmodel.MeetingOutput, error) {
 	pairings, err := uc.pairingRepo.GetAll()
 	if err != nil {
@@ -45,14 +50,14 @@ func (uc *MeetingCreator) CreateMeetingEveryMonth(templateID uint, baseDate time
 		wg     = sync.WaitGroup{}
 	)
 	errCh := make(chan error, len(pairings))
-	implementDate := calcImplementedAt(utils.GetSpecificWeekday(baseDate, 2, time.Wednesday))
+	implementDate := utils.GetSpecificWeekday(baseDate, 2, time.Wednesday)
 	for _, pairing := range pairings {
 		wg.Add(1)
 		pairing := pairing
 		go func(pairingID uint, ec chan<- error) {
 			defer wg.Done()
 			meeting, err := uc.meetingRepo.Create(&entity.Meeting{
-				ImplementedAt: implementDate,
+				ImplementedAt: implementedAtPtr(implementDate),
 				Status:        valueobject.MeetingStatusPending,
 				TemplateID:    templateID,
 				PairingID:     pairingID,
@@ -79,7 +84,7 @@ func (uc *MeetingCreator) CreateMeetingEveryMonth(templateID uint, baseDate time
 func (uc *MeetingCreator) CreateMeeting(pairingID, templateID uint, implementDate time.Time) (*outputmodel.MeetingOutput, error) {
 	meeting, err := uc.meetingRepo.Create(&entity.Meeting{
 		Status:        valueobject.MeetingStatusPending,
-		ImplementedAt: calcImplementedAt(implementDate),
+		ImplementedAt: implementedAtPtr(implementDate),
 		TemplateID:    templateID,
 		PairingID:     pairingID,
 	})
@@ -100,14 +105,13 @@ func (uc *MeetingCreator) CreateMeetingByAll(templateID uint, implementDate time
 		wg     = sync.WaitGroup{}
 	)
 	errCh := make(chan error, len(pairings))
-	implementDate = calcImplementedAt(implementDate)
 	for _, pairing := range pairings {
 		wg.Add(1)
 		pairing := pairing
 		go func(pairingID uint, ec chan<- error) {
 			defer wg.Done()
 			meeting, err := uc.meetingRepo.Create(&entity.Meeting{
-				ImplementedAt: implementDate,
+				ImplementedAt: implementedAtPtr(implementDate),
 				Status:        valueobject.MeetingStatusPending,
 				TemplateID:    templateID,
 				PairingID:     pairingID,

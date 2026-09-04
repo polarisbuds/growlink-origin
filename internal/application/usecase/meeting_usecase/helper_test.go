@@ -54,7 +54,7 @@ func newTestMeetingComment(id, meetingID uint, content string) *entity.MeetingCo
 	return &entity.MeetingComment{
 		Model:     gorm.Model{ID: id},
 		UUID:      uuid.New(),
-		Content:   &content,
+		Content:   content,
 		MeetingID: meetingID,
 		UserID:    1,
 	}

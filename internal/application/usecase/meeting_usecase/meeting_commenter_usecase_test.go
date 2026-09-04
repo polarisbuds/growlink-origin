@@ -52,7 +52,7 @@ func TestMeetingCommenterUsecase_GetComment(t *testing.T) {
 				t.Helper()
 				require.NotNil(t, got)
 				assert.Equal(t, validCommentID, got.ID)
-				requireStringPtrEqual(t, got.Content, strPtr("comment"))
+				assert.Equal(t, "comment", got.Content)
 			},
 		},
 		{
@@ -110,7 +110,7 @@ func TestMeetingCommenterUsecase_PostComment(t *testing.T) {
 				t.Helper()
 				require.NotNil(t, cap.postedComment)
 				assert.Equal(t, validMeetingID, cap.postedComment.MeetingID)
-				requireStringPtrEqual(t, cap.postedComment.Content, strPtr(content))
+				assert.Equal(t, content, cap.postedComment.Content)
 			},
 		},
 		{

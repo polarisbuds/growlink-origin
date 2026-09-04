@@ -5,18 +5,12 @@ import "fmt"
 type RelationshipType int
 
 const (
-	RelationshipTypeMentor      RelationshipType = iota + 1
-	RelationshipTypeMentee
-	RelationshipTypeBoss
+	RelationshipTypeBoss RelationshipType = iota + 1
 	RelationshipTypeSubordinate
 )
 
 func (t RelationshipType) String() string {
 	switch t {
-	case RelationshipTypeMentor:
-		return "mentor"
-	case RelationshipTypeMentee:
-		return "mentee"
 	case RelationshipTypeBoss:
 		return "boss"
 	case RelationshipTypeSubordinate:
@@ -36,7 +30,7 @@ func (t RelationshipType) UInt() uint {
 
 func (t RelationshipType) IsValid() bool {
 	switch t {
-	case RelationshipTypeMentor, RelationshipTypeMentee, RelationshipTypeBoss, RelationshipTypeSubordinate:
+	case RelationshipTypeBoss, RelationshipTypeSubordinate:
 		return true
 	default:
 		return false
@@ -45,10 +39,6 @@ func (t RelationshipType) IsValid() bool {
 
 func ParseRelationshipType(s string) (RelationshipType, error) {
 	switch s {
-	case RelationshipTypeMentor.String():
-		return RelationshipTypeMentor, nil
-	case RelationshipTypeMentee.String():
-		return RelationshipTypeMentee, nil
 	case RelationshipTypeBoss.String():
 		return RelationshipTypeBoss, nil
 	case RelationshipTypeSubordinate.String():

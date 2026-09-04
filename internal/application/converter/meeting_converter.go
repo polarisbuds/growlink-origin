@@ -7,19 +7,25 @@ import (
 )
 
 func MeetingInputToEntity(in inputmodel.MeetingInput) *entity.Meeting {
-	return &entity.Meeting{
-		ImplementedAt: in.ImplementedAt,
-		Status:        in.Status,
-		TemplateID:    in.TemplateID,
-		PairingID:     in.PairingID,
+	meeting := &entity.Meeting{
+		Status:     in.Status,
+		TemplateID: in.TemplateID,
+		PairingID:  in.PairingID,
 	}
+	if !in.ImplementedAt.IsZero() {
+		implementedAt := in.ImplementedAt
+		meeting.ImplementedAt = &implementedAt
+	}
+	return meeting
 }
 
 func MeetingEntityToOutput(e entity.Meeting) outputmodel.MeetingOutput {
 	out := outputmodel.MeetingOutput{
-		ID:            e.ID,
-		ImplementedAt: e.ImplementedAt,
-		Status:        e.Status,
+		ID:     e.ID,
+		Status: e.Status,
+	}
+	if e.ImplementedAt != nil {
+		out.ImplementedAt = *e.ImplementedAt
 	}
 	if e.Template != nil {
 		out.Template = TemplateEntityToOutput(*e.Template)

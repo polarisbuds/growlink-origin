@@ -25,6 +25,7 @@ func TestMeetingInputToEntityAndBack(t *testing.T) {
 
 	got := converter.MeetingInputToEntity(input)
 	require.NotNil(t, got)
+	require.NotNil(t, got.ImplementedAt)
 	assert.True(t, got.ImplementedAt.Equal(implementedAt))
 	assert.Equal(t, valueobject.MeetingStatusPending, got.Status)
 	assert.Equal(t, uint(10), got.TemplateID)
@@ -32,7 +33,7 @@ func TestMeetingInputToEntityAndBack(t *testing.T) {
 
 	entityMeeting := entity.Meeting{
 		Model:         gorm.Model{ID: 1},
-		ImplementedAt: implementedAt,
+		ImplementedAt: &implementedAt,
 		Status:        valueobject.MeetingStatusPending,
 		TemplateID:    10,
 		PairingID:     20,

@@ -12,8 +12,8 @@ import (
 type Meeting struct {
 	gorm.Model
 
-	UUID          uuid.UUID `gorm:"type:uuid;not null;uniqueIndex;default:gen_random_uuid()"`
-	ImplementedAt time.Time `gorm:"not null"`
+	UUID          uuid.UUID  `gorm:"type:uuid;not null;uniqueIndex;default:gen_random_uuid()"`
+	ImplementedAt *time.Time `gorm:"index"`
 
 	Status     valueobject.MeetingStatus `gorm:"type:smallint;not null;index"`
 	TemplateID uint                      `gorm:"not null;index"`
@@ -22,7 +22,6 @@ type Meeting struct {
 	Template *Template `gorm:"foreignKey:TemplateID"`
 	Pairing  *Pairing  `gorm:"foreignKey:PairingID"`
 
-	Answers          []Answer          `gorm:"foreignKey:MeetingID"`
-	MeetingComments  []MeetingComment  `gorm:"foreignKey:MeetingID"`
-	ReadCommentables []ReadCommentable `gorm:"foreignKey:MeetingID"`
+	Answers         []Answer         `gorm:"foreignKey:MeetingID"`
+	MeetingComments []MeetingComment `gorm:"foreignKey:MeetingID"`
 }

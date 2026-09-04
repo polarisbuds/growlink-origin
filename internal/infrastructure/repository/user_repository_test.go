@@ -54,7 +54,6 @@ func TestUserRepository_UpdateByID(t *testing.T) {
 	want.Name = "updated-name"
 	want.ImageURI = &imageURI
 
-	// TODO; panic: reflect: reflect.Value.SetUint using unaddressable value [recovered, repanicked]
 	err := repo.UpdateByID(want)
 	assertions.NoError(t, err)
 

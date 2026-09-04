@@ -48,9 +48,8 @@ func AutoMigrate(db *gorm.DB) error {
 		&entity.Answer{},
 		&entity.MeetingComment{},
 		&entity.AnswerComment{},
-		&entity.ReadCommentable{},
 		&entity.UserRelationship{},
-		&entity.History{},
+		&entity.SystemSettings{},
 
 		// マスタテーブル
 		&entity.Role{},

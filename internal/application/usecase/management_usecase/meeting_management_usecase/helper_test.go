@@ -57,12 +57,13 @@ func newTestPairing(id, menteeID, mentorID uint) *entity.Pairing {
 }
 
 func newTestMeeting(id, pairingID uint) entity.Meeting {
+	implementedAt := time.Date(2026, time.January, 2, 12, 0, 0, 0, time.UTC)
 	return entity.Meeting{
 		Model:         gorm.Model{ID: id},
 		PairingID:     pairingID,
 		TemplateID:    validTemplateID,
 		Status:        valueobject.MeetingStatusPending,
-		ImplementedAt: time.Date(2026, time.January, 2, 12, 0, 0, 0, time.UTC),
+		ImplementedAt: &implementedAt,
 	}
 }
 

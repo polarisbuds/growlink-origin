@@ -4,16 +4,17 @@ erDiagram
 %% 各テーブルは bigint id PKを所持
 %% 各テーブルは created_at, updated_at, deleted_atを所持
 %% tables { bigint id PK, datetime created_at, datetime updated_at, deleted_at } が存在する前提とする。
-%% pending|draft|submitted|done / general|boss|owner / mentor|mentee|boss|subordinate / login|meeting.draft|meeting.submit は Domain Value Object（列挙体）。マスタテーブルは持たない。
+%% pending|draft|done / general|boss|owner / boss|subordinate は Domain Value Object（列挙体）。マスタテーブルは持たない。
+%% VO列は smallint で保持する。
 
 %% ユーザ系
 users {
     uuid uuid UK
     text name "not null"
     text email "not null"
-    text password "SAML認証時にのみ不要。Basic認証ユーザはパスワード認証となる。管理者アカウント（Authority == Owner）はBasic認証のみに制限。"
-    text image_uri "イメージ画像の保存先"
-    text authority "not null, general|boss|owner。参照権限（一般：自身のミーティングまたは、メンティーがいる場合はそのミーティングの内容の閲覧権限、上長：チーム配下の閲覧権限、オーナー：全ての閲覧権限）を付与。一般はPairingを参照し、上長・オーナーはReadCommentableで参照範囲を定義"
+    text password "nullable。LDAP/Basic認証。Owner（Authority == Owner）はBasic認証のみに制限。"
+    text image_uri "nullable。イメージ画像の保存先"
+    smallint authority "not null, general|boss|owner。閲覧範囲（メンター：Pairings参照、上司：UserRelationships参照（部下のミーティングのみ）、オーナー：全件）"
 
     bigint role_id FK
     bigint department_id FK
@@ -33,17 +34,17 @@ users ||--o{ team_members: "メンバーID"
 
 departments {
     uuid uuid UK
-    text name
+    text name "not null"
 }
 
 roles {
     uuid uuid UK
-    text name
+    text name "not null"
 }
 
 teams {
     uuid uuid UK
-    text name
+    text name "not null"
 
     bigint department_id FK
 }
@@ -55,15 +56,16 @@ pairings {
     bigint mentor_id FK
     bigint mentee_id FK
 }
+%% pairings: 1on1ミーティングの参加ペア（メンター-メンティ）を管理。ミーティング作成・メンター閲覧の基準。
 users ||--o{ pairings: "Mentor"
 users ||--o{ pairings: "Mentee"
 
 %% ミーティング系
-%% ステータス submitted, done 以外では他ユーザから見られないようにする
+%% ステータス done 以外では他ユーザから見られないようにする
 meetings {
     uuid uuid UK
-    datetime Implemented_at "ミーティング実施日"
-    text status "not null, pending|draft|submitted|done"
+    datetime implemented_at "nullable。ミーティング実施日"
+    smallint status "not null, pending|draft|done"
 
     bigint template_id FK
     bigint pairing_id FK
@@ -95,15 +97,15 @@ answers {
 
     bigint meeting_id FK
     bigint topic_id FK
-    bigint user_id FK "回答者ユーザID"
+    bigint user_id FK "回答者ユーザID（メンティ）"
 }
 meetings ||--o{ answers: ""
 topics ||--o{ answers: ""
-users ||--o{ answers: "Mentorの回答"
+users ||--o{ answers: "メンティの回答"
 
 meeting_comments {
     uuid uuid UK
-    text content
+    text content "not null"
 
     bigint meeting_id FK
     bigint user_id FK
@@ -121,36 +123,26 @@ answer_comments {
 answers ||--o{ answer_comments: ""
 users ||--o{ answer_comments: ""
 
-%% 権限系
-%% 上長や部署長、管理者などのミーティング当事者以外からの閲覧権限を管理する（メンターはReadWriteCommentableのため別管理（Pairingテーブル管理））、一時的な閲覧権限付与なども想定。
-read_commentables {
-    uuid uuid UK
-
-    bigint meeting_id FK
-    bigint user_id FK
-}
-meetings ||--o{ read_commentables: ""
-users ||--o{ read_commentables: ""
-
-%% 上司-部下、メンター-メンティーの関係性を設定、これを元にread_commentablesを設定する？
+%% user_relationships: 上司-部下の組織関係を管理。pairings とは役割が異なる（mentor-mentee は pairings で管理）。
 user_relationships {
     uuid uuid UK
-    text relation_type "not null, mentee|mentor|subordinate|boss"
+    smallint relation_type "not null, boss|subordinate"
 
     bigint source_user_id FK
     bigint target_user_id FK
 }
 %% Source側からTargetを見た場合のリレーションを記述
-%% 例1: RelationType=Boss, source_user_id=SubordinateID, target_user_id=BossID
-%% 例2: RelationType=Mentee, source_user_id=MentorID, target_user_id=MenteeID
+%% 例: RelationType=Boss, source_user_id=SubordinateID, target_user_id=BossID
 users ||--o{ user_relationships: "source_user_id"
 users ||--o{ user_relationships: "target_user_id"
 
-histories {
+system_settings {
     uuid uuid UK
-    text event_type "not null, login|meeting.draft|meeting.submit"
-
-    bigint user_id FK
+    number meeting_week "定期実施：第N週"
+    number meeting_weekday "定期実施：曜日（0=日曜）"
+    bigint default_template_id FK "デフォルトテンプレート"
+    text log_output_path "ログ出力先"
+    text log_file_prefix "ログファイルPrefix"
 }
-users ||--o{ histories: "イベント発報者"
+templates ||--o| system_settings: "default_template_id"
 ```

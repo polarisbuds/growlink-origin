@@ -22,7 +22,7 @@ func createUserRelationship(t *testing.T, tx *gorm.DB) *entity.UserRelationship 
 	targetUser := createUser(t, tx, "target")
 
 	relationship := &entity.UserRelationship{
-		RelationType: valueobject.RelationshipTypeMentor,
+		RelationType: valueobject.RelationshipTypeBoss,
 		SourceUserID: sourceUser.ID,
 		TargetUserID: targetUser.ID,
 	}

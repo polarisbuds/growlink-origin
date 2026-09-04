@@ -77,30 +77,6 @@ func (repo *UserRelationshipRepository) GetBySubordinateID(subordinateID uint) (
 	return relationships, nil
 }
 
-func (repo *UserRelationshipRepository) GetByMenteeID(menteeID uint) (mentors []entity.UserRelationship, err error) {
-	relationshipWhereChain, err := repo.baseRepository.WhereChain("id ASC", "relation_type = ? AND target_id = ?", valueobject.RelationshipTypeMentee, menteeID)
-	if err != nil {
-		return nil, fmt.Errorf("メンティーユーザID指定でのユーザ間関係性のチェイン作成に失敗しました: %w", err)
-	}
-	relationships, err := relationshipWhereChain.Preload("SourceUser", nil).Preload("TargetUser", nil).Find(repo.ctx)
-	if err != nil {
-		return nil, fmt.Errorf("メンティーユーザID指定でのユーザ間関係性の取得に失敗しました: %w", err)
-	}
-	return relationships, nil
-}
-
-func (repo *UserRelationshipRepository) GetByMentorID(mentorID uint) (mentees []entity.UserRelationship, err error) {
-	relationshipWhereChain, err := repo.baseRepository.WhereChain("id ASC", "relation_type = ? AND target_id = ?", valueobject.RelationshipTypeMentor, mentorID)
-	if err != nil {
-		return nil, fmt.Errorf("メンターユーザID指定でのユーザ間関係性のチェイン作成に失敗しました: %w", err)
-	}
-	relationships, err := relationshipWhereChain.Preload("SourceUser", nil).Preload("TargetUser", nil).Find(repo.ctx)
-	if err != nil {
-		return nil, fmt.Errorf("メンターユーザID指定でのユーザ間関係性の取得に失敗しました: %w", err)
-	}
-	return relationships, nil
-}
-
 func (repo *UserRelationshipRepository) Create(sourceUserID, targetUserID uint, relationshipType valueobject.RelationshipType) error {
 	newRelation := &entity.UserRelationship{
 		RelationType: relationshipType,

@@ -47,6 +47,13 @@ func (repo *PairingRepository) BreakPairing(id uint) error {
 	return nil
 }
 
+func (repo *PairingRepository) BreakPairings(pairingID ...uint) error {
+	if _, err := repo.baseRepository.Delete(len(pairingID), "mentor_id IN ?", pairingID); err != nil {
+		return fmt.Errorf("ペアリングの解消に失敗しました: %w", err)
+	}
+	return nil
+}
+
 func (repo *PairingRepository) BreakAllMenteePairing(mentorID uint) error {
 	menties, err := repo.baseRepository.Count("mentor_id = ?", mentorID)
 	if err != nil {
@@ -87,4 +94,11 @@ func (repo *PairingRepository) GetByMentorID(mentorID uint) ([]entity.Pairing, e
 		return nil, fmt.Errorf("メンターID指定でのペアリング取得に失敗しました: %w", err)
 	}
 	return pairings, nil
+}
+
+func (repo *PairingRepository) UpdatePairing(pairingID, mentorID uint) error {
+	if _, err := repo.baseRepository.Update("mentor_id", mentorID, "id = ?", pairingID); err != nil {
+		return fmt.Errorf("ペアリングの更新に失敗しました: %w", err)
+	}
+	return nil
 }
