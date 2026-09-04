@@ -1,3 +1,4 @@
+```mermaid
 stateDiagram-v2
 [*] --> login: 初期表示(未認証時やエラー後)
 
@@ -246,3 +247,4 @@ error: エラー画面
 growlink--> error: 重大なエラー発生
 error-->login: ログイン画面に戻るボタン押下
 growlink --> logout: ログアウトボタン押下
+```
