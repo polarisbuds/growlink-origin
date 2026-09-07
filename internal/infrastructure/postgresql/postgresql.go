@@ -50,6 +50,11 @@ func AutoMigrate(db *gorm.DB) error {
 		&entity.AnswerComment{},
 		&entity.UserRelationship{},
 		&entity.SystemSettings{},
+		&entity.DepartmentHierarchy{},
+		&entity.DepartmentRole{},
+		&entity.UserReferenceUser{},
+		&entity.UserReferenceTeam{},
+		&entity.UserReferenceDepartment{},
 
 		// マスタテーブル
 		&entity.Role{},

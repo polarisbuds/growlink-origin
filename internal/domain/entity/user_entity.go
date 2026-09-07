@@ -26,4 +26,10 @@ type User struct {
 	TeamMembers                  []TeamMember       `gorm:"foreignKey:MemberID;references:ID"`
 	UserRelationshipsSourceUsers []UserRelationship `gorm:"foreignKey:SourceUserID;references:ID"`
 	UserRelationshipsTargetUsers []UserRelationship `gorm:"foreignKey:TargetUserID;references:ID"`
+
+	DepartmentRoles              []DepartmentRole        `gorm:"foreignKey:UserID;references:ID"`
+	UserReferenceUsers           []UserReferenceUser     `gorm:"foreignKey:UserID;references:ID"`
+	ReferableUserReferences      []UserReferenceUser     `gorm:"foreignKey:ReferableUserID;references:ID"`
+	UserReferenceTeams           []UserReferenceTeam     `gorm:"foreignKey:UserID;references:ID"`
+	UserReferenceDepartments     []UserReferenceDepartment `gorm:"foreignKey:UserID;references:ID"`
 }

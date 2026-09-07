@@ -100,6 +100,7 @@ state growlink {
         mng_meeting_tab: ミーティング管理画面
         mng_pairing_tab: ペアリング管理画面
         mng_department_tab: 部署管理画面
+        mng_team_tab: チーム管理画面
         mng_template_tab: テンプレート管理画面
         mng_setting_tab: 管理設定画面
 
@@ -108,6 +109,7 @@ state growlink {
         change_mng_tab --> mng_meeting_tab: ミーティング管理タブ押下
         change_mng_tab --> mng_pairing_tab: ペアリング管理タブ押下
         change_mng_tab --> mng_department_tab: 部署管理タブ押下
+        change_mng_tab --> mng_team_tab: 管理タブ押下
         change_mng_tab --> mng_template_tab: テンプレート管理タブ押下
         change_mng_tab --> mng_setting_tab: 管理設定タブ押下
 
@@ -181,15 +183,50 @@ state growlink {
             note left of modal_mng_department_delete: 部署削除の最終確認をおこなうモーダル
             modal_mng_department_delete: 部署削除最終確認モーダル
 
+            note left of modal_mng_department_search_user: 部長、副部長、部員選択用のモーダル
+            modal_mng_department_search_user: ユーザ検索モーダル
+
             mng_department_tab_init --> mng_department_detail: 詳細ボタンの押下
             mng_department_tab_init --> mng_department_create: 新規作成ボタンの押下
             mng_department_tab_init --> mng_department_edit: 編集ボタンの押下
             mng_department_detail --> mng_department_edit: 編集ボタンの押下
             mng_department_detail --> modal_mng_department_delete: 削除ボタンの押下
+            mng_department_detail --> modal_mng_department_search_user: 部長・副部長・部員選択ボタンの押下
 
             mng_department_create --> toast_management_controll: 作成ボタンの押下[POST /api/v1/management/department]
             mng_department_edit --> toast_management_controll: 保存ボタンの押下[PUT /api/v1/management/department/:uuid]
             modal_mng_department_delete --> toast_management_controll: 完全に削除ボタンの押下[DELETE /api/v1/management/department/:uuid]
+
+            modal_mng_department_search_user --> toast_management_controll: 保存ボタンの押下（部長）[POST /api/v1/management/department/head]
+            modal_mng_department_search_user --> toast_management_controll: 保存ボタンの押下（副部長）[POST /api/v1/management/department/deputyhead]
+            modal_mng_department_search_user --> toast_management_controll: 保存ボタンの押下（部員）[POST /api/v1/management/department/member]
+        }
+
+        state mng_team_tab {
+            [*] --> mng_team_tab_init
+            mng_team_tab_init --> [*]
+
+            mng_team_tab_init: タブ初期画面[/management/team]
+            mng_team_edit: チーム編集画面[/management/team/:uuid/edit]
+            mng_team_create: チーム新規作成画面[/management/team/create]
+
+            note left of modal_mng_team_delete: チーム削除の最終確認をおこなうモーダル
+            modal_mng_team_delete: チーム削除最終確認モーダル
+
+            note left of modal_mng_team_search_user: チームリーダー・チームメンバー選択用のモーダル
+            modal_mng_team_search_user: ユーザ検索モーダル
+
+            mng_department_detail --> modal_mng_team_delete: 削除ボタンの押下
+            mng_department_detail --> modal_mng_team_search_user: リーダー・メンバー選択ボタンの押下
+
+            mng_department_detail --> toast_management_controll: チームリーダー削除ボタン（×）の押下
+            mng_department_detail --> toast_management_controll: チームメンバー削除ボタン（×）の押下
+            mng_team_create --> toast_management_controll: 作成ボタンの押下[POST /api/v1/management/team]
+            mng_team_edit --> toast_management_controll: 保存ボタンの押下[PUT /api/v1/management/team/:uuid]
+            modal_mng_team_delete --> toast_management_controll: 完全に削除ボタンの押下[DELETE /api/v1/management/team/:uuid]
+
+            modal_mng_team_search_user --> toast_management_controll: 保存ボタンの押下（部長）[POST /api/v1/management/team/leader]
+            modal_mng_team_search_user --> toast_management_controll: 保存ボタンの押下（副部長）[POST /api/v1/management/team/member]
         }
 
         state mng_template_tab {

@@ -138,3 +138,131 @@ func TestPairingEntityToOutputWithUsers(t *testing.T) {
 	assert.Equal(t, "mentor", out.Mentor.Name)
 	assert.Equal(t, "mentee", out.Mentee.Name)
 }
+
+func TestDepartmentHierarchyInputToEntityAndBack(t *testing.T) {
+	input := inputmodel.DepartmentHierarchyInput{
+		ParentDepartmentID: 1,
+		ChildDepartmentID:  2,
+	}
+
+	got := converter.DepartmentHierarchyInputToEntity(input)
+	require.NotNil(t, got)
+	assert.Equal(t, uint(1), got.ParentDepartmentID)
+	assert.Equal(t, uint(2), got.ChildDepartmentID)
+
+	entityHierarchy := entity.DepartmentHierarchy{
+		Model:              gorm.Model{ID: 3},
+		ParentDepartmentID: 1,
+		ChildDepartmentID:  2,
+	}
+	out := converter.DepartmentHierarchyEntityToOutput(entityHierarchy)
+	assert.Equal(t, uint(3), out.ID)
+	assert.Equal(t, uint(1), out.ParentDepartment.ID)
+	assert.Equal(t, uint(2), out.ChildDepartment.ID)
+
+	entityHierarchy.ParentDepartment = &entity.Department{Model: gorm.Model{ID: 1}, Name: "parent"}
+	entityHierarchy.ChildDepartment = &entity.Department{Model: gorm.Model{ID: 2}, Name: "child"}
+	outWithRelations := converter.DepartmentHierarchyEntityToOutput(entityHierarchy)
+	assert.Equal(t, "parent", outWithRelations.ParentDepartment.Name)
+	assert.Equal(t, "child", outWithRelations.ChildDepartment.Name)
+}
+
+func TestDepartmentRoleInputToEntityAndBack(t *testing.T) {
+	input := inputmodel.DepartmentRoleInput{
+		Name:         "Manager",
+		UserID:       10,
+		DepartmentID: 20,
+	}
+
+	got := converter.DepartmentRoleInputToEntity(input)
+	require.NotNil(t, got)
+	assert.Equal(t, "Manager", got.Name)
+	assert.Equal(t, uint(10), got.UserID)
+	assert.Equal(t, uint(20), got.DepartmentID)
+
+	entityRole := entity.DepartmentRole{
+		Model:        gorm.Model{ID: 5},
+		Name:         "Manager",
+		UserID:       10,
+		DepartmentID: 20,
+		User:         &entity.User{Model: gorm.Model{ID: 10}, Name: "Alice", Email: "alice@example.com"},
+		Department:   &entity.Department{Model: gorm.Model{ID: 20}, Name: "Engineering"},
+	}
+	out := converter.DepartmentRoleEntityToOutput(entityRole)
+	assert.Equal(t, uint(5), out.ID)
+	assert.Equal(t, "Alice", out.User.Name)
+	assert.Equal(t, "Engineering", out.Department.Name)
+}
+
+func TestUserReferenceUserInputToEntityAndBack(t *testing.T) {
+	input := inputmodel.UserReferenceUserInput{
+		UserID:          1,
+		ReferableUserID: 2,
+	}
+
+	got := converter.UserReferenceUserInputToEntity(input)
+	require.NotNil(t, got)
+	assert.Equal(t, uint(1), got.UserID)
+	assert.Equal(t, uint(2), got.ReferableUserID)
+
+	entityRef := entity.UserReferenceUser{
+		Model:           gorm.Model{ID: 7},
+		UserID:          1,
+		ReferableUserID: 2,
+		User:            &entity.User{Model: gorm.Model{ID: 1}, Name: "owner", Email: "owner@example.com"},
+		ReferableUser:   &entity.User{Model: gorm.Model{ID: 2}, Name: "target", Email: "target@example.com"},
+	}
+	out := converter.UserReferenceUserEntityToOutput(entityRef)
+	assert.Equal(t, uint(7), out.ID)
+	assert.Equal(t, "owner", out.User.Name)
+	assert.Equal(t, "target", out.ReferableUser.Name)
+}
+
+func TestUserReferenceTeamInputToEntityAndBack(t *testing.T) {
+	input := inputmodel.UserReferenceTeamInput{
+		UserID:          1,
+		ReferableTeamID: 3,
+	}
+
+	got := converter.UserReferenceTeamInputToEntity(input)
+	require.NotNil(t, got)
+	assert.Equal(t, uint(1), got.UserID)
+	assert.Equal(t, uint(3), got.ReferableTeamID)
+
+	entityRef := entity.UserReferenceTeam{
+		Model:           gorm.Model{ID: 8},
+		UserID:          1,
+		ReferableTeamID: 3,
+		User:            &entity.User{Model: gorm.Model{ID: 1}, Name: "owner", Email: "owner@example.com"},
+		ReferableTeam:   &entity.Team{Model: gorm.Model{ID: 3}, Name: "Alpha", DepartmentID: 4},
+	}
+	out := converter.UserReferenceTeamEntityToOutput(entityRef)
+	assert.Equal(t, uint(8), out.ID)
+	assert.Equal(t, "owner", out.User.Name)
+	assert.Equal(t, "Alpha", out.ReferableTeam.Name)
+	assert.Empty(t, out.ReferableTeam.TeamMembers)
+}
+
+func TestUserReferenceDepartmentInputToEntityAndBack(t *testing.T) {
+	input := inputmodel.UserReferenceDepartmentInput{
+		UserID:                1,
+		ReferableDepartmentID: 5,
+	}
+
+	got := converter.UserReferenceDepartmentInputToEntity(input)
+	require.NotNil(t, got)
+	assert.Equal(t, uint(1), got.UserID)
+	assert.Equal(t, uint(5), got.ReferableDepartmentID)
+
+	entityRef := entity.UserReferenceDepartment{
+		Model:                 gorm.Model{ID: 9},
+		UserID:                1,
+		ReferableDepartmentID: 5,
+		User:                  &entity.User{Model: gorm.Model{ID: 1}, Name: "owner", Email: "owner@example.com"},
+		ReferableDepartment:   &entity.Department{Model: gorm.Model{ID: 5}, Name: "Sales"},
+	}
+	out := converter.UserReferenceDepartmentEntityToOutput(entityRef)
+	assert.Equal(t, uint(9), out.ID)
+	assert.Equal(t, "owner", out.User.Name)
+	assert.Equal(t, "Sales", out.ReferableDepartment.Name)
+}

@@ -20,3 +20,4 @@ scripts/tmp/
 *.log
 uploads/*
 !uploads/.gitkeep
+samples

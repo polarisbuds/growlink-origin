@@ -16,4 +16,6 @@ type Team struct {
 	Department *Department `gorm:"foreignKey:DepartmentID"`
 
 	TeamMembers []TeamMember `gorm:"foreignKey:TeamID"`
+
+	UserReferenceTeams []UserReferenceTeam `gorm:"foreignKey:ReferableTeamID;references:ID"`
 }
