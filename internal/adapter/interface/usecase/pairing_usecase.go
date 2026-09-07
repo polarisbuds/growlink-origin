@@ -1,6 +1,8 @@
 package usecase_interface
 
-import "growlink/internal/domain/entity"
+import (
+	outputmodel "growlink/internal/application/model/output_model"
+)
 
 //go:generate go tool mockgen -typed -source=$GOFILE -destination=mock/mock_$GOFILE -package=mock
 
@@ -11,7 +13,7 @@ type (
 	}
 
 	PairingListCreator interface {
-		CreatePairList(mentorID uint) (menteeList []entity.User, err error)
+		CreatePairList(mentorID uint) (menteeList []outputmodel.UserOutput, err error)
 	}
 	PairingBreaker interface {
 		BreakPair(menteeID uint) bool

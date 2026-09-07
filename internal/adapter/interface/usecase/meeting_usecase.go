@@ -2,7 +2,9 @@ package usecase_interface
 
 //go:generate go tool mockgen -typed -source=$GOFILE -destination=mock/mock_$GOFILE -package=mock
 
-import "growlink/internal/domain/entity"
+import (
+	outputmodel "growlink/internal/application/model/output_model"
+)
 
 type (
 	MeetingUsecase interface {
@@ -16,14 +18,14 @@ type (
 	}
 
 	AnswerReader interface {
-		GetAnswer(answerID uint) (*entity.Answer, error)
-		ListAnswersByMeeting(meetingID uint) ([]entity.Answer, error)
+		GetAnswer(answerID uint) (*outputmodel.AnswerOutput, error)
+		ListAnswersByMeeting(meetingID uint) ([]outputmodel.AnswerOutput, error)
 	}
 	DraftSaver interface {
-		SaveDraft(meetingID uint, answers []entity.Answer) error
+		SaveDraft(meetingID uint, answers []outputmodel.AnswerOutput) error
 	}
 	Submitter interface {
-		Submit(meetingID uint, answers []entity.Answer) error
+		Submit(meetingID uint, answers []outputmodel.AnswerOutput) error
 	}
 	SubmitCanceller interface {
 		CancelSubmit(meetingID uint) error
