@@ -85,3 +85,14 @@ func (repo *UserReferenceDepartmentRepository) GetByReferableDepartmentID(refera
 	}
 	return references, nil
 }
+
+func (repo *UserReferenceDepartmentRepository) IsReferable(userID, referableDepartmentID uint) (isReferable bool, err error) {
+	references, err := repo.preloadWhere("user_id = ? AND referable_department_id = ?", userID, referableDepartmentID)
+	if err != nil {
+		return false, fmt.Errorf("ユーザーIDと参照可能なチームID指定での参照権限有無のチェックに失敗しました: %w", err)
+	}
+	if len(references) > 0 {
+		return true, nil
+	}
+	return false, nil
+}

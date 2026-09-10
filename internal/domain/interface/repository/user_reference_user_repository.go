@@ -10,4 +10,5 @@ type UserReferenceUserRepository interface {
 	GetAll() ([]entity.UserReferenceUser, error)
 	GetByUserID(userID uint) ([]entity.UserReferenceUser, error)
 	GetByReferableUserID(referableUserID uint) ([]entity.UserReferenceUser, error)
+	IsReferable(userID, referableUserID uint) (isReferable bool, err error)
 }
