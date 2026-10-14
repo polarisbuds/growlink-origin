@@ -16,7 +16,9 @@ type (
 		AnswerCommenter
 		MeetingCommenter
 	}
-
+	MeetingList interface {
+		ListMyMeeting(menteeID uint) ([]outputmodel.MeetingOutput, error)
+	}
 	AnswerReader interface {
 		GetAnswer(answerID uint) (*outputmodel.AnswerOutput, error)
 		ListAnswersByMeeting(meetingID uint) ([]outputmodel.AnswerOutput, error)
