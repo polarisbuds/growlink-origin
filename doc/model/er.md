@@ -1,3 +1,7 @@
+# ER図
+
+正本。テーブル定義は `internal/domain/entity` と一致させる。
+
 ```mermaid
 erDiagram
 
@@ -7,14 +11,16 @@ erDiagram
 %% tables { bigint id PK, datetime created_at, datetime updated_at, deleted_at } が存在する前提とする。
 %% pending|draft|done / general|boss|owner / boss|subordinate は Domain Value Object（列挙体）。マスタテーブルは持たない。
 %% VO列は smallint で保持する。
+%% histories / read_commentables テーブルは持たない。
+%% users.image_uri はプロフィール画像の保存先（nullable）。バイナリ列は持たない。
 
 %% ユーザ系
 users {
     text name "not null"
     text email "not null"
-    text password "nullable。LDAP/Basic認証。Owner（Authority == Owner）はBasic認証のみに制限。"
+    text password "nullable。Basic認証用。Owner は Basic ログインに制限する運用"
     text image_uri "nullable。イメージ画像の保存先"
-    smallint authority "not null, general|boss|owner。閲覧範囲（メンター：Pairings参照、上司：UserRelationships参照（部下のミーティングのみ）、オーナー：全件）"
+    smallint authority "not null, general|boss|owner"
 
     bigint role_id FK
     bigint department_id FK
@@ -47,16 +53,15 @@ teams {
 departments ||--|{ teams: "部署＞チーム（SM以下のチームを想定）"
 
 pairings {
-
     bigint mentor_id FK
     bigint mentee_id FK
 }
-%% pairings: 1on1ミーティングの参加ペア（メンター-メンティ）を管理。ミーティング作成・メンター閲覧の基準。
+%% pairings: 1on1 の mentor–mentee。ミーティング作成・メンター閲覧の基準
 users ||--o{ pairings: "Mentor"
 users ||--o{ pairings: "Mentee"
 
 %% ミーティング系
-%% ステータス done 以外では他ユーザから見られないようにする
+%% status が done 以外では他ユーザから見られないようにする
 meetings {
     datetime implemented_at "nullable。ミーティング実施日"
     smallint status "not null, pending|draft|done"
@@ -65,7 +70,7 @@ meetings {
     bigint pairing_id FK
 }
 templates ||--o{ meetings: "ミーティングにはテンプレートの指定が必須"
-pairings ||--o{ meetings: "ミーティング参加ユーザはペア指定（閲覧権限とは別管理）"
+pairings ||--o{ meetings: "参加ペア"
 
 templates {
     text title UK
@@ -112,7 +117,7 @@ answer_comments {
 answers ||--o{ answer_comments: ""
 users ||--o{ answer_comments: ""
 
-%% user_relationships: 上司-部下の組織関係を管理。pairings とは役割が異なる（mentor-mentee は pairings で管理）。
+%% user_relationships: 上司–部下。pairings（mentor–mentee）とは役割を分離
 user_relationships {
     smallint relation_type "not null, boss|subordinate"
 
@@ -120,7 +125,7 @@ user_relationships {
     bigint target_user_id FK
 }
 %% Source側からTargetを見た場合のリレーションを記述
-%% 例: RelationType=Boss, source_user_id=SubordinateID, target_user_id=BossID
+%% 例: relation_type=subordinate, source=部下ID, target=上司ID
 users ||--o{ user_relationships: "source_user_id"
 users ||--o{ user_relationships: "target_user_id"
 
@@ -137,8 +142,8 @@ department_hierarchies {
     bigint parent_department_id FK
     bigint child_department_id FK
 }
-departments ||--o{ epartment_hierarchies: "parent_department_id"
-departments ||--o{ epartment_hierarchies: "child_department_id"
+departments ||--o{ department_hierarchies: "parent_department_id"
+departments ||--o{ department_hierarchies: "child_department_id"
 
 department_roles {
     text name "ロール名。表示上利用するのみのため自由入力"
@@ -147,7 +152,7 @@ department_roles {
     bigint department_id FK
 }
 users ||--o{ department_roles: "役職名"
-departments ||o{ department_roles: "部署ID"
+departments ||--o{ department_roles: "部署ID"
 
 user_reference_users {
     bigint user_id FK
@@ -169,5 +174,10 @@ user_reference_departments {
 }
 users ||--o{ user_reference_departments: ""
 users ||--o{ user_reference_departments: "参照可能部署ID"
-
 ```
+
+%% authority 閲覧範囲（列コメント補足）
+%% - general: 自分がメンティのミーティング
+%% - メンター閲覧: pairings.mentor_id
+%% - boss: user_relationships で部下のミーティング
+%% - owner: 全件
