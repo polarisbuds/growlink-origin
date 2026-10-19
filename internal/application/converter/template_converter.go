@@ -19,9 +19,11 @@ func TemplateInputToEntity(in inputmodel.TemplateInput) *entity.Template {
 
 func TemplateEntityToOutput(e entity.Template) outputmodel.TemplateOutput {
 	return outputmodel.TemplateOutput{
-		ID:     e.ID,
-		Title:  e.Title,
-		Topics: TopicEntitiesToOutputs(e.Topics),
+		ID:        e.ID,
+		Title:     e.Title,
+		DisplayNo: e.DisplayNo,
+		IsSample:  e.IsSample,
+		Topics:    TopicEntitiesToOutputs(e.Topics),
 	}
 }
 

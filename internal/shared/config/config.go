@@ -203,10 +203,16 @@ func GetPepper() string {
 func GetLogDir() string {
 	_log := os.Getenv(LOG_PATH)
 	if _log == "" {
-		slog.Error("configuration error", "key", LOG_PATH)
-		os.Exit(1)
+		return "logs"
 	}
 	return _log
+}
+
+func GetUploadDir() string {
+	if v := os.Getenv("UPLOAD_DIR"); v != "" {
+		return v
+	}
+	return "uploads"
 }
 
 func GetCognitoURI() string {

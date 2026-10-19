@@ -12,4 +12,5 @@ type TemplateRepository interface {
 	Create(input *entity.Template) error
 	Update(templateID uint, newTemplate *entity.Template) error
 	Delete(templateID uint) error
+	UpdateDisplayNo(templateID uint, displayNo int) error
 }

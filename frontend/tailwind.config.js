@@ -1,6 +1,5 @@
 /** @type {import('tailwindcss').Config} */
 export default {
-    // HTMLとJSファイルをスキャン対象にする
     content: [
         "../static/js/**/*.js",
         "../templates/**/*.html",
@@ -8,39 +7,84 @@ export default {
     ],
     theme: {
         extend: {
-            theme: {
-                extend: {
-                    colors: {
-                        ink: "#14213D",
-                        navy: {
-                            900: "#14213D",
-                            800: "#243554",
-                            700: "#334A70",
-                            600: "#476084",
-                            500: "#62789A",
-                        },
-                        accent: {
-                            DEFAULT: "#7A1F32",
-                            bright: "#9B4053",
-                            deep: "#651929",
-                        },
-                        sev: { hi: "#C2415A", md: "#B7791F", lo: "#248A69" },
-                    },
-                    fontFamily: {
-                        display: [
-                            '"Space Grotesk"',
-                            '"Noto Sans JP"',
-                            "sans-serif",
-                        ],
-                        sans: ["Inter", '"Noto Sans JP"', "sans-serif"],
-                    },
-                },
+            fontFamily: {
+                display: ['"Space Grotesk"', '"Noto Sans JP"', "sans-serif"],
+                sans: ["Inter", '"Noto Sans JP"', "sans-serif"],
             },
         },
     },
     plugins: [require("daisyui")],
-    // daisyUIの設定（任意）
     daisyui: {
-        themes: ["light", "dark", "cupcake", "coffee", "emerald", "abyss"],
+        themes: [
+            {
+                growlink: {
+                    "color-scheme": "light",
+                    primary: "#1A4F86",
+                    secondary: "#2BB8B0",
+                    accent: "#F4C430",
+                    neutral: "#0E3A66",
+                    "base-100": "#ffffff",
+                    "base-200": "#f3f6f9",
+                    "base-300": "#dce6ef",
+                    "base-content": "#16324d",
+                    info: "#3abff8",
+                    success: "#36d399",
+                    warning: "#fbbd23",
+                    error: "#f87272",
+                },
+            },
+            {
+                wine: {
+                    "color-scheme": "light",
+                    primary: "#881337",
+                    secondary: "#9f1239",
+                    accent: "#be123c",
+                    neutral: "#4c0519",
+                    "base-100": "#ffffff",
+                    "base-200": "#f8f4f5",
+                    "base-300": "#eadfe2",
+                    "base-content": "#1f1316",
+                    info: "#3abff8",
+                    success: "#36d399",
+                    warning: "#fbbd23",
+                    error: "#f87272",
+                },
+            },
+            "light",
+            "dark",
+            "cupcake",
+            "bumblebee",
+            "emerald",
+            "corporate",
+            "synthwave",
+            "retro",
+            "cyberpunk",
+            "valentine",
+            "halloween",
+            "garden",
+            "forest",
+            "aqua",
+            "lofi",
+            "pastel",
+            "fantasy",
+            "wireframe",
+            "black",
+            "luxury",
+            "dracula",
+            "cmyk",
+            "autumn",
+            "business",
+            "acid",
+            "lemonade",
+            "night",
+            "coffee",
+            "winter",
+            "dim",
+            "nord",
+            "sunset",
+            "caramellatte",
+            "abyss",
+            "silk",
+        ],
     },
 };

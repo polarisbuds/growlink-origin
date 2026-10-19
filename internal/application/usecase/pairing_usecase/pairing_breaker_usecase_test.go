@@ -95,8 +95,12 @@ func TestPairingBreakerUsecase_PairingCreator(t *testing.T) {
 				tt.setup(t, pairingRepo, cap)
 			}
 
-			gotErr := uc.PairingCreator(tt.menteeID)
-			assertUsecaseErr(t, gotErr, tt.wantErr, tt.errContains, "PairingCreator")
+			got := uc.BreakPair(tt.menteeID)
+			if tt.wantErr {
+				assert.False(t, got)
+			} else {
+				assert.True(t, got)
+			}
 			if t.Failed() {
 				return
 			}

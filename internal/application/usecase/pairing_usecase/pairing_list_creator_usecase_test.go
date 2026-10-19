@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"growlink/internal/application/usecase/pairing_usecase"
+	outputmodel "growlink/internal/application/model/output_model"
 	"growlink/internal/domain/entity"
 	repomock "growlink/internal/domain/interface/repository/mock"
 
@@ -13,7 +14,7 @@ import (
 )
 
 type pairingListCreatorSetupFn func(t *testing.T, pairing *repomock.MockPairingRepository)
-type pairingListCreatorAssertFn func(t *testing.T, got []entity.User)
+type pairingListCreatorAssertFn func(t *testing.T, got []outputmodel.UserOutput)
 
 func newPairingListCreatorUsecase(t *testing.T) (
 	*pairing_usecase.PairingListCreatorUsecase,
@@ -49,7 +50,7 @@ func TestPairingListCreatorUsecase_CreatePairList(t *testing.T) {
 			setup: func(_ *testing.T, pairing *repomock.MockPairingRepository) {
 				pairing.EXPECT().GetByMentorID(validMentorID).Return([]entity.Pairing{*pairingA, *pairingB}, nil)
 			},
-			assertFn: func(t *testing.T, got []entity.User) {
+			assertFn: func(t *testing.T, got []outputmodel.UserOutput) {
 				t.Helper()
 				require.Len(t, got, 2)
 				assert.Equal(t, menteeA.ID, got[0].ID)
@@ -65,7 +66,7 @@ func TestPairingListCreatorUsecase_CreatePairList(t *testing.T) {
 			setup: func(_ *testing.T, pairing *repomock.MockPairingRepository) {
 				pairing.EXPECT().GetByMentorID(validMentorID).Return([]entity.Pairing{}, nil)
 			},
-			assertFn: func(t *testing.T, got []entity.User) {
+			assertFn: func(t *testing.T, got []outputmodel.UserOutput) {
 				t.Helper()
 				assert.Empty(t, got)
 			},
@@ -78,7 +79,7 @@ func TestPairingListCreatorUsecase_CreatePairList(t *testing.T) {
 			setup: func(_ *testing.T, pairing *repomock.MockPairingRepository) {
 				pairing.EXPECT().GetByMentorID(validMentorID).Return(nil, errGetPairingFailed)
 			},
-			assertFn: func(t *testing.T, got []entity.User) {
+			assertFn: func(t *testing.T, got []outputmodel.UserOutput) {
 				t.Helper()
 				assert.Nil(t, got)
 			},

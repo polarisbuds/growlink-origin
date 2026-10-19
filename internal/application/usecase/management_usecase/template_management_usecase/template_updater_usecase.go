@@ -19,6 +19,13 @@ func NewTemplateUpdater(templateRepo repository_interface.TemplateRepository, to
 	}
 }
 
+func (uc *TemplateUpdater) UpdateDisplayNo(templateID uint, displayNo int) error {
+	if err := uc.templateRepo.UpdateDisplayNo(templateID, displayNo); err != nil {
+		return fmt.Errorf("テンプレートの並び順更新に失敗しました: %w", err)
+	}
+	return nil
+}
+
 func (uc *TemplateUpdater) UpdateTemplate(templateID uint, input inputmodel.TemplateInput) error {
 	newTemplate := converter.TemplateInputToEntity(input)
 	if err := uc.templateRepo.Update(templateID, newTemplate); err != nil {

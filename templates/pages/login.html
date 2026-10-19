@@ -1,0 +1,49 @@
+{{define "login.html"}}
+<!DOCTYPE html>
+<html lang="ja" data-theme="growlink">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script>document.documentElement.setAttribute("data-theme", localStorage.getItem("growlink-theme") || "growlink");</script>
+<title>ログイン | Growlink</title>
+<link href="/static/css/output.css" rel="stylesheet">
+<script type="module" src="/static/js/store.js"></script>
+<script defer src="/static/vendor/alpine.min.js"></script>
+</head>
+<body class="min-h-screen bg-base-200 flex items-center justify-center p-4" x-data="loginForm()" x-cloak>
+<div class="w-full max-w-md rounded-3xl border border-base-300 bg-base-100 p-8 shadow-sm">
+  <h1 class="font-display text-2xl font-semibold text-center">Growlink</h1>
+  <p class="mt-2 text-center text-sm text-base-content/60">1on1 ミーティング</p>
+  <form class="mt-8 space-y-4" @submit.prevent="submit">
+    <label class="form-control"><span class="label-text">メール</span><input type="email" class="input input-bordered w-full" x-model="email" required /></label>
+    <label class="form-control"><span class="label-text">パスワード</span><input type="password" class="input input-bordered w-full" x-model="password" required /></label>
+    <label class="form-control"><span class="label-text">認証方式</span>
+      <select class="select select-bordered w-full" x-model="method">
+        <option value="ldap">LDAP</option>
+        <option value="basic">Basic（管理者）</option>
+      </select>
+    </label>
+    <p class="text-sm text-error" x-show="error" x-text="error"></p>
+    <button type="submit" class="btn btn-primary w-full">ログイン</button>
+  </form>
+</div>
+<script>
+function loginForm() {
+  return {
+    email: '', password: '', method: 'ldap', error: '',
+    async submit() {
+      this.error = '';
+      const res = await fetch('/api/v1/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: this.email, password: this.password, method: this.method }),
+      });
+      if (!res.ok) { this.error = 'ログインに失敗しました'; return; }
+      location.href = '/';
+    },
+  };
+}
+</script>
+</body>
+</html>
+{{end}}

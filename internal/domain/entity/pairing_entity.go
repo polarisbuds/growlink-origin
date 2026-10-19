@@ -13,8 +13,12 @@ type Pairing struct {
 	MentorID uint `gorm:"not null;index"`
 	MenteeID uint `gorm:"not null;index"`
 
+	RecurWeek    *int `gorm:"type:int"`
+	RecurWeekday *int `gorm:"type:int"`
+
 	Mentor *User `gorm:"foreignKey:MentorID"`
 	Mentee *User `gorm:"foreignKey:MenteeID"`
 
-	Meetings []Meeting `gorm:"foreignKey:PairingID"`
+	Meetings []Meeting        `gorm:"foreignKey:PairingID"`
+	Sharers  []PairingSharer  `gorm:"foreignKey:PairingID"`
 }

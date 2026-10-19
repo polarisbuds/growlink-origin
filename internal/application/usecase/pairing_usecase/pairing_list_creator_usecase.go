@@ -2,7 +2,9 @@ package pairing_usecase
 
 import (
 	"fmt"
-	"growlink/internal/domain/entity"
+
+	"growlink/internal/application/converter"
+	outputmodel "growlink/internal/application/model/output_model"
 	repository_interface "growlink/internal/domain/interface/repository"
 )
 
@@ -18,16 +20,17 @@ func NewPairingListCreatorUsecase(pairingRepo repository_interface.PairingReposi
 	}
 }
 
-func (uc *PairingListCreatorUsecase) CreatePairList(mentorID uint) (menteeList []entity.User, err error) {
+func (uc *PairingListCreatorUsecase) CreatePairList(mentorID uint) (menteeList []outputmodel.UserOutput, err error) {
 	pairings, err := uc.pairingRepo.GetByMentorID(mentorID)
 	if err != nil {
 		return nil, fmt.Errorf("ペアリストの作成に失敗しました: %w", err)
 	}
 
-	menties := []entity.User{}
+	menties := []outputmodel.UserOutput{}
 	for _, pairing := range pairings {
-		menties = append(menties, *pairing.Mentee)
+		if pairing.Mentee != nil {
+			menties = append(menties, converter.UserEntityToOutput(*pairing.Mentee))
+		}
 	}
-
 	return menties, nil
 }

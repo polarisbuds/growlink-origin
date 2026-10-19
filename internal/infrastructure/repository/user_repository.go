@@ -28,6 +28,27 @@ func NewUserRepository(ctx context.Context, dp *gorm.DB) *UserRepository {
 	}
 }
 
+func (repo *UserRepository) GetByEmail(email string) (*entity.User, error) {
+	user, err := repo.baseRepository.First("id ASC", "email = ?", email)
+	if err != nil {
+		return nil, err
+	}
+	if user == nil {
+		return nil, gorm.ErrRecordNotFound
+	}
+	return user, nil
+}
+
+func (repo *UserRepository) Create(user *entity.User) error {
+	if user == nil {
+		return fmt.Errorf("作成対象のユーザが空です")
+	}
+	if err := repo.baseRepository.dp.WithContext(repo.ctx).Create(user).Error; err != nil {
+		return fmt.Errorf("ユーザの作成に失敗しました: %w", err)
+	}
+	return nil
+}
+
 func (repo *UserRepository) GetByID(id uint) (*entity.User, error) {
 	user, err := repo.baseRepository.First("id ASC", "id = ?", id)
 	if err != nil {

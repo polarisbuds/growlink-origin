@@ -22,6 +22,7 @@ func MeetingInputToEntity(in inputmodel.MeetingInput) *entity.Meeting {
 func MeetingEntityToOutput(e entity.Meeting) outputmodel.MeetingOutput {
 	out := outputmodel.MeetingOutput{
 		ID:     e.ID,
+		UUID:   e.UUID.String(),
 		Status: e.Status,
 	}
 	if e.ImplementedAt != nil {

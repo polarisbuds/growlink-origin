@@ -14,12 +14,19 @@ func PairingInputToEntity(in inputmodel.PairingInput) *entity.Pairing {
 }
 
 func PairingEntityToOutput(e entity.Pairing) outputmodel.PairingOutput {
-	out := outputmodel.PairingOutput{ID: e.ID}
+	out := outputmodel.PairingOutput{
+		ID:           e.ID,
+		RecurWeek:    e.RecurWeek,
+		RecurWeekday: e.RecurWeekday,
+	}
 	if e.Mentor != nil {
 		out.Mentor = UserEntityToOutput(*e.Mentor)
 	}
 	if e.Mentee != nil {
 		out.Mentee = UserEntityToOutput(*e.Mentee)
+	}
+	for _, s := range e.Sharers {
+		out.SharerUserIDs = append(out.SharerUserIDs, s.UserID)
 	}
 	return out
 }

@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"growlink/internal/application/usecase/meeting_usecase"
+	outputmodel "growlink/internal/application/model/output_model"
 	"growlink/internal/domain/entity"
 	repomock "growlink/internal/domain/interface/repository/mock"
 
@@ -13,7 +14,7 @@ import (
 )
 
 type answerReaderSetupFn func(t *testing.T, answer *repomock.MockAnswerRepository)
-type answerReaderAssertFn func(t *testing.T, got *entity.Answer, gotList []entity.Answer)
+type answerReaderAssertFn func(t *testing.T, got *outputmodel.AnswerOutput, gotList []outputmodel.AnswerOutput)
 
 func newAnswerReaderUsecase(t *testing.T) (
 	*meeting_usecase.AnswerReaderUsecase,
@@ -41,7 +42,7 @@ func TestAnswerReaderUsecase_GetAnswer(t *testing.T) {
 			setup: func(_ *testing.T, answer *repomock.MockAnswerRepository) {
 				answer.EXPECT().GetByID(validAnswerID).Return(newTestAnswer(validAnswerID, validMeetingID, "answer"), nil)
 			},
-			assertFn: func(t *testing.T, got *entity.Answer, _ []entity.Answer) {
+			assertFn: func(t *testing.T, got *outputmodel.AnswerOutput, _ []outputmodel.AnswerOutput) {
 				t.Helper()
 				require.NotNil(t, got)
 				assert.Equal(t, validAnswerID, got.ID)
@@ -95,7 +96,7 @@ func TestAnswerReaderUsecase_ListAnswersByMeeting(t *testing.T) {
 				}
 				answer.EXPECT().GetByMeetingID(validMeetingID).Return(answers, nil)
 			},
-			assertFn: func(t *testing.T, _ *entity.Answer, gotList []entity.Answer) {
+			assertFn: func(t *testing.T, _ *outputmodel.AnswerOutput, gotList []outputmodel.AnswerOutput) {
 				t.Helper()
 				require.Len(t, gotList, 2)
 				assert.Equal(t, "a1", gotList[0].Content)

@@ -2,7 +2,9 @@ package meeting_usecase
 
 import (
 	"fmt"
-	"growlink/internal/domain/entity"
+
+	"growlink/internal/application/converter"
+	outputmodel "growlink/internal/application/model/output_model"
 	repository_interface "growlink/internal/domain/interface/repository"
 	"growlink/internal/domain/valueobject"
 )
@@ -19,8 +21,8 @@ func NewSubmitterUsecase(meetingRepo repository_interface.MeetingRepository, ans
 	}
 }
 
-func (uc *SubmitterUsecase) Submit(meetingID uint, answers []entity.Answer) error {
-	if _, err := uc.answerRepo.Submits(answers); err != nil {
+func (uc *SubmitterUsecase) Submit(meetingID uint, answers []outputmodel.AnswerOutput) error {
+	if _, err := uc.answerRepo.Submits(converter.AnswerOutputsToEntities(answers)); err != nil {
 		return fmt.Errorf("回答の投稿に失敗しました: %w", err)
 	}
 

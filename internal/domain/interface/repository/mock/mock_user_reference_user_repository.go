@@ -232,3 +232,42 @@ func (c *MockUserReferenceUserRepositoryGetByUserIDCall) DoAndReturn(f func(uint
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
+
+// IsReferable mocks base method.
+func (m *MockUserReferenceUserRepository) IsReferable(userID, referableUserID uint) (bool, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "IsReferable", userID, referableUserID)
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// IsReferable indicates an expected call of IsReferable.
+func (mr *MockUserReferenceUserRepositoryMockRecorder) IsReferable(userID, referableUserID any) *MockUserReferenceUserRepositoryIsReferableCall {
+	mr.mock.ctrl.T.Helper()
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsReferable", reflect.TypeOf((*MockUserReferenceUserRepository)(nil).IsReferable), userID, referableUserID)
+	return &MockUserReferenceUserRepositoryIsReferableCall{Call: call}
+}
+
+// MockUserReferenceUserRepositoryIsReferableCall wrap *gomock.Call
+type MockUserReferenceUserRepositoryIsReferableCall struct {
+	*gomock.Call
+}
+
+// Return rewrite *gomock.Call.Return
+func (c *MockUserReferenceUserRepositoryIsReferableCall) Return(isReferable bool, err error) *MockUserReferenceUserRepositoryIsReferableCall {
+	c.Call = c.Call.Return(isReferable, err)
+	return c
+}
+
+// Do rewrite *gomock.Call.Do
+func (c *MockUserReferenceUserRepositoryIsReferableCall) Do(f func(uint, uint) (bool, error)) *MockUserReferenceUserRepositoryIsReferableCall {
+	c.Call = c.Call.Do(f)
+	return c
+}
+
+// DoAndReturn rewrite *gomock.Call.DoAndReturn
+func (c *MockUserReferenceUserRepositoryIsReferableCall) DoAndReturn(f func(uint, uint) (bool, error)) *MockUserReferenceUserRepositoryIsReferableCall {
+	c.Call = c.Call.DoAndReturn(f)
+	return c
+}

@@ -231,3 +231,11 @@ func (c *MockTemplateRepositoryUpdateCall) DoAndReturn(f func(uint, *entity.Temp
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
+
+// UpdateDisplayNo mocks base method.
+func (m *MockTemplateRepository) UpdateDisplayNo(templateID uint, displayNo int) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateDisplayNo", templateID, displayNo)
+	ret0, _ := ret[0].(error)
+	return ret0
+}

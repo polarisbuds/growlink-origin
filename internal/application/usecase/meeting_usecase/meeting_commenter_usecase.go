@@ -24,10 +24,12 @@ func (uc *MeetingCommenterUsecase) GetComment(commentID uint) (*entity.MeetingCo
 	return comment, nil
 }
 
-func (uc *MeetingCommenterUsecase) PostComment(meetingID uint, content string) error {
+func (uc *MeetingCommenterUsecase) PostComment(meetingID, userID uint, content string, isLimited bool) error {
 	if err := uc.meetingCommentRepo.PostComment(&entity.MeetingComment{
 		MeetingID: meetingID,
+		UserID:    userID,
 		Content:   content,
+		IsLimited: isLimited,
 	}); err != nil {
 		return fmt.Errorf("ミーティングへのコメントの作成に失敗しました: %w", err)
 	}

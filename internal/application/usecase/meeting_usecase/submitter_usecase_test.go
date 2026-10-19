@@ -3,6 +3,7 @@ package meeting_usecase_test
 import (
 	"testing"
 
+	"growlink/internal/application/converter"
 	"growlink/internal/application/usecase/meeting_usecase"
 	"growlink/internal/domain/entity"
 	repomock "growlink/internal/domain/interface/repository/mock"
@@ -51,7 +52,7 @@ func TestSubmitterUsecase_Submit(t *testing.T) {
 			answers:   answers,
 			wantErr:   false,
 			setup: func(_ *testing.T, meeting *repomock.MockMeetingRepository, answer *repomock.MockAnswerRepository, cap *submitterCaptures) {
-				answer.EXPECT().Submits(answers).DoAndReturn(func(submitted []entity.Answer) ([]entity.Answer, error) {
+				answer.EXPECT().Submits(gomock.Any()).DoAndReturn(func(submitted []entity.Answer) ([]entity.Answer, error) {
 					cap.submittedAnswers = submitted
 					return submitted, nil
 				})
@@ -65,7 +66,8 @@ func TestSubmitterUsecase_Submit(t *testing.T) {
 			},
 			assertFn: func(t *testing.T, cap *submitterCaptures) {
 				t.Helper()
-				assert.Equal(t, answers, cap.submittedAnswers)
+				assert.Len(t, cap.submittedAnswers, 1)
+				assert.Equal(t, answers[0].Content, cap.submittedAnswers[0].Content)
 				assert.Equal(t, validMeetingID, cap.updatedMeetingID)
 				assert.Equal(t, valueobject.MeetingStatusDone, cap.updatedStatus)
 			},
@@ -77,7 +79,7 @@ func TestSubmitterUsecase_Submit(t *testing.T) {
 			wantErr:     true,
 			errContains: "回答の投稿に失敗しました",
 			setup: func(_ *testing.T, _ *repomock.MockMeetingRepository, answer *repomock.MockAnswerRepository, _ *submitterCaptures) {
-				answer.EXPECT().Submits(answers).Return(nil, errSubmitsFailed)
+				answer.EXPECT().Submits(gomock.Any()).Return(nil, errSubmitsFailed)
 			},
 		},
 		{
@@ -87,7 +89,7 @@ func TestSubmitterUsecase_Submit(t *testing.T) {
 			wantErr:     true,
 			errContains: "投稿完了へのステータス更新に失敗しました",
 			setup: func(_ *testing.T, meeting *repomock.MockMeetingRepository, answer *repomock.MockAnswerRepository, _ *submitterCaptures) {
-				answer.EXPECT().Submits(answers).Return(answers, nil)
+				answer.EXPECT().Submits(gomock.Any()).Return(answers, nil)
 				meeting.EXPECT().UpdateStatus(validMeetingID, valueobject.MeetingStatusDone).Return(errUpdateStatusFailed)
 			},
 		},
@@ -101,7 +103,7 @@ func TestSubmitterUsecase_Submit(t *testing.T) {
 				tt.setup(t, meetingRepo, answerRepo, cap)
 			}
 
-			err := uc.Submit(tt.meetingID, tt.answers)
+			err := uc.Submit(tt.meetingID, converter.AnswerEntitiesToOutputs(tt.answers))
 			assertUsecaseErr(t, err, tt.wantErr, tt.errContains, "Submit")
 			if !t.Failed() && tt.assertFn != nil {
 				tt.assertFn(t, cap)

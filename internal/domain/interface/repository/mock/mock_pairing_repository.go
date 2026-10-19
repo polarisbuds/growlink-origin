@@ -390,3 +390,11 @@ func (c *MockPairingRepositoryUpdatePairingCall) DoAndReturn(f func(uint, uint) 
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
+
+// ApplyPairingOptions mocks base method.
+func (m *MockPairingRepository) ApplyPairingOptions(pairingID uint, mentorID, menteeID uint, recurWeek, recurWeekday *int, sharerUserIDs []uint) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ApplyPairingOptions", pairingID, mentorID, menteeID, recurWeek, recurWeekday, sharerUserIDs)
+	ret0, _ := ret[0].(error)
+	return ret0
+}

@@ -7,6 +7,7 @@ import (
 
 type MeetingOutput struct {
 	ID            uint                      `json:"id"`
+	UUID          string                    `json:"uuid"`
 	ImplementedAt time.Time                 `json:"implementedAt"`
 	Status        valueobject.MeetingStatus `json:"status"`
 	Template      TemplateOutput            `json:"template"`

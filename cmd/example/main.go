@@ -91,8 +91,9 @@ func main() {
 	}
 	slog.Info("ADアカウント認証に成功しました", slog.Any("user", *user))
 
-	multiWriter := io.MultiWriter(os.Stdout, accessLogFile)
-	_ = handler.NewEcho(multiWriter)
+	accessLog := slog.New(slog.NewJSONHandler(io.MultiWriter(os.Stdout, accessLogFile), nil))
+	panicLog := slog.New(slog.NewJSONHandler(accessLogFile, nil))
+	_ = handler.NewEcho(accessLog, panicLog)
 
 	dsn := config.GetPostgresqlDSN()
 	fmt.Print("dsn: ", dsn)

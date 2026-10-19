@@ -11,6 +11,9 @@ type Template struct {
 	UUID  uuid.UUID `gorm:"type:uuid;not null;uniqueIndex;default:gen_random_uuid()"`
 	Title string    `gorm:"type:text;not null;uniqueIndex"`
 
+	DisplayNo int  `gorm:"not null;default:0;index"`
+	IsSample  bool `gorm:"not null;default:false"`
+
 	UserID uint `gorm:"not null;index"`
 
 	User *User `gorm:"foreignKey:UserID"`

@@ -1,7 +1,6 @@
 package pairing_usecase
 
 import (
-	"fmt"
 	repository_interface "growlink/internal/domain/interface/repository"
 )
 
@@ -17,15 +16,13 @@ func NewPairingBreakerUsecase(pairingRepo repository_interface.PairingRepository
 	}
 }
 
-func (uc *PairingBreakerUsecase) PairingCreator(menteeID uint) error {
+func (uc *PairingBreakerUsecase) BreakPair(menteeID uint) bool {
 	pairing, err := uc.pairingRepo.GetByMenteeID(menteeID)
 	if err != nil {
-		return fmt.Errorf("削除対象のペアリング情報の取得に失敗しました: %w", err)
+		return false
 	}
-
 	if err := uc.pairingRepo.BreakPairing(pairing.ID); err != nil {
-		return fmt.Errorf("ペアリングの削除に失敗しました: %w", err)
+		return false
 	}
-
-	return nil
+	return true
 }

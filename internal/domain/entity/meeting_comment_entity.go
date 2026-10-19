@@ -10,7 +10,8 @@ type MeetingComment struct {
 
 	UUID uuid.UUID `gorm:"type:uuid;not null;uniqueIndex;default:gen_random_uuid()"`
 
-	Content string `gorm:"type:text;not null"`
+	Content   string `gorm:"type:text;not null"`
+	IsLimited bool   `gorm:"not null;default:false"`
 
 	MeetingID uint `gorm:"not null;index"`
 	UserID    uint `gorm:"not null;index"`

@@ -9,21 +9,23 @@ import (
 )
 
 type PairingViewer struct {
-	departmentRepo   repository_interface.DepartmentRepository
+	userRepo         repository_interface.UserRepository
 	teamMemberRepo   repository_interface.TeamMemberRepository
 	relationshipRepo repository_interface.UserRelationshipRepository
 	pairingRepo      repository_interface.PairingRepository
 }
 
-func NewPairingViewer(departmentRepo repository_interface.DepartmentRepository,
+func NewPairingViewer(
+	userRepo repository_interface.UserRepository,
 	relationshipRepo repository_interface.UserRelationshipRepository,
 	pairingRepo repository_interface.PairingRepository,
-	teamMemberRepo repository_interface.TeamMemberRepository) *PairingViewer {
+	teamMemberRepo repository_interface.TeamMemberRepository,
+) *PairingViewer {
 	return &PairingViewer{
 		pairingRepo:      pairingRepo,
 		relationshipRepo: relationshipRepo,
 		teamMemberRepo:   teamMemberRepo,
-		departmentRepo:   departmentRepo,
+		userRepo:         userRepo,
 	}
 }
 
@@ -136,8 +138,36 @@ func (uc *PairingViewer) ListPairingsByTeam(teamID uint) ([]outputmodel.PairingO
 }
 
 func (uc *PairingViewer) ListPairingsByDepartment(departmentID uint) ([]outputmodel.PairingOutput, error) {
-	// TODO: DepartmentRepositoryの実装からスタート
-	// departments, err := uc.departmentRepo.
-	return nil, nil
-
+	users, err := uc.userRepo.GetByDepartmentID(departmentID)
+	if err != nil {
+		return nil, fmt.Errorf("部署所属ユーザの取得に失敗しました: %w", err)
+	}
+	var (
+		result = []outputmodel.PairingOutput{}
+		wg     = sync.WaitGroup{}
+		mux    = sync.Mutex{}
+	)
+	errCh := make(chan error, len(users))
+	for _, user := range users {
+		wg.Add(1)
+		go func(menteeID uint) {
+			defer wg.Done()
+			pairing, err := uc.pairingRepo.GetByMenteeID(menteeID)
+			if err != nil {
+				return
+			}
+			outputPairing := converter.PairingEntityToOutput(*pairing)
+			mux.Lock()
+			result = append(result, outputPairing)
+			mux.Unlock()
+		}(user.ID)
+	}
+	wg.Wait()
+	close(errCh)
+	for err := range errCh {
+		if err != nil {
+			return nil, err
+		}
+	}
+	return result, nil
 }

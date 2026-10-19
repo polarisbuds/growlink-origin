@@ -42,6 +42,7 @@ func AutoMigrate(db *gorm.DB) error {
 		&entity.Team{},
 		&entity.TeamMember{},
 		&entity.Pairing{},
+		&entity.PairingSharer{},
 		&entity.Meeting{},
 		&entity.Template{},
 		&entity.Topic{},

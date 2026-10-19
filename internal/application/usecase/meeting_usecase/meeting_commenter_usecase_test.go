@@ -133,7 +133,7 @@ func TestMeetingCommenterUsecase_PostComment(t *testing.T) {
 				tt.setup(t, commentRepo, cap)
 			}
 
-			err := uc.PostComment(tt.meetingID, tt.content)
+			err := uc.PostComment(tt.meetingID, 1, tt.content, false)
 			assertUsecaseErr(t, err, tt.wantErr, tt.errContains, "PostComment")
 			if !t.Failed() && tt.assertFn != nil {
 				tt.assertFn(t, cap)
