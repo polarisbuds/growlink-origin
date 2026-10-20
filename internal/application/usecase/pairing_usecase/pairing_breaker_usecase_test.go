@@ -55,6 +55,18 @@ func TestPairingBreakerUsecase_PairingCreator(t *testing.T) {
 			},
 		},
 		{
+			name:     "通常系_ペアリング未存在",
+			menteeID: validMenteeID,
+			wantErr:  true,
+			setup: func(_ *testing.T, pairing *repomock.MockPairingRepository, _ *pairingBreakerCaptures) {
+				pairing.EXPECT().GetByMenteeID(validMenteeID).Return(nil, nil)
+			},
+			assertFn: func(t *testing.T, cap *pairingBreakerCaptures) {
+				t.Helper()
+				assert.Equal(t, uint(0), cap.breakPairingID)
+			},
+		},
+		{
 			name:        "異常系_取得失敗",
 			menteeID:    validMenteeID,
 			wantErr:     true,

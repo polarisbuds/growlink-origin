@@ -1,16 +1,17 @@
 {{define "head"}}
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<script>document.documentElement.setAttribute("data-theme", localStorage.getItem("growlink-theme") || "growlink");</script>
-<title>{{if .Title}}{{.Title}}{{else}}Growlink{{end}}</title>
-<link href="/static/css/output.css" rel="stylesheet">
-<link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.14/dist/full.min.css" rel="stylesheet" />
-<script src="https://cdn.tailwindcss.com"></script>
-<script src="/static/vendor/lucide.min.js"></script>
-<script type="module" src="/static/js/store.js"></script>
-{{if .PageScript}}<script type="module" src="{{.PageScript}}"></script>{{end}}
-<script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/persist@3.14.1/dist/cdn.min.js"></script>
-<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.1/dist/cdn.min.js"></script>
-<script type="module" src="/static/js/lucide-boot.js"></script>
-<style>[x-cloak]{display:none!important}</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <script>document.documentElement.setAttribute("data-theme", localStorage.getItem("growlink-theme") || "growlink");</script>
+    <title>{{if .Title}}{{.Title}}{{else}}GROWLINK{{end}}</title>
+    <link href="/static/css/output.css" rel="stylesheet">
+    <script src="/static/vendor/lucide.min.js"></script>
+    <script type="module" src="/static/js/store.js"></script>
+    <script type="module" src="/static/js/notice.js"></script>
+    <script type="module" src="/static/js/lucide-boot.js"></script>
+    {{if .PageScript}}
+        <script type="module" src="{{.PageScript}}"></script>
+    {{end}}
+    <script defer src="/static/vendor/alpine.min.js"></script>
+    <script src="/static/vendor/alpine.persist.min.js"></script>
+    <style>[x-cloak]{display:none!important}</style>
 {{end}}

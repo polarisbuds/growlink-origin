@@ -2,6 +2,7 @@ package infrastructure
 
 import (
 	"growlink/internal/domain/entity"
+	"growlink/internal/shared/config"
 	"time"
 
 	"gorm.io/driver/postgres"
@@ -27,6 +28,12 @@ func NewPostgresqlDB(dsn string) (*gorm.DB, error) {
 
 	if err := AutoMigrate(db); err != nil {
 		return nil, err
+	}
+
+	if config.IsDevelop() {
+		if err := genSeed(db); err != nil {
+			return nil, err
+		}
 	}
 
 	return db, nil

@@ -77,6 +77,9 @@ func (uc *PairingViewer) ListPairingsByBoss(bossID uint) ([]outputmodel.PairingO
 				errCh <- fmt.Errorf("部下ユーザID（メンティーユーザID）でのペアリング情報取得に失敗しました: %w", err)
 				return
 			}
+			if pairing == nil {
+				return
+			}
 			outputPairing := converter.PairingEntityToOutput(*pairing)
 			mux.Lock()
 			result = append(result, outputPairing)
@@ -118,6 +121,9 @@ func (uc *PairingViewer) ListPairingsByTeam(teamID uint) ([]outputmodel.PairingO
 				ec <- fmt.Errorf("メンバーID指定でのペアリング情報の取得に失敗しました: %w", err)
 				return
 			}
+			if pairing == nil {
+				return
+			}
 
 			outputPairing := converter.PairingEntityToOutput(*pairing)
 			mux.Lock()
@@ -154,6 +160,9 @@ func (uc *PairingViewer) ListPairingsByDepartment(departmentID uint) ([]outputmo
 			defer wg.Done()
 			pairing, err := uc.pairingRepo.GetByMenteeID(menteeID)
 			if err != nil {
+				return
+			}
+			if pairing == nil {
 				return
 			}
 			outputPairing := converter.PairingEntityToOutput(*pairing)

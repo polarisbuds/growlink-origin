@@ -21,6 +21,9 @@ func (uc *AnswerCommenterUsecase) GetComment(commentID uint) (*entity.AnswerComm
 	if err != nil {
 		return nil, fmt.Errorf("回答へのコメントの取得に失敗しました: %w", err)
 	}
+	if comment == nil {
+		return nil, fmt.Errorf("回答へのコメントの取得に失敗しました: 指定されたコメントが存在しません")
+	}
 	return comment, nil
 }
 

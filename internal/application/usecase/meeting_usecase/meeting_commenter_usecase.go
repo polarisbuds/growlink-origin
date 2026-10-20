@@ -21,6 +21,9 @@ func (uc *MeetingCommenterUsecase) GetComment(commentID uint) (*entity.MeetingCo
 	if err != nil {
 		return nil, fmt.Errorf("ミーティングへのコメントの取得に失敗しました: %w", err)
 	}
+	if comment == nil {
+		return nil, fmt.Errorf("ミーティングへのコメントの取得に失敗しました: 指定されたコメントが存在しません")
+	}
 	return comment, nil
 }
 

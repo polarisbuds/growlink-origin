@@ -64,6 +64,15 @@ func TestMeetingCommenterUsecase_GetComment(t *testing.T) {
 				comment.EXPECT().GetComment(validCommentID).Return(nil, errGetCommentFailed)
 			},
 		},
+		{
+			name:        "異常系_コメント未存在",
+			commentID:   validCommentID,
+			wantErr:     true,
+			errContains: "指定されたコメントが存在しません",
+			setup: func(_ *testing.T, comment *repomock.MockMeetingCommentRepository, _ *meetingCommenterCaptures) {
+				comment.EXPECT().GetComment(validCommentID).Return(nil, nil)
+			},
+		},
 	}
 
 	for _, tt := range tests {

@@ -34,6 +34,9 @@ func (repo *UserRelationshipRepository) Get(relationshipID uint) (*entity.UserRe
 	if err != nil {
 		return nil, fmt.Errorf("リレーションタイプ指定でのユーザ間関係性のチェイン作成に失敗しました: %w", err)
 	}
+	if relationshipWhereChain == nil {
+		return nil, fmt.Errorf("ID指定でのユーザ間関係性の取得に失敗しました: %w", gorm.ErrRecordNotFound)
+	}
 	relationship, err := relationshipWhereChain.Preload("SourceUser", nil).Preload("TargetUser", nil).First(repo.ctx)
 	if err != nil {
 		return nil, fmt.Errorf("ID指定でのユーザ間関係性の取得に失敗しました: %w", err)
@@ -45,6 +48,9 @@ func (repo *UserRelationshipRepository) GetByRelationType(relationshipType value
 	relationshipWhereChain, err := repo.baseRepository.WhereChain("id ASC", "relation_type = ?", relationshipType)
 	if err != nil {
 		return nil, fmt.Errorf("リレーションタイプ指定でのユーザ間関係性のチェイン作成に失敗しました: %w", err)
+	}
+	if relationshipWhereChain == nil {
+		return []entity.UserRelationship{}, nil
 	}
 	relationships, err := relationshipWhereChain.Preload("SourceUser", nil).Preload("TargetUser", nil).Find(repo.ctx)
 	if err != nil {
@@ -58,6 +64,9 @@ func (repo *UserRelationshipRepository) GetByBossID(bossID uint) (subordinates [
 	if err != nil {
 		return nil, fmt.Errorf("上司ユーザID指定でのユーザ間関係性のチェイン作成に失敗しました: %w", err)
 	}
+	if relationshipWhereChain == nil {
+		return []entity.UserRelationship{}, nil
+	}
 	relationships, err := relationshipWhereChain.Preload("SourceUser", nil).Preload("TargetUser", nil).Find(repo.ctx)
 	if err != nil {
 		return nil, fmt.Errorf("上司ユーザID指定でのユーザ間関係性の取得に失敗しました: %w", err)
@@ -69,6 +78,9 @@ func (repo *UserRelationshipRepository) GetBySubordinateID(subordinateID uint) (
 	relationshipWhereChain, err := repo.baseRepository.WhereChain("id ASC", "relation_type = ? AND target_id = ?", valueobject.RelationshipTypeSubordinate, subordinateID)
 	if err != nil {
 		return nil, fmt.Errorf("部下ユーザID指定でのユーザ間関係性のチェイン作成に失敗しました: %w", err)
+	}
+	if relationshipWhereChain == nil {
+		return []entity.UserRelationship{}, nil
 	}
 	relationships, err := relationshipWhereChain.Preload("SourceUser", nil).Preload("TargetUser", nil).Find(repo.ctx)
 	if err != nil {

@@ -117,6 +117,17 @@ func TestPairingRepository_GetByMentorID(t *testing.T) {
 	assert.Equal(t, mentee2.ID, got[1].Mentee.ID)
 }
 
+func TestPairingRepository_GetByMentorID_NotFound(t *testing.T) {
+	tx := testutils.Begin(t)
+	repo := newPairingRepo(t, tx)
+
+	mentor := fixtures.User(t, tx, "mentor-no-pairings")
+
+	got, err := repo.GetByMentorID(mentor.ID)
+	assertions.NoError(t, err)
+	assert.Empty(t, got)
+}
+
 func TestPairingRepository_BreakPairing(t *testing.T) {
 	tx := testutils.Begin(t)
 	repo := newPairingRepo(t, tx)

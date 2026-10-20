@@ -58,6 +58,15 @@ func TestAnswerReaderUsecase_GetAnswer(t *testing.T) {
 				answer.EXPECT().GetByID(validAnswerID).Return(nil, errGetAnswerFailed)
 			},
 		},
+		{
+			name:        "異常系_回答未存在",
+			answerID:    validAnswerID,
+			wantErr:     true,
+			errContains: "指定された回答が存在しません",
+			setup: func(_ *testing.T, answer *repomock.MockAnswerRepository) {
+				answer.EXPECT().GetByID(validAnswerID).Return(nil, nil)
+			},
+		},
 	}
 
 	for _, tt := range tests {

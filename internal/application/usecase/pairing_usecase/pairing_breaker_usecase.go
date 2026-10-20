@@ -21,6 +21,9 @@ func (uc *PairingBreakerUsecase) BreakPair(menteeID uint) bool {
 	if err != nil {
 		return false
 	}
+	if pairing == nil {
+		return false
+	}
 	if err := uc.pairingRepo.BreakPairing(pairing.ID); err != nil {
 		return false
 	}

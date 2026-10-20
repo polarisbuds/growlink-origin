@@ -102,6 +102,9 @@ func (repo *PairingRepository) GetByMentorID(mentorID uint) ([]entity.Pairing, e
 	if err != nil {
 		return nil, fmt.Errorf("メンターID指定でのペアリング取得用のチェイン作成に失敗しました: %w", err)
 	}
+	if wherePairingsChain == nil {
+		return []entity.Pairing{}, nil
+	}
 
 	pairings, err := wherePairingsChain.Preload("Mentee", nil).Preload("Mentor", nil).Find(repo.ctx)
 	if err != nil {

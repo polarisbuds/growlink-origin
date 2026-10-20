@@ -87,6 +87,9 @@ func (uc *MeetingViewer) ListMeetingsByBoss(bossID uint) ([]outputmodel.MeetingO
 				errCh <- fmt.Errorf("部下ユーザID（メンティーユーザID）でのペアリング情報取得に失敗しました: %w", err)
 				return
 			}
+			if pairings == nil {
+				return
+			}
 			meeting, err := uc.meetingRepo.GetByPairingID(pairings.ID)
 			if err != nil {
 				errCh <- fmt.Errorf("ペアリングユーザID指定でのミーティング情報取得に失敗しました: %w", err)
@@ -128,6 +131,9 @@ func (uc *MeetingViewer) ListMeetingsByTeam(teamID uint) ([]outputmodel.MeetingO
 				ec <- fmt.Errorf("チームメンバーID指定でのペアリング情報の取得に失敗しました: %w", err)
 				return
 			}
+			if pairing == nil {
+				return
+			}
 			meetings, err := uc.meetingRepo.GetByPairingID(pairing.ID)
 			if err != nil {
 				ec <- fmt.Errorf("ペアリングID指定でのミーティング情報の取得に失敗しました: %w", err)
@@ -167,6 +173,9 @@ func (uc *MeetingViewer) ListMeetingsByDepartment(departmentID uint) ([]outputmo
 			pairings, err := uc.pairingRepo.GetByMenteeID(userID)
 			if err != nil {
 				ec <- fmt.Errorf("部署ID指定でのペアリング情報取得に失敗しました: %w", err)
+				return
+			}
+			if pairings == nil {
 				return
 			}
 			meetings, err := uc.meetingRepo.GetByPairingID(pairings.ID)

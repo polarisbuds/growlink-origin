@@ -23,6 +23,9 @@ func (uc *AnswerReaderUsecase) GetAnswer(answerID uint) (*outputmodel.AnswerOutp
 	if err != nil {
 		return nil, fmt.Errorf("回答情報の取得に失敗しました: %w", err)
 	}
+	if answer == nil {
+		return nil, fmt.Errorf("回答情報の取得に失敗しました: 指定された回答が存在しません")
+	}
 	out := converter.AnswerEntityToOutput(*answer)
 	return &out, nil
 }

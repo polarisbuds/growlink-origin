@@ -28,11 +28,15 @@ func (uc *MeetingListUsecase) ListMyMeeting(userID uint) ([]outputmodel.MeetingO
 	if err != nil {
 		return []outputmodel.MeetingOutput{}, nil
 	}
-	meetings, err := uc.meetingRepo.GetByPairingID(pairing.ID)
-	if err != nil {
-		return nil, fmt.Errorf("ミーティング一覧の取得に失敗しました: %w", err)
+	if pairing != nil {
+
+		meetings, err := uc.meetingRepo.GetByPairingID(pairing.ID)
+		if err != nil {
+			return nil, fmt.Errorf("ミーティング一覧の取得に失敗しました: %w", err)
+		}
+		return converter.MeetingEntitiesToOutputs(meetings), nil
 	}
-	return converter.MeetingEntitiesToOutputs(meetings), nil
+	return []outputmodel.MeetingOutput{}, nil
 }
 
 func (uc *MeetingListUsecase) ListInvolvedMeetings(userID uint) ([]outputmodel.MeetingOutput, error) {

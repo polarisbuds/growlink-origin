@@ -153,6 +153,20 @@ func TestMeetingViewer_ListMeetingsByBoss(t *testing.T) {
 			},
 		},
 		{
+			name:    "通常系_部下にペアリングなし",
+			bossID:  validBossID,
+			wantErr: false,
+			setup: func(m *meetingViewerMocks) {
+				m.userRelationship.EXPECT().GetByBossID(validBossID).Return([]entity.UserRelationship{
+					newTestUserRelationship(1, validMenteeID, validBossID),
+				}, nil)
+				m.pairing.EXPECT().GetByMenteeID(validMenteeID).Return(nil, nil)
+			},
+			assertFn: func(t *testing.T, got []outputmodel.MeetingOutput) {
+				assertMeetingOutputIDSet(t, nil, got)
+			},
+		},
+		{
 			name:        "異常系_GetByBossID失敗",
 			bossID:      validBossID,
 			wantErr:     true,
@@ -243,6 +257,20 @@ func TestMeetingViewer_ListMeetingsByTeam(t *testing.T) {
 			},
 		},
 		{
+			name:    "通常系_メンバーにペアリングなし",
+			teamID:  validTeamID,
+			wantErr: false,
+			setup: func(m *meetingViewerMocks) {
+				m.teamMember.EXPECT().GetByTeamID(validTeamID).Return([]entity.TeamMember{
+					newTestTeamMember(1, validTeamID, validMemberID),
+				}, nil)
+				m.pairing.EXPECT().GetByMenteeID(validMemberID).Return(nil, nil)
+			},
+			assertFn: func(t *testing.T, got []outputmodel.MeetingOutput) {
+				assertMeetingOutputIDSet(t, nil, got)
+			},
+		},
+		{
 			name:        "異常系_GetByTeamID失敗",
 			teamID:      validTeamID,
 			wantErr:     true,
@@ -327,6 +355,20 @@ func TestMeetingViewer_ListMeetingsByDepartment(t *testing.T) {
 			wantErr:      false,
 			setup: func(m *meetingViewerMocks) {
 				m.user.EXPECT().GetByDepartmentID(validDepartmentID).Return([]entity.User{}, nil)
+			},
+			assertFn: func(t *testing.T, got []outputmodel.MeetingOutput) {
+				assertMeetingOutputIDSet(t, nil, got)
+			},
+		},
+		{
+			name:         "通常系_ユーザにペアリングなし",
+			departmentID: validDepartmentID,
+			wantErr:      false,
+			setup: func(m *meetingViewerMocks) {
+				m.user.EXPECT().GetByDepartmentID(validDepartmentID).Return([]entity.User{
+					*newTestUser(validMenteeID, "dept-user"),
+				}, nil)
+				m.pairing.EXPECT().GetByMenteeID(validMenteeID).Return(nil, nil)
 			},
 			assertFn: func(t *testing.T, got []outputmodel.MeetingOutput) {
 				assertMeetingOutputIDSet(t, nil, got)
