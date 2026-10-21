@@ -175,6 +175,9 @@ func genSeed(db *gorm.DB) error {
 			DefaultTemplateID: template.ID,
 			LogOutputPath:     "",
 			LogFilePrefix:     "",
+			RemindAutoSend:    false,
+			RemindWeekday:     1,
+			RemindTime:        "09:00",
 		}).Error; err != nil {
 			return err
 		}

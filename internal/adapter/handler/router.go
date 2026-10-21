@@ -26,6 +26,7 @@ type Deps struct {
 	SettingRm  *setting_usecase.IconRemoverUsecase
 	MeetingRepo repository_interface.MeetingRepository
 	UserRepo    repository_interface.UserRepository
+	RoleRepo    repository_interface.RoleRepository
 }
 
 func RegisterRoutes(e *echo.Echo, deps Deps, auditLogger *slog.Logger) {
@@ -49,12 +50,13 @@ func RegisterRoutes(e *echo.Echo, deps Deps, auditLogger *slog.Logger) {
 		SettingRm:   deps.SettingRm,
 		MeetingRepo: deps.MeetingRepo,
 		UserRepo:    deps.UserRepo,
+		RoleRepo:    deps.RoleRepo,
 	})
 
 	e.GET("/login", ph.LoginPage)
 	e.POST("/api/v1/login", ah.Login, auditLogging(auditLogger, true))
 
-	auth := e.Group("", JWTConfig(auditLogger))
+	auth := e.Group("", JWTConfig(auditLogger), ActiveUserCheck(deps.UserRepo, auditLogger))
 	auth.GET("/", ph.HomePage, auditLogging(auditLogger, false))
 	auth.GET("/meeting", ph.MeetingListPage, auditLogging(auditLogger, false))
 	auth.GET("/meeting/all", ph.MeetingAllPage, AuthorityAtLeast(valueobject.AuthorityBoss), auditLogging(auditLogger, false))
@@ -69,9 +71,10 @@ func RegisterRoutes(e *echo.Echo, deps Deps, auditLogger *slog.Logger) {
 	auth.GET("/template/new", ph.TemplateNewPage, AuthorityAtLeast(valueobject.AuthorityOwner), auditLogging(auditLogger, false))
 	auth.GET("/template/:id", ph.TemplateDetailPage, AuthorityAtLeast(valueobject.AuthorityOwner), auditLogging(auditLogger, false))
 	auth.GET("/setting", ph.SettingPage, auditLogging(auditLogger, false))
+	auth.GET("/management", ph.ManagementPage, AuthorityAtLeast(valueobject.AuthorityOwner), auditLogging(auditLogger, false))
 	auth.GET("/logout", ph.LogoutPage, auditLogging(auditLogger, true))
 
-	apiAuth := e.Group("/api/v1", APIJWTConfig(auditLogger))
+	apiAuth := e.Group("/api/v1", APIJWTConfig(auditLogger), ActiveUserCheckAPI(deps.UserRepo, auditLogger))
 	apiAuth.POST("/logout", ah.Logout, auditLogging(auditLogger, true))
 	apiAuth.GET("/meetings/:uuid", ah.GetMeeting, auditLogging(auditLogger, false))
 	apiAuth.POST("/meetings/:uuid/draft", ah.SaveDraft, auditLogging(auditLogger, false))
@@ -101,4 +104,19 @@ func RegisterRoutes(e *echo.Echo, deps Deps, auditLogger *slog.Logger) {
 	apiAuth.PUT("/setting", ah.UpdateSetting, auditLogging(auditLogger, false))
 	apiAuth.POST("/setting/icon", ah.UploadIcon, auditLogging(auditLogger, false))
 	apiAuth.DELETE("/setting/icon", ah.DeleteIcon, auditLogging(auditLogger, false))
+
+	apiAuth.GET("/management/users", ah.ListManagementUsers, AuthorityAtLeastAPI(valueobject.AuthorityOwner), auditLogging(auditLogger, false))
+	apiAuth.PUT("/management/users/:id", ah.UpdateManagementUser, AuthorityAtLeastAPI(valueobject.AuthorityOwner), auditLogging(auditLogger, false))
+	apiAuth.POST("/management/users/suspend", ah.SuspendManagementUsers, AuthorityAtLeastAPI(valueobject.AuthorityOwner), auditLogging(auditLogger, false))
+	apiAuth.DELETE("/management/users/:id/icon", ah.DeleteManagementUserIcon, AuthorityAtLeastAPI(valueobject.AuthorityOwner), auditLogging(auditLogger, false))
+	apiAuth.GET("/management/org/tree", ah.ListOrgTree, AuthorityAtLeastAPI(valueobject.AuthorityOwner), auditLogging(auditLogger, false))
+	apiAuth.GET("/management/departments/:id", ah.GetDepartmentDetail, AuthorityAtLeastAPI(valueobject.AuthorityOwner), auditLogging(auditLogger, false))
+	apiAuth.PUT("/management/departments/:id", ah.UpdateDepartment, AuthorityAtLeastAPI(valueobject.AuthorityOwner), auditLogging(auditLogger, false))
+	apiAuth.DELETE("/management/departments/:id", ah.DeleteDepartment, AuthorityAtLeastAPI(valueobject.AuthorityOwner), auditLogging(auditLogger, false))
+	apiAuth.GET("/management/teams/:id", ah.GetTeamDetail, AuthorityAtLeastAPI(valueobject.AuthorityOwner), auditLogging(auditLogger, false))
+	apiAuth.PUT("/management/teams/:id", ah.UpdateTeam, AuthorityAtLeastAPI(valueobject.AuthorityOwner), auditLogging(auditLogger, false))
+	apiAuth.DELETE("/management/teams/:id", ah.DeleteTeam, AuthorityAtLeastAPI(valueobject.AuthorityOwner), auditLogging(auditLogger, false))
+	apiAuth.GET("/management/settings/remind", ah.GetRemindSettings, AuthorityAtLeastAPI(valueobject.AuthorityOwner), auditLogging(auditLogger, false))
+	apiAuth.PUT("/management/settings/remind", ah.UpdateRemindSettings, AuthorityAtLeastAPI(valueobject.AuthorityOwner), auditLogging(auditLogger, false))
+	apiAuth.GET("/management/options", ah.ListManagementOptions, AuthorityAtLeastAPI(valueobject.AuthorityOwner), auditLogging(auditLogger, false))
 }

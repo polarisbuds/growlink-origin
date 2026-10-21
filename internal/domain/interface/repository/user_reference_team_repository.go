@@ -11,4 +11,5 @@ type UserReferenceTeamRepository interface {
 	GetByUserID(userID uint) ([]entity.UserReferenceTeam, error)
 	GetByReferableTeamID(referableTeamID uint) ([]entity.UserReferenceTeam, error)
 	IsReferable(userID, targetUserID uint) (isReferable bool, err error)
+	DeleteByUserID(userID uint) error
 }

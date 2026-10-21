@@ -15,4 +15,5 @@ type UserRelationshipRepository interface {
 	Create(sourceUserID, targetUserID uint, relationshipType valueobject.RelationshipType) error
 	Update(relationshipID uint, relationship *entity.UserRelationship) error
 	Delete(relationshipID uint) error
+	DeleteByBossUserID(bossUserID uint) error
 }

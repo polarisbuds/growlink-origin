@@ -78,6 +78,45 @@ func (c *MockUserRepositoryCreateCall) DoAndReturn(f func(*entity.User) error) *
 	return c
 }
 
+// GetAll mocks base method.
+func (m *MockUserRepository) GetAll() ([]entity.User, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetAll")
+	ret0, _ := ret[0].([]entity.User)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetAll indicates an expected call of GetAll.
+func (mr *MockUserRepositoryMockRecorder) GetAll() *MockUserRepositoryGetAllCall {
+	mr.mock.ctrl.T.Helper()
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAll", reflect.TypeOf((*MockUserRepository)(nil).GetAll))
+	return &MockUserRepositoryGetAllCall{Call: call}
+}
+
+// MockUserRepositoryGetAllCall wrap *gomock.Call
+type MockUserRepositoryGetAllCall struct {
+	*gomock.Call
+}
+
+// Return rewrite *gomock.Call.Return
+func (c *MockUserRepositoryGetAllCall) Return(arg0 []entity.User, arg1 error) *MockUserRepositoryGetAllCall {
+	c.Call = c.Call.Return(arg0, arg1)
+	return c
+}
+
+// Do rewrite *gomock.Call.Do
+func (c *MockUserRepositoryGetAllCall) Do(f func() ([]entity.User, error)) *MockUserRepositoryGetAllCall {
+	c.Call = c.Call.Do(f)
+	return c
+}
+
+// DoAndReturn rewrite *gomock.Call.DoAndReturn
+func (c *MockUserRepositoryGetAllCall) DoAndReturn(f func() ([]entity.User, error)) *MockUserRepositoryGetAllCall {
+	c.Call = c.Call.DoAndReturn(f)
+	return c
+}
+
 // GetByDepartmentID mocks base method.
 func (m *MockUserRepository) GetByDepartmentID(departmentID uint) ([]entity.User, error) {
 	m.ctrl.T.Helper()
@@ -230,6 +269,44 @@ func (c *MockUserRepositoryGetByIDsCall) Do(f func([]uint) ([]entity.User, error
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
 func (c *MockUserRepositoryGetByIDsCall) DoAndReturn(f func([]uint) ([]entity.User, error)) *MockUserRepositoryGetByIDsCall {
+	c.Call = c.Call.DoAndReturn(f)
+	return c
+}
+
+// SetSuspendedByIDs mocks base method.
+func (m *MockUserRepository) SetSuspendedByIDs(ids []uint, suspended bool) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SetSuspendedByIDs", ids, suspended)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SetSuspendedByIDs indicates an expected call of SetSuspendedByIDs.
+func (mr *MockUserRepositoryMockRecorder) SetSuspendedByIDs(ids, suspended any) *MockUserRepositorySetSuspendedByIDsCall {
+	mr.mock.ctrl.T.Helper()
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetSuspendedByIDs", reflect.TypeOf((*MockUserRepository)(nil).SetSuspendedByIDs), ids, suspended)
+	return &MockUserRepositorySetSuspendedByIDsCall{Call: call}
+}
+
+// MockUserRepositorySetSuspendedByIDsCall wrap *gomock.Call
+type MockUserRepositorySetSuspendedByIDsCall struct {
+	*gomock.Call
+}
+
+// Return rewrite *gomock.Call.Return
+func (c *MockUserRepositorySetSuspendedByIDsCall) Return(arg0 error) *MockUserRepositorySetSuspendedByIDsCall {
+	c.Call = c.Call.Return(arg0)
+	return c
+}
+
+// Do rewrite *gomock.Call.Do
+func (c *MockUserRepositorySetSuspendedByIDsCall) Do(f func([]uint, bool) error) *MockUserRepositorySetSuspendedByIDsCall {
+	c.Call = c.Call.Do(f)
+	return c
+}
+
+// DoAndReturn rewrite *gomock.Call.DoAndReturn
+func (c *MockUserRepositorySetSuspendedByIDsCall) DoAndReturn(f func([]uint, bool) error) *MockUserRepositorySetSuspendedByIDsCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }

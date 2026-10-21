@@ -19,6 +19,7 @@ type Deps struct {
 	SettingRm  *setting_usecase.IconRemoverUsecase
 	MeetingRepo repository_interface.MeetingRepository
 	UserRepo    repository_interface.UserRepository
+	RoleRepo    repository_interface.RoleRepository
 }
 
 type Handler struct {

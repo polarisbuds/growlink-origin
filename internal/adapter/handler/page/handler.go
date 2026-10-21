@@ -49,6 +49,7 @@ func (h *Handler) navigation(active string, isBoss, isOwner bool) []NavItem {
 	}
 	if isOwner {
 		nav = append(nav, NavItem{Href: "/template", Label: "テンプレート", Icon: "file-text", Active: active == "template" || active == "template-new" || active == "template-detail"})
+		nav = append(nav, NavItem{Href: "/management", Label: "管理", Icon: "shield", Active: active == "management"})
 	}
 	nav = append(nav, NavItem{Href: "/setting", Label: "設定", Icon: "settings", Active: active == "setting"})
 	return nav

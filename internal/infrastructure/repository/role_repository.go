@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"fmt"
 	"growlink/internal/domain/entity"
 
 	"gorm.io/gorm"
@@ -24,4 +25,12 @@ func NewRoleRepository(ctx context.Context, dp *gorm.DB) *RoleRepository {
 			uctx: ctx,
 		},
 	}
+}
+
+func (repo *RoleRepository) GetAll() ([]entity.Role, error) {
+	roles, err := repo.baseRepository.All("id ASC")
+	if err != nil {
+		return nil, fmt.Errorf("ロールの全取得に失敗しました: %w", err)
+	}
+	return roles, nil
 }

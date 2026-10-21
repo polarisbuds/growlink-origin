@@ -11,4 +11,5 @@ type UserReferenceDepartmentRepository interface {
 	GetByUserID(userID uint) ([]entity.UserReferenceDepartment, error)
 	GetByReferableDepartmentID(referableDepartmentID uint) ([]entity.UserReferenceDepartment, error)
 	IsReferable(userID, referableDepartmentID uint) (isReferable bool, err error)
+	DeleteByUserID(userID uint) error
 }

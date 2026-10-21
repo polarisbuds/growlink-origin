@@ -9,6 +9,8 @@ type UserRepository interface {
 	GetByEmail(email string) (*entity.User, error)
 	GetByIDs(ids []uint) ([]entity.User, error)
 	GetByDepartmentID(departmentID uint) ([]entity.User, error)
+	GetAll() ([]entity.User, error)
+	SetSuspendedByIDs(ids []uint, suspended bool) error
 	Create(user *entity.User) error
 	UpdateByID(user *entity.User) error
 }

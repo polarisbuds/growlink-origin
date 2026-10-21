@@ -3,6 +3,7 @@ package api
 import (
 	"net/http"
 
+	user_admin_usecase "growlink/internal/application/usecase/management_usecase/user_admin_usecase"
 	"growlink/internal/adapter/handler/authctx"
 
 	"github.com/labstack/echo/v5"
@@ -51,6 +52,7 @@ func (h *Handler) UpdateSetting(c *echo.Context) error {
 	var req struct {
 		Name          string `json:"name"`
 		Email         string `json:"email"`
+		LineWorksID   string `json:"lineWorksId"`
 		RemindEnabled *bool  `json:"remindEnabled"`
 	}
 	if err := c.Bind(&req); err != nil {
@@ -62,6 +64,10 @@ func (h *Handler) UpdateSetting(c *echo.Context) error {
 	if req.Email != "" {
 		user.Email = req.Email
 	}
+	if err := user_admin_usecase.ValidateLineWorksLocalID(req.LineWorksID); err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
+	}
+	user.LineWorksID = req.LineWorksID
 	if req.RemindEnabled != nil {
 		user.RemindEnabled = *req.RemindEnabled
 	}
@@ -84,6 +90,8 @@ func (h *Handler) GetProfile(c *echo.Context) error {
 		"id":            user.ID,
 		"name":          user.Name,
 		"email":         user.Email,
+		"lineWorksId":   user.LineWorksID,
+		"imageUri":      user.ImageURI,
 		"remindEnabled": user.RemindEnabled,
 	})
 }

@@ -88,6 +88,13 @@ func (repo *UserReferenceTeamRepository) GetByReferableTeamID(referableTeamID ui
 	return references, nil
 }
 
+func (repo *UserReferenceTeamRepository) DeleteByUserID(userID uint) error {
+	if _, err := repo.baseRepository.Delete(0, "user_id = ?", userID); err != nil {
+		return fmt.Errorf("ユーザ参照（チーム）のユーザ単位削除に失敗しました: %w", err)
+	}
+	return nil
+}
+
 func (repo *UserReferenceTeamRepository) IsReferable(userID, referableTeamID uint) (isReferable bool, err error) {
 	references, err := repo.preloadWhere("user_id = ? AND referable_team_id = ?", userID, referableTeamID)
 	if err != nil {

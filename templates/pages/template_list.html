@@ -2,7 +2,7 @@
 <!DOCTYPE html>
 {{template "html"}}
 <head>{{template "head" dict "Title" "テンプレート - Growlink" "PageScript" "/static/js/pages/template_list.js"}}</head>
-<body class="bg-base-200 font-sans antialiased" x-data="templateListPage" x-cloak>
+<body class="bg-base-200 font-sans antialiased" x-data="templateListPage" x-cloak @keydown.escape.window="closeModal()">
 <script type="application/json" id="templates-json">{{.TemplatesJSON}}</script>
 <div class="flex h-screen overflow-hidden">
   {{template "sidebar" .}}
@@ -10,25 +10,88 @@
     {{template "header" dict "Breadcrumb" "テンプレート" "UserName" .UserName}}
     <main class="flex-1 min-h-0 overflow-y-auto p-4 md:p-6">
       <div class="flex justify-between items-center flex-wrap gap-2">
-        <h1 class="font-display text-2xl font-semibold">テンプレート一覧</h1>
+        <div>
+          <h1 class="font-display text-2xl font-semibold">テンプレート一覧</h1>
+          <p class="text-sm text-base-content/60 mt-1">行をクリックして内容を確認できます</p>
+        </div>
         <a href="/template/new" class="btn btn-primary btn-sm">新規作成</a>
       </div>
       <div class="mt-6 space-y-2">
+        <template x-if="templates.length === 0">
+          <div class="rounded-3xl border border-base-300 bg-base-100 p-12 text-center text-base-content/50 text-sm">テンプレートがありません</div>
+        </template>
         <template x-for="t in templates" :key="t.id">
-          <div class="flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-base-300 bg-base-100 p-4 shadow-sm">
-            <div>
-              <span class="badge badge-ghost mr-2" x-text="'#' + t.displayNo"></span>
-              <a :href="'/template/' + t.id" class="font-medium hover:text-primary" x-text="t.title"></a>
-              <span x-show="t.isSample" class="badge badge-outline ml-2">サンプル</span>
+          <div class="group flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-base-300 bg-base-100 p-4 shadow-sm cursor-pointer hover:border-primary/50 hover:shadow-md transition-all" @click="openView(t)">
+            <div class="flex items-center gap-2 min-w-0">
+              <span class="badge badge-ghost shrink-0" x-text="'#' + t.displayNo"></span>
+              <span class="font-medium truncate" x-text="t.title"></span>
+              <span x-show="t.isSample" class="badge badge-outline shrink-0">サンプル</span>
             </div>
-            <div class="flex gap-1">
+            <div class="flex items-center gap-1" @click.stop>
               <button type="button" class="btn btn-xs btn-outline" @click="copy(t)">コピー</button>
               <button type="button" class="btn btn-xs btn-ghost" @click="moveUp(t)">↑</button>
               <button type="button" class="btn btn-xs btn-ghost" @click="moveDown(t)">↓</button>
+              <i data-lucide="chevron-right" class="h-5 w-5 opacity-30 group-hover:opacity-70 ml-1"></i>
             </div>
           </div>
         </template>
       </div>
+
+      <dialog class="modal" :class="{ 'modal-open': modalOpen }">
+        <div class="modal-box max-w-2xl max-h-[85vh] flex flex-col p-0">
+          <div class="flex justify-between items-start gap-2 p-6 pb-2 border-b border-base-200 shrink-0">
+            <div class="min-w-0">
+              <h3 class="font-bold text-lg truncate" x-text="active?.title"></h3>
+              <p class="text-sm text-base-content/60" x-text="editMode ? '質問を編集' : '質問一覧'"></p>
+            </div>
+            <div class="flex gap-1 shrink-0">
+              <button type="button" class="btn btn-sm btn-outline" x-show="!editMode" @click="startEdit()">編集</button>
+              <button type="button" class="btn btn-sm btn-error btn-outline" @click="askDelete()">削除</button>
+              <button type="button" class="btn btn-sm btn-circle btn-ghost" aria-label="閉じる" @click="closeModal()">×</button>
+            </div>
+          </div>
+          <div class="overflow-y-auto px-6 py-4 flex-1" x-show="!editMode">
+            <template x-for="topic in active?.topics || []" :key="topic.id || topic.displayNo">
+              <div class="rounded-2xl border border-base-300 bg-base-200/30 p-4 mb-3">
+                <div class="flex items-start gap-2">
+                  <span class="badge badge-primary badge-outline shrink-0" x-text="'Q' + topic.displayNo"></span>
+                  <p class="flex-1 text-sm leading-relaxed" x-text="topic.question"></p>
+                  <span x-show="topic.isRequire" class="badge badge-error badge-outline badge-sm shrink-0">必須</span>
+                </div>
+              </div>
+            </template>
+          </div>
+          <div class="overflow-y-auto px-6 py-4 space-y-3 flex-1" x-show="editMode">
+            <label class="form-control"><span class="label-text font-medium">タイトル</span><input class="input input-bordered" x-model="editForm.title" /></label>
+            <template x-for="(topic, i) in editForm.topics" :key="i">
+              <div class="flex gap-2 items-center rounded-2xl border border-base-300 p-2">
+                <span class="badge badge-ghost shrink-0" x-text="'Q' + (i + 1)"></span>
+                <input class="input input-bordered input-sm flex-1" x-model="topic.question" placeholder="質問文" />
+                <label class="label cursor-pointer gap-1 shrink-0 py-0"><input type="checkbox" class="checkbox checkbox-sm" x-model="topic.isRequire" /><span class="label-text text-xs">必須</span></label>
+                <button type="button" class="btn btn-ghost btn-xs btn-square text-error" title="削除" @click="removeTopic(i)" :disabled="editForm.topics.length <= 1">×</button>
+              </div>
+            </template>
+            <button type="button" class="btn btn-outline btn-sm w-full" @click="addTopic()">質問を追加</button>
+          </div>
+          <div class="modal-action border-t border-base-200 p-4 shrink-0">
+            <button type="button" class="btn btn-ghost" @click="closeModal()">閉じる</button>
+            <button type="button" class="btn btn-primary" x-show="editMode" @click="saveEdit()">保存</button>
+          </div>
+        </div>
+        <form method="dialog" class="modal-backdrop"><button type="button" @click="closeModal()">close</button></form>
+      </dialog>
+
+      <dialog class="modal" :class="{ 'modal-open': deleteOpen }">
+        <div class="modal-box max-h-[85vh]">
+          <h3 class="font-bold">削除の確認</h3>
+          <p class="py-4 text-sm text-base-content/80">このテンプレートを削除しますか？</p>
+          <div class="modal-action">
+            <button type="button" class="btn btn-ghost" @click="deleteOpen=false">キャンセル</button>
+            <button type="button" class="btn btn-error" @click="confirmDelete()">削除確定</button>
+          </div>
+        </div>
+        <form method="dialog" class="modal-backdrop"><button type="button" @click="deleteOpen=false">close</button></form>
+      </dialog>
     </main>
   </div>
 </div>

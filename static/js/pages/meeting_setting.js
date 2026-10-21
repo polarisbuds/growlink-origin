@@ -1,4 +1,5 @@
 import { meetingPageData } from "./common.js";
+import { showToast } from "../notice.js";
 
 document.addEventListener("alpine:init", () => {
   const base = meetingPageData();
@@ -7,7 +8,7 @@ document.addEventListener("alpine:init", () => {
   Alpine.data("meetingSettingPage", () => ({
     date,
     async save() {
-      alert("実施日の API は今後 PUT /api/v1/meetings/:uuid/setting で接続します（表示のみ更新可）");
+      showToast("実施日の API は今後接続されます（表示のみ更新可）", "info");
     },
   }));
 });

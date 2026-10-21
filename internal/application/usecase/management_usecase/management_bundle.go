@@ -2,8 +2,11 @@ package management_usecase
 
 import (
 	meeting_mng_usecase "growlink/internal/application/usecase/management_usecase/meeting_management_usecase"
+	org_admin_usecase "growlink/internal/application/usecase/management_usecase/org_admin_usecase"
 	pairing_mng_usecase "growlink/internal/application/usecase/management_usecase/pairing_management_usecase"
+	remind_settings_usecase "growlink/internal/application/usecase/management_usecase/remind_settings_usecase"
 	template_mng_usecase "growlink/internal/application/usecase/management_usecase/template_management_usecase"
+	user_admin_usecase "growlink/internal/application/usecase/management_usecase/user_admin_usecase"
 )
 
 // Bundle は管理系ユースケースを HTTP 層へまとめて渡すための構造体。
@@ -21,4 +24,7 @@ type Bundle struct {
 	TemplateUpdater *template_mng_usecase.TemplateUpdater
 	TemplateDeleter *template_mng_usecase.TemplateDeleter
 	TemplateCopier  *template_mng_usecase.TemplateCopier
+	UserAdmin       *user_admin_usecase.UserAdmin
+	OrgAdmin        *org_admin_usecase.OrgAdmin
+	RemindSettings  *remind_settings_usecase.RemindSettings
 }

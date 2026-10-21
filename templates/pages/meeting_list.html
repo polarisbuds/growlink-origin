@@ -10,22 +10,29 @@
     {{template "header" dict "Breadcrumb" "面談一覧" "UserName" .UserName}}
     <main class="flex-1 min-h-0 overflow-y-auto p-4 md:p-6">
       <h1 class="font-display text-2xl font-semibold">面談一覧</h1>
+      <p class="mt-1 text-sm text-base-content/60">あなたが関与する面談</p>
+      <label class="input input-bordered flex items-center gap-2 mt-4 max-w-md">
+        <i data-lucide="search" class="h-4 w-4 opacity-50"></i>
+        <input type="search" class="grow" placeholder="テンプレート・メンター・メンティで検索" x-model="search" />
+      </label>
       <div class="mt-6 overflow-hidden rounded-3xl border border-base-300 bg-base-100 shadow-sm">
-        <table class="table">
-          <thead><tr><th>テンプレート</th><th>メンター</th><th>メンティ</th><th>実施予定日</th><th>状態</th><th></th></tr></thead>
+        <div x-show="filteredMeetings.length === 0" class="p-12 text-center text-sm text-base-content/50">該当する面談がありません</div>
+        <table class="table" x-show="filteredMeetings.length > 0">
+          <thead><tr class="text-base-content/70"><th>テンプレート</th><th>メンター</th><th>メンティ</th><th>実施予定日</th><th>状態</th><th class="w-0"></th></tr></thead>
           <tbody>
-            <template x-for="m in meetings" :key="m.uuid">
-              <tr>
+            <template x-for="m in filteredMeetings" :key="m.uuid">
+              <tr class="hover:bg-base-200/40">
                 <td x-text="m.template?.title"></td>
                 <td x-text="m.pairing?.mentor?.name"></td>
                 <td x-text="m.pairing?.mentee?.name"></td>
                 <td x-text="formatDate(m.implementedAt)"></td>
-                <td><span class="badge" :class="statusBadge(m.status)" x-text="statusLabel(m.status)"></span></td>
-                <td class="space-x-1">
+                <td><span class="badge badge-sm" :class="statusBadge(m.status)" x-text="statusLabel(m.status)"></span></td>
+                <td class="space-x-1 whitespace-nowrap">
                   <a :href="'/meeting/' + m.uuid + '/answer'" class="btn btn-xs btn-outline">記入</a>
                   <a :href="'/meeting/' + m.uuid" class="btn btn-xs btn-ghost">閲覧</a>
                   <a :href="'/meeting/' + m.uuid + '/setting'" class="btn btn-xs btn-ghost">設定</a>
                 </td>
+                <td class="text-right"><a :href="'/meeting/' + m.uuid" class="btn btn-ghost btn-xs btn-square"><i data-lucide="chevron-right" class="h-4 w-4 opacity-40"></i></a></td>
               </tr>
             </template>
           </tbody>

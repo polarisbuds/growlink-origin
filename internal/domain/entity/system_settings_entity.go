@@ -16,5 +16,9 @@ type SystemSettings struct {
 	LogOutputPath     string `gorm:"type:text"`
 	LogFilePrefix     string `gorm:"type:text"`
 
+	RemindAutoSend bool   `gorm:"not null;default:false"`
+	RemindWeekday  int    `gorm:"not null;default:1"`
+	RemindTime     string `gorm:"type:text;not null;default:'09:00'"`
+
 	DefaultTemplate *Template `gorm:"foreignKey:DefaultTemplateID"`
 }

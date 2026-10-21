@@ -12,7 +12,10 @@ import (
 	management_usecase "growlink/internal/application/usecase/management_usecase"
 	meeting_mng_usecase "growlink/internal/application/usecase/management_usecase/meeting_management_usecase"
 	pairing_mng_usecase "growlink/internal/application/usecase/management_usecase/pairing_management_usecase"
+	org_admin_usecase "growlink/internal/application/usecase/management_usecase/org_admin_usecase"
+	remind_settings_usecase "growlink/internal/application/usecase/management_usecase/remind_settings_usecase"
 	template_mng_usecase "growlink/internal/application/usecase/management_usecase/template_management_usecase"
+	user_admin_usecase "growlink/internal/application/usecase/management_usecase/user_admin_usecase"
 	"growlink/internal/application/usecase/meeting_usecase"
 	"growlink/internal/application/usecase/pairing_usecase"
 	"growlink/internal/application/usecase/setting_usecase"
@@ -84,6 +87,14 @@ func main() {
 	answerCommentRepo := repository.NewAnswerCommentRepository(ctx, db)
 	meetingCommentRepo := repository.NewMeetingCommentRepository(ctx, db)
 	uploadRepo := repository.NewStorageRepository(ctx, config.GetUploadDir())
+	deptRepo := repository.NewDepartementRepository(ctx, db)
+	teamRepo := repository.NewTeamsRepository(ctx, db)
+	deptHierarchyRepo := repository.NewDepartmentHierarchyRepository(ctx, db)
+	deptRoleRepo := repository.NewDepartmentRoleRepository(ctx, db)
+	deptRefRepo := repository.NewUserReferenceDepartmentRepository(ctx, db)
+	teamRefRepo := repository.NewUserReferenceTeamRepository(ctx, db)
+	roleRepo := repository.NewRoleRepository(ctx, db)
+	systemSettingsRepo := repository.NewSystemSettingsRepository(ctx, db)
 
 	ldapSetting, err := ldap.NewLDAPSetting()
 	var ldapClient *ldap.LDAPClient
@@ -119,6 +130,9 @@ func main() {
 		TemplateUpdater: template_mng_usecase.NewTemplateUpdater(templateRepo, topicRepo),
 		TemplateDeleter: template_mng_usecase.NewTemplateDeleter(templateRepo, topicRepo),
 		TemplateCopier:  template_mng_usecase.NewTemplateCopier(templateRepo, topicRepo),
+		UserAdmin: user_admin_usecase.NewUserAdmin(userRepo, deptRefRepo, teamRefRepo, relationshipRepo),
+		OrgAdmin: org_admin_usecase.NewOrgAdmin(deptRepo, teamRepo, deptHierarchyRepo, deptRoleRepo, teamMemberRepo, userRepo),
+		RemindSettings: remind_settings_usecase.NewRemindSettings(systemSettingsRepo),
 	}
 
 	deps := handler.Deps{
@@ -131,6 +145,7 @@ func main() {
 		SettingRm:   setting_usecase.NewIconRemoverUsecase(uploadRepo, userRepo),
 		MeetingRepo: meetingRepo,
 		UserRepo:    userRepo,
+		RoleRepo:    roleRepo,
 	}
 
 	handler.RegisterRoutes(ec, deps, logs.Audit)

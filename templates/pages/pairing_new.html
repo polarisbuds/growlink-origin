@@ -9,14 +9,28 @@
     {{template "header" dict "Breadcrumb" "ペア作成" "UserName" .UserName}}
     <main class="flex-1 min-h-0 overflow-y-auto p-4 md:p-6 max-w-xl">
       <h1 class="font-display text-2xl font-semibold">ペア新規作成</h1>
+      <p class="mt-1 text-sm text-base-content/60">メンターとメンティの組み合わせを登録します</p>
       <div class="mt-6 rounded-3xl border border-base-300 bg-base-100 p-6 shadow-sm space-y-4">
-        <label class="form-control"><span class="label-text">メンターID</span><input class="input input-bordered" type="number" x-model.number="form.mentorId" /></label>
-        <label class="form-control"><span class="label-text">メンティID</span><input class="input input-bordered" type="number" x-model.number="form.menteeId" /></label>
-        <label class="form-control"><span class="label-text">繰り返し（第N週）</span><input class="input input-bordered" type="number" min="1" max="5" x-model.number="form.recurWeek" /></label>
-        <label class="form-control"><span class="label-text">曜日（0=日）</span><input class="input input-bordered" type="number" min="0" max="6" x-model.number="form.recurWeekday" /></label>
-        <label class="form-control"><span class="label-text">追加共有者ユーザID（カンマ区切り）</span><input class="input input-bordered" x-model="sharerIdsText" /></label>
-        <button type="button" class="btn btn-primary" @click="save()">作成</button>
-        <a href="/pairing" class="btn btn-ghost">戻る</a>
+        <label class="form-control"><span class="label-text font-medium">メンターID</span><input class="input input-bordered" type="number" x-model.number="form.mentorId" /></label>
+        <label class="form-control"><span class="label-text font-medium">メンティID</span><input class="input input-bordered" type="number" x-model.number="form.menteeId" /></label>
+        <label class="form-control"><span class="label-text font-medium">繰り返し（第N週）</span><input class="input input-bordered" type="number" min="1" max="5" x-model.number="form.recurWeek" /></label>
+        <label class="form-control"><span class="label-text font-medium">曜日</span>
+          <select class="select select-bordered" x-model.number="form.recurWeekday">
+            <option :value="null">未設定</option>
+            <option value="0">日曜</option>
+            <option value="1">月曜</option>
+            <option value="2">火曜</option>
+            <option value="3">水曜</option>
+            <option value="4">木曜</option>
+            <option value="5">金曜</option>
+            <option value="6">土曜</option>
+          </select>
+        </label>
+        <label class="form-control"><span class="label-text font-medium">追加共有者ユーザID（カンマ区切り）</span><input class="input input-bordered" x-model="sharerIdsText" /></label>
+        <div class="flex flex-wrap gap-2 pt-2">
+          <button type="button" class="btn btn-primary" @click="save()">作成</button>
+          <a href="/pairing" class="btn btn-ghost">戻る</a>
+        </div>
       </div>
     </main>
   </div>

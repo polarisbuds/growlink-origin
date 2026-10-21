@@ -18,8 +18,12 @@ type User struct {
 
 	RoleID       uint                  `gorm:"not null;index"`
 	DepartmentID uint                  `gorm:"not null;index"`
-	Authority     valueobject.Authority `gorm:"type:smallint;not null;index"`
-	RemindEnabled bool                  `gorm:"not null;default:false"`
+	Authority       valueobject.Authority       `gorm:"type:smallint;not null;index"`
+	SystemRole      valueobject.SystemRole      `gorm:"type:smallint;not null;default:1;index"`
+	OperationTarget valueobject.OperationTarget `gorm:"type:smallint;not null;default:1;index"`
+	Suspended       bool                        `gorm:"not null;default:false;index"`
+	LineWorksID     string                      `gorm:"type:text;not null;default:''"`
+	RemindEnabled   bool                        `gorm:"not null;default:false"`
 
 	Role       *Role       `gorm:"foreignKey:RoleID"`
 	Department *Department `gorm:"foreignKey:DepartmentID"`

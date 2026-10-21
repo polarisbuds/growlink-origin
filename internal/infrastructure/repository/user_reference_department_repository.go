@@ -86,6 +86,13 @@ func (repo *UserReferenceDepartmentRepository) GetByReferableDepartmentID(refera
 	return references, nil
 }
 
+func (repo *UserReferenceDepartmentRepository) DeleteByUserID(userID uint) error {
+	if _, err := repo.baseRepository.Delete(0, "user_id = ?", userID); err != nil {
+		return fmt.Errorf("ユーザ参照（部署）のユーザ単位削除に失敗しました: %w", err)
+	}
+	return nil
+}
+
 func (repo *UserReferenceDepartmentRepository) IsReferable(userID, referableDepartmentID uint) (isReferable bool, err error) {
 	references, err := repo.preloadWhere("user_id = ? AND referable_department_id = ?", userID, referableDepartmentID)
 	if err != nil {

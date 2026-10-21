@@ -85,6 +85,29 @@ func (repo *UserRepository) GetByDepartmentID(departmentID uint) ([]entity.User,
 	return users, nil
 }
 
+func (repo *UserRepository) GetAll() ([]entity.User, error) {
+	users, err := gorm.G[entity.User](repo.baseRepository.dp).Order("id ASC").
+		Preload("Department", nil).
+		Preload("Role", nil).Find(repo.ctx)
+	if err != nil {
+		return nil, fmt.Errorf("ユーザの全取得に失敗しました: %w", err)
+	}
+	return users, nil
+}
+
+func (repo *UserRepository) SetSuspendedByIDs(ids []uint, suspended bool) error {
+	if len(ids) == 0 {
+		return nil
+	}
+	if err := repo.baseRepository.dp.WithContext(repo.ctx).
+		Model(&entity.User{}).
+		Where("id IN ?", ids).
+		Update("suspended", suspended).Error; err != nil {
+		return fmt.Errorf("ユーザの停止状態の更新に失敗しました: %w", err)
+	}
+	return nil
+}
+
 func (repo *UserRepository) UpdateByID(user *entity.User) error {
 	if user == nil {
 		slog.Warn("アップデート対象のデータが空データ（nil）です。")

@@ -10,4 +10,5 @@ type DepartmentHierarchyRepository interface {
 	GetAll() ([]entity.DepartmentHierarchy, error)
 	GetByParentDepartmentID(parentDepartmentID uint) ([]entity.DepartmentHierarchy, error)
 	GetByChildDepartmentID(childDepartmentID uint) ([]entity.DepartmentHierarchy, error)
+	DeleteByParentDepartmentID(parentDepartmentID uint) error
 }

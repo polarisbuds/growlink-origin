@@ -19,6 +19,8 @@ func (h *Handler) SettingPage(c *echo.Context) error {
 	data["ProfileJSON"] = mustJSON(map[string]interface{}{
 		"name":          user.Name,
 		"email":         user.Email,
+		"lineWorksId":   user.LineWorksID,
+		"imageUri":      user.ImageURI,
 		"remindEnabled": user.RemindEnabled,
 	})
 	data["Breadcrumb"] = "設定"

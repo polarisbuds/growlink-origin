@@ -122,3 +122,10 @@ func (repo *UserRelationshipRepository) Delete(relationshipID uint) error {
 	return nil
 
 }
+
+func (repo *UserRelationshipRepository) DeleteByBossUserID(bossUserID uint) error {
+	if _, err := repo.baseRepository.Delete(0, "relation_type = ? AND target_id = ?", valueobject.RelationshipTypeBoss, bossUserID); err != nil {
+		return fmt.Errorf("上司ユーザのリレーション削除に失敗しました: %w", err)
+	}
+	return nil
+}

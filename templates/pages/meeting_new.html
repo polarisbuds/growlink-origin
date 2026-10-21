@@ -2,7 +2,7 @@
 <!DOCTYPE html>
 {{template "html"}}
 <head>{{template "head" dict "Title" "1on1作成 - Growlink" "PageScript" "/static/js/pages/meeting_new.js"}}</head>
-<body class="bg-base-200 font-sans antialiased" x-data="meetingNewPage" x-cloak>
+<body class="bg-base-200 font-sans antialiased" x-data="meetingNewPage" x-cloak @keydown.escape.window="closePicks()">
 <script type="application/json" id="pairings-json">{{.PairingsJSON}}</script>
 <script type="application/json" id="templates-json">{{.TemplatesJSON}}</script>
 <div class="flex h-screen overflow-hidden">
@@ -11,47 +11,66 @@
     {{template "header" dict "Breadcrumb" "1on1作成" "UserName" .UserName}}
     <main class="flex-1 min-h-0 overflow-y-auto p-4 md:p-6 max-w-xl">
       <h1 class="font-display text-2xl font-semibold">1on1ミーティング作成</h1>
+      <p class="mt-1 text-sm text-base-content/60">ペアとテンプレートを選び、実施日または定期スケジュールを指定します</p>
       <div class="mt-4 flex flex-wrap gap-2">
         <button type="button" class="btn btn-sm" :class="mode === 'single' ? 'btn-primary' : 'btn-outline'" @click="mode = 'single'">1件作成</button>
         <button type="button" class="btn btn-sm" :class="mode === 'all' ? 'btn-primary' : 'btn-outline'" @click="mode = 'all'">全ペア一括</button>
         <button type="button" class="btn btn-sm" :class="mode === 'monthly' ? 'btn-primary' : 'btn-outline'" @click="mode = 'monthly'">定期作成</button>
       </div>
       <div class="mt-6 rounded-3xl border border-base-300 bg-base-100 p-6 shadow-sm space-y-4">
-        <p x-show="error" class="text-sm text-error" x-text="error"></p>
-        <label x-show="mode === 'single'" class="form-control">
-          <span class="label-text">ペア</span>
-          <select class="select select-bordered" x-model.number="form.pairingId">
-            <option value="0">選択してください</option>
-            <template x-for="p in pairings" :key="p.id">
-              <option :value="p.id" x-text="pairingLabel(p)"></option>
+        <div x-show="error" class="alert alert-error text-sm" x-text="error"></div>
+        <div x-show="mode === 'single'" class="form-control relative" data-pick-root="pair">
+          <span class="label-text font-medium">ペア</span>
+          <div class="relative mt-1">
+            <input type="text" class="input input-bordered w-full pr-10" autocomplete="off"
+              :placeholder="form.pairingId ? '' : '名前で検索して選択'"
+              :value="pairPick.open ? pairPick.query : (form.pairingId ? pairingLabel(pairings.find(p => p.id === form.pairingId)) : '')"
+              @focus="pairPick.onFocus()"
+              @input="pairPick.onInput($event.target.value)" />
+            <button type="button" class="btn btn-ghost btn-xs btn-circle absolute right-1 top-1/2 -translate-y-1/2"
+              x-show="form.pairingId" @click="pairPick.clear()" aria-label="クリア">×</button>
+          </div>
+          <ul x-show="pairPick.open" class="absolute z-20 mt-1 max-h-48 w-full overflow-y-auto rounded-2xl border border-base-300 bg-base-100 shadow-lg py-1">
+            <template x-for="p in pairPick.filtered" :key="p.id">
+              <li><button type="button" class="btn btn-ghost btn-sm w-full justify-start font-normal" @click="pairPick.pick(p)" x-text="pairingLabel(p)"></button></li>
             </template>
-          </select>
-        </label>
-        <label class="form-control">
-          <span class="label-text">テンプレート</span>
-          <select class="select select-bordered" x-model.number="form.templateId">
-            <option value="0">選択してください</option>
-            <template x-for="t in templates" :key="t.id">
-              <option :value="t.id" x-text="t.title"></option>
+            <li x-show="pairPick.filtered.length === 0" class="px-4 py-3 text-sm text-base-content/50">該当なし</li>
+          </ul>
+        </div>
+        <div class="form-control relative" data-pick-root="template">
+          <span class="label-text font-medium">テンプレート</span>
+          <div class="relative mt-1">
+            <input type="text" class="input input-bordered w-full pr-10" autocomplete="off"
+              :placeholder="form.templateId ? '' : '名前で検索して選択'"
+              :value="templatePick.open ? templatePick.query : (form.templateId ? (templates.find(t => t.id === form.templateId)?.title || '') : '')"
+              @focus="templatePick.onFocus()"
+              @input="templatePick.onInput($event.target.value)" />
+            <button type="button" class="btn btn-ghost btn-xs btn-circle absolute right-1 top-1/2 -translate-y-1/2"
+              x-show="form.templateId" @click="templatePick.clear()" aria-label="クリア">×</button>
+          </div>
+          <ul x-show="templatePick.open" class="absolute z-20 mt-1 max-h-48 w-full overflow-y-auto rounded-2xl border border-base-300 bg-base-100 shadow-lg py-1">
+            <template x-for="t in templatePick.filtered" :key="t.id">
+              <li><button type="button" class="btn btn-ghost btn-sm w-full justify-start font-normal" @click="templatePick.pick(t)" x-text="t.title"></button></li>
             </template>
-          </select>
-        </label>
+            <li x-show="templatePick.filtered.length === 0" class="px-4 py-3 text-sm text-base-content/50">該当なし</li>
+          </ul>
+        </div>
         <label x-show="mode !== 'monthly'" class="form-control">
-          <span class="label-text">実施日</span>
+          <span class="label-text font-medium">実施日</span>
           <input class="input input-bordered" type="date" x-model="form.implementedAt" />
         </label>
         <template x-if="mode === 'monthly'">
           <div class="space-y-4">
             <label class="form-control">
-              <span class="label-text">基準月（その月の第N週を計算）</span>
+              <span class="label-text font-medium">基準月（その月の第N週を計算）</span>
               <input class="input input-bordered" type="month" x-model="form.baseMonth" />
             </label>
             <label class="form-control">
-              <span class="label-text">第N週（1〜5）</span>
+              <span class="label-text font-medium">第N週（1〜5）</span>
               <input class="input input-bordered" type="number" min="1" max="5" x-model.number="form.week" />
             </label>
             <label class="form-control">
-              <span class="label-text">曜日</span>
+              <span class="label-text font-medium">曜日</span>
               <select class="select select-bordered" x-model.number="form.weekday">
                 <option value="0">日曜</option>
                 <option value="1">月曜</option>

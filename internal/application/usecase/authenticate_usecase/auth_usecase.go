@@ -70,6 +70,9 @@ func (uc *AuthUsecase) LoginLDAP(ctx context.Context, email, password string) (s
 			return "", outputmodel.UserOutput{}, err
 		}
 	}
+	if user.Suspended {
+		return "", outputmodel.UserOutput{}, fmt.Errorf("アカウントは停止されています")
+	}
 
 	token, err := issueToken(user)
 	if err != nil {
@@ -92,6 +95,9 @@ func (uc *AuthUsecase) LoginBasic(ctx context.Context, email, password string) (
 	ok, err := crypto.VerifyPassword(password, config.GetPepper(), *user.Password)
 	if err != nil || !ok {
 		return "", outputmodel.UserOutput{}, fmt.Errorf("メールアドレスかパスワードが誤っています")
+	}
+	if user.Suspended {
+		return "", outputmodel.UserOutput{}, fmt.Errorf("アカウントは停止されています")
 	}
 	token, err := issueToken(user)
 	if err != nil {

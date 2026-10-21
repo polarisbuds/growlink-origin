@@ -6,6 +6,7 @@ import (
 
 	"growlink/internal/adapter/handler/authctx"
 	"growlink/internal/domain/valueobject"
+	repository_interface "growlink/internal/domain/interface/repository"
 	"growlink/internal/shared/auth"
 	"growlink/internal/shared/config"
 
@@ -56,6 +57,40 @@ func AuthorityAtLeastAPI(min valueobject.Authority) echo.MiddlewareFunc {
 			claims := authctx.Claims(c)
 			if claims == nil || int(claims.Authority) < int(min) {
 				return c.JSON(http.StatusForbidden, map[string]string{"error": "forbidden"})
+			}
+			return next(c)
+		}
+	}
+}
+
+func ActiveUserCheck(userRepo repository_interface.UserRepository, auditLogger *slog.Logger) echo.MiddlewareFunc {
+	return func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c *echo.Context) error {
+			claims := authctx.Claims(c)
+			if claims == nil {
+				return next(c)
+			}
+			user, err := userRepo.GetByID(claims.UserID)
+			if err != nil || user.Suspended {
+				c.SetCookie(&http.Cookie{Name: authctx.CookieNameToken, Value: "", Path: "/", MaxAge: -1})
+				return c.Redirect(http.StatusFound, "/login")
+			}
+			return next(c)
+		}
+	}
+}
+
+func ActiveUserCheckAPI(userRepo repository_interface.UserRepository, auditLogger *slog.Logger) echo.MiddlewareFunc {
+	return func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c *echo.Context) error {
+			claims := authctx.Claims(c)
+			if claims == nil {
+				return next(c)
+			}
+			user, err := userRepo.GetByID(claims.UserID)
+			if err != nil || user.Suspended {
+				c.SetCookie(&http.Cookie{Name: authctx.CookieNameToken, Value: "", Path: "/", MaxAge: -1})
+				return c.JSON(http.StatusForbidden, map[string]string{"error": "account suspended"})
 			}
 			return next(c)
 		}

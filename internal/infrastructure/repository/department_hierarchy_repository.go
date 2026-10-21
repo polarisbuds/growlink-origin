@@ -85,3 +85,10 @@ func (repo *DepartmentHierarchyRepository) GetByChildDepartmentID(childDepartmen
 	}
 	return hierarchies, nil
 }
+
+func (repo *DepartmentHierarchyRepository) DeleteByParentDepartmentID(parentDepartmentID uint) error {
+	if _, err := repo.baseRepository.Delete(0, "parent_department_id = ?", parentDepartmentID); err != nil {
+		return fmt.Errorf("親部署ID指定での部署階層削除に失敗しました: %w", err)
+	}
+	return nil
+}

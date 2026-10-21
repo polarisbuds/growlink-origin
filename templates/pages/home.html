@@ -10,42 +10,50 @@
     {{template "header" dict "Breadcrumb" .Breadcrumb "UserName" .UserName}}
     <main class="flex-1 min-h-0 overflow-y-auto p-4 md:p-6">
       <h1 class="font-display text-2xl font-semibold">あなたの1on1</h1>
-      <p class="mt-2 text-sm text-base-content/60">面談サマリ一覧</p>
+      <p class="mt-1 text-sm text-base-content/60">実施予定日に基づく面談サマリ</p>
       <section class="mt-8">
         <h2 class="text-sm font-semibold text-base-content/70">今日まで</h2>
         <div class="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           <template x-for="item in untilToday" :key="item.uuid">
-            <div class="rounded-3xl border border-base-300 bg-base-100 p-5 shadow-sm">
+            <div class="group rounded-3xl border border-base-300 bg-base-100 p-5 shadow-sm hover:border-primary/40 transition-colors">
               <div class="flex items-start justify-between gap-3">
-                <div>
-                  <p class="text-sm text-base-content/60" x-text="pairLabel(item)"></p>
+                <div class="min-w-0">
+                  <p class="text-sm text-base-content/60 truncate" x-text="pairLabel(item)"></p>
                   <h3 class="mt-1 font-semibold" x-text="item.template?.title || '1on1'"></h3>
                 </div>
-                <span class="badge" :class="statusBadge(item.status)" x-text="statusLabel(item.status)"></span>
+                <span class="badge shrink-0" :class="statusBadge(item.status)" x-text="statusLabel(item.status)"></span>
               </div>
-              <p class="mt-3 text-sm">実施予定日: <span x-text="formatDate(item.implementedAt)"></span></p>
-              <div class="mt-4 flex flex-wrap gap-2">
+              <p class="mt-3 text-sm text-base-content/70">実施予定日: <span x-text="formatDate(item.implementedAt)"></span></p>
+              <div class="mt-4 flex flex-wrap gap-2 items-center">
                 <a :href="'/meeting/' + item.uuid + '/answer'" class="btn btn-sm btn-primary">記入</a>
                 <a :href="'/meeting/' + item.uuid" class="btn btn-sm btn-ghost">閲覧</a>
                 <a :href="'/meeting/' + item.uuid + '/setting'" class="btn btn-sm btn-ghost">設定</a>
+                <i data-lucide="chevron-right" class="h-4 w-4 ml-auto opacity-30 group-hover:opacity-60"></i>
               </div>
             </div>
           </template>
-          <p x-show="untilToday.length === 0" class="text-sm text-base-content/50">なし</p>
+          <div x-show="untilToday.length === 0" class="rounded-3xl border border-dashed border-base-300 bg-base-100 p-10 text-center text-sm text-base-content/50 md:col-span-2 xl:col-span-3">
+            今日までの面談はありません
+          </div>
         </div>
       </section>
       <section class="mt-10">
         <h2 class="text-sm font-semibold text-base-content/70">明日以降</h2>
         <div class="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           <template x-for="item in fromTomorrow" :key="item.uuid">
-            <div class="rounded-3xl border border-base-300 bg-base-100 p-5 shadow-sm">
+            <div class="group rounded-3xl border border-base-300 bg-base-100 p-5 shadow-sm hover:border-primary/40 transition-colors">
               <p class="text-sm text-base-content/60" x-text="pairLabel(item)"></p>
               <h3 class="mt-1 font-semibold" x-text="item.template?.title || '1on1'"></h3>
-              <p class="mt-3 text-sm">実施予定日: <span x-text="formatDate(item.implementedAt)"></span></p>
-              <a :href="'/meeting/' + item.uuid + '/answer'" class="btn btn-sm btn-primary mt-4">記入</a>
+              <p class="mt-3 text-sm text-base-content/70">実施予定日: <span x-text="formatDate(item.implementedAt)"></span></p>
+              <div class="mt-4 flex items-center gap-2">
+                <a :href="'/meeting/' + item.uuid + '/answer'" class="btn btn-sm btn-primary">記入</a>
+                <i data-lucide="chevron-right" class="h-4 w-4 ml-auto opacity-30 group-hover:opacity-60"></i>
+              </div>
             </div>
           </template>
-          <p x-show="fromTomorrow.length === 0" class="text-sm text-base-content/50">なし</p>
+          <div x-show="fromTomorrow.length === 0" class="rounded-3xl border border-dashed border-base-300 bg-base-100 p-10 text-center text-sm text-base-content/50 md:col-span-2 xl:col-span-3">
+            明日以降の面談はありません
+          </div>
         </div>
       </section>
     </main>

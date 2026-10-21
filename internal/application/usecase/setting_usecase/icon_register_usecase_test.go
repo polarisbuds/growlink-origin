@@ -65,14 +65,6 @@ func TestIconRegisterUsecase_RegistIcon(t *testing.T) {
 					cap.updatedUser = u
 					return nil
 				})
-				file.EXPECT().Exists(gomock.Any()).DoAndReturn(func(name string) (bool, error) {
-					cap.existsNames = append(cap.existsNames, name)
-					return true, nil
-				})
-				file.EXPECT().DeleteFile(gomock.Any()).DoAndReturn(func(name string) error {
-					cap.deleteFileNames = append(cap.deleteFileNames, name)
-					return nil
-				})
 			},
 			assertFn: func(t *testing.T, cap *iconRegisterCaptures) {
 				t.Helper()
@@ -82,8 +74,7 @@ func TestIconRegisterUsecase_RegistIcon(t *testing.T) {
 				require.NotNil(t, cap.updatedUser)
 				require.NotNil(t, cap.updatedUser.ImageURI)
 				assert.Equal(t, gotName, *cap.updatedUser.ImageURI)
-				require.Equal(t, []string{gotName}, cap.existsNames)
-				require.Equal(t, []string{gotName}, cap.deleteFileNames)
+				assert.Empty(t, cap.deleteFileNames)
 			},
 		},
 		{
@@ -103,8 +94,11 @@ func TestIconRegisterUsecase_RegistIcon(t *testing.T) {
 					cap.updatedUser = u
 					return nil
 				})
-				file.EXPECT().Exists(gomock.Any()).Return(true, nil)
-				file.EXPECT().DeleteFile(gomock.Any()).Return(nil)
+				file.EXPECT().Exists("old-icon.jpg").Return(true, nil)
+				file.EXPECT().DeleteFile("old-icon.jpg").DoAndReturn(func(name string) error {
+					cap.deleteFileNames = append(cap.deleteFileNames, name)
+					return nil
+				})
 			},
 			assertFn: func(t *testing.T, cap *iconRegisterCaptures) {
 				t.Helper()
@@ -113,26 +107,22 @@ func TestIconRegisterUsecase_RegistIcon(t *testing.T) {
 				require.NotNil(t, cap.updatedUser)
 				require.NotNil(t, cap.updatedUser.ImageURI)
 				assert.Equal(t, cap.newFileNames[0], *cap.updatedUser.ImageURI)
+				require.Equal(t, []string{"old-icon.jpg"}, cap.deleteFileNames)
 			},
 		},
 		{
-			name:     "通常系_存在チェックがfalseなら削除しない",
+			name:     "通常系_古いアイコンが無ければ削除処理しない",
 			userID:   validUserID,
 			filename: "avatar.jpeg",
 			content:  strings.NewReader("jpeg-bytes"),
 			wantErr:  false,
-			setup: func(_ *testing.T, user *repomock.MockUserRepository, file *repomock.MockUploadFileRepository, cap *iconRegisterCaptures) {
+			setup: func(_ *testing.T, user *repomock.MockUserRepository, file *repomock.MockUploadFileRepository, _ *iconRegisterCaptures) {
 				user.EXPECT().GetByID(validUserID).Return(newTestUser(validUserID, nil), nil)
 				file.EXPECT().NewFile(gomock.Any(), gomock.Any()).Return(nil)
 				user.EXPECT().UpdateByID(gomock.Any()).Return(nil)
-				file.EXPECT().Exists(gomock.Any()).DoAndReturn(func(name string) (bool, error) {
-					cap.existsNames = append(cap.existsNames, name)
-					return false, nil
-				})
 			},
 			assertFn: func(t *testing.T, cap *iconRegisterCaptures) {
 				t.Helper()
-				require.Len(t, cap.existsNames, 1)
 				assert.Empty(t, cap.deleteFileNames)
 			},
 		},
@@ -193,7 +183,8 @@ func TestIconRegisterUsecase_RegistIcon(t *testing.T) {
 			wantErr:     true,
 			errContains: "アップロード済みのイメージファイルの存在チェックに失敗しました",
 			setup: func(_ *testing.T, user *repomock.MockUserRepository, file *repomock.MockUploadFileRepository, _ *iconRegisterCaptures) {
-				user.EXPECT().GetByID(validUserID).Return(newTestUser(validUserID, nil), nil)
+				old := "old.png"
+				user.EXPECT().GetByID(validUserID).Return(newTestUser(validUserID, &old), nil)
 				file.EXPECT().NewFile(gomock.Any(), gomock.Any()).Return(nil)
 				user.EXPECT().UpdateByID(gomock.Any()).Return(nil)
 				file.EXPECT().Exists(gomock.Any()).Return(false, errExistsCheckFailed)
@@ -211,7 +202,8 @@ func TestIconRegisterUsecase_RegistIcon(t *testing.T) {
 			wantErr:     true,
 			errContains: "アップロード済みのイメージファイルの削除に失敗しました",
 			setup: func(_ *testing.T, user *repomock.MockUserRepository, file *repomock.MockUploadFileRepository, cap *iconRegisterCaptures) {
-				user.EXPECT().GetByID(validUserID).Return(newTestUser(validUserID, nil), nil)
+				old := "old.png"
+				user.EXPECT().GetByID(validUserID).Return(newTestUser(validUserID, &old), nil)
 				file.EXPECT().NewFile(gomock.Any(), gomock.Any()).Return(nil)
 				user.EXPECT().UpdateByID(gomock.Any()).Return(nil)
 				file.EXPECT().Exists(gomock.Any()).Return(true, nil)
@@ -249,7 +241,6 @@ func TestIconRegisterUsecase_RegistIcon(t *testing.T) {
 					return nil
 				})
 				user.EXPECT().UpdateByID(gomock.Any()).Return(nil)
-				file.EXPECT().Exists(gomock.Any()).Return(false, nil)
 			},
 			assertFn: func(t *testing.T, cap *iconRegisterCaptures) {
 				t.Helper()
@@ -273,7 +264,6 @@ func TestIconRegisterUsecase_RegistIcon(t *testing.T) {
 					return nil
 				})
 				user.EXPECT().UpdateByID(gomock.Any()).Return(nil)
-				file.EXPECT().Exists(gomock.Any()).Return(false, nil)
 			},
 			assertFn: func(t *testing.T, cap *iconRegisterCaptures) {
 				t.Helper()

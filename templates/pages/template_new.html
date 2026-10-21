@@ -9,15 +9,18 @@
     {{template "header" dict "Breadcrumb" "テンプレート作成" "UserName" .UserName}}
     <main class="flex-1 min-h-0 overflow-y-auto p-4 md:p-6 max-w-2xl">
       <h1 class="font-display text-2xl font-semibold">テンプレート新規作成</h1>
+      <p class="mt-1 text-sm text-base-content/60">質問を追加して面談のひな形を作ります</p>
       <div class="mt-6 rounded-3xl border border-base-300 bg-base-100 p-6 shadow-sm space-y-4">
-        <label class="form-control"><span class="label-text">タイトル</span><input class="input input-bordered" x-model="title" /></label>
+        <label class="form-control"><span class="label-text font-medium">タイトル</span><input class="input input-bordered" x-model="title" /></label>
         <template x-for="(topic, i) in topics" :key="i">
-          <div class="rounded-2xl border border-base-300 p-4">
-            <input class="input input-bordered w-full" x-model="topic.question" placeholder="質問文" />
-            <label class="label cursor-pointer justify-start gap-2 mt-2"><input type="checkbox" class="checkbox checkbox-sm" x-model="topic.isRequire" /><span class="label-text">必須</span></label>
+          <div class="flex gap-2 items-center rounded-2xl border border-base-300 p-2">
+            <span class="badge badge-ghost shrink-0" x-text="'Q' + (i + 1)"></span>
+            <input class="input input-bordered input-sm flex-1" x-model="topic.question" placeholder="質問文" />
+            <label class="label cursor-pointer gap-1 shrink-0 py-0"><input type="checkbox" class="checkbox checkbox-sm" x-model="topic.isRequire" /><span class="label-text text-xs">必須</span></label>
+            <button type="button" class="btn btn-ghost btn-xs btn-square text-error" title="削除" @click="removeTopic(i)" :disabled="topics.length <= 1">×</button>
           </div>
         </template>
-        <button type="button" class="btn btn-outline btn-sm" @click="topics.push({ question: '', isRequire: true, displayNo: topics.length + 1 })">質問を追加</button>
+        <button type="button" class="btn btn-outline btn-sm w-full" @click="addTopic()">質問を追加</button>
         <button type="button" class="btn btn-primary" @click="save()">保存</button>
       </div>
     </main>

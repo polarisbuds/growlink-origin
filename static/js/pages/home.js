@@ -1,4 +1,5 @@
 import { statusBadge, statusLabel } from "../store.js";
+import { refreshPageIcons } from "../notice.js";
 
 function parseMeetings() {
   const el = document.getElementById("meetings-json");
@@ -31,6 +32,9 @@ document.addEventListener("alpine:init", () => {
     fromTomorrow,
     statusBadge,
     statusLabel,
+    init() {
+      refreshPageIcons();
+    },
     pairLabel(item) {
       const p = item.pairing;
       if (!p) return "";

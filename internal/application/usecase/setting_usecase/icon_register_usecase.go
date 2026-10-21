@@ -40,6 +40,12 @@ func (uc *IconRegisterUsecase) RegistIcon(userID uint, name string, content io.R
 	iconName.WriteString(ext)
 	filename := iconName.String()
 
+	var oldFilename *string
+	if user.ImageURI != nil {
+		old := *user.ImageURI
+		oldFilename = &old
+	}
+
 	if err := uc.uploadFileRepository.NewFile(filename, content); err != nil {
 		return fmt.Errorf("ユーザアイコンの新規作成処理に失敗しました: %w", err)
 	}
@@ -49,8 +55,8 @@ func (uc *IconRegisterUsecase) RegistIcon(userID uint, name string, content io.R
 		return fmt.Errorf("ユーザデータの更新（ユーザアイコン）に失敗しました: %w", err)
 	}
 
-	if filename := user.ImageURI; filename != nil {
-		name := *filename
+	if oldFilename != nil && *oldFilename != filename {
+		name := *oldFilename
 		slog.Info("古いユーザアイコンの削除を実施します。", slog.String("filename", name))
 
 		isExists, err := uc.uploadFileRepository.Exists(name)

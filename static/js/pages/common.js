@@ -1,4 +1,5 @@
 import { statusBadge, statusLabel } from "../store.js";
+import { showToast } from "../notice.js";
 
 export function meetingPageData() {
   const el = document.getElementById("meeting-json");
@@ -18,8 +19,8 @@ export function meetingPageData() {
       if (!res.ok) throw new Error(await res.text());
       return res.json().catch(() => ({}));
     },
-    toast(msg) {
-      alert(msg);
+    toast(msg, type = "success") {
+      showToast(msg, type);
     },
   };
 }
