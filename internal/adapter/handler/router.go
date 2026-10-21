@@ -106,10 +106,12 @@ func RegisterRoutes(e *echo.Echo, deps Deps, auditLogger *slog.Logger) {
 	apiAuth.DELETE("/setting/icon", ah.DeleteIcon, auditLogging(auditLogger, false))
 
 	apiAuth.GET("/management/users", ah.ListManagementUsers, AuthorityAtLeastAPI(valueobject.AuthorityOwner), auditLogging(auditLogger, false))
+	apiAuth.POST("/management/users", ah.CreateManagementUser, AuthorityAtLeastAPI(valueobject.AuthorityOwner), auditLogging(auditLogger, false))
 	apiAuth.PUT("/management/users/:id", ah.UpdateManagementUser, AuthorityAtLeastAPI(valueobject.AuthorityOwner), auditLogging(auditLogger, false))
 	apiAuth.POST("/management/users/suspend", ah.SuspendManagementUsers, AuthorityAtLeastAPI(valueobject.AuthorityOwner), auditLogging(auditLogger, false))
 	apiAuth.DELETE("/management/users/:id/icon", ah.DeleteManagementUserIcon, AuthorityAtLeastAPI(valueobject.AuthorityOwner), auditLogging(auditLogger, false))
 	apiAuth.GET("/management/org/tree", ah.ListOrgTree, AuthorityAtLeastAPI(valueobject.AuthorityOwner), auditLogging(auditLogger, false))
+	apiAuth.POST("/management/departments", ah.CreateDepartment, AuthorityAtLeastAPI(valueobject.AuthorityOwner), auditLogging(auditLogger, false))
 	apiAuth.GET("/management/departments/:id", ah.GetDepartmentDetail, AuthorityAtLeastAPI(valueobject.AuthorityOwner), auditLogging(auditLogger, false))
 	apiAuth.PUT("/management/departments/:id", ah.UpdateDepartment, AuthorityAtLeastAPI(valueobject.AuthorityOwner), auditLogging(auditLogger, false))
 	apiAuth.DELETE("/management/departments/:id", ah.DeleteDepartment, AuthorityAtLeastAPI(valueobject.AuthorityOwner), auditLogging(auditLogger, false))

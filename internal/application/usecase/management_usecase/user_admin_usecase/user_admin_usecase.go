@@ -1,11 +1,17 @@
 package user_admin_usecase
 
 import (
+	"errors"
 	"fmt"
 	outputmodel "growlink/internal/application/model/output_model"
+	"growlink/internal/domain/entity"
 	repository_interface "growlink/internal/domain/interface/repository"
 	"growlink/internal/domain/valueobject"
+	"growlink/internal/shared/config"
+	"growlink/internal/shared/crypto"
 	"strings"
+
+	"gorm.io/gorm"
 )
 
 type UserAdmin struct {
@@ -102,6 +108,70 @@ func (uc *UserAdmin) loadTargetIDs(userID uint, target valueobject.OperationTarg
 	default:
 		return []uint{}, nil
 	}
+}
+
+type CreateUserInput struct {
+	Name         string `json:"name"`
+	Email        string `json:"email"`
+	DepartmentID uint   `json:"departmentId"`
+	RoleID       uint   `json:"roleId"`
+	Password     string `json:"password"`
+}
+
+func (uc *UserAdmin) CreateUser(input CreateUserInput) (*outputmodel.ManagementUserOutput, error) {
+	name := strings.TrimSpace(input.Name)
+	email := strings.TrimSpace(input.Email)
+	if name == "" {
+		return nil, fmt.Errorf("氏名を入力してください")
+	}
+	if email == "" {
+		return nil, fmt.Errorf("メールを入力してください")
+	}
+	if input.DepartmentID == 0 {
+		return nil, fmt.Errorf("所属部署を選択してください")
+	}
+	if input.RoleID == 0 {
+		return nil, fmt.Errorf("役職を選択してください")
+	}
+	existing, err := uc.userRepo.GetByEmail(email)
+	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, err
+	}
+	if existing != nil {
+		return nil, fmt.Errorf("このメールアドレスは既に登録されています")
+	}
+	user := &entity.User{
+		Name:            name,
+		Email:           email,
+		DepartmentID:    input.DepartmentID,
+		RoleID:          input.RoleID,
+		Authority:       valueobject.AuthorityGeneral,
+		SystemRole:      valueobject.SystemRoleNone,
+		OperationTarget: valueobject.OperationTargetNone,
+		Suspended:       false,
+	}
+	if strings.TrimSpace(input.Password) != "" {
+		hashed, err := crypto.HashPassword(strings.TrimSpace(input.Password), config.GetPepper())
+		if err != nil {
+			return nil, err
+		}
+		user.Password = &hashed
+	}
+	if err := uc.userRepo.Create(user); err != nil {
+		return nil, err
+	}
+	return &outputmodel.ManagementUserOutput{
+		ID:              user.ID,
+		Name:            user.Name,
+		Email:           user.Email,
+		Authority:       user.Authority.String(),
+		SystemRole:      user.SystemRole.String(),
+		OperationTarget: user.OperationTarget.String(),
+		TargetIDs:       []uint{},
+		DepartmentID:    user.DepartmentID,
+		RoleID:          user.RoleID,
+		Suspended:       user.Suspended,
+	}, nil
 }
 
 type UpdateUserInput struct {

@@ -5,6 +5,7 @@ import (
 	outputmodel "growlink/internal/application/model/output_model"
 	"growlink/internal/domain/entity"
 	repository_interface "growlink/internal/domain/interface/repository"
+	"strings"
 )
 
 type OrgAdmin struct {
@@ -67,10 +68,43 @@ func (uc *OrgAdmin) ListTree() ([]outputmodel.OrgTreeNodeOutput, error) {
 		teamsByDept[t.DepartmentID] = append(teamsByDept[t.DepartmentID], t)
 	}
 	leaderByTeam := map[uint]string{}
+	membersByTeam := map[uint][]uint{}
 	for _, m := range members {
+		membersByTeam[m.TeamID] = append(membersByTeam[m.TeamID], m.MemberID)
 		if m.IsReader && m.Member != nil {
 			leaderByTeam[m.TeamID] = m.Member.Name
 		}
+	}
+	allUsers, err := uc.userRepo.GetAll()
+	if err != nil {
+		return nil, err
+	}
+	usersByDept := map[uint][]uint{}
+	for _, u := range allUsers {
+		usersByDept[u.DepartmentID] = append(usersByDept[u.DepartmentID], u.ID)
+	}
+	memberCountByDept := map[uint]int{}
+	var subtreeDeptIDs func(deptID uint) []uint
+	subtreeDeptIDs = func(deptID uint) []uint {
+		ids := []uint{deptID}
+		for _, childID := range childMap[deptID] {
+			ids = append(ids, subtreeDeptIDs(childID)...)
+		}
+		return ids
+	}
+	for _, d := range depts {
+		seen := map[uint]bool{}
+		for _, subID := range subtreeDeptIDs(d.ID) {
+			for _, uid := range usersByDept[subID] {
+				seen[uid] = true
+			}
+			for _, team := range teamsByDept[subID] {
+				for _, uid := range membersByTeam[team.ID] {
+					seen[uid] = true
+				}
+			}
+		}
+		memberCountByDept[d.ID] = len(seen)
 	}
 
 	var nodes []outputmodel.OrgTreeNodeOutput
@@ -78,11 +112,12 @@ func (uc *OrgAdmin) ListTree() ([]outputmodel.OrgTreeNodeOutput, error) {
 	walk = func(deptID uint, depth int, isRoot bool) {
 		d := deptByID[deptID]
 		nodes = append(nodes, outputmodel.OrgTreeNodeOutput{
-			Kind:   "department",
-			ID:     d.ID,
-			Name:   d.Name,
-			Depth:  depth,
-			IsRoot: isRoot,
+			Kind:        "department",
+			ID:          d.ID,
+			Name:        d.Name,
+			Depth:       depth,
+			IsRoot:      isRoot,
+			MemberCount: memberCountByDept[d.ID],
 		})
 		for _, childID := range childMap[deptID] {
 			walk(childID, depth+1, false)
@@ -372,6 +407,34 @@ func (uc *OrgAdmin) DeleteTeam(id uint) error {
 		}
 	}
 	return uc.teamRepo.Delete(id)
+}
+
+type CreateDepartmentInput struct {
+	Name               string `json:"name"`
+	ParentDepartmentID uint   `json:"parentDepartmentId"`
+}
+
+func (uc *OrgAdmin) CreateDepartment(input CreateDepartmentInput) (*outputmodel.DepartmentOptionOutput, error) {
+	name := strings.TrimSpace(input.Name)
+	if name == "" {
+		return nil, fmt.Errorf("部署名を入力してください")
+	}
+	dept := &entity.Department{Name: name}
+	if err := uc.deptRepo.Create(dept); err != nil {
+		return nil, err
+	}
+	if input.ParentDepartmentID > 0 {
+		if _, err := uc.deptRepo.GetByID(input.ParentDepartmentID); err != nil {
+			return nil, fmt.Errorf("親部署が見つかりません")
+		}
+		if input.ParentDepartmentID == dept.ID {
+			return nil, fmt.Errorf("自分自身を親部署に指定できません")
+		}
+		if err := uc.hierarchyRepo.Create(input.ParentDepartmentID, dept.ID); err != nil {
+			return nil, err
+		}
+	}
+	return &outputmodel.DepartmentOptionOutput{ID: dept.ID, Name: dept.Name}, nil
 }
 
 func (uc *OrgAdmin) ListDepartmentOptions() ([]outputmodel.DepartmentOptionOutput, error) {

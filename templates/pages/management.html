@@ -29,6 +29,7 @@
             <i data-lucide="search" class="h-4 w-4 opacity-50"></i>
             <input type="search" class="grow" placeholder="氏名・メールで検索" x-model="userSearch" />
           </label>
+          <button type="button" class="btn btn-primary btn-sm shrink-0" @click="openCreateUserModal()">ユーザを追加</button>
           <div class="flex items-center gap-2" x-show="selectedUserIds.length > 0" x-cloak>
             <span class="text-sm text-base-content/60" x-text="selectedUserIds.length + ' 件選択中'"></span>
             <button type="button" class="btn btn-error btn-sm" @click="askSuspend()">アカウント停止</button>
@@ -76,6 +77,9 @@
       </div>
 
       <div class="mt-6" x-show="tab === 'departments'">
+        <div class="flex justify-end mb-4">
+          <button type="button" class="btn btn-primary btn-sm" @click="openCreateDeptModal()">部署を追加</button>
+        </div>
         <div class="rounded-3xl border border-base-300 bg-base-100 shadow-sm overflow-hidden">
           <template x-if="orgLoading">
             <div class="p-6 space-y-3"><template x-for="i in 6" :key="i"><div class="skeleton h-10 w-full rounded-xl"></div></template></div>
@@ -88,6 +92,7 @@
               <button type="button" class="w-full text-left px-4 py-3 hover:bg-base-200/60 flex items-center gap-2 transition-colors" :style="'padding-left:' + (1 + n.depth * 1.25) + 'rem'" @click="openOrgModal(n)">
                 <i :data-lucide="n.kind === 'team' ? 'users' : 'building-2'" class="h-4 w-4 shrink-0 text-primary/80"></i>
                 <span class="font-medium" x-text="n.name"></span>
+                <span x-show="n.kind === 'department'" class="badge badge-ghost badge-sm" x-text="n.memberCount + '人'"></span>
                 <span x-show="n.kind === 'team' && n.leaderName" class="badge badge-secondary badge-sm">SM</span>
                 <span x-show="n.kind === 'team' && n.leaderName" class="text-sm text-base-content/60" x-text="n.leaderName"></span>
                 <i data-lucide="chevron-right" class="h-4 w-4 ml-auto opacity-40"></i>
@@ -107,8 +112,25 @@
             <input type="checkbox" class="toggle toggle-primary" x-model="remind.remindAutoSend" />
             <span class="label-text font-medium">1on1の通知を自動送信する</span>
           </label>
-          <label class="form-control">
-            <span class="label-text font-medium">送信曜日</span>
+          <div>
+            <span class="label-text font-medium">通知タイミング</span>
+            <div class="flex flex-col gap-2 mt-2">
+              <label class="label cursor-pointer justify-start gap-3 rounded-2xl border border-base-300 px-4 py-3">
+                <input type="radio" name="remindMode" class="radio radio-primary" value="days_before" x-model="remind.remindMode" />
+                <span class="label-text">実施予定日の N 日前</span>
+              </label>
+              <label class="label cursor-pointer justify-start gap-3 rounded-2xl border border-base-300 px-4 py-3">
+                <input type="radio" name="remindMode" class="radio radio-primary" value="prev_weekday" x-model="remind.remindMode" />
+                <span class="label-text">前の週の指定曜日</span>
+              </label>
+            </div>
+          </div>
+          <label class="form-control" x-show="remind.remindMode === 'days_before'">
+            <span class="label-text font-medium">何日前（1〜30）</span>
+            <input type="number" min="1" max="30" class="input input-bordered" x-model.number="remind.remindDaysBefore" />
+          </label>
+          <label class="form-control" x-show="remind.remindMode === 'prev_weekday'">
+            <span class="label-text font-medium">曜日</span>
             <select class="select select-bordered" x-model.number="remind.remindWeekday">
               <template x-for="w in weekdays" :key="w.value"><option :value="w.value" x-text="w.label"></option></template>
             </select>
@@ -131,21 +153,21 @@
             <button type="button" class="btn btn-sm btn-circle btn-ghost" aria-label="閉じる" @click="userModalOpen=false">×</button>
           </div>
           <div class="overflow-y-auto px-6 py-4 space-y-5 flex-1" x-show="userForm">
-            <div>
-              <span class="label-text font-medium">権限</span>
-              <div class="flex flex-wrap gap-2 mt-2">
-                <template x-for="opt in authorityOptions" :key="opt.value">
-                  <button type="button" class="btn btn-sm" :class="userForm.authority === opt.value ? 'btn-primary' : 'btn-outline'" @click="userForm.authority = opt.value" x-text="opt.label"></button>
-                </template>
-              </div>
-            </div>
-            <div>
-              <span class="label-text font-medium">ロール</span>
-              <div class="flex flex-wrap gap-2 mt-2">
-                <template x-for="opt in systemRoleOptions" :key="opt.value">
-                  <button type="button" class="btn btn-sm" :class="userForm.systemRole === opt.value ? 'btn-primary' : 'btn-outline'" @click="userForm.systemRole = opt.value" x-text="opt.label"></button>
-                </template>
-              </div>
+            <div class="grid sm:grid-cols-2 gap-4">
+              <label class="form-control">
+                <span class="label-text font-medium">権限</span>
+                <p class="text-xs text-base-content/50 mt-0.5">現在: <span x-text="authorityLabel(userForm.authority)"></span></p>
+                <select class="select select-bordered select-sm mt-1" x-model="authoritySelect" @change="onAuthoritySelectChange()">
+                  <template x-for="opt in authorityOptions" :key="opt.value"><option :value="opt.value" x-text="opt.label"></option></template>
+                </select>
+              </label>
+              <label class="form-control">
+                <span class="label-text font-medium">ロール</span>
+                <p class="text-xs text-base-content/50 mt-0.5">現在: <span x-text="systemRoleLabel(userForm.systemRole)"></span></p>
+                <select class="select select-bordered select-sm mt-1" x-model="systemRoleSelect" @change="onSystemRoleSelectChange()">
+                  <template x-for="opt in systemRoleOptions" :key="opt.value"><option :value="opt.value" x-text="opt.label"></option></template>
+                </select>
+              </label>
             </div>
             <div>
               <span class="label-text font-medium">操作対象</span>
@@ -315,16 +337,69 @@
         <form method="dialog" class="modal-backdrop"><button type="button" @click="orgModalOpen=false">close</button></form>
       </dialog>
 
+      <dialog class="modal" :class="{ 'modal-open': createUserOpen }">
+        <div class="modal-box max-w-lg max-h-[85vh] flex flex-col p-0">
+          <div class="p-6 pb-2 border-b border-base-200 shrink-0">
+            <h3 class="font-bold text-lg">ユーザを追加</h3>
+            <p class="text-sm text-base-content/60 mt-0.5">権限はメンバー、ロールはなしで作成されます</p>
+          </div>
+          <div class="overflow-y-auto px-6 py-4 space-y-4 flex-1">
+            <label class="form-control"><span class="label-text font-medium">氏名</span><input class="input input-bordered" x-model="createUserForm.name" /></label>
+            <label class="form-control"><span class="label-text font-medium">メール</span><input type="email" class="input input-bordered" x-model="createUserForm.email" /></label>
+            <label class="form-control"><span class="label-text font-medium">所属部署</span>
+              <select class="select select-bordered" x-model.number="createUserForm.departmentId">
+                <option value="0">選択してください</option>
+                <template x-for="d in options.departments" :key="'new-dept-'+d.id"><option :value="d.id" x-text="d.name"></option></template>
+              </select>
+            </label>
+            <label class="form-control"><span class="label-text font-medium">役職（マスタ）</span>
+              <select class="select select-bordered" x-model.number="createUserForm.roleId">
+                <option value="0">選択してください</option>
+                <template x-for="r in options.roles" :key="'new-role-'+r.id"><option :value="r.id" x-text="r.name"></option></template>
+              </select>
+            </label>
+            <label class="form-control"><span class="label-text font-medium">パスワード（任意・Basic認証用）</span><input type="password" class="input input-bordered" x-model="createUserForm.password" autocomplete="new-password" /></label>
+          </div>
+          <div class="modal-action border-t border-base-200 p-4 shrink-0">
+            <button type="button" class="btn btn-ghost" @click="createUserOpen=false">キャンセル</button>
+            <button type="button" class="btn btn-primary" @click="submitCreateUser()">作成</button>
+          </div>
+        </div>
+        <form method="dialog" class="modal-backdrop"><button type="button" @click="createUserOpen=false">close</button></form>
+      </dialog>
+
+      <dialog class="modal" :class="{ 'modal-open': createDeptOpen }">
+        <div class="modal-box max-w-md max-h-[85vh] flex flex-col p-0">
+          <div class="p-6 pb-2 border-b border-base-200 shrink-0">
+            <h3 class="font-bold text-lg">部署を追加</h3>
+          </div>
+          <div class="overflow-y-auto px-6 py-4 space-y-4 flex-1">
+            <label class="form-control"><span class="label-text font-medium">部署名</span><input class="input input-bordered" x-model="createDeptForm.name" /></label>
+            <label class="form-control"><span class="label-text font-medium">親部署（任意）</span>
+              <select class="select select-bordered" x-model.number="createDeptForm.parentDepartmentId">
+                <option value="0">なし（ルート）</option>
+                <template x-for="d in options.departments" :key="'parent-'+d.id"><option :value="d.id" x-text="d.name"></option></template>
+              </select>
+            </label>
+          </div>
+          <div class="modal-action border-t border-base-200 p-4 shrink-0">
+            <button type="button" class="btn btn-ghost" @click="createDeptOpen=false">キャンセル</button>
+            <button type="button" class="btn btn-primary" @click="submitCreateDept()">作成</button>
+          </div>
+        </div>
+        <form method="dialog" class="modal-backdrop"><button type="button" @click="createDeptOpen=false">close</button></form>
+      </dialog>
+
       <dialog class="modal" :class="{ 'modal-open': confirmOpen }">
         <div class="modal-box max-h-[85vh]">
           <h3 class="font-bold" x-text="confirmTitle"></h3>
           <p class="py-4 text-sm text-base-content/80" x-text="confirmMessage"></p>
           <div class="modal-action">
-            <button type="button" class="btn btn-ghost" @click="confirmOpen=false">キャンセル</button>
-            <button type="button" class="btn btn-error" @click="runConfirm()">確定</button>
+            <button type="button" class="btn btn-ghost" @click="cancelConfirm()">キャンセル</button>
+            <button type="button" class="btn" :class="confirmDanger ? 'btn-error' : 'btn-primary'" @click="runConfirm()" x-text="confirmDanger ? '確定' : '変更する'"></button>
           </div>
         </div>
-        <form method="dialog" class="modal-backdrop"><button type="button" @click="confirmOpen=false">close</button></form>
+        <form method="dialog" class="modal-backdrop"><button type="button" @click="cancelConfirm()">close</button></form>
       </dialog>
     </main>
   </div>

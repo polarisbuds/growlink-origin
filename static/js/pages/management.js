@@ -50,7 +50,13 @@ document.addEventListener("alpine:init", () => {
     userSearch: "",
     usersLoading: true,
     orgLoading: true,
-    remind: { remindAutoSend: false, remindWeekday: 1, remindTime: "09:00" },
+    remind: {
+      remindAutoSend: false,
+      remindMode: "prev_weekday",
+      remindDaysBefore: 1,
+      remindWeekday: 1,
+      remindTime: "09:00",
+    },
     weekdays: WEEKDAYS,
     authorityOptions: AUTHORITY_OPTIONS,
     systemRoleOptions: SYSTEM_ROLE_OPTIONS,
@@ -62,6 +68,12 @@ document.addEventListener("alpine:init", () => {
     orgMemberSearch: "",
     userModalOpen: false,
     userForm: null,
+    authoritySelect: "general",
+    systemRoleSelect: "none",
+    createUserOpen: false,
+    createUserForm: { name: "", email: "", departmentId: 0, roleId: 0, password: "" },
+    createDeptOpen: false,
+    createDeptForm: { name: "", parentDepartmentId: 0 },
     orgModalOpen: false,
     orgDetail: null,
     orgEditMode: false,
@@ -70,6 +82,8 @@ document.addEventListener("alpine:init", () => {
     confirmTitle: "",
     confirmMessage: "",
     confirmAction: null,
+    confirmOnCancel: null,
+    confirmDanger: false,
 
     get filteredUsers() {
       const q = this.userSearch.trim().toLowerCase();
@@ -112,7 +126,13 @@ document.addEventListener("alpine:init", () => {
       const res = await fetch("/api/v1/management/settings/remind");
       if (res.ok) {
         const data = await res.json();
-        this.remind = { ...data, remindTime: (data.remindTime || "09:00").slice(0, 5) };
+        this.remind = {
+          remindAutoSend: !!data.remindAutoSend,
+          remindMode: data.remindMode || "prev_weekday",
+          remindDaysBefore: data.remindDaysBefore > 0 ? data.remindDaysBefore : 1,
+          remindWeekday: data.remindWeekday || 1,
+          remindTime: (data.remindTime || "09:00").slice(0, 5),
+        };
       }
     },
 
@@ -196,8 +216,86 @@ document.addEventListener("alpine:init", () => {
         roleId: u.roleId,
         suspended: u.suspended,
       };
+      this.authoritySelect = u.authority;
+      this.systemRoleSelect = u.systemRole;
       this.userModalOpen = true;
       this.$nextTick(() => refreshPageIcons());
+    },
+
+    onAuthoritySelectChange() {
+      const newVal = this.authoritySelect;
+      const oldVal = this.userForm.authority;
+      if (newVal === oldVal) return;
+      this.confirmDanger = false;
+      this.confirmTitle = "権限の変更";
+      this.confirmMessage = `権限を「${this.authorityLabel(newVal)}」に変更しますか？`;
+      this.confirmAction = () => {
+        this.userForm.authority = newVal;
+      };
+      this.confirmOnCancel = () => {
+        this.authoritySelect = this.userForm.authority;
+      };
+      this.confirmOpen = true;
+    },
+
+    onSystemRoleSelectChange() {
+      const newVal = this.systemRoleSelect;
+      const oldVal = this.userForm.systemRole;
+      if (newVal === oldVal) return;
+      this.confirmDanger = false;
+      this.confirmTitle = "ロールの変更";
+      this.confirmMessage = `ロールを「${this.systemRoleLabel(newVal)}」に変更しますか？`;
+      this.confirmAction = () => {
+        this.userForm.systemRole = newVal;
+      };
+      this.confirmOnCancel = () => {
+        this.systemRoleSelect = this.userForm.systemRole;
+      };
+      this.confirmOpen = true;
+    },
+
+    openCreateUserModal() {
+      const deptId = this.options.departments?.[0]?.id || 0;
+      const roleId = this.options.roles?.[0]?.id || 0;
+      this.createUserForm = { name: "", email: "", departmentId: deptId, roleId, password: "" };
+      this.createUserOpen = true;
+    },
+
+    async submitCreateUser() {
+      const res = await fetch("/api/v1/management/users", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(this.createUserForm),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        showToast(err.error || "作成に失敗しました", "error");
+        return;
+      }
+      this.createUserOpen = false;
+      await this.loadUsers();
+      showToast("ユーザを追加しました");
+    },
+
+    openCreateDeptModal() {
+      this.createDeptForm = { name: "", parentDepartmentId: 0 };
+      this.createDeptOpen = true;
+    },
+
+    async submitCreateDept() {
+      const res = await fetch("/api/v1/management/departments", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(this.createDeptForm),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        showToast(err.error || "作成に失敗しました", "error");
+        return;
+      }
+      this.createDeptOpen = false;
+      await Promise.all([this.loadOrgTree(), this.loadOptions()]);
+      showToast("部署を追加しました");
     },
 
     async saveUser() {
@@ -240,6 +338,8 @@ document.addEventListener("alpine:init", () => {
     },
 
     askSuspend() {
+      this.confirmDanger = true;
+      this.confirmOnCancel = null;
       this.confirmTitle = "アカウント停止";
       this.confirmMessage = `選択した ${this.selectedUserIds.length} 件のアカウントを停止しますか？`;
       this.confirmAction = async () => {
@@ -319,6 +419,8 @@ document.addEventListener("alpine:init", () => {
     },
 
     askDeleteOrg() {
+      this.confirmDanger = true;
+      this.confirmOnCancel = null;
       this.confirmTitle = "削除の確認";
       this.confirmMessage = `${this.orgDetail.name} を削除しますか？`;
       this.confirmAction = async () => {
@@ -359,13 +461,22 @@ document.addEventListener("alpine:init", () => {
 
     async runConfirm() {
       this.confirmOpen = false;
-      if (this.confirmAction) await this.confirmAction();
+      const action = this.confirmAction;
       this.confirmAction = null;
+      this.confirmOnCancel = null;
+      if (action) await action();
+    },
+
+    cancelConfirm() {
+      this.confirmOpen = false;
+      if (this.confirmOnCancel) this.confirmOnCancel();
+      this.confirmAction = null;
+      this.confirmOnCancel = null;
     },
 
     closeModals() {
       if (this.confirmOpen) {
-        this.confirmOpen = false;
+        this.cancelConfirm();
         return;
       }
       this.userModalOpen = false;

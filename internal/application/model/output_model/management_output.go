@@ -24,6 +24,7 @@ type OrgTreeNodeOutput struct {
 	DepartmentID uint   `json:"departmentId,omitempty"`
 	LeaderName   string `json:"leaderName,omitempty"`
 	IsRoot       bool   `json:"isRoot,omitempty"`
+	MemberCount  int    `json:"memberCount,omitempty"`
 }
 
 type OrgMemberOutput struct {
@@ -47,9 +48,11 @@ type OrgDetailOutput struct {
 }
 
 type RemindSettingsOutput struct {
-	RemindAutoSend bool   `json:"remindAutoSend"`
-	RemindWeekday  int    `json:"remindWeekday"`
-	RemindTime     string `json:"remindTime"`
+	RemindAutoSend   bool   `json:"remindAutoSend"`
+	RemindMode       string `json:"remindMode"`
+	RemindDaysBefore int    `json:"remindDaysBefore"`
+	RemindWeekday    int    `json:"remindWeekday"`
+	RemindTime       string `json:"remindTime"`
 }
 
 type RoleOptionOutput struct {

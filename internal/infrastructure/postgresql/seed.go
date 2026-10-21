@@ -201,47 +201,135 @@ func genSeed(db *gorm.DB) error {
 			return err
 		}
 
-		implementedAt := time.Now()
-		meeting := &entity.Meeting{
-			ImplementedAt: &implementedAt,
+		now := time.Now()
+		pastDoneAt := now.AddDate(0, -1, 0)
+		todayDoneAt := now
+		draftAt := now.AddDate(0, 0, -3)
+		futurePendingAt := now.AddDate(0, 0, 14)
+
+		meetingPastDone := &entity.Meeting{
+			ImplementedAt: &pastDoneAt,
 			Status:        valueobject.MeetingStatusDone,
 			TemplateID:    template.ID,
 			PairingID:     pairing.ID,
 		}
-		if err := tx.Create(meeting).Error; err != nil {
-			return err
+		meetingTodayDone := &entity.Meeting{
+			ImplementedAt: &todayDoneAt,
+			Status:        valueobject.MeetingStatusDone,
+			TemplateID:    template.ID,
+			PairingID:     pairing.ID,
 		}
-
-		answerRequired := &entity.Answer{
-			Content:   "目標を達成しました。",
-			MeetingID: meeting.ID,
-			TopicID:   topicRequired.ID,
-			UserID:    mentee.ID,
+		meetingDraft := &entity.Meeting{
+			ImplementedAt: &draftAt,
+			Status:        valueobject.MeetingStatusDraft,
+			TemplateID:    template.ID,
+			PairingID:     pairing.ID,
 		}
-		answerOptional := &entity.Answer{
-			Content:   "特にありません。",
-			MeetingID: meeting.ID,
-			TopicID:   topicOptional.ID,
-			UserID:    mentee.ID,
+		meetingFuturePending := &entity.Meeting{
+			ImplementedAt: &futurePendingAt,
+			Status:        valueobject.MeetingStatusPending,
+			TemplateID:    template.ID,
+			PairingID:     pairing.ID,
 		}
-		if err := tx.Create([]*entity.Answer{answerRequired, answerOptional}).Error; err != nil {
-			return err
-		}
-
-		if err := tx.Create(&entity.MeetingComment{
-			Content:   "よく頑張りました。",
-			IsLimited: false,
-			MeetingID: meeting.ID,
-			UserID:    mentor.ID,
+		if err := tx.Create([]*entity.Meeting{
+			meetingPastDone,
+			meetingTodayDone,
+			meetingDraft,
+			meetingFuturePending,
 		}).Error; err != nil {
 			return err
 		}
 
-		commentText := "具体的で良いですね。"
-		if err := tx.Create(&entity.AnswerComment{
-			Content:  &commentText,
-			AnswerID: answerRequired.ID,
-			UserID:   mentor.ID,
+		doneMeetingAnswers := []*entity.Answer{
+			{
+				Content:   "先月はリリースを完了しました。",
+				MeetingID: meetingPastDone.ID,
+				TopicID:   topicRequired.ID,
+				UserID:    mentee.ID,
+			},
+			{
+				Content:   "チーム内の連携がスムーズでした。",
+				MeetingID: meetingPastDone.ID,
+				TopicID:   topicOptional.ID,
+				UserID:    mentee.ID,
+			},
+			{
+				Content:   "進捗は順調です。次は品質改善に注力しましょう。",
+				MeetingID: meetingPastDone.ID,
+				TopicID:   topicRequired.ID,
+				UserID:    mentor.ID,
+			},
+			{
+				Content:   "コードレビューの頻度を上げたいです。",
+				MeetingID: meetingPastDone.ID,
+				TopicID:   topicOptional.ID,
+				UserID:    mentor.ID,
+			},
+			{
+				Content:   "目標を達成しました。",
+				MeetingID: meetingTodayDone.ID,
+				TopicID:   topicRequired.ID,
+				UserID:    mentee.ID,
+			},
+			{
+				Content:   "特にありません。",
+				MeetingID: meetingTodayDone.ID,
+				TopicID:   topicOptional.ID,
+				UserID:    mentee.ID,
+			},
+			{
+				Content:   "成果の内容を次回も共有してください。",
+				MeetingID: meetingTodayDone.ID,
+				TopicID:   topicRequired.ID,
+				UserID:    mentor.ID,
+			},
+			{
+				Content:   "困りごとがあれば早めに相談を。",
+				MeetingID: meetingTodayDone.ID,
+				TopicID:   topicOptional.ID,
+				UserID:    mentor.ID,
+			},
+			{
+				Content:   "下書き中の回答です。",
+				MeetingID: meetingDraft.ID,
+				TopicID:   topicRequired.ID,
+				UserID:    mentee.ID,
+			},
+		}
+		if err := tx.Create(doneMeetingAnswers).Error; err != nil {
+			return err
+		}
+
+		if err := tx.Create([]*entity.MeetingComment{
+			{
+				Content:   "着実に成長しています。",
+				IsLimited: false,
+				MeetingID: meetingPastDone.ID,
+				UserID:    mentor.ID,
+			},
+			{
+				Content:   "よく頑張りました。",
+				IsLimited: false,
+				MeetingID: meetingTodayDone.ID,
+				UserID:    mentor.ID,
+			},
+		}).Error; err != nil {
+			return err
+		}
+
+		pastAnswerComment := "前回の振り返りが活きていますね。"
+		todayAnswerComment := "具体的で良いですね。"
+		if err := tx.Create([]*entity.AnswerComment{
+			{
+				Content:  &pastAnswerComment,
+				AnswerID: doneMeetingAnswers[0].ID,
+				UserID:   mentor.ID,
+			},
+			{
+				Content:  &todayAnswerComment,
+				AnswerID: doneMeetingAnswers[4].ID,
+				UserID:   mentor.ID,
+			},
 		}).Error; err != nil {
 			return err
 		}

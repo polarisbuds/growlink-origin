@@ -12,6 +12,18 @@ import (
 	"github.com/labstack/echo/v5"
 )
 
+func (h *Handler) CreateManagementUser(c *echo.Context) error {
+	var req user_admin_usecase.CreateUserInput
+	if err := c.Bind(&req); err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid request"})
+	}
+	user, err := h.deps.Management.UserAdmin.CreateUser(req)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
+	}
+	return c.JSON(http.StatusCreated, user)
+}
+
 func (h *Handler) ListManagementUsers(c *echo.Context) error {
 	users, err := h.deps.Management.UserAdmin.ListUsers()
 	if err != nil {
@@ -65,6 +77,18 @@ func (h *Handler) ListOrgTree(c *echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
 	return c.JSON(http.StatusOK, nodes)
+}
+
+func (h *Handler) CreateDepartment(c *echo.Context) error {
+	var req org_admin_usecase.CreateDepartmentInput
+	if err := c.Bind(&req); err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid request"})
+	}
+	dept, err := h.deps.Management.OrgAdmin.CreateDepartment(req)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
+	}
+	return c.JSON(http.StatusCreated, dept)
 }
 
 func (h *Handler) GetDepartmentDetail(c *echo.Context) error {
