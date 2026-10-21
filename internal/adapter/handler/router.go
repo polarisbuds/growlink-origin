@@ -58,6 +58,7 @@ func RegisterRoutes(e *echo.Echo, deps Deps, auditLogger *slog.Logger) {
 	auth.GET("/", ph.HomePage, auditLogging(auditLogger, false))
 	auth.GET("/meeting", ph.MeetingListPage, auditLogging(auditLogger, false))
 	auth.GET("/meeting/all", ph.MeetingAllPage, AuthorityAtLeast(valueobject.AuthorityBoss), auditLogging(auditLogger, false))
+	auth.GET("/meeting/new", ph.MeetingNewPage, AuthorityAtLeast(valueobject.AuthorityBoss), auditLogging(auditLogger, false))
 	auth.GET("/meeting/:uuid", ph.MeetingDetailPage, auditLogging(auditLogger, false))
 	auth.GET("/meeting/:uuid/answer", ph.MeetingAnswerPage, auditLogging(auditLogger, false))
 	auth.GET("/meeting/:uuid/setting", ph.MeetingSettingPage, auditLogging(auditLogger, false))
@@ -79,6 +80,9 @@ func RegisterRoutes(e *echo.Echo, deps Deps, auditLogger *slog.Logger) {
 	apiAuth.POST("/meetings/:uuid/meeting-comment", ah.PostMeetingComment, auditLogging(auditLogger, false))
 	apiAuth.POST("/meetings/answer-comment", ah.PostAnswerComment, auditLogging(auditLogger, false))
 	apiAuth.GET("/meetings/all", ah.ListMeetingsAll, AuthorityAtLeastAPI(valueobject.AuthorityBoss), auditLogging(auditLogger, false))
+	apiAuth.POST("/meetings", ah.CreateMeeting, AuthorityAtLeastAPI(valueobject.AuthorityBoss), auditLogging(auditLogger, false))
+	apiAuth.POST("/meetings/all", ah.CreateMeetingByAll, AuthorityAtLeastAPI(valueobject.AuthorityBoss), auditLogging(auditLogger, false))
+	apiAuth.POST("/meetings/monthly", ah.CreateMeetingMonthly, AuthorityAtLeastAPI(valueobject.AuthorityBoss), auditLogging(auditLogger, false))
 
 	apiAuth.GET("/pairings", ah.ListPairings, AuthorityAtLeastAPI(valueobject.AuthorityBoss), auditLogging(auditLogger, false))
 	apiAuth.POST("/pairings", ah.CreatePairing, AuthorityAtLeastAPI(valueobject.AuthorityBoss), auditLogging(auditLogger, false))

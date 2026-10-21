@@ -11,7 +11,10 @@
     <main class="flex-1 min-h-0 overflow-y-auto p-4 md:p-6">
       <div class="flex flex-wrap items-center justify-between gap-3">
         <h1 class="font-display text-2xl font-semibold">全ての面談</h1>
-        <a :href="simple ? '/meeting/all' : '/meeting/all?view=simple'" class="btn btn-sm btn-outline" x-text="simple ? '詳細表示' : '簡易表示'"></a>
+        <div class="flex flex-wrap items-center gap-2">
+          <a href="/meeting/new" class="btn btn-sm btn-primary">1on1を追加</a>
+          <a :href="simple ? '/meeting/all' : '/meeting/all?view=simple'" class="btn btn-sm btn-outline" x-text="simple ? '詳細表示' : '簡易表示'"></a>
+        </div>
       </div>
       <div class="mt-6 overflow-hidden rounded-3xl border border-base-300 bg-base-100 shadow-sm">
         <table class="table">

@@ -22,6 +22,22 @@ func (h *Handler) MeetingListPage(c *echo.Context) error {
 	return c.Render(http.StatusOK, "meeting_list.html", data)
 }
 
+func (h *Handler) MeetingNewPage(c *echo.Context) error {
+	data := h.baseData(c, "meeting-new")
+	pairings, err := h.deps.Management.Pairing.ListPairingsByAll()
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+	}
+	templates, err := h.deps.Management.Template.ListTemplate()
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+	}
+	data["PairingsJSON"] = mustJSON(pairings)
+	data["TemplatesJSON"] = mustJSON(templates)
+	data["Breadcrumb"] = "1on1作成"
+	return c.Render(http.StatusOK, "meeting_new.html", data)
+}
+
 func (h *Handler) MeetingAllPage(c *echo.Context) error {
 	data := h.baseData(c, "meeting-all")
 	meetings, err := h.deps.MeetingRepo.GetAll()

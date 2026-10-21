@@ -18,7 +18,8 @@ import (
 )
 
 type meetingCreatorCaptures struct {
-	createdMeetings []entity.Meeting
+	createdMeetings       []entity.Meeting
+	expectedImplementDate time.Time
 }
 
 func newMeetingCreator(t *testing.T) (
@@ -188,6 +189,32 @@ func TestMeetingCreator_CreateMeetingEveryMonth(t *testing.T) {
 				_, ok1 := pairingIDs[pairingID1]
 				_, ok2 := pairingIDs[pairingID2]
 				assert.True(t, ok1 && ok2)
+			},
+		},
+		{
+			name:       "通常系_第1金曜を指定",
+			templateID: validTemplateID,
+			baseDate:   baseDate,
+			week:       1,
+			weekday:    time.Friday,
+			wantErr:    false,
+			setup: func(meeting *repomock.MockMeetingRepository, pairing *repomock.MockPairingRepository, cap *meetingCreatorCaptures) {
+				expected := utils.GetSpecificWeekday(baseDate, 1, time.Friday)
+				pairing.EXPECT().GetAll().Return([]entity.Pairing{
+					*newTestPairing(pairingID1, validMenteeID, validMentorID),
+				}, nil)
+				meeting.EXPECT().Create(gomock.Any()).DoAndReturn(func(m *entity.Meeting) (*entity.Meeting, error) {
+					cap.createdMeetings = append(cap.createdMeetings, *m)
+					created := *m
+					created.ID = meetingID1
+					return &created, nil
+				})
+				cap.expectedImplementDate = expected
+			},
+			assertFn: func(t *testing.T, got []outputmodel.MeetingOutput, cap *meetingCreatorCaptures) {
+				require.Len(t, cap.createdMeetings, 1)
+				require.NotNil(t, cap.createdMeetings[0].ImplementedAt)
+				assert.True(t, cap.createdMeetings[0].ImplementedAt.Equal(cap.expectedImplementDate))
 			},
 		},
 		{

@@ -50,7 +50,7 @@ func (uc *MeetingCreator) CreateMeetingEveryMonth(templateID uint, baseDate time
 		wg     = sync.WaitGroup{}
 	)
 	errCh := make(chan error, len(pairings))
-	implementDate := utils.GetSpecificWeekday(baseDate, 2, time.Wednesday)
+	implementDate := utils.GetSpecificWeekday(baseDate, week, weekday)
 	for _, pairing := range pairings {
 		wg.Add(1)
 		pairing := pairing
