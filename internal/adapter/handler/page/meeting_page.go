@@ -39,7 +39,9 @@ func (h *Handler) MeetingNewPage(c *echo.Context) error {
 }
 
 func (h *Handler) MeetingAllPage(c *echo.Context) error {
-	data := h.baseData(c, "meeting-all")
+	data := h.baseData(c, "planning-meetings")
+	data["PlanningTab"] = "meetings"
+	data["Breadcrumb"] = "面談一覧"
 	meetings, err := h.deps.MeetingRepo.GetAll()
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})

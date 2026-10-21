@@ -17,7 +17,11 @@ func NewPairingUpdater(pairingRepo repository_interface.PairingRepository) *Pair
 }
 
 func (uc *PairingUpdater) UpdatePairing(pairingID uint, input inputmodel.PairingInput) error {
-	if err := uc.pairingRepo.ApplyPairingOptions(pairingID, input.MentorID, input.MenteeID, input.RecurWeek, input.RecurWeekday, input.SharerUserIDs); err != nil {
+	menteeIDs := input.ResolvedMenteeIDs()
+	if len(menteeIDs) == 0 {
+		return fmt.Errorf("メンティーが指定されていません")
+	}
+	if err := uc.pairingRepo.ApplyPairingOptions(pairingID, input.MentorID, menteeIDs, input.RecurWeek, input.RecurWeekday, input.SharerUserIDs); err != nil {
 		return fmt.Errorf("ペアリング情報の更新に失敗しました: %w", err)
 	}
 	return nil

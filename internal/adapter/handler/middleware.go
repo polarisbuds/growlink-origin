@@ -51,6 +51,78 @@ func AuthorityAtLeast(min valueobject.Authority) echo.MiddlewareFunc {
 	}
 }
 
+func SystemAdminPage() echo.MiddlewareFunc {
+	return func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c *echo.Context) error {
+			if !authctx.IsSystemAdmin(c) {
+				return c.Redirect(http.StatusFound, "/")
+			}
+			return next(c)
+		}
+	}
+}
+
+func SystemAdminAPI() echo.MiddlewareFunc {
+	return func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c *echo.Context) error {
+			if !authctx.IsSystemAdmin(c) {
+				return c.JSON(http.StatusForbidden, map[string]string{"error": "forbidden"})
+			}
+			return next(c)
+		}
+	}
+}
+
+func ProgressPage() echo.MiddlewareFunc {
+	return func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c *echo.Context) error {
+			if !authctx.CanViewProgress(c) {
+				return c.Redirect(http.StatusFound, "/")
+			}
+			return next(c)
+		}
+	}
+}
+
+func ProgressAPI() echo.MiddlewareFunc {
+	return func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c *echo.Context) error {
+			if !authctx.CanViewProgress(c) {
+				return c.JSON(http.StatusForbidden, map[string]string{"error": "forbidden"})
+			}
+			return next(c)
+		}
+	}
+}
+
+func PairingPlanningPage() echo.MiddlewareFunc {
+	return func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c *echo.Context) error {
+			if !authctx.CanAccessPairingPlanning(c) {
+				return c.Redirect(http.StatusFound, "/")
+			}
+			return next(c)
+		}
+	}
+}
+
+func PairingPlanningAPI() echo.MiddlewareFunc {
+	return func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c *echo.Context) error {
+			if !authctx.CanAccessPairingPlanning(c) {
+				return c.JSON(http.StatusForbidden, map[string]string{"error": "forbidden"})
+			}
+			return next(c)
+		}
+	}
+}
+
+func redirectPage(to string) echo.HandlerFunc {
+	return func(c *echo.Context) error {
+		return c.Redirect(http.StatusFound, to)
+	}
+}
+
 func AuthorityAtLeastAPI(min valueobject.Authority) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c *echo.Context) error {

@@ -10,23 +10,26 @@ import (
 	"growlink/internal/application/usecase/meeting_usecase"
 	"growlink/internal/application/usecase/pairing_usecase"
 	"growlink/internal/application/usecase/setting_usecase"
-	"growlink/internal/domain/valueobject"
 	repository_interface "growlink/internal/domain/interface/repository"
 
 	"github.com/labstack/echo/v5"
 )
 
 type Deps struct {
-	Auth       *authenticate_usecase.AuthUsecase
-	Meeting    meeting_usecase.Bundle
-	Management management_usecase.Bundle
-	Pairing    *pairing_usecase.PairingListCreatorUsecase
-	PairingBrk *pairing_usecase.PairingBreakerUsecase
-	Setting    *setting_usecase.IconRegisterUsecase
-	SettingRm  *setting_usecase.IconRemoverUsecase
-	MeetingRepo repository_interface.MeetingRepository
-	UserRepo    repository_interface.UserRepository
-	RoleRepo    repository_interface.RoleRepository
+	Auth           *authenticate_usecase.AuthUsecase
+	Meeting        meeting_usecase.Bundle
+	Management     management_usecase.Bundle
+	Pairing        *pairing_usecase.PairingListCreatorUsecase
+	PairingBrk     *pairing_usecase.PairingBreakerUsecase
+	Setting        *setting_usecase.IconRegisterUsecase
+	SettingRm      *setting_usecase.IconRemoverUsecase
+	MeetingRepo    repository_interface.MeetingRepository
+	PairingRepo    repository_interface.PairingRepository
+	TemplateRepo   repository_interface.TemplateRepository
+	UserRepo       repository_interface.UserRepository
+	TeamRepo       repository_interface.TeamRepository
+	TeamMemberRepo repository_interface.TeamMemberRepository
+	RoleRepo       repository_interface.RoleRepository
 }
 
 func RegisterRoutes(e *echo.Echo, deps Deps, auditLogger *slog.Logger) {
@@ -41,16 +44,20 @@ func RegisterRoutes(e *echo.Echo, deps Deps, auditLogger *slog.Logger) {
 		MeetingRepo: deps.MeetingRepo,
 	})
 	ah := api.New(api.Deps{
-		Auth:        deps.Auth,
-		Meeting:     deps.Meeting,
-		Management:  deps.Management,
-		Pairing:     deps.Pairing,
-		PairingBrk:  deps.PairingBrk,
-		Setting:     deps.Setting,
-		SettingRm:   deps.SettingRm,
-		MeetingRepo: deps.MeetingRepo,
-		UserRepo:    deps.UserRepo,
-		RoleRepo:    deps.RoleRepo,
+		Auth:           deps.Auth,
+		Meeting:        deps.Meeting,
+		Management:     deps.Management,
+		Pairing:        deps.Pairing,
+		PairingBrk:     deps.PairingBrk,
+		Setting:        deps.Setting,
+		SettingRm:      deps.SettingRm,
+		MeetingRepo:    deps.MeetingRepo,
+		PairingRepo:    deps.PairingRepo,
+		TemplateRepo:   deps.TemplateRepo,
+		UserRepo:       deps.UserRepo,
+		TeamRepo:       deps.TeamRepo,
+		TeamMemberRepo: deps.TeamMemberRepo,
+		RoleRepo:       deps.RoleRepo,
 	})
 
 	e.GET("/login", ph.LoginPage)
@@ -59,19 +66,31 @@ func RegisterRoutes(e *echo.Echo, deps Deps, auditLogger *slog.Logger) {
 	auth := e.Group("", JWTConfig(auditLogger), ActiveUserCheck(deps.UserRepo, auditLogger))
 	auth.GET("/", ph.HomePage, auditLogging(auditLogger, false))
 	auth.GET("/meeting", ph.MeetingListPage, auditLogging(auditLogger, false))
-	auth.GET("/meeting/all", ph.MeetingAllPage, AuthorityAtLeast(valueobject.AuthorityBoss), auditLogging(auditLogger, false))
-	auth.GET("/meeting/new", ph.MeetingNewPage, AuthorityAtLeast(valueobject.AuthorityBoss), auditLogging(auditLogger, false))
+	auth.GET("/meeting/new", ph.MeetingNewPage, PairingPlanningPage(), auditLogging(auditLogger, false))
 	auth.GET("/meeting/:uuid", ph.MeetingDetailPage, auditLogging(auditLogger, false))
 	auth.GET("/meeting/:uuid/answer", ph.MeetingAnswerPage, auditLogging(auditLogger, false))
 	auth.GET("/meeting/:uuid/setting", ph.MeetingSettingPage, auditLogging(auditLogger, false))
-	auth.GET("/pairing", ph.PairingListPage, AuthorityAtLeast(valueobject.AuthorityBoss), auditLogging(auditLogger, false))
-	auth.GET("/pairing/new", ph.PairingNewPage, AuthorityAtLeast(valueobject.AuthorityBoss), auditLogging(auditLogger, false))
-	auth.GET("/pairing/:id/edit", ph.PairingEditPage, AuthorityAtLeast(valueobject.AuthorityBoss), auditLogging(auditLogger, false))
-	auth.GET("/template", ph.TemplateListPage, AuthorityAtLeast(valueobject.AuthorityOwner), auditLogging(auditLogger, false))
-	auth.GET("/template/new", ph.TemplateNewPage, AuthorityAtLeast(valueobject.AuthorityOwner), auditLogging(auditLogger, false))
-	auth.GET("/template/:id", ph.TemplateDetailPage, AuthorityAtLeast(valueobject.AuthorityOwner), auditLogging(auditLogger, false))
+
+	auth.GET("/planning/meetings", ph.MeetingAllPage, PairingPlanningPage(), auditLogging(auditLogger, false))
+	auth.GET("/planning/meetings/new", ph.MeetingNewPage, PairingPlanningPage(), auditLogging(auditLogger, false))
+	auth.GET("/planning/pairs", ph.PairingListPage, PairingPlanningPage(), auditLogging(auditLogger, false))
+	auth.GET("/planning/pairs/new", ph.PairingNewPage, PairingPlanningPage(), auditLogging(auditLogger, false))
+	auth.GET("/planning/pairs/:uuid/edit", ph.PairingEditPage, PairingPlanningPage(), auditLogging(auditLogger, false))
+	auth.GET("/planning/templates", ph.TemplateListPage, auditLogging(auditLogger, false))
+	auth.GET("/planning/templates/new", ph.TemplateNewPage, auditLogging(auditLogger, false))
+	auth.GET("/planning/templates/:uuid", ph.TemplateDetailPage, auditLogging(auditLogger, false))
+
+	auth.GET("/meeting/all", redirectPage("/planning/meetings"), auditLogging(auditLogger, false))
+	auth.GET("/pairing", redirectPage("/planning/pairs"), auditLogging(auditLogger, false))
+	auth.GET("/pairing/new", redirectPage("/planning/pairs/new"), auditLogging(auditLogger, false))
+	auth.GET("/pairing/:id/edit", redirectPage("/planning/pairs"), auditLogging(auditLogger, false))
+	auth.GET("/template", redirectPage("/planning/templates"), auditLogging(auditLogger, false))
+	auth.GET("/template/new", redirectPage("/planning/templates/new"), auditLogging(auditLogger, false))
+	auth.GET("/template/:id", redirectPage("/planning/templates"), auditLogging(auditLogger, false))
+
 	auth.GET("/setting", ph.SettingPage, auditLogging(auditLogger, false))
-	auth.GET("/management", ph.ManagementPage, AuthorityAtLeast(valueobject.AuthorityOwner), auditLogging(auditLogger, false))
+	auth.GET("/management", ph.ManagementPage, SystemAdminPage(), auditLogging(auditLogger, false))
+	auth.GET("/progress", ph.ProgressPage, ProgressPage(), auditLogging(auditLogger, false))
 	auth.GET("/logout", ph.LogoutPage, auditLogging(auditLogger, true))
 
 	apiAuth := e.Group("/api/v1", APIJWTConfig(auditLogger), ActiveUserCheckAPI(deps.UserRepo, auditLogger))
@@ -82,43 +101,46 @@ func RegisterRoutes(e *echo.Echo, deps Deps, auditLogger *slog.Logger) {
 	apiAuth.POST("/meetings/:uuid/draft/cancel", ah.CancelSubmit, auditLogging(auditLogger, false))
 	apiAuth.POST("/meetings/:uuid/meeting-comment", ah.PostMeetingComment, auditLogging(auditLogger, false))
 	apiAuth.POST("/meetings/answer-comment", ah.PostAnswerComment, auditLogging(auditLogger, false))
-	apiAuth.GET("/meetings/all", ah.ListMeetingsAll, AuthorityAtLeastAPI(valueobject.AuthorityBoss), auditLogging(auditLogger, false))
-	apiAuth.POST("/meetings", ah.CreateMeeting, AuthorityAtLeastAPI(valueobject.AuthorityBoss), auditLogging(auditLogger, false))
-	apiAuth.POST("/meetings/all", ah.CreateMeetingByAll, AuthorityAtLeastAPI(valueobject.AuthorityBoss), auditLogging(auditLogger, false))
-	apiAuth.POST("/meetings/monthly", ah.CreateMeetingMonthly, AuthorityAtLeastAPI(valueobject.AuthorityBoss), auditLogging(auditLogger, false))
+	apiAuth.GET("/meetings/all", ah.ListMeetingsAll, PairingPlanningAPI(), auditLogging(auditLogger, false))
+	apiAuth.POST("/meetings", ah.CreateMeeting, PairingPlanningAPI(), auditLogging(auditLogger, false))
+	apiAuth.POST("/meetings/all", ah.CreateMeetingByAll, PairingPlanningAPI(), auditLogging(auditLogger, false))
+	apiAuth.POST("/meetings/monthly", ah.CreateMeetingMonthly, PairingPlanningAPI(), auditLogging(auditLogger, false))
 
-	apiAuth.GET("/pairings", ah.ListPairings, AuthorityAtLeastAPI(valueobject.AuthorityBoss), auditLogging(auditLogger, false))
-	apiAuth.POST("/pairings", ah.CreatePairing, AuthorityAtLeastAPI(valueobject.AuthorityBoss), auditLogging(auditLogger, false))
-	apiAuth.PUT("/pairings/:id", ah.UpdatePairing, AuthorityAtLeastAPI(valueobject.AuthorityBoss), auditLogging(auditLogger, false))
-	apiAuth.DELETE("/pairings/:id", ah.DeletePairing, AuthorityAtLeastAPI(valueobject.AuthorityBoss), auditLogging(auditLogger, false))
+	apiAuth.GET("/pairings", ah.ListPairings, PairingPlanningAPI(), auditLogging(auditLogger, false))
+	apiAuth.POST("/pairings", ah.CreatePairing, PairingPlanningAPI(), auditLogging(auditLogger, false))
+	apiAuth.PUT("/pairings/:uuid", ah.UpdatePairing, PairingPlanningAPI(), auditLogging(auditLogger, false))
+	apiAuth.DELETE("/pairings/:uuid", ah.DeletePairing, PairingPlanningAPI(), auditLogging(auditLogger, false))
 
-	apiAuth.GET("/templates", ah.ListTemplates, AuthorityAtLeastAPI(valueobject.AuthorityOwner), auditLogging(auditLogger, false))
-	apiAuth.GET("/templates/:id", ah.GetTemplate, AuthorityAtLeastAPI(valueobject.AuthorityOwner), auditLogging(auditLogger, false))
-	apiAuth.POST("/templates", ah.CreateTemplate, AuthorityAtLeastAPI(valueobject.AuthorityOwner), auditLogging(auditLogger, false))
-	apiAuth.PUT("/templates/:id", ah.UpdateTemplate, AuthorityAtLeastAPI(valueobject.AuthorityOwner), auditLogging(auditLogger, false))
-	apiAuth.DELETE("/templates/:id", ah.DeleteTemplate, AuthorityAtLeastAPI(valueobject.AuthorityOwner), auditLogging(auditLogger, false))
-	apiAuth.POST("/templates/:id/copy", ah.CopyTemplate, AuthorityAtLeastAPI(valueobject.AuthorityOwner), auditLogging(auditLogger, false))
-	apiAuth.PUT("/templates/reorder", ah.ReorderTemplates, AuthorityAtLeastAPI(valueobject.AuthorityOwner), auditLogging(auditLogger, false))
+	apiAuth.GET("/templates", ah.ListTemplates, auditLogging(auditLogger, false))
+	apiAuth.GET("/templates/:uuid", ah.GetTemplate, auditLogging(auditLogger, false))
+	apiAuth.POST("/templates", ah.CreateTemplate, auditLogging(auditLogger, false))
+	apiAuth.PUT("/templates/:uuid", ah.UpdateTemplate, auditLogging(auditLogger, false))
+	apiAuth.DELETE("/templates/:uuid", ah.DeleteTemplate, auditLogging(auditLogger, false))
+	apiAuth.POST("/templates/:uuid/copy", ah.CopyTemplate, auditLogging(auditLogger, false))
+	apiAuth.PUT("/templates/reorder", ah.ReorderTemplates, auditLogging(auditLogger, false))
+
+	apiAuth.GET("/planning/directory", ah.ListPlanningDirectory, PairingPlanningAPI(), auditLogging(auditLogger, false))
+	apiAuth.GET("/progress/summary", ah.ProgressSummary, ProgressAPI(), auditLogging(auditLogger, false))
 
 	apiAuth.GET("/setting/profile", ah.GetProfile, auditLogging(auditLogger, false))
 	apiAuth.PUT("/setting", ah.UpdateSetting, auditLogging(auditLogger, false))
 	apiAuth.POST("/setting/icon", ah.UploadIcon, auditLogging(auditLogger, false))
 	apiAuth.DELETE("/setting/icon", ah.DeleteIcon, auditLogging(auditLogger, false))
 
-	apiAuth.GET("/management/users", ah.ListManagementUsers, AuthorityAtLeastAPI(valueobject.AuthorityOwner), auditLogging(auditLogger, false))
-	apiAuth.POST("/management/users", ah.CreateManagementUser, AuthorityAtLeastAPI(valueobject.AuthorityOwner), auditLogging(auditLogger, false))
-	apiAuth.PUT("/management/users/:id", ah.UpdateManagementUser, AuthorityAtLeastAPI(valueobject.AuthorityOwner), auditLogging(auditLogger, false))
-	apiAuth.POST("/management/users/suspend", ah.SuspendManagementUsers, AuthorityAtLeastAPI(valueobject.AuthorityOwner), auditLogging(auditLogger, false))
-	apiAuth.DELETE("/management/users/:id/icon", ah.DeleteManagementUserIcon, AuthorityAtLeastAPI(valueobject.AuthorityOwner), auditLogging(auditLogger, false))
-	apiAuth.GET("/management/org/tree", ah.ListOrgTree, AuthorityAtLeastAPI(valueobject.AuthorityOwner), auditLogging(auditLogger, false))
-	apiAuth.POST("/management/departments", ah.CreateDepartment, AuthorityAtLeastAPI(valueobject.AuthorityOwner), auditLogging(auditLogger, false))
-	apiAuth.GET("/management/departments/:id", ah.GetDepartmentDetail, AuthorityAtLeastAPI(valueobject.AuthorityOwner), auditLogging(auditLogger, false))
-	apiAuth.PUT("/management/departments/:id", ah.UpdateDepartment, AuthorityAtLeastAPI(valueobject.AuthorityOwner), auditLogging(auditLogger, false))
-	apiAuth.DELETE("/management/departments/:id", ah.DeleteDepartment, AuthorityAtLeastAPI(valueobject.AuthorityOwner), auditLogging(auditLogger, false))
-	apiAuth.GET("/management/teams/:id", ah.GetTeamDetail, AuthorityAtLeastAPI(valueobject.AuthorityOwner), auditLogging(auditLogger, false))
-	apiAuth.PUT("/management/teams/:id", ah.UpdateTeam, AuthorityAtLeastAPI(valueobject.AuthorityOwner), auditLogging(auditLogger, false))
-	apiAuth.DELETE("/management/teams/:id", ah.DeleteTeam, AuthorityAtLeastAPI(valueobject.AuthorityOwner), auditLogging(auditLogger, false))
-	apiAuth.GET("/management/settings/remind", ah.GetRemindSettings, AuthorityAtLeastAPI(valueobject.AuthorityOwner), auditLogging(auditLogger, false))
-	apiAuth.PUT("/management/settings/remind", ah.UpdateRemindSettings, AuthorityAtLeastAPI(valueobject.AuthorityOwner), auditLogging(auditLogger, false))
-	apiAuth.GET("/management/options", ah.ListManagementOptions, AuthorityAtLeastAPI(valueobject.AuthorityOwner), auditLogging(auditLogger, false))
+	apiAuth.GET("/management/users", ah.ListManagementUsers, SystemAdminAPI(), auditLogging(auditLogger, false))
+	apiAuth.POST("/management/users", ah.CreateManagementUser, SystemAdminAPI(), auditLogging(auditLogger, false))
+	apiAuth.PUT("/management/users/:id", ah.UpdateManagementUser, SystemAdminAPI(), auditLogging(auditLogger, false))
+	apiAuth.POST("/management/users/suspend", ah.SuspendManagementUsers, SystemAdminAPI(), auditLogging(auditLogger, false))
+	apiAuth.DELETE("/management/users/:id/icon", ah.DeleteManagementUserIcon, SystemAdminAPI(), auditLogging(auditLogger, false))
+	apiAuth.GET("/management/org/tree", ah.ListOrgTree, SystemAdminAPI(), auditLogging(auditLogger, false))
+	apiAuth.POST("/management/departments", ah.CreateDepartment, SystemAdminAPI(), auditLogging(auditLogger, false))
+	apiAuth.GET("/management/departments/:id", ah.GetDepartmentDetail, SystemAdminAPI(), auditLogging(auditLogger, false))
+	apiAuth.PUT("/management/departments/:id", ah.UpdateDepartment, SystemAdminAPI(), auditLogging(auditLogger, false))
+	apiAuth.DELETE("/management/departments/:id", ah.DeleteDepartment, SystemAdminAPI(), auditLogging(auditLogger, false))
+	apiAuth.GET("/management/teams/:id", ah.GetTeamDetail, SystemAdminAPI(), auditLogging(auditLogger, false))
+	apiAuth.PUT("/management/teams/:id", ah.UpdateTeam, SystemAdminAPI(), auditLogging(auditLogger, false))
+	apiAuth.DELETE("/management/teams/:id", ah.DeleteTeam, SystemAdminAPI(), auditLogging(auditLogger, false))
+	apiAuth.GET("/management/settings/remind", ah.GetRemindSettings, SystemAdminAPI(), auditLogging(auditLogger, false))
+	apiAuth.PUT("/management/settings/remind", ah.UpdateRemindSettings, SystemAdminAPI(), auditLogging(auditLogger, false))
+	apiAuth.GET("/management/options", ah.ListManagementOptions, SystemAdminAPI(), auditLogging(auditLogger, false))
 }

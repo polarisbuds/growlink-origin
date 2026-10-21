@@ -23,7 +23,7 @@ func (uc *PairingCreatorUsecase) PairingCreator(menteeID, mentorID uint) error {
 		return fmt.Errorf("ペアリング（旧）の取得に失敗しました: %w", err)
 	}
 
-	_, err = uc.pairingRepo.CreatePairing(menteeID, mentorID)
+	_, err = uc.pairingRepo.CreatePairing(menteeID, mentorID, 0)
 	if err != nil {
 		return fmt.Errorf("ペアリングの作成に失敗しました: %w", err)
 	}

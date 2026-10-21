@@ -3,9 +3,9 @@ import { showToast } from "../notice.js";
 document.addEventListener("alpine:init", () => {
   Alpine.data("templateNewPage", () => ({
     title: "",
-    topics: [{ question: "", isRequire: true, displayNo: 1 }],
+    topics: [{ question: "", description: "", isRequire: true, displayNo: 1 }],
     addTopic() {
-      this.topics.push({ question: "", isRequire: true, displayNo: this.topics.length + 1 });
+      this.topics.push({ question: "", description: "", isRequire: true, displayNo: this.topics.length + 1 });
     },
     removeTopic(i) {
       if (this.topics.length <= 1) return;
@@ -25,7 +25,7 @@ document.addEventListener("alpine:init", () => {
         return;
       }
       showToast("テンプレートを作成しました");
-      location.href = "/template";
+      location.href = "/planning/templates";
     },
   }));
 });

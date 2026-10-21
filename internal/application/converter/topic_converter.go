@@ -8,18 +8,20 @@ import (
 
 func TopicInputToEntity(in inputmodel.TopicInput) *entity.Topic {
 	return &entity.Topic{
-		DisplayNo: in.DisplayNo,
-		Question:  in.Question,
-		IsRequire: in.IsRequire,
+		DisplayNo:   in.DisplayNo,
+		Question:    in.Question,
+		Description: in.Description,
+		IsRequire:   in.IsRequire,
 	}
 }
 
 func TopicEntityToOutput(e entity.Topic) outputmodel.TopicOutput {
 	return outputmodel.TopicOutput{
-		ID:        e.ID,
-		DisplayNo: e.DisplayNo,
-		Question:  e.Question,
-		IsRequire: e.IsRequire,
+		ID:          e.ID,
+		DisplayNo:   e.DisplayNo,
+		Question:    e.Question,
+		Description: e.Description,
+		IsRequire:   e.IsRequire,
 	}
 }
 

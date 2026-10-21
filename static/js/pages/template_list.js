@@ -42,6 +42,7 @@ document.addEventListener("alpine:init", () => {
         title: this.active.title,
         topics: (this.active.topics || []).map((x) => ({
           question: x.question,
+          description: x.description || "",
           isRequire: x.isRequire,
           displayNo: x.displayNo,
         })),
@@ -49,7 +50,7 @@ document.addEventListener("alpine:init", () => {
       this.editMode = true;
     },
     addTopic() {
-      this.editForm.topics.push({ question: "", isRequire: true, displayNo: this.editForm.topics.length + 1 });
+      this.editForm.topics.push({ question: "", description: "", isRequire: true, displayNo: this.editForm.topics.length + 1 });
     },
     removeTopic(i) {
       if (this.editForm.topics.length <= 1) return;
@@ -57,7 +58,7 @@ document.addEventListener("alpine:init", () => {
     },
     async saveEdit() {
       const topics = this.editForm.topics.map((t, i) => ({ ...t, displayNo: i + 1 }));
-      const res = await fetch(`/api/v1/templates/${this.active.id}`, {
+      const res = await fetch(`/api/v1/templates/${this.active.uuid || this.active.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ title: this.editForm.title, topics }),
@@ -73,7 +74,7 @@ document.addEventListener("alpine:init", () => {
       this.deleteOpen = true;
     },
     async confirmDelete() {
-      const res = await fetch(`/api/v1/templates/${this.active.id}`, { method: "DELETE" });
+      const res = await fetch(`/api/v1/templates/${this.active.uuid || this.active.id}`, { method: "DELETE" });
       if (!res.ok) {
         showToast("削除に失敗しました", "error");
         return;
@@ -81,7 +82,7 @@ document.addEventListener("alpine:init", () => {
       location.reload();
     },
     async copy(t) {
-      const res = await fetch(`/api/v1/templates/${t.id}/copy`, {
+      const res = await fetch(`/api/v1/templates/${t.uuid || t.id}/copy`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: "{}",

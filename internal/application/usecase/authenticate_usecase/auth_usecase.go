@@ -109,11 +109,12 @@ func (uc *AuthUsecase) LoginBasic(ctx context.Context, email, password string) (
 
 func issueToken(user *entity.User) (string, error) {
 	claims := auth.CustomClaims{
-		UserID:    user.ID,
-		UUID:      user.UUID.String(),
-		Email:     user.Email,
-		Name:      user.Name,
-		Authority: user.Authority,
+		UserID:     user.ID,
+		UUID:       user.UUID.String(),
+		Email:      user.Email,
+		Name:       user.Name,
+		Authority:  user.Authority,
+		SystemRole: user.SystemRole,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(1 * time.Hour)),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),

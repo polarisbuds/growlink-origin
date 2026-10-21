@@ -18,15 +18,19 @@ func NewPairingCreator(pairingRepo repository_interface.PairingRepository) *Pair
 }
 
 func (uc PairingCreator) CreatePairing(menteeID, mentorID uint) error {
-	return uc.CreatePairingFromInput(inputmodel.PairingInput{MenteeID: menteeID, MentorID: mentorID})
+	return uc.CreatePairingFromInput(inputmodel.PairingInput{MenteeID: menteeID, MentorID: mentorID}, 0)
 }
 
-func (uc PairingCreator) CreatePairingFromInput(input inputmodel.PairingInput) error {
-	pair, err := uc.pairingRepo.CreatePairing(input.MenteeID, input.MentorID)
+func (uc PairingCreator) CreatePairingFromInput(input inputmodel.PairingInput, createdByUserID uint) error {
+	menteeIDs := input.ResolvedMenteeIDs()
+	if len(menteeIDs) == 0 {
+		return fmt.Errorf("メンティーが指定されていません")
+	}
+	pair, err := uc.pairingRepo.CreatePairing(menteeIDs[0], input.MentorID, createdByUserID)
 	if err != nil {
 		return fmt.Errorf("ペアリングの作成に失敗しました: %w", err)
 	}
-	if err := uc.pairingRepo.ApplyPairingOptions(pair.ID, input.MentorID, input.MenteeID, input.RecurWeek, input.RecurWeekday, input.SharerUserIDs); err != nil {
+	if err := uc.pairingRepo.ApplyPairingOptions(pair.ID, input.MentorID, menteeIDs, input.RecurWeek, input.RecurWeekday, input.SharerUserIDs); err != nil {
 		return err
 	}
 	return nil

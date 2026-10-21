@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"time"
 
+	"growlink/internal/adapter/handler/authctx"
 	inputmodel "growlink/internal/application/model/input_model"
 
 	"github.com/labstack/echo/v5"
@@ -21,6 +22,10 @@ func parseDateOnly(s string) (time.Time, bool) {
 }
 
 func (h *Handler) CreateMeeting(c *echo.Context) error {
+	claims := authctx.Claims(c)
+	if claims == nil {
+		return c.JSON(http.StatusUnauthorized, map[string]string{"error": "unauthorized"})
+	}
 	var req inputmodel.CreateMeetingInput
 	if err := c.Bind(&req); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid request"})
@@ -32,7 +37,7 @@ func (h *Handler) CreateMeeting(c *echo.Context) error {
 	if !ok {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid implementedAt"})
 	}
-	out, err := h.deps.Management.MeetingCreator.CreateMeeting(req.PairingID, req.TemplateID, implementDate)
+	out, err := h.deps.Management.MeetingCreator.CreateMeeting(req.PairingID, req.TemplateID, implementDate, claims.UserID)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
@@ -40,6 +45,10 @@ func (h *Handler) CreateMeeting(c *echo.Context) error {
 }
 
 func (h *Handler) CreateMeetingByAll(c *echo.Context) error {
+	claims := authctx.Claims(c)
+	if claims == nil {
+		return c.JSON(http.StatusUnauthorized, map[string]string{"error": "unauthorized"})
+	}
 	var req inputmodel.CreateMeetingByAllInput
 	if err := c.Bind(&req); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid request"})
@@ -51,7 +60,7 @@ func (h *Handler) CreateMeetingByAll(c *echo.Context) error {
 	if !ok {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid implementedAt"})
 	}
-	outs, err := h.deps.Management.MeetingCreator.CreateMeetingByAll(req.TemplateID, implementDate)
+	outs, err := h.deps.Management.MeetingCreator.CreateMeetingByAll(req.TemplateID, implementDate, claims.UserID)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
@@ -59,6 +68,10 @@ func (h *Handler) CreateMeetingByAll(c *echo.Context) error {
 }
 
 func (h *Handler) CreateMeetingMonthly(c *echo.Context) error {
+	claims := authctx.Claims(c)
+	if claims == nil {
+		return c.JSON(http.StatusUnauthorized, map[string]string{"error": "unauthorized"})
+	}
 	var req inputmodel.CreateMeetingMonthlyInput
 	if err := c.Bind(&req); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid request"})
@@ -81,6 +94,7 @@ func (h *Handler) CreateMeetingMonthly(c *echo.Context) error {
 		baseDate,
 		req.Week,
 		time.Weekday(req.Weekday),
+		claims.UserID,
 	)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})

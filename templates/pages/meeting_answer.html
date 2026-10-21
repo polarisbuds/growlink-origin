@@ -21,7 +21,10 @@
           <div class="rounded-3xl border border-base-300 bg-base-100 p-5 shadow-sm">
             <div class="flex items-start gap-2">
               <span class="badge badge-primary badge-outline shrink-0" x-text="'Q' + (a.topic?.displayNo || (i + 1))"></span>
-              <p class="flex-1 font-medium leading-relaxed" x-text="a.topic?.question"></p>
+              <div class="flex-1 min-w-0">
+                <p class="font-medium leading-relaxed" x-text="a.topic?.question"></p>
+                <p class="mt-1 text-sm text-base-content/60 whitespace-pre-wrap" x-show="a.topic?.description" x-text="a.topic?.description"></p>
+              </div>
               <span x-show="a.topic?.isRequire" class="badge badge-error badge-outline badge-sm shrink-0">必須</span>
             </div>
             <textarea class="textarea textarea-bordered mt-3 w-full" rows="3" x-model="drafts[a.id]"></textarea>

@@ -39,7 +39,7 @@ func implementedAtPtr(base time.Time) *time.Time {
 	return &at
 }
 
-func (uc *MeetingCreator) CreateMeetingEveryMonth(templateID uint, baseDate time.Time, week int, weekday time.Weekday) ([]outputmodel.MeetingOutput, error) {
+func (uc *MeetingCreator) CreateMeetingEveryMonth(templateID uint, baseDate time.Time, week int, weekday time.Weekday, createdByUserID uint) ([]outputmodel.MeetingOutput, error) {
 	pairings, err := uc.pairingRepo.GetAll()
 	if err != nil {
 		return nil, fmt.Errorf("定期ミーティング作成処理時に全てのペアリング情報の取得に失敗しました: %w", err)
@@ -57,10 +57,11 @@ func (uc *MeetingCreator) CreateMeetingEveryMonth(templateID uint, baseDate time
 		go func(pairingID uint, ec chan<- error) {
 			defer wg.Done()
 			meeting, err := uc.meetingRepo.Create(&entity.Meeting{
-				ImplementedAt: implementedAtPtr(implementDate),
-				Status:        valueobject.MeetingStatusPending,
-				TemplateID:    templateID,
-				PairingID:     pairingID,
+				ImplementedAt:   implementedAtPtr(implementDate),
+				Status:          valueobject.MeetingStatusPending,
+				TemplateID:      templateID,
+				PairingID:       pairingID,
+				CreatedByUserID: createdByUserID,
 			})
 			if err != nil {
 				ec <- fmt.Errorf("定期ミーティングのペアリングのミーティング作成に失敗しました: %w", err)
@@ -81,12 +82,13 @@ func (uc *MeetingCreator) CreateMeetingEveryMonth(templateID uint, baseDate time
 	return converter.MeetingEntitiesToOutputs(result), nil
 }
 
-func (uc *MeetingCreator) CreateMeeting(pairingID, templateID uint, implementDate time.Time) (*outputmodel.MeetingOutput, error) {
+func (uc *MeetingCreator) CreateMeeting(pairingID, templateID uint, implementDate time.Time, createdByUserID uint) (*outputmodel.MeetingOutput, error) {
 	meeting, err := uc.meetingRepo.Create(&entity.Meeting{
-		Status:        valueobject.MeetingStatusPending,
-		ImplementedAt: implementedAtPtr(implementDate),
-		TemplateID:    templateID,
-		PairingID:     pairingID,
+		Status:          valueobject.MeetingStatusPending,
+		ImplementedAt:   implementedAtPtr(implementDate),
+		TemplateID:      templateID,
+		PairingID:       pairingID,
+		CreatedByUserID: createdByUserID,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("ミーティングの作成に失敗しました: %w", err)
@@ -94,7 +96,7 @@ func (uc *MeetingCreator) CreateMeeting(pairingID, templateID uint, implementDat
 	return converter.MeetingEntityToOutputPtr(meeting), nil
 }
 
-func (uc *MeetingCreator) CreateMeetingByAll(templateID uint, implementDate time.Time) ([]outputmodel.MeetingOutput, error) {
+func (uc *MeetingCreator) CreateMeetingByAll(templateID uint, implementDate time.Time, createdByUserID uint) ([]outputmodel.MeetingOutput, error) {
 	pairings, err := uc.pairingRepo.GetAll()
 	if err != nil {
 		return nil, fmt.Errorf("ミーティング作成時に全てのペアリング情報の取得に失敗しました: %w", err)
@@ -111,10 +113,11 @@ func (uc *MeetingCreator) CreateMeetingByAll(templateID uint, implementDate time
 		go func(pairingID uint, ec chan<- error) {
 			defer wg.Done()
 			meeting, err := uc.meetingRepo.Create(&entity.Meeting{
-				ImplementedAt: implementedAtPtr(implementDate),
-				Status:        valueobject.MeetingStatusPending,
-				TemplateID:    templateID,
-				PairingID:     pairingID,
+				ImplementedAt:   implementedAtPtr(implementDate),
+				Status:          valueobject.MeetingStatusPending,
+				TemplateID:      templateID,
+				PairingID:       pairingID,
+				CreatedByUserID: createdByUserID,
 			})
 			if err != nil {
 				ec <- fmt.Errorf("全ペアリングのミーティング作成に失敗しました: %w", err)

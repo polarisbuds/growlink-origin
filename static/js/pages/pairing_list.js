@@ -15,7 +15,8 @@ document.addEventListener("alpine:init", () => {
       const q = this.search.trim().toLowerCase();
       if (!q) return this.pairings;
       return this.pairings.filter((p) => {
-        const hay = [p.mentor?.name, p.mentee?.name].filter(Boolean).join(" ").toLowerCase();
+        const menteeNames = (p.mentees || []).map((m) => m.name).join(" ");
+        const hay = [p.mentor?.name, p.mentee?.name, menteeNames].filter(Boolean).join(" ").toLowerCase();
         return hay.includes(q);
       });
     },
@@ -30,7 +31,7 @@ document.addEventListener("alpine:init", () => {
       this.deleteOpen = true;
     },
     async confirmDelete() {
-      const res = await fetch(`/api/v1/pairings/${this.selected.id}`, { method: "DELETE" });
+      const res = await fetch(`/api/v1/pairings/${this.selected.uuid || this.selected.id}`, { method: "DELETE" });
       if (!res.ok) {
         showToast("削除に失敗しました", "error");
         return;

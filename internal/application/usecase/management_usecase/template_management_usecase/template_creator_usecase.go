@@ -21,7 +21,8 @@ func NewTemplateCreator(templateRepo repository_interface.TemplateRepository,
 	}
 }
 
-func (uc *TemplateCreator) CreateTemplate(input inputmodel.TemplateInput) error {
+func (uc *TemplateCreator) CreateTemplate(input inputmodel.TemplateInput, userID uint) error {
+	input.Topics = normalizeTopicInputs(input.Topics)
 	topics := []entity.Topic{}
 	for _, inputTopic := range input.Topics {
 		err := uc.topicRepo.Create(converter.TopicInputToEntity(inputTopic))
@@ -34,6 +35,7 @@ func (uc *TemplateCreator) CreateTemplate(input inputmodel.TemplateInput) error 
 
 	if err := uc.templateRepo.Create(&entity.Template{
 		Title:  input.Title,
+		UserID: userID,
 		Topics: topics,
 	}); err != nil {
 		return fmt.Errorf("テンプレートの新規作成に失敗しました: %w", err)

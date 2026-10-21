@@ -17,9 +17,13 @@ type Deps struct {
 	PairingBrk *pairing_usecase.PairingBreakerUsecase
 	Setting    *setting_usecase.IconRegisterUsecase
 	SettingRm  *setting_usecase.IconRemoverUsecase
-	MeetingRepo repository_interface.MeetingRepository
-	UserRepo    repository_interface.UserRepository
-	RoleRepo    repository_interface.RoleRepository
+	MeetingRepo     repository_interface.MeetingRepository
+	PairingRepo     repository_interface.PairingRepository
+	TemplateRepo    repository_interface.TemplateRepository
+	UserRepo        repository_interface.UserRepository
+	TeamRepo        repository_interface.TeamRepository
+	TeamMemberRepo  repository_interface.TeamMemberRepository
+	RoleRepo        repository_interface.RoleRepository
 }
 
 type Handler struct {

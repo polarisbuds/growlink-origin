@@ -147,7 +147,7 @@ document.addEventListener("alpine:init", () => {
             this.error = data.error || "作成に失敗しました。";
             return;
           }
-          location.href = "/meeting/all";
+          location.href = "/planning/meetings";
         } finally {
           this.submitting = false;
         }

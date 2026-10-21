@@ -11,6 +11,7 @@ type CustomClaims struct {
 	UUID      string                `json:"uuid"`
 	Email     string                `json:"email"`
 	Name      string                `json:"name"`
-	Authority valueobject.Authority `json:"authority"`
+	Authority  valueobject.Authority  `json:"authority"`
+	SystemRole valueobject.SystemRole `json:"systemRole"`
 	jwt.RegisteredClaims
 }

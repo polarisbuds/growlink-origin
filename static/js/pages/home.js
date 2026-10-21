@@ -1,8 +1,8 @@
 import { statusBadge, statusLabel } from "../store.js";
 import { refreshPageIcons } from "../notice.js";
 
-function parseMeetings() {
-  const el = document.getElementById("meetings-json");
+function parseJSON(id) {
+  const el = document.getElementById(id);
   if (!el) return [];
   try {
     return JSON.parse(el.textContent || "[]");
@@ -25,11 +25,14 @@ function splitByToday(meetings) {
 }
 
 document.addEventListener("alpine:init", () => {
-  const all = parseMeetings();
-  const { untilToday, fromTomorrow } = splitByToday(all);
+  const own = parseJSON("meetings-json");
+  const sharedMeetings = parseJSON("shared-json");
+  const { untilToday, fromTomorrow } = splitByToday(own);
   Alpine.data("growlinkHome", () => ({
+    tab: "own",
     untilToday,
     fromTomorrow,
+    sharedMeetings,
     statusBadge,
     statusLabel,
     init() {
@@ -38,7 +41,9 @@ document.addEventListener("alpine:init", () => {
     pairLabel(item) {
       const p = item.pairing;
       if (!p) return "";
-      return `${p.mentor?.name || ""} / ${p.mentee?.name || ""}`;
+      const mentees = (p.mentees || []).map((m) => m.name).filter(Boolean);
+      const menteeLabel = mentees.length ? mentees.join("・") : p.mentee?.name || "";
+      return `${p.mentor?.name || ""} / ${menteeLabel}`;
     },
     formatDate(iso) {
       if (!iso) return "—";

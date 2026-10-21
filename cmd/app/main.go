@@ -13,6 +13,7 @@ import (
 	meeting_mng_usecase "growlink/internal/application/usecase/management_usecase/meeting_management_usecase"
 	pairing_mng_usecase "growlink/internal/application/usecase/management_usecase/pairing_management_usecase"
 	org_admin_usecase "growlink/internal/application/usecase/management_usecase/org_admin_usecase"
+	progress_mng_usecase "growlink/internal/application/usecase/management_usecase/progress_management_usecase"
 	remind_settings_usecase "growlink/internal/application/usecase/management_usecase/remind_settings_usecase"
 	template_mng_usecase "growlink/internal/application/usecase/management_usecase/template_management_usecase"
 	user_admin_usecase "growlink/internal/application/usecase/management_usecase/user_admin_usecase"
@@ -107,7 +108,7 @@ func main() {
 	authUC := authenticate_usecase.NewAuthUsecase(ldapClient, userRepo)
 
 	meetingBundle := meeting_usecase.Bundle{
-		List:             meeting_usecase.NewMeetingListUsecase(meetingRepo, pairingRepo),
+		List:             meeting_usecase.NewMeetingListUsecase(meetingRepo, pairingRepo, relationshipRepo),
 		AnswerReader:     meeting_usecase.NewAnswerReaderUsecase(answerRepo),
 		DraftSaver:       meeting_usecase.NewDraftSaverUsecase(meetingRepo, answerRepo),
 		Submitter:        meeting_usecase.NewSubmitterUsecase(meetingRepo, answerRepo),
@@ -133,6 +134,7 @@ func main() {
 		UserAdmin: user_admin_usecase.NewUserAdmin(userRepo, deptRefRepo, teamRefRepo, relationshipRepo),
 		OrgAdmin: org_admin_usecase.NewOrgAdmin(deptRepo, teamRepo, deptHierarchyRepo, deptRoleRepo, teamMemberRepo, userRepo),
 		RemindSettings: remind_settings_usecase.NewRemindSettings(systemSettingsRepo),
+		Progress:        progress_mng_usecase.NewProgressViewer(meetingRepo),
 	}
 
 	deps := handler.Deps{
@@ -143,9 +145,13 @@ func main() {
 		PairingBrk:  pairing_usecase.NewPairingBreakerUsecase(pairingRepo, userRepo),
 		Setting:     setting_usecase.NewIconRegisterUsecase(uploadRepo, userRepo),
 		SettingRm:   setting_usecase.NewIconRemoverUsecase(uploadRepo, userRepo),
-		MeetingRepo: meetingRepo,
-		UserRepo:    userRepo,
-		RoleRepo:    roleRepo,
+		MeetingRepo:    meetingRepo,
+		PairingRepo:    pairingRepo,
+		TemplateRepo:   templateRepo,
+		UserRepo:       userRepo,
+		TeamRepo:       teamRepo,
+		TeamMemberRepo: teamMemberRepo,
+		RoleRepo:       roleRepo,
 	}
 
 	handler.RegisterRoutes(ec, deps, logs.Audit)

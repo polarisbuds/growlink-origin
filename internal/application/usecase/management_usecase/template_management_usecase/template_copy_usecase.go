@@ -29,10 +29,11 @@ func (uc *TemplateCopier) CopyTemplate(sourceID uint, newTitle string) error {
 	in := inputmodel.TemplateInput{Title: newTitle}
 	for _, t := range src.Topics {
 		in.Topics = append(in.Topics, inputmodel.TopicInput{
-			DisplayNo: t.DisplayNo,
-			Question:  t.Question,
-			IsRequire: t.IsRequire,
+			DisplayNo:   t.DisplayNo,
+			Question:    t.Question,
+			Description: t.Description,
+			IsRequire:   t.IsRequire,
 		})
 	}
-	return uc.creator.CreateTemplate(in)
+	return uc.creator.CreateTemplate(in, src.UserID)
 }

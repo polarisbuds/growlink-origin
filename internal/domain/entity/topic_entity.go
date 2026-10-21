@@ -10,8 +10,9 @@ type Topic struct {
 
 	UUID      uuid.UUID `gorm:"type:uuid;not null;uniqueIndex;default:gen_random_uuid()"`
 	DisplayNo uint      `gorm:"not null"`
-	Question  string    `gorm:"type:text;not null"`
-	IsRequire bool      `gorm:"not null"`
+	Question    string `gorm:"type:text;not null"`
+	Description string `gorm:"type:text;not null;default:''"`
+	IsRequire   bool   `gorm:"not null"`
 
 	TemplateID uint `gorm:"not null;index"`
 

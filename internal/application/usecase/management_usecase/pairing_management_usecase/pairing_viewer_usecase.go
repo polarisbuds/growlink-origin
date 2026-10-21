@@ -6,6 +6,8 @@ import (
 	outputmodel "growlink/internal/application/model/output_model"
 	repository_interface "growlink/internal/domain/interface/repository"
 	"sync"
+
+	"github.com/google/uuid"
 )
 
 type PairingViewer struct {
@@ -27,6 +29,15 @@ func NewPairingViewer(
 		teamMemberRepo:   teamMemberRepo,
 		userRepo:         userRepo,
 	}
+}
+
+func (uc *PairingViewer) GetPairingByUUID(pairingUUID uuid.UUID) (*outputmodel.PairingOutput, error) {
+	pairing, err := uc.pairingRepo.GetByUUID(pairingUUID)
+	if err != nil {
+		return nil, fmt.Errorf("ペアリング情報のUUID指定取得に失敗しました: %w", err)
+	}
+	outputPairing := converter.PairingEntityToOutput(*pairing)
+	return &outputPairing, nil
 }
 
 func (uc *PairingViewer) GetPairing(pairingID uint) (*outputmodel.PairingOutput, error) {
