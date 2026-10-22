@@ -2,6 +2,8 @@ package pairing_mng_usecase
 
 import (
 	"fmt"
+
+	"growlink/internal/application/converter"
 	inputmodel "growlink/internal/application/model/input_model"
 	repository_interface "growlink/internal/domain/interface/repository"
 )
@@ -17,11 +19,12 @@ func NewPairingUpdater(pairingRepo repository_interface.PairingRepository) *Pair
 }
 
 func (uc *PairingUpdater) UpdatePairing(pairingID uint, input inputmodel.PairingInput) error {
-	menteeIDs := input.ResolvedMenteeIDs()
-	if len(menteeIDs) == 0 {
-		return fmt.Errorf("メンティーが指定されていません")
+	targets := input.ResolvedTargets()
+	if len(targets) == 0 {
+		return fmt.Errorf("対象が指定されていません")
 	}
-	if err := uc.pairingRepo.ApplyPairingOptions(pairingID, input.MentorID, menteeIDs, input.RecurWeek, input.RecurWeekday, input.SharerUserIDs); err != nil {
+	opts := converter.PairingTargetInputsToOptions(targets)
+	if err := uc.pairingRepo.ApplyPairingOptions(pairingID, input.MentorID, opts); err != nil {
 		return fmt.Errorf("ペアリング情報の更新に失敗しました: %w", err)
 	}
 	return nil

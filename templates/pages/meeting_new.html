@@ -5,7 +5,8 @@
 <body class="bg-base-200 font-sans antialiased" x-data="meetingNewPage" x-cloak @keydown.escape.window="closePicks()">
 <script type="application/json" id="pairings-json">{{.PairingsJSON}}</script>
 <script type="application/json" id="templates-json">{{.TemplatesJSON}}</script>
-<div class="flex h-screen overflow-hidden">
+<script type="application/json" id="users-json">{{.UsersJSON}}</script>
+<div class="flex h-screen min-w-0 overflow-hidden">
   {{template "sidebar" .}}
   <div class="flex min-w-0 flex-1 min-h-0 flex-col">
     {{template "header" dict "Breadcrumb" "1on1作成" "UserName" .UserName}}
@@ -53,6 +54,24 @@
               <li><button type="button" class="btn btn-ghost btn-sm w-full justify-start font-normal" @click="templatePick.pick(t)" x-text="t.title"></button></li>
             </template>
             <li x-show="templatePick.filtered.length === 0" class="px-4 py-3 text-sm text-base-content/50">該当なし</li>
+          </ul>
+        </div>
+        <div class="form-control relative" data-pick-root="sharer">
+          <span class="label-text font-medium">共有者（任意・複数）</span>
+          <div class="flex flex-wrap gap-2 mt-2">
+            <template x-for="id in sharerUserIds" :key="id">
+              <span class="badge badge-lg gap-1"><span x-text="userLabel(id)"></span><button type="button" class="btn btn-ghost btn-xs btn-circle" @click="removeSharer(id)">×</button></span>
+            </template>
+          </div>
+          <div class="relative mt-2">
+            <input type="text" class="input input-bordered w-full" placeholder="名前で検索して追加" autocomplete="off"
+              :value="sharerPick.open ? sharerPick.query : ''"
+              @focus="sharerPick.onFocus()" @input="sharerPick.onInput($event.target.value)" />
+          </div>
+          <ul x-show="sharerPick.open" class="absolute z-20 mt-1 max-h-48 w-full overflow-y-auto rounded-2xl border border-base-300 bg-base-100 shadow-lg py-1">
+            <template x-for="u in sharerPickFiltered()" :key="u.id">
+              <li><button type="button" class="btn btn-ghost btn-sm w-full justify-start font-normal" @click="addSharer(u)" x-text="`${u.name} (${u.email})`"></button></li>
+            </template>
           </ul>
         </div>
         <label x-show="mode !== 'monthly'" class="form-control">

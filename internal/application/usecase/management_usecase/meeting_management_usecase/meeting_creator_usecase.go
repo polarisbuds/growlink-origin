@@ -24,8 +24,6 @@ func NewMeetingCreator(meetingRepo repository_interface.MeetingRepository, pairi
 	}
 }
 
-// 次の実施日を計算します
-
 func calcImplementedAt(base time.Time) time.Time {
 	nextImplementDay := base
 	for utils.IsHoliday(nextImplementDay) {
@@ -39,7 +37,14 @@ func implementedAtPtr(base time.Time) *time.Time {
 	return &at
 }
 
-func (uc *MeetingCreator) CreateMeetingEveryMonth(templateID uint, baseDate time.Time, week int, weekday time.Weekday, createdByUserID uint) ([]outputmodel.MeetingOutput, error) {
+func (uc *MeetingCreator) saveSharers(meetingID uint, sharerUserIDs []uint) error {
+	if len(sharerUserIDs) == 0 {
+		return nil
+	}
+	return uc.meetingRepo.ReplaceSharers(meetingID, sharerUserIDs)
+}
+
+func (uc *MeetingCreator) CreateMeetingEveryMonth(templateID uint, baseDate time.Time, week int, weekday time.Weekday, createdByUserID uint, sharerUserIDs []uint) ([]outputmodel.MeetingOutput, error) {
 	pairings, err := uc.pairingRepo.GetAll()
 	if err != nil {
 		return nil, fmt.Errorf("定期ミーティング作成処理時に全てのペアリング情報の取得に失敗しました: %w", err)
@@ -67,6 +72,10 @@ func (uc *MeetingCreator) CreateMeetingEveryMonth(templateID uint, baseDate time
 				ec <- fmt.Errorf("定期ミーティングのペアリングのミーティング作成に失敗しました: %w", err)
 				return
 			}
+			if err := uc.saveSharers(meeting.ID, sharerUserIDs); err != nil {
+				ec <- err
+				return
+			}
 			mux.Lock()
 			result = append(result, *meeting)
 			mux.Unlock()
@@ -82,7 +91,7 @@ func (uc *MeetingCreator) CreateMeetingEveryMonth(templateID uint, baseDate time
 	return converter.MeetingEntitiesToOutputs(result), nil
 }
 
-func (uc *MeetingCreator) CreateMeeting(pairingID, templateID uint, implementDate time.Time, createdByUserID uint) (*outputmodel.MeetingOutput, error) {
+func (uc *MeetingCreator) CreateMeeting(pairingID, templateID uint, implementDate time.Time, createdByUserID uint, sharerUserIDs []uint) (*outputmodel.MeetingOutput, error) {
 	meeting, err := uc.meetingRepo.Create(&entity.Meeting{
 		Status:          valueobject.MeetingStatusPending,
 		ImplementedAt:   implementedAtPtr(implementDate),
@@ -93,10 +102,13 @@ func (uc *MeetingCreator) CreateMeeting(pairingID, templateID uint, implementDat
 	if err != nil {
 		return nil, fmt.Errorf("ミーティングの作成に失敗しました: %w", err)
 	}
+	if err := uc.saveSharers(meeting.ID, sharerUserIDs); err != nil {
+		return nil, err
+	}
 	return converter.MeetingEntityToOutputPtr(meeting), nil
 }
 
-func (uc *MeetingCreator) CreateMeetingByAll(templateID uint, implementDate time.Time, createdByUserID uint) ([]outputmodel.MeetingOutput, error) {
+func (uc *MeetingCreator) CreateMeetingByAll(templateID uint, implementDate time.Time, createdByUserID uint, sharerUserIDs []uint) ([]outputmodel.MeetingOutput, error) {
 	pairings, err := uc.pairingRepo.GetAll()
 	if err != nil {
 		return nil, fmt.Errorf("ミーティング作成時に全てのペアリング情報の取得に失敗しました: %w", err)
@@ -121,6 +133,10 @@ func (uc *MeetingCreator) CreateMeetingByAll(templateID uint, implementDate time
 			})
 			if err != nil {
 				ec <- fmt.Errorf("全ペアリングのミーティング作成に失敗しました: %w", err)
+				return
+			}
+			if err := uc.saveSharers(meeting.ID, sharerUserIDs); err != nil {
+				ec <- err
 				return
 			}
 			mux.Lock()

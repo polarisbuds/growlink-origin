@@ -60,7 +60,7 @@ func (repo *UserRelationshipRepository) GetByRelationType(relationshipType value
 }
 
 func (repo *UserRelationshipRepository) GetByBossID(bossID uint) (subordinates []entity.UserRelationship, err error) {
-	relationshipWhereChain, err := repo.baseRepository.WhereChain("id ASC", "relation_type = ? AND target_id = ?", valueobject.RelationshipTypeBoss, bossID)
+	relationshipWhereChain, err := repo.baseRepository.WhereChain("id ASC", "relation_type = ? AND target_user_id = ?", valueobject.RelationshipTypeBoss, bossID)
 	if err != nil {
 		return nil, fmt.Errorf("上司ユーザID指定でのユーザ間関係性のチェイン作成に失敗しました: %w", err)
 	}
@@ -75,7 +75,7 @@ func (repo *UserRelationshipRepository) GetByBossID(bossID uint) (subordinates [
 }
 
 func (repo *UserRelationshipRepository) GetBySubordinateID(subordinateID uint) (bosses []entity.UserRelationship, err error) {
-	relationshipWhereChain, err := repo.baseRepository.WhereChain("id ASC", "relation_type = ? AND target_id = ?", valueobject.RelationshipTypeSubordinate, subordinateID)
+	relationshipWhereChain, err := repo.baseRepository.WhereChain("id ASC", "relation_type = ? AND target_user_id = ?", valueobject.RelationshipTypeSubordinate, subordinateID)
 	if err != nil {
 		return nil, fmt.Errorf("部下ユーザID指定でのユーザ間関係性のチェイン作成に失敗しました: %w", err)
 	}
@@ -124,7 +124,7 @@ func (repo *UserRelationshipRepository) Delete(relationshipID uint) error {
 }
 
 func (repo *UserRelationshipRepository) DeleteByBossUserID(bossUserID uint) error {
-	if _, err := repo.baseRepository.Delete(0, "relation_type = ? AND target_id = ?", valueobject.RelationshipTypeBoss, bossUserID); err != nil {
+	if _, err := repo.baseRepository.Delete(0, "relation_type = ? AND target_user_id = ?", valueobject.RelationshipTypeBoss, bossUserID); err != nil {
 		return fmt.Errorf("上司ユーザのリレーション削除に失敗しました: %w", err)
 	}
 	return nil

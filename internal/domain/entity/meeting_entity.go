@@ -25,4 +25,5 @@ type Meeting struct {
 
 	Answers         []Answer         `gorm:"foreignKey:MeetingID"`
 	MeetingComments []MeetingComment `gorm:"foreignKey:MeetingID"`
+	Sharers         []MeetingSharer  `gorm:"foreignKey:MeetingID"`
 }

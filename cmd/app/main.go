@@ -108,7 +108,7 @@ func main() {
 	authUC := authenticate_usecase.NewAuthUsecase(ldapClient, userRepo)
 
 	meetingBundle := meeting_usecase.Bundle{
-		List:             meeting_usecase.NewMeetingListUsecase(meetingRepo, pairingRepo, relationshipRepo),
+		List:             meeting_usecase.NewMeetingListUsecase(meetingRepo, pairingRepo, relationshipRepo, userRepo, teamMemberRepo),
 		AnswerReader:     meeting_usecase.NewAnswerReaderUsecase(answerRepo),
 		DraftSaver:       meeting_usecase.NewDraftSaverUsecase(meetingRepo, answerRepo),
 		Submitter:        meeting_usecase.NewSubmitterUsecase(meetingRepo, answerRepo),
@@ -122,7 +122,7 @@ func main() {
 		MeetingCreator:  meeting_mng_usecase.NewMeetingCreator(meetingRepo, pairingRepo),
 		MeetingUpdater:  meeting_mng_usecase.NewMeetingUpdater(meetingRepo),
 		MeetingDeleter:  meeting_mng_usecase.NewMeetingDeleter(meetingRepo),
-		Pairing:         pairing_mng_usecase.NewPairingViewer(userRepo, relationshipRepo, pairingRepo, teamMemberRepo),
+		Pairing:         pairing_mng_usecase.NewPairingViewer(userRepo, relationshipRepo, pairingRepo, teamMemberRepo, teamRepo, deptRepo),
 		PairingCreator:  pairing_mng_usecase.NewPairingCreator(pairingRepo),
 		PairingUpdater:  pairing_mng_usecase.NewPairingUpdater(pairingRepo),
 		PairingDeleter:  pairing_mng_usecase.NewPairingDeleter(pairingRepo),
@@ -151,6 +151,7 @@ func main() {
 		UserRepo:       userRepo,
 		TeamRepo:       teamRepo,
 		TeamMemberRepo: teamMemberRepo,
+		DepartmentRepo: deptRepo,
 		RoleRepo:       roleRepo,
 	}
 

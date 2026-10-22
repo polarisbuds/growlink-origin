@@ -3,7 +3,9 @@ package pairing_mng_usecase
 import (
 	"fmt"
 
+	"growlink/internal/application/converter"
 	inputmodel "growlink/internal/application/model/input_model"
+	"growlink/internal/domain/entity"
 	repository_interface "growlink/internal/domain/interface/repository"
 )
 
@@ -18,19 +20,30 @@ func NewPairingCreator(pairingRepo repository_interface.PairingRepository) *Pair
 }
 
 func (uc PairingCreator) CreatePairing(menteeID, mentorID uint) error {
-	return uc.CreatePairingFromInput(inputmodel.PairingInput{MenteeID: menteeID, MentorID: mentorID}, 0)
+	return uc.CreatePairingFromInput(inputmodel.PairingInput{
+		MentorID: mentorID,
+		Targets:  []inputmodel.PairingTargetInput{{Kind: entity.PairingTargetKindUser, TargetID: menteeID}},
+	}, 0)
 }
 
 func (uc PairingCreator) CreatePairingFromInput(input inputmodel.PairingInput, createdByUserID uint) error {
-	menteeIDs := input.ResolvedMenteeIDs()
-	if len(menteeIDs) == 0 {
-		return fmt.Errorf("メンティーが指定されていません")
+	targets := input.ResolvedTargets()
+	if len(targets) == 0 {
+		return fmt.Errorf("対象が指定されていません")
 	}
-	pair, err := uc.pairingRepo.CreatePairing(menteeIDs[0], input.MentorID, createdByUserID)
+	opts := converter.PairingTargetInputsToOptions(targets)
+	primaryMentee := opts[0].TargetID
+	for _, o := range opts {
+		if o.Kind == entity.PairingTargetKindUser {
+			primaryMentee = o.TargetID
+			break
+		}
+	}
+	pair, err := uc.pairingRepo.CreatePairing(primaryMentee, input.MentorID, createdByUserID)
 	if err != nil {
 		return fmt.Errorf("ペアリングの作成に失敗しました: %w", err)
 	}
-	if err := uc.pairingRepo.ApplyPairingOptions(pair.ID, input.MentorID, menteeIDs, input.RecurWeek, input.RecurWeekday, input.SharerUserIDs); err != nil {
+	if err := uc.pairingRepo.ApplyPairingOptions(pair.ID, input.MentorID, opts); err != nil {
 		return err
 	}
 	return nil

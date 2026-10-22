@@ -1,20 +1,15 @@
 package inputmodel
 
-type PairingInput struct {
-	MentorID      uint   `json:"mentorId"`
-	MenteeID      uint   `json:"menteeId"`
-	MenteeIDs     []uint `json:"menteeIds"`
-	RecurWeek     *int   `json:"recurWeek"`
-	RecurWeekday  *int   `json:"recurWeekday"`
-	SharerUserIDs []uint `json:"sharerUserIds"`
+type PairingTargetInput struct {
+	Kind     string `json:"kind"`
+	TargetID uint   `json:"targetId"`
 }
 
-func (in PairingInput) ResolvedMenteeIDs() []uint {
-	if len(in.MenteeIDs) > 0 {
-		return in.MenteeIDs
-	}
-	if in.MenteeID != 0 {
-		return []uint{in.MenteeID}
-	}
-	return nil
+type PairingInput struct {
+	MentorID uint                 `json:"mentorId"`
+	Targets  []PairingTargetInput `json:"targets"`
+}
+
+func (in PairingInput) ResolvedTargets() []PairingTargetInput {
+	return in.Targets
 }

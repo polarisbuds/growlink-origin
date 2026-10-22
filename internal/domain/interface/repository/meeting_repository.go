@@ -29,4 +29,7 @@ type MeetingRepository interface {
 	GetBetweenDates(from, to time.Time) ([]entity.Meeting, error)
 
 	Delete(meetingIDs ...uint) error
+
+	GetMeetingIDsBySharerUserID(userID uint) ([]uint, error)
+	ReplaceSharers(meetingID uint, userIDs []uint) error
 }

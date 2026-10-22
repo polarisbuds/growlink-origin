@@ -14,6 +14,8 @@ type pairingViewerMocks struct {
 	pairing          *repomock.MockPairingRepository
 	relationshipRepo *repomock.MockUserRelationshipRepository
 	teamMember       *repomock.MockTeamMemberRepository
+	team             *repomock.MockTeamRepository
+	dept             *repomock.MockDepartmentRepository
 	user             *repomock.MockUserRepository
 }
 
@@ -24,6 +26,8 @@ func newPairingViewer(t *testing.T) (*pairing_mng_usecase.PairingViewer, *pairin
 		pairing:          repomock.NewMockPairingRepository(ctrl),
 		relationshipRepo: repomock.NewMockUserRelationshipRepository(ctrl),
 		teamMember:       repomock.NewMockTeamMemberRepository(ctrl),
+		team:             repomock.NewMockTeamRepository(ctrl),
+		dept:             repomock.NewMockDepartmentRepository(ctrl),
 		user:             repomock.NewMockUserRepository(ctrl),
 	}
 	uc := pairing_mng_usecase.NewPairingViewer(
@@ -31,6 +35,8 @@ func newPairingViewer(t *testing.T) (*pairing_mng_usecase.PairingViewer, *pairin
 		mocks.relationshipRepo,
 		mocks.pairing,
 		mocks.teamMember,
+		mocks.team,
+		mocks.dept,
 	)
 	return uc, mocks
 }

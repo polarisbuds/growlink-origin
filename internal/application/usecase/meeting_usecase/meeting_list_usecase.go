@@ -5,6 +5,7 @@ import (
 
 	"growlink/internal/application/converter"
 	outputmodel "growlink/internal/application/model/output_model"
+	"growlink/internal/domain/entity"
 	repository_interface "growlink/internal/domain/interface/repository"
 )
 
@@ -12,17 +13,23 @@ type MeetingListUsecase struct {
 	meetingRepo      repository_interface.MeetingRepository
 	pairingRepo      repository_interface.PairingRepository
 	relationshipRepo repository_interface.UserRelationshipRepository
+	userRepo         repository_interface.UserRepository
+	teamMemberRepo   repository_interface.TeamMemberRepository
 }
 
 func NewMeetingListUsecase(
 	meetingRepo repository_interface.MeetingRepository,
 	pairingRepo repository_interface.PairingRepository,
 	relationshipRepo repository_interface.UserRelationshipRepository,
+	userRepo repository_interface.UserRepository,
+	teamMemberRepo repository_interface.TeamMemberRepository,
 ) *MeetingListUsecase {
 	return &MeetingListUsecase{
 		meetingRepo:      meetingRepo,
 		pairingRepo:      pairingRepo,
 		relationshipRepo: relationshipRepo,
+		userRepo:         userRepo,
+		teamMemberRepo:   teamMemberRepo,
 	}
 }
 
@@ -42,6 +49,37 @@ func dedupeMeetings(meetings []outputmodel.MeetingOutput) []outputmodel.MeetingO
 	return out
 }
 
+func userInvolvedInPairing(userID, departmentID uint, teamIDs map[uint]struct{}, pairing entity.Pairing) bool {
+	if pairing.MentorID == userID {
+		return true
+	}
+	if pairing.MenteeID == userID {
+		return true
+	}
+	for _, t := range pairing.Targets {
+		switch t.Kind {
+		case entity.PairingTargetKindUser:
+			if t.TargetID == userID {
+				return true
+			}
+		case entity.PairingTargetKindTeam:
+			if _, ok := teamIDs[t.TargetID]; ok {
+				return true
+			}
+		case entity.PairingTargetKindDepartment:
+			if t.TargetID == departmentID {
+				return true
+			}
+		}
+	}
+	for _, m := range pairing.Mentees {
+		if m.UserID == userID {
+			return true
+		}
+	}
+	return false
+}
+
 func (uc *MeetingListUsecase) ListMyMeeting(userID uint) ([]outputmodel.MeetingOutput, error) {
 	pairing, err := uc.pairingRepo.GetByMenteeID(userID)
 	if err != nil {
@@ -58,18 +96,29 @@ func (uc *MeetingListUsecase) ListMyMeeting(userID uint) ([]outputmodel.MeetingO
 }
 
 func (uc *MeetingListUsecase) ListInvolvedMeetings(userID uint) ([]outputmodel.MeetingOutput, error) {
-	var all []outputmodel.MeetingOutput
-	menteeMeetings, err := uc.ListMyMeeting(userID)
+	user, err := uc.userRepo.GetByID(userID)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("ユーザ情報の取得に失敗しました: %w", err)
 	}
-	all = append(all, menteeMeetings...)
+	teamMembers, err := uc.teamMemberRepo.GetByMemberID(userID)
+	if err != nil {
+		return nil, fmt.Errorf("チーム所属の取得に失敗しました: %w", err)
+	}
+	teamIDs := make(map[uint]struct{}, len(teamMembers))
+	for _, tm := range teamMembers {
+		teamIDs[tm.TeamID] = struct{}{}
+	}
 
-	pairings, err := uc.pairingRepo.GetByMentorID(userID)
+	pairings, err := uc.pairingRepo.GetAll()
 	if err != nil {
-		return nil, fmt.Errorf("メンターとしてのペア取得に失敗しました: %w", err)
+		return nil, fmt.Errorf("ペアリング一覧の取得に失敗しました: %w", err)
 	}
+
+	var all []outputmodel.MeetingOutput
 	for _, p := range pairings {
+		if !userInvolvedInPairing(userID, user.DepartmentID, teamIDs, p) {
+			continue
+		}
 		meetings, err := uc.meetingRepo.GetByPairingID(p.ID)
 		if err != nil {
 			return nil, err
@@ -91,16 +140,16 @@ func (uc *MeetingListUsecase) ListSharedMeetings(userID uint) ([]outputmodel.Mee
 
 	var shared []outputmodel.MeetingOutput
 
-	sharerPairingIDs, err := uc.pairingRepo.GetPairingIDsBySharerUserID(userID)
+	meetingIDs, err := uc.meetingRepo.GetMeetingIDsBySharerUserID(userID)
 	if err != nil {
-		return nil, fmt.Errorf("共有ペアの取得に失敗しました: %w", err)
+		return nil, fmt.Errorf("共有ミーティングの取得に失敗しました: %w", err)
 	}
-	for _, pairingID := range sharerPairingIDs {
-		meetings, err := uc.meetingRepo.GetByPairingID(pairingID)
+	for _, meetingID := range meetingIDs {
+		meeting, err := uc.meetingRepo.GetByID(meetingID)
 		if err != nil {
 			return nil, err
 		}
-		shared = append(shared, converter.MeetingEntitiesToOutputs(meetings)...)
+		shared = append(shared, converter.MeetingEntityToOutput(*meeting))
 	}
 
 	relationships, err := uc.relationshipRepo.GetByBossID(userID)

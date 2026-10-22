@@ -123,7 +123,7 @@ func TestMeetingCreator_CreateMeeting(t *testing.T) {
 				tt.setup(meetingRepo, cap)
 			}
 
-			got, gotErr := uc.CreateMeeting(tt.pairingID, tt.templateID, tt.implementDate)
+			got, gotErr := uc.CreateMeeting(tt.pairingID, tt.templateID, tt.implementDate, 0, nil)
 			assertUsecaseErr(t, gotErr, tt.wantErr, tt.errContains, "CreateMeeting")
 			if t.Failed() {
 				return
@@ -268,7 +268,7 @@ func TestMeetingCreator_CreateMeetingEveryMonth(t *testing.T) {
 				tt.setup(meetingRepo, pairingRepo, cap)
 			}
 
-			got, gotErr := uc.CreateMeetingEveryMonth(tt.templateID, tt.baseDate, tt.week, tt.weekday)
+			got, gotErr := uc.CreateMeetingEveryMonth(tt.templateID, tt.baseDate, tt.week, tt.weekday, 0, nil)
 			assertUsecaseErr(t, gotErr, tt.wantErr, tt.errContains, "CreateMeetingEveryMonth")
 			if t.Failed() {
 				return
@@ -370,7 +370,7 @@ func TestMeetingCreator_CreateMeetingByAll(t *testing.T) {
 				tt.setup(meetingRepo, pairingRepo, cap)
 			}
 
-			got, gotErr := uc.CreateMeetingByAll(tt.templateID, tt.implementDate)
+			got, gotErr := uc.CreateMeetingByAll(tt.templateID, tt.implementDate, 0, nil)
 			assertUsecaseErr(t, gotErr, tt.wantErr, tt.errContains, "CreateMeetingByAll")
 			if t.Failed() {
 				return

@@ -37,7 +37,7 @@ func (h *Handler) CreateMeeting(c *echo.Context) error {
 	if !ok {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid implementedAt"})
 	}
-	out, err := h.deps.Management.MeetingCreator.CreateMeeting(req.PairingID, req.TemplateID, implementDate, claims.UserID)
+	out, err := h.deps.Management.MeetingCreator.CreateMeeting(req.PairingID, req.TemplateID, implementDate, claims.UserID, req.SharerUserIDs)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
@@ -60,7 +60,7 @@ func (h *Handler) CreateMeetingByAll(c *echo.Context) error {
 	if !ok {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid implementedAt"})
 	}
-	outs, err := h.deps.Management.MeetingCreator.CreateMeetingByAll(req.TemplateID, implementDate, claims.UserID)
+	outs, err := h.deps.Management.MeetingCreator.CreateMeetingByAll(req.TemplateID, implementDate, claims.UserID, req.SharerUserIDs)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
@@ -95,6 +95,7 @@ func (h *Handler) CreateMeetingMonthly(c *echo.Context) error {
 		req.Week,
 		time.Weekday(req.Weekday),
 		claims.UserID,
+		req.SharerUserIDs,
 	)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})

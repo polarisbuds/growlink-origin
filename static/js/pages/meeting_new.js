@@ -1,4 +1,4 @@
-import { createPickController } from "../searchable-select.js";
+import { createPickController, filterItems } from "../searchable-select.js";
 
 function todayISO() {
   const d = new Date();
@@ -15,11 +15,20 @@ function currentMonthISO() {
   return `${y}-${m}`;
 }
 
+function pairingSummary(p) {
+  const mentor = p.mentor?.name || "—";
+  const targetLabels = (p.targets || []).map((t) => t.label).filter(Boolean);
+  const targets = targetLabels.length ? targetLabels.join("、") : p.mentee?.name || "—";
+  return `${mentor} / ${targets}`;
+}
+
 document.addEventListener("alpine:init", () => {
   const pairingsEl = document.getElementById("pairings-json");
   const templatesEl = document.getElementById("templates-json");
+  const usersEl = document.getElementById("users-json");
   const pairings = pairingsEl ? JSON.parse(pairingsEl.textContent || "[]") : [];
   const templates = templatesEl ? JSON.parse(templatesEl.textContent || "[]") : [];
+  const users = usersEl ? JSON.parse(usersEl.textContent || "[]") : [];
 
   Alpine.data("meetingNewPage", () => {
     const form = {
@@ -33,11 +42,7 @@ document.addEventListener("alpine:init", () => {
     const pairPick = createPickController({
       items: () => pairings,
       getId: (p) => p.id,
-      labelOf: (p) => {
-        const mentor = p.mentor?.name || "—";
-        const mentee = p.mentee?.name || "—";
-        return `${mentor} / ${mentee}`;
-      },
+      labelOf: pairingSummary,
       getSelectedId: () => form.pairingId,
       setSelectedId: (id) => {
         form.pairingId = id;
@@ -52,32 +57,62 @@ document.addEventListener("alpine:init", () => {
         form.templateId = id;
       },
     });
+    const sharerPick = createPickController({
+      items: () => users,
+      getId: (u) => u.id,
+      labelOf: (u) => `${u.name} (${u.email})`,
+      getSelectedId: () => 0,
+      setSelectedId: () => {},
+    });
 
     return {
       mode: "single",
       pairings,
       templates,
+      users,
+      sharerUserIds: [],
       submitting: false,
       error: "",
       form,
       pairPick,
       templatePick,
+      sharerPick,
       init() {
         window.addEventListener("mousedown", (ev) => {
           const t = ev.target;
           if (!(t instanceof Element)) return;
-          if (!t.closest('[data-pick-root="pair"]')) pairPick.close();
-          if (!t.closest('[data-pick-root="template"]')) templatePick.close();
+          if (!t.closest('[data-pick-root="pair"]')) this.pairPick.close();
+          if (!t.closest('[data-pick-root="template"]')) this.templatePick.close();
+          if (!t.closest('[data-pick-root="sharer"]')) this.sharerPick.close();
         });
       },
       closePicks() {
-        pairPick.close();
-        templatePick.close();
+        this.pairPick.close();
+        this.templatePick.close();
+        this.sharerPick.close();
       },
       pairingLabel(p) {
-        const mentor = p.mentor?.name || "—";
-        const mentee = p.mentee?.name || "—";
-        return `${mentor} / ${mentee}`;
+        return pairingSummary(p);
+      },
+      sharerPickFiltered() {
+        const picked = new Set(this.sharerUserIds);
+        const list = this.users.filter((u) => !picked.has(u.id));
+        return filterItems(list, this.sharerPick.query, (u) => `${u.name} (${u.email})`);
+      },
+      userLabel(id) {
+        const u = this.users.find((x) => x.id === id);
+        return u ? u.name : `#${id}`;
+      },
+      addSharer(u) {
+        if (!u?.id || this.sharerUserIds.includes(u.id)) return;
+        this.sharerUserIds.push(u.id);
+        this.sharerPick.clear();
+      },
+      removeSharer(id) {
+        this.sharerUserIds = this.sharerUserIds.filter((x) => x !== id);
+      },
+      sharerPayload() {
+        return this.sharerUserIds.length ? this.sharerUserIds : undefined;
       },
       submitLabel() {
         if (this.submitting) return "作成中…";
@@ -95,6 +130,7 @@ document.addEventListener("alpine:init", () => {
         try {
           let url;
           let body;
+          const sharerUserIds = this.sharerUserIds;
           if (this.mode === "single") {
             if (!this.form.pairingId) {
               this.error = "ペアを選択してください。";
@@ -109,6 +145,7 @@ document.addEventListener("alpine:init", () => {
               pairingId: this.form.pairingId,
               templateId: this.form.templateId,
               implementedAt: this.form.implementedAt,
+              sharerUserIds,
             };
           } else if (this.mode === "all") {
             if (!this.form.implementedAt) {
@@ -119,6 +156,7 @@ document.addEventListener("alpine:init", () => {
             body = {
               templateId: this.form.templateId,
               implementedAt: this.form.implementedAt,
+              sharerUserIds,
             };
           } else {
             if (!this.form.baseMonth) {
@@ -135,6 +173,7 @@ document.addEventListener("alpine:init", () => {
               baseDate: `${this.form.baseMonth}-01`,
               week: this.form.week,
               weekday: this.form.weekday,
+              sharerUserIds,
             };
           }
           const res = await fetch(url, {

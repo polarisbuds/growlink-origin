@@ -1,44 +1,29 @@
-import { createPickController } from "../searchable-select.js";
+import { filterItems, createPickController } from "../searchable-select.js";
 import { showToast, refreshPageIcons } from "../notice.js";
-
-const WEEKDAYS = [
-  { value: 0, label: "日曜" },
-  { value: 1, label: "月曜" },
-  { value: 2, label: "火曜" },
-  { value: 3, label: "水曜" },
-  { value: 4, label: "木曜" },
-  { value: 5, label: "金曜" },
-  { value: 6, label: "土曜" },
-];
 
 document.addEventListener("alpine:init", () => {
   Alpine.data("pairingForm", (mode) => {
-    let initial = { mentorId: 0, menteeIds: [], recurWeek: null, recurWeekday: null, uuid: "", sharerUserIds: [] };
+    let initial = { mentorId: 0, targets: [], uuid: "" };
     const el = document.getElementById("pairing-json");
     if (el) {
       const p = JSON.parse(el.textContent || "{}");
-      const menteeIds = (p.mentees || []).map((m) => m.id);
-      if (!menteeIds.length && p.mentee?.id) menteeIds.push(p.mentee.id);
       initial = {
         uuid: p.uuid || "",
         mentorId: p.mentor?.id || 0,
-        menteeIds,
-        recurWeek: p.recurWeek,
-        recurWeekday: p.recurWeekday,
-        sharerUserIds: p.sharerUserIds || [],
+        targets: (p.targets || []).map((t) => ({
+          kind: t.kind,
+          targetId: t.targetId,
+          label: t.label || "",
+        })),
       };
     }
 
-    const users = { list: [] };
     const form = {
       mentorId: initial.mentorId,
-      menteeIds: [...initial.menteeIds],
-      recurWeek: initial.recurWeek,
-      recurWeekday: initial.recurWeekday,
     };
 
     const mentorPick = createPickController({
-      items: () => users.list,
+      items: () => [],
       getId: (u) => u.id,
       labelOf: (u) => `${u.name} (${u.email})`,
       getSelectedId: () => form.mentorId,
@@ -46,107 +31,113 @@ document.addEventListener("alpine:init", () => {
         form.mentorId = id;
       },
     });
-    const menteePick = createPickController({
-      items: () => users.list.filter((u) => !form.menteeIds.includes(u.id)),
+
+    const userTargetPick = createPickController({
+      items: () => [],
       getId: (u) => u.id,
       labelOf: (u) => `${u.name} (${u.email})`,
       getSelectedId: () => 0,
-      setSelectedId: (id) => {
-        if (id && !form.menteeIds.includes(id)) form.menteeIds.push(id);
-        menteePick.clear();
-      },
+      setSelectedId: () => {},
     });
 
     return {
       mode,
-      weekdays: WEEKDAYS,
-      teams: [],
       form,
+      targets: [...initial.targets],
+      users: [],
+      teams: [],
+      departments: [],
       pairingUUID: initial.uuid,
-      sharerIdsText: (initial.sharerUserIds || []).join(","),
       teamPickId: 0,
-      confirmOpen: false,
-      confirmTitle: "",
-      confirmMessage: "",
-      pendingSave: null,
+      departmentPickId: 0,
       mentorPick,
-      menteePick,
-      get users() {
-        return users.list;
+      userTargetPick,
+      targetKey(kind, targetId) {
+        return `${kind}:${targetId}`;
       },
       userLabel(id) {
-        const u = users.list.find((x) => x.id === id);
+        const u = this.users.find((x) => x.id === id);
         return u ? u.name : `#${id}`;
+      },
+      teamLabel(id) {
+        const t = this.teams.find((x) => x.id === id);
+        return t ? t.name : `#${id}`;
+      },
+      departmentLabel(id) {
+        const d = this.departments.find((x) => x.id === id);
+        return d ? d.name : `#${id}`;
+      },
+      addTarget(kind, targetId, label) {
+        const key = this.targetKey(kind, targetId);
+        if (this.targets.some((t) => this.targetKey(t.kind, t.targetId) === key)) return;
+        this.targets.push({ kind, targetId, label });
+      },
+      mentorPickFiltered() {
+        return filterItems(this.users, this.mentorPick.query, (u) => `${u.name} (${u.email})`);
+      },
+      userTargetPickFiltered() {
+        const picked = new Set(this.targets.filter((t) => t.kind === "user").map((t) => t.targetId));
+        const list = this.users.filter((u) => !picked.has(u.id));
+        return filterItems(list, this.userTargetPick.query, (u) => `${u.name} (${u.email})`);
+      },
+      pickUserTarget(u) {
+        this.addTarget("user", u.id, `${u.name} (${u.email})`);
+        this.userTargetPick.clear();
       },
       async init() {
         const res = await fetch("/api/v1/planning/directory");
         if (res.ok) {
           const data = await res.json();
-          users.list = data.users || [];
+          this.users = data.users || [];
           this.teams = data.teams || [];
+          this.departments = data.departments || [];
+          for (const t of this.targets) {
+            if (t.label) continue;
+            if (t.kind === "user") t.label = this.userLabel(t.targetId);
+            if (t.kind === "team") t.label = this.teamLabel(t.targetId);
+            if (t.kind === "department") t.label = this.departmentLabel(t.targetId);
+          }
         }
         window.addEventListener("mousedown", (ev) => {
           const t = ev.target;
           if (!(t instanceof Element)) return;
-          if (!t.closest('[data-pick-root="mentor"]')) mentorPick.close();
-          if (!t.closest('[data-pick-root="mentee"]')) menteePick.close();
+          if (!t.closest('[data-pick-root="mentor"]')) this.mentorPick.close();
+          if (!t.closest('[data-pick-root="user-target"]')) this.userTargetPick.close();
         });
         refreshPageIcons();
       },
-      removeMentee(id) {
-        form.menteeIds = form.menteeIds.filter((x) => x !== id);
+      removeTarget(index) {
+        this.targets.splice(index, 1);
       },
-      addTeamMembers() {
-        const team = this.teams.find((t) => t.id === Number(this.teamPickId));
-        if (!team) return;
-        for (const m of team.members || []) {
-          if (!form.menteeIds.includes(m.id)) form.menteeIds.push(m.id);
-        }
+      addTeamTarget() {
+        const id = Number(this.teamPickId);
+        if (!id) return;
+        this.addTarget("team", id, this.teamLabel(id));
         this.teamPickId = 0;
       },
-      scheduleLabel() {
-        if (form.recurWeek == null) return "繰り返しなし";
-        const wd = WEEKDAYS.find((d) => d.value === form.recurWeekday);
-        return `第${form.recurWeek}週・${wd?.label || "—"}`;
+      addDepartmentTarget() {
+        const id = Number(this.departmentPickId);
+        if (!id) return;
+        this.addTarget("department", id, this.departmentLabel(id));
+        this.departmentPickId = 0;
+      },
+      targetKindLabel(kind) {
+        if (kind === "user") return "ユーザー";
+        if (kind === "team") return "チーム";
+        if (kind === "department") return "部署";
+        return kind;
       },
       payload() {
-        const recurWeek = form.recurWeek || null;
-        const recurWeekday = form.recurWeekday ?? null;
         return {
-          mentorId: form.mentorId,
-          menteeIds: form.menteeIds,
-          recurWeek: recurWeek === 0 ? null : recurWeek,
-          recurWeekday: recurWeek == null ? null : recurWeekday,
-          sharerUserIds: (this.sharerIdsText || "")
-            .split(",")
-            .map((s) => parseInt(s.trim(), 10))
-            .filter((n) => !Number.isNaN(n)),
+          mentorId: this.form.mentorId,
+          targets: this.targets.map((t) => ({ kind: t.kind, targetId: t.targetId })),
         };
       },
-      requestSave() {
-        if (!form.mentorId || !form.menteeIds.length) {
-          showToast("メンターとメンティを選択してください", "error");
-          return;
-        }
-        if (form.recurWeek != null) {
-          this.confirmTitle = "定期スケジュールの確認";
-          this.confirmMessage = `このペアに ${this.scheduleLabel()} の繰り返しを設定します。よろしいですか？`;
-          this.pendingSave = () => this.doSave();
-          this.confirmOpen = true;
-          return;
-        }
-        this.doSave();
-      },
-      async runConfirm() {
-        this.confirmOpen = false;
-        if (this.pendingSave) await this.pendingSave();
-        this.pendingSave = null;
-      },
-      cancelConfirm() {
-        this.confirmOpen = false;
-        this.pendingSave = null;
-      },
       async doSave() {
+        if (!this.form.mentorId || !this.targets.length) {
+          showToast("メンターと対象を選択してください", "error");
+          return;
+        }
         const body = this.payload();
         const res =
           this.mode === "create"
@@ -158,6 +149,9 @@ document.addEventListener("alpine:init", () => {
         }
         showToast("保存しました");
         location.href = "/planning/pairs";
+      },
+      requestSave() {
+        this.doSave();
       },
     };
   });

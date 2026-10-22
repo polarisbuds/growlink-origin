@@ -43,7 +43,6 @@ func (h *Handler) navigation(active string, isSystemAdmin, isAnalyst, canPairing
 	nav := []NavItem{
 		{Href: "/", Label: "ワークスペース", Icon: "home", Active: active == "home" || active == "workspace"},
 		{Href: "/planning/meetings", Label: "プランニング", Icon: "calendar-days", Active: planningActive},
-		{Href: "/setting", Label: "設定", Icon: "settings", Active: active == "setting"},
 	}
 	if isSystemAdmin {
 		nav = append(nav, NavItem{Href: "/management", Label: "管理", Icon: "shield", Active: active == "management"})
@@ -65,6 +64,7 @@ func (h *Handler) baseData(c *echo.Context, active string) map[string]interface{
 		"IsAnalyst":      false,
 		"CanPairing":     false,
 		"Navigation":     []NavItem{},
+		"NavSettings":    NavItem{},
 	}
 	if claims != nil {
 		isSystemAdmin := authctx.IsSystemAdmin(c)
@@ -76,6 +76,7 @@ func (h *Handler) baseData(c *echo.Context, active string) map[string]interface{
 		data["IsAnalyst"] = isAnalyst
 		data["CanPairing"] = canPairing
 		data["Navigation"] = h.navigation(active, isSystemAdmin, isAnalyst, canPairing)
+		data["NavSettings"] = NavItem{Href: "/setting", Label: "設定", Icon: "settings", Active: active == "setting"}
 	}
 	return data
 }

@@ -19,18 +19,17 @@
       </div>
       <label class="input input-bordered flex items-center gap-2 mt-4 max-w-md">
         <i data-lucide="search" class="h-4 w-4 opacity-50"></i>
-        <input type="search" class="grow" placeholder="メンター・メンティで検索" x-model="search" />
+        <input type="search" class="grow" placeholder="メンター・対象で検索" x-model="search" />
       </label>
       <div class="mt-6 overflow-hidden rounded-3xl border border-base-300 bg-base-100 shadow-sm">
         <div x-show="filteredPairings.length === 0" class="p-12 text-center text-sm text-base-content/50">該当するペアがありません</div>
         <table class="table" x-show="filteredPairings.length > 0">
-          <thead><tr class="text-base-content/70"><th>メンター</th><th>メンティ</th><th>繰り返し</th><th></th></tr></thead>
+          <thead><tr class="text-base-content/70"><th>メンター</th><th>対象</th><th></th></tr></thead>
           <tbody>
             <template x-for="p in filteredPairings" :key="p.id">
               <tr class="hover:bg-base-200/40">
                 <td x-text="p.mentor?.name"></td>
-                <td x-text="p.mentee?.name"></td>
-                <td><span class="badge badge-ghost badge-sm" x-text="recurLabel(p)"></span></td>
+                <td class="text-sm" x-text="targetsLabel(p)"></td>
                 <td class="space-x-1 whitespace-nowrap text-right">
                   <a :href="'/planning/pairs/' + p.uuid + '/edit'" class="btn btn-xs btn-outline">編集</a>
                   <button type="button" class="btn btn-xs btn-error btn-outline" @click="askDelete(p)">削除</button>

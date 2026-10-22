@@ -188,6 +188,33 @@ func (repo *MeetingRepository) UpdateImplementDate(meetingID uint, implementDate
 	return nil
 }
 
+func (repo *MeetingRepository) GetMeetingIDsBySharerUserID(userID uint) ([]uint, error) {
+	var sharers []entity.MeetingSharer
+	if err := repo.baseRepository.dp.Where("user_id = ?", userID).Find(&sharers).Error; err != nil {
+		return nil, fmt.Errorf("ミーティング共有者の取得に失敗しました: %w", err)
+	}
+	ids := make([]uint, 0, len(sharers))
+	for _, s := range sharers {
+		ids = append(ids, s.MeetingID)
+	}
+	return ids, nil
+}
+
+func (repo *MeetingRepository) ReplaceSharers(meetingID uint, userIDs []uint) error {
+	if err := repo.baseRepository.dp.Where("meeting_id = ?", meetingID).Delete(&entity.MeetingSharer{}).Error; err != nil {
+		return fmt.Errorf("ミーティング共有者の更新に失敗しました: %w", err)
+	}
+	for _, uid := range userIDs {
+		if uid == 0 {
+			continue
+		}
+		if err := repo.baseRepository.dp.Create(&entity.MeetingSharer{MeetingID: meetingID, UserID: uid}).Error; err != nil {
+			return fmt.Errorf("ミーティング共有者の登録に失敗しました: %w", err)
+		}
+	}
+	return nil
+}
+
 func (repo *MeetingRepository) Delete(meetingIDs ...uint) error {
 	if len(meetingIDs) == 0 {
 		return nil

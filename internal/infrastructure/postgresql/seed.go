@@ -116,8 +116,8 @@ func genSeed(db *gorm.DB) error {
 
 		if err := tx.Create(&entity.UserRelationship{
 			RelationType: valueobject.RelationshipTypeBoss,
-			SourceUserID: boss.ID,
-			TargetUserID: mentor.ID,
+			SourceUserID: mentor.ID,
+			TargetUserID: boss.ID,
 		}).Error; err != nil {
 			return err
 		}
@@ -182,21 +182,17 @@ func genSeed(db *gorm.DB) error {
 			return err
 		}
 
-		recurWeek := 1
-		recurWeekday := 1
 		pairing := &entity.Pairing{
-			MentorID:     mentor.ID,
-			MenteeID:     mentee.ID,
-			RecurWeek:    &recurWeek,
-			RecurWeekday: &recurWeekday,
+			MentorID: mentor.ID,
+			MenteeID: mentee.ID,
 		}
 		if err := tx.Create(pairing).Error; err != nil {
 			return err
 		}
-
-		if err := tx.Create(&entity.PairingSharer{
+		if err := tx.Create(&entity.PairingTarget{
 			PairingID: pairing.ID,
-			UserID:    sharer.ID,
+			Kind:      entity.PairingTargetKindUser,
+			TargetID:  mentee.ID,
 		}).Error; err != nil {
 			return err
 		}
@@ -236,6 +232,12 @@ func genSeed(db *gorm.DB) error {
 			meetingTodayDone,
 			meetingDraft,
 			meetingFuturePending,
+		}).Error; err != nil {
+			return err
+		}
+		if err := tx.Create(&entity.MeetingSharer{
+			MeetingID: meetingPastDone.ID,
+			UserID:    sharer.ID,
 		}).Error; err != nil {
 			return err
 		}

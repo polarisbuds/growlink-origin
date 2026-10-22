@@ -5,6 +5,7 @@ import (
 
 	"growlink/internal/adapter/handler/authctx"
 	"growlink/internal/application/converter"
+	outputmodel "growlink/internal/application/model/output_model"
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v5"
@@ -32,8 +33,20 @@ func (h *Handler) MeetingNewPage(c *echo.Context) error {
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
+	users, err := h.deps.UserRepo.GetAll()
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+	}
+	userOuts := make([]outputmodel.UserOutput, 0, len(users))
+	for _, u := range users {
+		if u.Suspended {
+			continue
+		}
+		userOuts = append(userOuts, outputmodel.UserOutput{ID: u.ID, Name: u.Name, Email: u.Email, ImageURI: u.ImageURI})
+	}
 	data["PairingsJSON"] = mustJSON(pairings)
 	data["TemplatesJSON"] = mustJSON(templates)
+	data["UsersJSON"] = mustJSON(userOuts)
 	data["Breadcrumb"] = "1on1作成"
 	return c.Render(http.StatusOK, "meeting_new.html", data)
 }
@@ -59,29 +72,49 @@ func (h *Handler) MeetingDetailPage(c *echo.Context) error {
 	if err != nil {
 		return c.Redirect(http.StatusFound, "/meeting")
 	}
-	meeting, err := h.deps.MeetingRepo.GetByUUID(id)
+	payload, err := h.buildMeetingPagePayload(c, id)
 	if err != nil {
 		return c.Redirect(http.StatusFound, "/meeting")
 	}
-	out := converter.MeetingEntityToOutput(*meeting)
-	answers, _ := h.deps.Meeting.AnswerReader.ListAnswersByMeeting(meeting.ID)
-	data["Meeting"] = out
-	data["Answers"] = answers
-	data["MeetingJSON"] = mustJSON(map[string]interface{}{"meeting": out, "answers": answers})
+	data["Meeting"] = payload["meeting"]
+	data["Answers"] = payload["answers"]
+	data["MeetingJSON"] = mustJSON(payload)
 	return c.Render(http.StatusOK, "meeting_detail.html", data)
 }
 
-func (h *Handler) meetingPageData(c *echo.Context, active string, meetingUUID uuid.UUID) (map[string]interface{}, error) {
-	data := h.baseData(c, active)
+func (h *Handler) buildMeetingPagePayload(c *echo.Context, meetingUUID uuid.UUID) (map[string]interface{}, error) {
 	meeting, err := h.deps.MeetingRepo.GetByUUID(meetingUUID)
 	if err != nil {
 		return nil, err
 	}
 	out := converter.MeetingEntityToOutput(*meeting)
 	answers, _ := h.deps.Meeting.AnswerReader.ListAnswersByMeeting(meeting.ID)
-	data["Meeting"] = out
-	data["Answers"] = answers
-	data["MeetingJSON"] = mustJSON(map[string]interface{}{"meeting": out, "answers": answers, "uuid": meetingUUID.String()})
+	topics := out.Template.Topics
+	if len(topics) == 0 && meeting.Template != nil {
+		topics = converter.TopicEntitiesToOutputs(meeting.Template.Topics)
+	}
+	canEdit := false
+	if claims := authctx.Claims(c); claims != nil {
+		canEdit = authctx.CanModify(claims.UserID, claims.SystemRole, meeting.CreatedByUserID)
+	}
+	return map[string]interface{}{
+		"meeting":  out,
+		"answers":  answers,
+		"topics":   topics,
+		"canEdit":  canEdit,
+		"uuid":     meetingUUID.String(),
+	}, nil
+}
+
+func (h *Handler) meetingPageData(c *echo.Context, active string, meetingUUID uuid.UUID) (map[string]interface{}, error) {
+	data := h.baseData(c, active)
+	payload, err := h.buildMeetingPagePayload(c, meetingUUID)
+	if err != nil {
+		return nil, err
+	}
+	data["Meeting"] = payload["meeting"]
+	data["Answers"] = payload["answers"]
+	data["MeetingJSON"] = mustJSON(payload)
 	data["Breadcrumb"] = "面談"
 	return data, nil
 }

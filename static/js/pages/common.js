@@ -8,6 +8,8 @@ export function meetingPageData() {
     uuid: payload.uuid || "",
     meeting: payload.meeting || {},
     answers: payload.answers || [],
+    topics: payload.topics || [],
+    canEdit: !!payload.canEdit,
     statusBadge,
     statusLabel,
     async api(method, path, body) {

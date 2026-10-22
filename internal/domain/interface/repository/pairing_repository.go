@@ -20,5 +20,10 @@ type PairingRepository interface {
 	GetByMentorID(mentorID uint) ([]entity.Pairing, error)
 	GetPairingIDsBySharerUserID(userID uint) ([]uint, error)
 	UpdatePairing(pairingID, mentorID uint) error
-	ApplyPairingOptions(pairingID uint, mentorID uint, menteeIDs []uint, recurWeek, recurWeekday *int, sharerUserIDs []uint) error
+	ApplyPairingOptions(pairingID uint, mentorID uint, targets []PairingTargetOption) error
+}
+
+type PairingTargetOption struct {
+	Kind     string
+	TargetID uint
 }

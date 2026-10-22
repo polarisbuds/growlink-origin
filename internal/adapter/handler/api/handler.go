@@ -23,6 +23,7 @@ type Deps struct {
 	UserRepo        repository_interface.UserRepository
 	TeamRepo        repository_interface.TeamRepository
 	TeamMemberRepo  repository_interface.TeamMemberRepository
+	DepartmentRepo  repository_interface.DepartmentRepository
 	RoleRepo        repository_interface.RoleRepository
 }
 

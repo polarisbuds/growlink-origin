@@ -14,17 +14,16 @@ document.addEventListener("alpine:init", () => {
     get filteredPairings() {
       const q = this.search.trim().toLowerCase();
       if (!q) return this.pairings;
-      return this.pairings.filter((p) => {
-        const menteeNames = (p.mentees || []).map((m) => m.name).join(" ");
-        const hay = [p.mentor?.name, p.mentee?.name, menteeNames].filter(Boolean).join(" ").toLowerCase();
-        return hay.includes(q);
-      });
+      return this.pairings.filter((p) => this.searchHaystack(p).includes(q));
     },
-    recurLabel(p) {
-      if (p.recurWeek == null) return "なし";
-      const days = ["日", "月", "火", "水", "木", "金", "土"];
-      const wd = p.recurWeekday != null ? days[p.recurWeekday] || p.recurWeekday : "—";
-      return `第${p.recurWeek}週・${wd}`;
+    searchHaystack(p) {
+      const targetLabels = (p.targets || []).map((t) => t.label).join(" ");
+      return [p.mentor?.name, p.mentee?.name, targetLabels].filter(Boolean).join(" ").toLowerCase();
+    },
+    targetsLabel(p) {
+      const labels = (p.targets || []).map((t) => t.label).filter(Boolean);
+      if (labels.length) return labels.join("、");
+      return p.mentee?.name || "—";
     },
     askDelete(p) {
       this.selected = p;

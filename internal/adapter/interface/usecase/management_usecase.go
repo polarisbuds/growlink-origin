@@ -40,9 +40,9 @@ type (
 		ListMeetingsByDepartment(departmentID uint) ([]outputmodel.MeetingOutput, error)
 	}
 	MeetingCreator interface {
-		CreateMeetingEveryMonth(templateID uint, baseDate time.Time, week int, weekday time.Weekday) ([]outputmodel.MeetingOutput, error)
-		CreateMeeting(pairingID, templateID uint, implementDate time.Time) (*outputmodel.MeetingOutput, error)
-		CreateMeetingByAll(templateID uint, implementDate time.Time) ([]outputmodel.MeetingOutput, error)
+		CreateMeetingEveryMonth(templateID uint, baseDate time.Time, week int, weekday time.Weekday, createdByUserID uint, sharerUserIDs []uint) ([]outputmodel.MeetingOutput, error)
+		CreateMeeting(pairingID, templateID uint, implementDate time.Time, createdByUserID uint, sharerUserIDs []uint) (*outputmodel.MeetingOutput, error)
+		CreateMeetingByAll(templateID uint, implementDate time.Time, createdByUserID uint, sharerUserIDs []uint) ([]outputmodel.MeetingOutput, error)
 	}
 	MeetingUpdater interface {
 		Update(meetingID uint, meeting inputmodel.MeetingInput) error

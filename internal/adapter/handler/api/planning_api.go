@@ -3,14 +3,16 @@ package api
 import (
 	"net/http"
 
+	"growlink/internal/application/converter"
 	outputmodel "growlink/internal/application/model/output_model"
 
 	"github.com/labstack/echo/v5"
 )
 
 type planningDirectoryResponse struct {
-	Users []outputmodel.UserOutput `json:"users"`
-	Teams []planningTeamOutput     `json:"teams"`
+	Users       []outputmodel.UserOutput       `json:"users"`
+	Teams       []planningTeamOutput           `json:"teams"`
+	Departments []outputmodel.DepartmentOutput `json:"departments"`
 }
 
 type planningTeamOutput struct {
@@ -51,5 +53,13 @@ func (h *Handler) ListPlanningDirectory(c *echo.Context) error {
 		}
 		teamOuts = append(teamOuts, planningTeamOutput{ID: team.ID, Name: team.Name, Members: memberOuts})
 	}
-	return c.JSON(http.StatusOK, planningDirectoryResponse{Users: userOuts, Teams: teamOuts})
+	depts, err := h.deps.DepartmentRepo.GetAll()
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+	}
+	return c.JSON(http.StatusOK, planningDirectoryResponse{
+		Users:       userOuts,
+		Teams:       teamOuts,
+		Departments: converter.DepartmentEntitiesToOutputs(depts),
+	})
 }

@@ -1,7 +1,7 @@
 {{ define "sidebar" }}
-<aside class="hidden shrink-0 border-r border-base-300 bg-base-100 transition-[width] duration-200 md:flex md:flex-col"
+<aside class="hidden shrink-0 border-r border-base-300 bg-base-100 transition-[width] duration-200 md:flex md:flex-col md:min-h-0"
     :class="$store.ui.sidebarOpen ? 'w-64' : 'w-20'">
-    <div class="flex h-16 items-center gap-3 border-b border-base-300 px-5">
+    <div class="flex h-16 shrink-0 items-center gap-3 border-b border-base-300 px-5">
         <div class="grid h-8 w-8 place-items-center rounded-xl bg-primary text-primary-content">
             {{ template "logo" "h-5 w-5" }}
         </div>
@@ -10,7 +10,7 @@
             <div class="mt-0.5 text-[10px] text-base-content/50">1on1 ミーティング</div>
         </div>
     </div>
-    <nav class="flex-1 space-y-1 p-3">
+    <nav class="flex-1 min-h-0 space-y-1 overflow-y-auto p-3">
         {{ range .Navigation }}
         <a href="{{ .Href }}"
             class="flex h-11 items-center gap-3 rounded-xl px-3 text-sm font-medium transition {{ if .Active }}bg-primary/10 text-primary{{ else }}text-base-content/60 hover:bg-base-200 hover:text-base-content{{ end }}">
@@ -19,5 +19,14 @@
         </a>
         {{ end }}
     </nav>
+    {{ if .NavSettings.Href }}
+    <div class="mt-auto shrink-0 border-t border-base-300 p-3">
+        <a href="{{ .NavSettings.Href }}"
+            class="flex h-11 items-center gap-3 rounded-xl px-3 text-sm font-medium transition {{ if .NavSettings.Active }}bg-primary/10 text-primary{{ else }}text-base-content/60 hover:bg-base-200 hover:text-base-content{{ end }}">
+            <i data-lucide="{{ .NavSettings.Icon }}" class="h-5 w-5 shrink-0"></i>
+            <span x-show="$store.ui.sidebarOpen" x-transition.opacity>{{ .NavSettings.Label }}</span>
+        </a>
+    </div>
+    {{ end }}
 </aside>
 {{ end }}

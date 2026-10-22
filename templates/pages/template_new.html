@@ -17,7 +17,7 @@
             <span class="badge badge-ghost shrink-0" x-text="'Q' + (i + 1)"></span>
             <div class="flex-1 space-y-1 min-w-0">
               <input class="input input-bordered input-sm w-full" x-model="topic.question" placeholder="質問文" />
-              <input class="input input-bordered input-sm w-full" x-model="topic.description" placeholder="説明（任意）" />
+              <textarea class="textarea textarea-bordered textarea-sm w-full min-h-[2.5rem]" rows="2" x-model="topic.description" placeholder="説明（改行可能）"></textarea>
             </div>
             <label class="label cursor-pointer gap-1 shrink-0 py-0"><input type="checkbox" class="checkbox checkbox-sm" x-model="topic.isRequire" /><span class="label-text text-xs">必須</span></label>
             <button type="button" class="btn btn-ghost btn-xs btn-square text-error" title="削除" @click="removeTopic(i)" :disabled="topics.length <= 1">×</button>

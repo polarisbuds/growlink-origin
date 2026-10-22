@@ -20,6 +20,7 @@ type Pairing struct {
 	Mentor  *User           `gorm:"foreignKey:MentorID"`
 	Mentee  *User           `gorm:"foreignKey:MenteeID"`
 	Mentees []PairingMentee `gorm:"foreignKey:PairingID"`
+	Targets []PairingTarget `gorm:"foreignKey:PairingID"`
 
 	Meetings []Meeting       `gorm:"foreignKey:PairingID"`
 	Sharers  []PairingSharer `gorm:"foreignKey:PairingID"`
