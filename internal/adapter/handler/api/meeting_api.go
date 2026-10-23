@@ -22,10 +22,20 @@ func (h *Handler) GetMeeting(c *echo.Context) error {
 	}
 	out := converter.MeetingEntityToOutput(*meeting)
 	answers, _ := h.deps.Meeting.AnswerReader.ListAnswersByMeeting(meeting.ID)
-	outAnswers := answers
+	topics := out.Template.Topics
+	if len(topics) == 0 && meeting.Template != nil {
+		topics = converter.TopicEntitiesToOutputs(meeting.Template.Topics)
+	}
+	canEdit := false
+	if claims := authctx.Claims(c); claims != nil {
+		canEdit = authctx.CanModify(claims.UserID, claims.SystemRole, meeting.CreatedByUserID)
+	}
 	return c.JSON(http.StatusOK, map[string]interface{}{
+		"uuid":    id.String(),
 		"meeting": out,
-		"answers": outAnswers,
+		"answers": answers,
+		"topics":  topics,
+		"canEdit": canEdit,
 	})
 }
 

@@ -1,4 +1,15 @@
 services:
+  web:
+    container_name: "growlink-web"
+    build:
+      context: .
+      dockerfile: docker/web/Dockerfile
+    volumes:
+      - .:/app
+      - frontend_node_modules:/app/frontend/node_modules
+    working_dir: /app
+    command: ["sh", "-c", "cd frontend && bun install && bun run dev"]
+
   app:
     container_name: "growlink"
     build:
@@ -47,6 +58,8 @@ services:
       - dynamodb_data:/home/dynamodblocal/data
 
 volumes:
+  frontend_node_modules:
+    name: growlink-frontend-node-modules
   go_modules:
     name: growlink-app-volume
   postgres_data:

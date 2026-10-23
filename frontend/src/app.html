@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="ja" data-theme="growlink">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+		<script>
+			document.documentElement.setAttribute(
+				'data-theme',
+				localStorage.getItem('growlink-theme') || 'growlink'
+			);
+		</script>
+		%sveltekit.head%
+		<style>
+			[x-cloak] {
+				display: none !important;
+			}
+			html,
+			body {
+				overflow-x: hidden;
+			}
+		</style>
+	</head>
+	<body data-sveltekit-preload-data="hover" class="bg-base-200 font-sans antialiased">
+		<div style="display: contents">%sveltekit.body%</div>
+	</body>
+</html>

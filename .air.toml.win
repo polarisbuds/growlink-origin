@@ -4,12 +4,10 @@
 
 [build]
   root = "."
-  include_ext = ["go", "tpl", "tmpl", "html", "js", "ts", "css"]
-  pre_cmd = ["bun run --cwd frontend build"]
-  include_file = ["frontend/package.json", ".env", ".air.toml"]
+  include_ext = ["go", "tpl", "tmpl", "html"]
+  include_file = [".env", ".air.toml", "cmd/app/main.go", "templates/pages/login.html", "templates/pages/logout.html"]
   include_dir = []
-  exclude_file = ["static/css/output.css"]
-  exclude_dir = ["static/vendor", "frontend/node_modules", "tmp"]
+  exclude_dir = ["static/vendor", "frontend", "static/app", "tmp", "node_modules"]
   cmd = "go build -o tmp/main cmd/app/main.go"
   kill_delay = 0
   poll = true

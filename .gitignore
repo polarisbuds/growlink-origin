@@ -4,6 +4,7 @@ node_modules
 # Generated files
 static/css/output.css
 static/vendor/
+static/app/
 tmp/
 
 doc/*

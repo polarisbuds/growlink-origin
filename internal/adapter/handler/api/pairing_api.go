@@ -34,6 +34,18 @@ func (h *Handler) ListPairings(c *echo.Context) error {
 	return c.JSON(http.StatusOK, list)
 }
 
+func (h *Handler) GetPairing(c *echo.Context) error {
+	pairUUID, err := uuid.Parse(c.Param("uuid"))
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid uuid"})
+	}
+	pair, err := h.deps.Management.Pairing.GetPairingByUUID(pairUUID)
+	if err != nil {
+		return c.JSON(http.StatusNotFound, map[string]string{"error": "not found"})
+	}
+	return c.JSON(http.StatusOK, pair)
+}
+
 func (h *Handler) CreatePairing(c *echo.Context) error {
 	claims := authctx.Claims(c)
 	if claims == nil {

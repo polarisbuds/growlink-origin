@@ -1,9 +1,9 @@
 /** @type {import('tailwindcss').Config} */
 export default {
     content: [
-        "../static/js/**/*.js",
-        "../templates/**/*.html",
-        "../internal/**/*.go",
+        "./src/**/*.{html,js,svelte,ts}",
+        "../templates/pages/login.html",
+        "../templates/pages/logout.html",
     ],
     theme: {
         extend: {

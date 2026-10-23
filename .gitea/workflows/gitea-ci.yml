@@ -49,6 +49,15 @@ jobs:
                   go-version: "stable"
                   cache: true
 
+            - name: Set up Bun
+              uses: oven-sh/setup-bun@v2
+
+            - name: Build frontend
+              run: |
+                  cd frontend
+                  bun install
+                  bun run build
+
             - name: Build application
               run: go build -v -o ./dist/app ./cmd/app/main.go
 

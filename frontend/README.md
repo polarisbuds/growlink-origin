@@ -1,15 +1,19 @@
-# frontend
+# Growlink frontend (SvelteKit SPA)
 
-To install dependencies:
+## Development
 
 ```bash
 bun install
+bun run dev
 ```
 
-To run:
+- Watches Tailwind → `static/css/output.css` (login page)
+- Watches Vite/SvelteKit → `static/app/` (authenticated app)
+
+Run alongside the Go server (`docker compose up` starts `web` + `app`).
+
+## Production build
 
 ```bash
-bun run index.ts
+bun run build
 ```
-
-This project was created using `bun init` in bun v1.3.11. [Bun](https://bun.com) is a fast all-in-one JavaScript runtime.
