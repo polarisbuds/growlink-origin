@@ -21,12 +21,18 @@
 
 	let navigation = $derived(buildNavigation(pathname, me));
 	let navSettings = $derived(settingsNav(pathname));
+
+	function navLinkClass(active: boolean) {
+		return active
+			? 'bg-primary/10 text-primary'
+			: 'text-base-content/60 hover:bg-base-200 hover:text-base-content';
+	}
 </script>
 
 <aside
-	class="hidden shrink-0 border-r border-base-300 bg-base-100 transition-[width] duration-200 md:flex md:flex-col md:min-h-0"
-	class:w-64={ui.sidebarOpen}
-	class:w-20={!ui.sidebarOpen}
+	class="hidden shrink-0 border-r border-base-300 bg-base-100 transition-[width] duration-200 md:flex md:flex-col md:min-h-0 {ui.sidebarOpen
+		? 'w-64'
+		: 'w-20'}"
 >
 	<div class="flex h-16 shrink-0 items-center gap-3 border-b border-base-300 px-5">
 		<div class="grid h-8 w-8 place-items-center rounded-xl bg-primary text-primary-content">
@@ -44,12 +50,7 @@
 			{@const Icon = icons[item.icon] ?? Home}
 			<a
 				href={item.href}
-				class="flex h-11 items-center gap-3 rounded-xl px-3 text-sm font-medium transition"
-				class:bg-primary/10={item.active}
-				class:text-primary={item.active}
-				class:text-base-content/60={!item.active}
-				class:hover:bg-base-200={!item.active}
-				class:hover:text-base-content={!item.active}
+				class="flex h-11 items-center gap-3 rounded-xl px-3 text-sm font-medium transition {navLinkClass(item.active)}"
 			>
 				<Icon class="h-5 w-5 shrink-0" />
 				{#if ui.sidebarOpen}
@@ -61,11 +62,7 @@
 	<div class="mt-auto shrink-0 border-t border-base-300 p-3">
 		<a
 			href={navSettings.href}
-			class="flex h-11 items-center gap-3 rounded-xl px-3 text-sm font-medium transition"
-			class:bg-primary/10={navSettings.active}
-			class:text-primary={navSettings.active}
-			class:text-base-content/60={!navSettings.active}
-			class:hover:bg-base-200={!navSettings.active}
+			class="flex h-11 items-center gap-3 rounded-xl px-3 text-sm font-medium transition {navLinkClass(navSettings.active)}"
 		>
 			<Settings class="h-5 w-5 shrink-0" />
 			{#if ui.sidebarOpen}

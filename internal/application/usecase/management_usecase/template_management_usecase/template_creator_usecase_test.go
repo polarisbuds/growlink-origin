@@ -76,6 +76,7 @@ func TestTemplateCreator_CreateTemplate(t *testing.T) {
 
 				require.NotNil(t, cap.createdTemplate)
 				assert.Equal(t, "test-template", cap.createdTemplate.Title)
+				assert.Equal(t, validUserID, cap.createdTemplate.UserID)
 				require.Len(t, cap.createdTemplate.Topics, 2)
 				assert.Equal(t, "question-1", cap.createdTemplate.Topics[0].Question)
 				assert.Equal(t, "question-2", cap.createdTemplate.Topics[1].Question)
@@ -95,6 +96,7 @@ func TestTemplateCreator_CreateTemplate(t *testing.T) {
 				assert.Empty(t, cap.createdTopics)
 				require.NotNil(t, cap.createdTemplate)
 				assert.Equal(t, "empty-topics-template", cap.createdTemplate.Title)
+				assert.Equal(t, validUserID, cap.createdTemplate.UserID)
 				assert.Empty(t, cap.createdTemplate.Topics)
 			},
 		},
@@ -127,7 +129,7 @@ func TestTemplateCreator_CreateTemplate(t *testing.T) {
 				tt.setup(templateRepo, topicRepo, cap)
 			}
 
-			gotErr := uc.CreateTemplate(tt.input)
+			gotErr := uc.CreateTemplate(tt.input, validUserID)
 			assertUsecaseErr(t, gotErr, tt.wantErr, tt.errContains, "CreateTemplate")
 			if t.Failed() {
 				return

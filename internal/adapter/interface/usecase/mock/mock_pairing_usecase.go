@@ -10,7 +10,7 @@
 package mock
 
 import (
-	entity "growlink/internal/domain/entity"
+	outputmodel "growlink/internal/application/model/output_model"
 	reflect "reflect"
 
 	gomock "go.uber.org/mock/gomock"
@@ -79,10 +79,10 @@ func (c *MockPairingUsecaseBreakPairCall) DoAndReturn(f func(uint) bool) *MockPa
 }
 
 // CreatePairList mocks base method.
-func (m *MockPairingUsecase) CreatePairList(mentorID uint) ([]entity.User, error) {
+func (m *MockPairingUsecase) CreatePairList(mentorID uint) ([]outputmodel.UserOutput, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreatePairList", mentorID)
-	ret0, _ := ret[0].([]entity.User)
+	ret0, _ := ret[0].([]outputmodel.UserOutput)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -100,19 +100,19 @@ type MockPairingUsecaseCreatePairListCall struct {
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MockPairingUsecaseCreatePairListCall) Return(menteeList []entity.User, err error) *MockPairingUsecaseCreatePairListCall {
+func (c *MockPairingUsecaseCreatePairListCall) Return(menteeList []outputmodel.UserOutput, err error) *MockPairingUsecaseCreatePairListCall {
 	c.Call = c.Call.Return(menteeList, err)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockPairingUsecaseCreatePairListCall) Do(f func(uint) ([]entity.User, error)) *MockPairingUsecaseCreatePairListCall {
+func (c *MockPairingUsecaseCreatePairListCall) Do(f func(uint) ([]outputmodel.UserOutput, error)) *MockPairingUsecaseCreatePairListCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockPairingUsecaseCreatePairListCall) DoAndReturn(f func(uint) ([]entity.User, error)) *MockPairingUsecaseCreatePairListCall {
+func (c *MockPairingUsecaseCreatePairListCall) DoAndReturn(f func(uint) ([]outputmodel.UserOutput, error)) *MockPairingUsecaseCreatePairListCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
@@ -142,10 +142,10 @@ func (m *MockPairingListCreator) EXPECT() *MockPairingListCreatorMockRecorder {
 }
 
 // CreatePairList mocks base method.
-func (m *MockPairingListCreator) CreatePairList(mentorID uint) ([]entity.User, error) {
+func (m *MockPairingListCreator) CreatePairList(mentorID uint) ([]outputmodel.UserOutput, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreatePairList", mentorID)
-	ret0, _ := ret[0].([]entity.User)
+	ret0, _ := ret[0].([]outputmodel.UserOutput)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -163,19 +163,19 @@ type MockPairingListCreatorCreatePairListCall struct {
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MockPairingListCreatorCreatePairListCall) Return(menteeList []entity.User, err error) *MockPairingListCreatorCreatePairListCall {
+func (c *MockPairingListCreatorCreatePairListCall) Return(menteeList []outputmodel.UserOutput, err error) *MockPairingListCreatorCreatePairListCall {
 	c.Call = c.Call.Return(menteeList, err)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockPairingListCreatorCreatePairListCall) Do(f func(uint) ([]entity.User, error)) *MockPairingListCreatorCreatePairListCall {
+func (c *MockPairingListCreatorCreatePairListCall) Do(f func(uint) ([]outputmodel.UserOutput, error)) *MockPairingListCreatorCreatePairListCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockPairingListCreatorCreatePairListCall) DoAndReturn(f func(uint) ([]entity.User, error)) *MockPairingListCreatorCreatePairListCall {
+func (c *MockPairingListCreatorCreatePairListCall) DoAndReturn(f func(uint) ([]outputmodel.UserOutput, error)) *MockPairingListCreatorCreatePairListCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }

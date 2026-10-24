@@ -4,6 +4,8 @@ WORKDIR /app/frontend
 
 COPY frontend/package.json frontend/bun.lock* ./
 
+RUN mkdir -p /app/static/vendor /app/static/app
+
 RUN bun install
 
 WORKDIR /app

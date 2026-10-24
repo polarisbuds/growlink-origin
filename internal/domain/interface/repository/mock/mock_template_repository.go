@@ -13,6 +13,7 @@ import (
 	entity "growlink/internal/domain/entity"
 	reflect "reflect"
 
+	uuid "github.com/google/uuid"
 	gomock "go.uber.org/mock/gomock"
 )
 
@@ -194,6 +195,45 @@ func (c *MockTemplateRepositoryGetAllCall) DoAndReturn(f func() ([]entity.Templa
 	return c
 }
 
+// GetByUUID mocks base method.
+func (m *MockTemplateRepository) GetByUUID(templateUUID uuid.UUID) (*entity.Template, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetByUUID", templateUUID)
+	ret0, _ := ret[0].(*entity.Template)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetByUUID indicates an expected call of GetByUUID.
+func (mr *MockTemplateRepositoryMockRecorder) GetByUUID(templateUUID any) *MockTemplateRepositoryGetByUUIDCall {
+	mr.mock.ctrl.T.Helper()
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByUUID", reflect.TypeOf((*MockTemplateRepository)(nil).GetByUUID), templateUUID)
+	return &MockTemplateRepositoryGetByUUIDCall{Call: call}
+}
+
+// MockTemplateRepositoryGetByUUIDCall wrap *gomock.Call
+type MockTemplateRepositoryGetByUUIDCall struct {
+	*gomock.Call
+}
+
+// Return rewrite *gomock.Call.Return
+func (c *MockTemplateRepositoryGetByUUIDCall) Return(arg0 *entity.Template, arg1 error) *MockTemplateRepositoryGetByUUIDCall {
+	c.Call = c.Call.Return(arg0, arg1)
+	return c
+}
+
+// Do rewrite *gomock.Call.Do
+func (c *MockTemplateRepositoryGetByUUIDCall) Do(f func(uuid.UUID) (*entity.Template, error)) *MockTemplateRepositoryGetByUUIDCall {
+	c.Call = c.Call.Do(f)
+	return c
+}
+
+// DoAndReturn rewrite *gomock.Call.DoAndReturn
+func (c *MockTemplateRepositoryGetByUUIDCall) DoAndReturn(f func(uuid.UUID) (*entity.Template, error)) *MockTemplateRepositoryGetByUUIDCall {
+	c.Call = c.Call.DoAndReturn(f)
+	return c
+}
+
 // Update mocks base method.
 func (m *MockTemplateRepository) Update(templateID uint, newTemplate *entity.Template) error {
 	m.ctrl.T.Helper()
@@ -238,4 +278,34 @@ func (m *MockTemplateRepository) UpdateDisplayNo(templateID uint, displayNo int)
 	ret := m.ctrl.Call(m, "UpdateDisplayNo", templateID, displayNo)
 	ret0, _ := ret[0].(error)
 	return ret0
+}
+
+// UpdateDisplayNo indicates an expected call of UpdateDisplayNo.
+func (mr *MockTemplateRepositoryMockRecorder) UpdateDisplayNo(templateID, displayNo any) *MockTemplateRepositoryUpdateDisplayNoCall {
+	mr.mock.ctrl.T.Helper()
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateDisplayNo", reflect.TypeOf((*MockTemplateRepository)(nil).UpdateDisplayNo), templateID, displayNo)
+	return &MockTemplateRepositoryUpdateDisplayNoCall{Call: call}
+}
+
+// MockTemplateRepositoryUpdateDisplayNoCall wrap *gomock.Call
+type MockTemplateRepositoryUpdateDisplayNoCall struct {
+	*gomock.Call
+}
+
+// Return rewrite *gomock.Call.Return
+func (c *MockTemplateRepositoryUpdateDisplayNoCall) Return(arg0 error) *MockTemplateRepositoryUpdateDisplayNoCall {
+	c.Call = c.Call.Return(arg0)
+	return c
+}
+
+// Do rewrite *gomock.Call.Do
+func (c *MockTemplateRepositoryUpdateDisplayNoCall) Do(f func(uint, int) error) *MockTemplateRepositoryUpdateDisplayNoCall {
+	c.Call = c.Call.Do(f)
+	return c
+}
+
+// DoAndReturn rewrite *gomock.Call.DoAndReturn
+func (c *MockTemplateRepositoryUpdateDisplayNoCall) DoAndReturn(f func(uint, int) error) *MockTemplateRepositoryUpdateDisplayNoCall {
+	c.Call = c.Call.DoAndReturn(f)
+	return c
 }

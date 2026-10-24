@@ -1,0 +1,1 @@
+import"../chunks/Bzak7iHL.js";import"../chunks/DDdDbyX6.js";import{M as o}from"../chunks/CFTrNNJl.js";const t=()=>({breadcrumb:"1on1作成"}),i=Object.freeze(Object.defineProperty({__proto__:null,load:t},Symbol.toStringTag,{value:"Module"}));function p(e){o(e,{})}export{p as component,i as universal};

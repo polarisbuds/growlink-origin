@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 	import { api } from '$lib/api';
 	import { showToast } from '$lib/toast';
 	import type { MeetingPayload } from '$lib/meeting-helpers';
@@ -10,7 +10,7 @@
 
 	let answers = $state<Answer[]>([]);
 	let drafts = $state<Record<number, string>>({});
-	let uuid = $derived($page.params.uuid);
+	let uuid = $derived(page.params.uuid);
 
 	onMount(async () => {
 		const payload = await api<MeetingPayload>('GET', `/api/v1/meetings/${uuid}`);
@@ -63,7 +63,14 @@
 					<span class="badge badge-error badge-outline badge-sm shrink-0">必須</span>
 				{/if}
 			</div>
-			<textarea class="textarea textarea-bordered mt-3 w-full" rows="3" bind:value={drafts[a.id]}></textarea>
+			<textarea
+				class="textarea textarea-bordered mt-3 w-full"
+				rows="3"
+				value={drafts[a.id] ?? ''}
+				oninput={(e) => {
+					drafts[a.id] = e.currentTarget.value;
+				}}
+			></textarea>
 		</div>
 	{/each}
 </div>

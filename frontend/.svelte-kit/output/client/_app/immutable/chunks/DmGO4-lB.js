@@ -1,0 +1,1 @@
+function s(o,t="success"){const e=document.createElement("div");e.className=`alert alert-${t==="error"?"error":t==="info"?"info":"success"} shadow-lg fixed bottom-4 right-4 z-50 w-auto max-w-sm`,e.setAttribute("role","alert"),e.textContent=o,document.body.appendChild(e),setTimeout(()=>e.remove(),3200)}export{s};

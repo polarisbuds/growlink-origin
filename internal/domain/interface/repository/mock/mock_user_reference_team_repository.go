@@ -116,6 +116,44 @@ func (c *MockUserReferenceTeamRepositoryDeleteCall) DoAndReturn(f func(uint) err
 	return c
 }
 
+// DeleteByUserID mocks base method.
+func (m *MockUserReferenceTeamRepository) DeleteByUserID(userID uint) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteByUserID", userID)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteByUserID indicates an expected call of DeleteByUserID.
+func (mr *MockUserReferenceTeamRepositoryMockRecorder) DeleteByUserID(userID any) *MockUserReferenceTeamRepositoryDeleteByUserIDCall {
+	mr.mock.ctrl.T.Helper()
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteByUserID", reflect.TypeOf((*MockUserReferenceTeamRepository)(nil).DeleteByUserID), userID)
+	return &MockUserReferenceTeamRepositoryDeleteByUserIDCall{Call: call}
+}
+
+// MockUserReferenceTeamRepositoryDeleteByUserIDCall wrap *gomock.Call
+type MockUserReferenceTeamRepositoryDeleteByUserIDCall struct {
+	*gomock.Call
+}
+
+// Return rewrite *gomock.Call.Return
+func (c *MockUserReferenceTeamRepositoryDeleteByUserIDCall) Return(arg0 error) *MockUserReferenceTeamRepositoryDeleteByUserIDCall {
+	c.Call = c.Call.Return(arg0)
+	return c
+}
+
+// Do rewrite *gomock.Call.Do
+func (c *MockUserReferenceTeamRepositoryDeleteByUserIDCall) Do(f func(uint) error) *MockUserReferenceTeamRepositoryDeleteByUserIDCall {
+	c.Call = c.Call.Do(f)
+	return c
+}
+
+// DoAndReturn rewrite *gomock.Call.DoAndReturn
+func (c *MockUserReferenceTeamRepositoryDeleteByUserIDCall) DoAndReturn(f func(uint) error) *MockUserReferenceTeamRepositoryDeleteByUserIDCall {
+	c.Call = c.Call.DoAndReturn(f)
+	return c
+}
+
 // GetAll mocks base method.
 func (m *MockUserReferenceTeamRepository) GetAll() ([]entity.UserReferenceTeam, error) {
 	m.ctrl.T.Helper()

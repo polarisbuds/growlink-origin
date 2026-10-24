@@ -358,6 +358,45 @@ func (c *MockMeetingRepositoryGetFromSpecificDateOnwardCall) DoAndReturn(f func(
 	return c
 }
 
+// GetMeetingIDsBySharerUserID mocks base method.
+func (m *MockMeetingRepository) GetMeetingIDsBySharerUserID(userID uint) ([]uint, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetMeetingIDsBySharerUserID", userID)
+	ret0, _ := ret[0].([]uint)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetMeetingIDsBySharerUserID indicates an expected call of GetMeetingIDsBySharerUserID.
+func (mr *MockMeetingRepositoryMockRecorder) GetMeetingIDsBySharerUserID(userID any) *MockMeetingRepositoryGetMeetingIDsBySharerUserIDCall {
+	mr.mock.ctrl.T.Helper()
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMeetingIDsBySharerUserID", reflect.TypeOf((*MockMeetingRepository)(nil).GetMeetingIDsBySharerUserID), userID)
+	return &MockMeetingRepositoryGetMeetingIDsBySharerUserIDCall{Call: call}
+}
+
+// MockMeetingRepositoryGetMeetingIDsBySharerUserIDCall wrap *gomock.Call
+type MockMeetingRepositoryGetMeetingIDsBySharerUserIDCall struct {
+	*gomock.Call
+}
+
+// Return rewrite *gomock.Call.Return
+func (c *MockMeetingRepositoryGetMeetingIDsBySharerUserIDCall) Return(arg0 []uint, arg1 error) *MockMeetingRepositoryGetMeetingIDsBySharerUserIDCall {
+	c.Call = c.Call.Return(arg0, arg1)
+	return c
+}
+
+// Do rewrite *gomock.Call.Do
+func (c *MockMeetingRepositoryGetMeetingIDsBySharerUserIDCall) Do(f func(uint) ([]uint, error)) *MockMeetingRepositoryGetMeetingIDsBySharerUserIDCall {
+	c.Call = c.Call.Do(f)
+	return c
+}
+
+// DoAndReturn rewrite *gomock.Call.DoAndReturn
+func (c *MockMeetingRepositoryGetMeetingIDsBySharerUserIDCall) DoAndReturn(f func(uint) ([]uint, error)) *MockMeetingRepositoryGetMeetingIDsBySharerUserIDCall {
+	c.Call = c.Call.DoAndReturn(f)
+	return c
+}
+
 // GetUntilToday mocks base method.
 func (m *MockMeetingRepository) GetUntilToday(base time.Time) ([]entity.Meeting, error) {
 	m.ctrl.T.Helper()
@@ -393,6 +432,44 @@ func (c *MockMeetingRepositoryGetUntilTodayCall) Do(f func(time.Time) ([]entity.
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
 func (c *MockMeetingRepositoryGetUntilTodayCall) DoAndReturn(f func(time.Time) ([]entity.Meeting, error)) *MockMeetingRepositoryGetUntilTodayCall {
+	c.Call = c.Call.DoAndReturn(f)
+	return c
+}
+
+// ReplaceSharers mocks base method.
+func (m *MockMeetingRepository) ReplaceSharers(meetingID uint, userIDs []uint) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ReplaceSharers", meetingID, userIDs)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// ReplaceSharers indicates an expected call of ReplaceSharers.
+func (mr *MockMeetingRepositoryMockRecorder) ReplaceSharers(meetingID, userIDs any) *MockMeetingRepositoryReplaceSharersCall {
+	mr.mock.ctrl.T.Helper()
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReplaceSharers", reflect.TypeOf((*MockMeetingRepository)(nil).ReplaceSharers), meetingID, userIDs)
+	return &MockMeetingRepositoryReplaceSharersCall{Call: call}
+}
+
+// MockMeetingRepositoryReplaceSharersCall wrap *gomock.Call
+type MockMeetingRepositoryReplaceSharersCall struct {
+	*gomock.Call
+}
+
+// Return rewrite *gomock.Call.Return
+func (c *MockMeetingRepositoryReplaceSharersCall) Return(arg0 error) *MockMeetingRepositoryReplaceSharersCall {
+	c.Call = c.Call.Return(arg0)
+	return c
+}
+
+// Do rewrite *gomock.Call.Do
+func (c *MockMeetingRepositoryReplaceSharersCall) Do(f func(uint, []uint) error) *MockMeetingRepositoryReplaceSharersCall {
+	c.Call = c.Call.Do(f)
+	return c
+}
+
+// DoAndReturn rewrite *gomock.Call.DoAndReturn
+func (c *MockMeetingRepositoryReplaceSharersCall) DoAndReturn(f func(uint, []uint) error) *MockMeetingRepositoryReplaceSharersCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }

@@ -116,6 +116,44 @@ func (c *MockDepartmentHierarchyRepositoryDeleteCall) DoAndReturn(f func(uint) e
 	return c
 }
 
+// DeleteByParentDepartmentID mocks base method.
+func (m *MockDepartmentHierarchyRepository) DeleteByParentDepartmentID(parentDepartmentID uint) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteByParentDepartmentID", parentDepartmentID)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteByParentDepartmentID indicates an expected call of DeleteByParentDepartmentID.
+func (mr *MockDepartmentHierarchyRepositoryMockRecorder) DeleteByParentDepartmentID(parentDepartmentID any) *MockDepartmentHierarchyRepositoryDeleteByParentDepartmentIDCall {
+	mr.mock.ctrl.T.Helper()
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteByParentDepartmentID", reflect.TypeOf((*MockDepartmentHierarchyRepository)(nil).DeleteByParentDepartmentID), parentDepartmentID)
+	return &MockDepartmentHierarchyRepositoryDeleteByParentDepartmentIDCall{Call: call}
+}
+
+// MockDepartmentHierarchyRepositoryDeleteByParentDepartmentIDCall wrap *gomock.Call
+type MockDepartmentHierarchyRepositoryDeleteByParentDepartmentIDCall struct {
+	*gomock.Call
+}
+
+// Return rewrite *gomock.Call.Return
+func (c *MockDepartmentHierarchyRepositoryDeleteByParentDepartmentIDCall) Return(arg0 error) *MockDepartmentHierarchyRepositoryDeleteByParentDepartmentIDCall {
+	c.Call = c.Call.Return(arg0)
+	return c
+}
+
+// Do rewrite *gomock.Call.Do
+func (c *MockDepartmentHierarchyRepositoryDeleteByParentDepartmentIDCall) Do(f func(uint) error) *MockDepartmentHierarchyRepositoryDeleteByParentDepartmentIDCall {
+	c.Call = c.Call.Do(f)
+	return c
+}
+
+// DoAndReturn rewrite *gomock.Call.DoAndReturn
+func (c *MockDepartmentHierarchyRepositoryDeleteByParentDepartmentIDCall) DoAndReturn(f func(uint) error) *MockDepartmentHierarchyRepositoryDeleteByParentDepartmentIDCall {
+	c.Call = c.Call.DoAndReturn(f)
+	return c
+}
+
 // GetAll mocks base method.
 func (m *MockDepartmentHierarchyRepository) GetAll() ([]entity.DepartmentHierarchy, error) {
 	m.ctrl.T.Helper()

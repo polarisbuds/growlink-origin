@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 	import { api } from '$lib/api';
 	import PlanningTabs from '$lib/components/PlanningTabs.svelte';
 	import { formatDate } from '$lib/meeting-helpers';
@@ -16,7 +16,7 @@
 
 	let meetings = $state<Meeting[]>([]);
 	let search = $state('');
-	let simple = $derived($page.url.searchParams.get('view') === 'simple');
+	let simple = $derived(page.url.searchParams.get('view') === 'simple');
 
 	let filteredMeetings = $derived.by(() => {
 		const q = search.trim().toLowerCase();

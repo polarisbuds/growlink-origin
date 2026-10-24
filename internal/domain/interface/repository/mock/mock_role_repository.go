@@ -10,6 +10,9 @@
 package mock
 
 import (
+	entity "growlink/internal/domain/entity"
+	reflect "reflect"
+
 	gomock "go.uber.org/mock/gomock"
 )
 
@@ -35,4 +38,43 @@ func NewMockRoleRepository(ctrl *gomock.Controller) *MockRoleRepository {
 // EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockRoleRepository) EXPECT() *MockRoleRepositoryMockRecorder {
 	return m.recorder
+}
+
+// GetAll mocks base method.
+func (m *MockRoleRepository) GetAll() ([]entity.Role, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetAll")
+	ret0, _ := ret[0].([]entity.Role)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetAll indicates an expected call of GetAll.
+func (mr *MockRoleRepositoryMockRecorder) GetAll() *MockRoleRepositoryGetAllCall {
+	mr.mock.ctrl.T.Helper()
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAll", reflect.TypeOf((*MockRoleRepository)(nil).GetAll))
+	return &MockRoleRepositoryGetAllCall{Call: call}
+}
+
+// MockRoleRepositoryGetAllCall wrap *gomock.Call
+type MockRoleRepositoryGetAllCall struct {
+	*gomock.Call
+}
+
+// Return rewrite *gomock.Call.Return
+func (c *MockRoleRepositoryGetAllCall) Return(arg0 []entity.Role, arg1 error) *MockRoleRepositoryGetAllCall {
+	c.Call = c.Call.Return(arg0, arg1)
+	return c
+}
+
+// Do rewrite *gomock.Call.Do
+func (c *MockRoleRepositoryGetAllCall) Do(f func() ([]entity.Role, error)) *MockRoleRepositoryGetAllCall {
+	c.Call = c.Call.Do(f)
+	return c
+}
+
+// DoAndReturn rewrite *gomock.Call.DoAndReturn
+func (c *MockRoleRepositoryGetAllCall) DoAndReturn(f func() ([]entity.Role, error)) *MockRoleRepositoryGetAllCall {
+	c.Call = c.Call.DoAndReturn(f)
+	return c
 }

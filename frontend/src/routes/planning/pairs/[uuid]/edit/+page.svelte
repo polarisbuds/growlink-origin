@@ -1,11 +1,11 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 	import PairingFormView from '$lib/views/PairingFormView.svelte';
 	import { api } from '$lib/api';
 
 	let pairing = $state<Record<string, unknown> | null>(null);
-	let uuid = $derived($page.params.uuid);
+	let uuid = $derived(page.params.uuid);
 
 	onMount(async () => {
 		pairing = await api('GET', `/api/v1/pairings/${uuid}`);

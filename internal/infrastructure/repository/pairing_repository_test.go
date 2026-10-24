@@ -40,13 +40,15 @@ func TestPairingRepository_CreatePairing(t *testing.T) {
 
 	mentor := fixtures.User(t, tx, "create-mentor")
 	mentee := fixtures.User(t, tx, "create-mentee")
+	creator := fixtures.User(t, tx, "create-creator")
 
-	created, err := repo.CreatePairing(mentee.ID, mentor.ID)
+	created, err := repo.CreatePairing(mentee.ID, mentor.ID, creator.ID)
 	assertions.NoError(t, err)
 	require.NotNil(t, created)
 	assert.NotZero(t, created.ID)
 	assert.Equal(t, mentor.ID, created.MentorID)
 	assert.Equal(t, mentee.ID, created.MenteeID)
+	assert.Equal(t, creator.ID, created.CreatedByUserID)
 
 	got, err := repo.GetByMenteeID(mentee.ID)
 	assertions.NoError(t, err)
@@ -60,7 +62,7 @@ func TestPairingRepository_CreatePairing_ForeignKey(t *testing.T) {
 	tx := testutils.Begin(t)
 	repo := newPairingRepo(t, tx)
 
-	_, err := repo.CreatePairing(9_999_999, 9_999_998)
+	_, err := repo.CreatePairing(9_999_999, 9_999_998, 0)
 	assertions.ForeignKeyViolation(t, err)
 }
 

@@ -10,7 +10,7 @@
 package mock
 
 import (
-	entity "growlink/internal/domain/entity"
+	outputmodel "growlink/internal/application/model/output_model"
 	reflect "reflect"
 
 	gomock "go.uber.org/mock/gomock"
@@ -155,10 +155,10 @@ func (c *MockMeetingUsecaseEditCommentCall) DoAndReturn(f func(uint, string) err
 }
 
 // GetAnswer mocks base method.
-func (m *MockMeetingUsecase) GetAnswer(answerID uint) (*entity.Answer, error) {
+func (m *MockMeetingUsecase) GetAnswer(answerID uint) (*outputmodel.AnswerOutput, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetAnswer", answerID)
-	ret0, _ := ret[0].(*entity.Answer)
+	ret0, _ := ret[0].(*outputmodel.AnswerOutput)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -176,28 +176,28 @@ type MockMeetingUsecaseGetAnswerCall struct {
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MockMeetingUsecaseGetAnswerCall) Return(arg0 *entity.Answer, arg1 error) *MockMeetingUsecaseGetAnswerCall {
+func (c *MockMeetingUsecaseGetAnswerCall) Return(arg0 *outputmodel.AnswerOutput, arg1 error) *MockMeetingUsecaseGetAnswerCall {
 	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockMeetingUsecaseGetAnswerCall) Do(f func(uint) (*entity.Answer, error)) *MockMeetingUsecaseGetAnswerCall {
+func (c *MockMeetingUsecaseGetAnswerCall) Do(f func(uint) (*outputmodel.AnswerOutput, error)) *MockMeetingUsecaseGetAnswerCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockMeetingUsecaseGetAnswerCall) DoAndReturn(f func(uint) (*entity.Answer, error)) *MockMeetingUsecaseGetAnswerCall {
+func (c *MockMeetingUsecaseGetAnswerCall) DoAndReturn(f func(uint) (*outputmodel.AnswerOutput, error)) *MockMeetingUsecaseGetAnswerCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
 // ListAnswersByMeeting mocks base method.
-func (m *MockMeetingUsecase) ListAnswersByMeeting(meetingID uint) ([]entity.Answer, error) {
+func (m *MockMeetingUsecase) ListAnswersByMeeting(meetingID uint) ([]outputmodel.AnswerOutput, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListAnswersByMeeting", meetingID)
-	ret0, _ := ret[0].([]entity.Answer)
+	ret0, _ := ret[0].([]outputmodel.AnswerOutput)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -215,19 +215,19 @@ type MockMeetingUsecaseListAnswersByMeetingCall struct {
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MockMeetingUsecaseListAnswersByMeetingCall) Return(arg0 []entity.Answer, arg1 error) *MockMeetingUsecaseListAnswersByMeetingCall {
+func (c *MockMeetingUsecaseListAnswersByMeetingCall) Return(arg0 []outputmodel.AnswerOutput, arg1 error) *MockMeetingUsecaseListAnswersByMeetingCall {
 	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockMeetingUsecaseListAnswersByMeetingCall) Do(f func(uint) ([]entity.Answer, error)) *MockMeetingUsecaseListAnswersByMeetingCall {
+func (c *MockMeetingUsecaseListAnswersByMeetingCall) Do(f func(uint) ([]outputmodel.AnswerOutput, error)) *MockMeetingUsecaseListAnswersByMeetingCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockMeetingUsecaseListAnswersByMeetingCall) DoAndReturn(f func(uint) ([]entity.Answer, error)) *MockMeetingUsecaseListAnswersByMeetingCall {
+func (c *MockMeetingUsecaseListAnswersByMeetingCall) DoAndReturn(f func(uint) ([]outputmodel.AnswerOutput, error)) *MockMeetingUsecaseListAnswersByMeetingCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
@@ -271,7 +271,7 @@ func (c *MockMeetingUsecasePostCommentCall) DoAndReturn(f func(uint, string) err
 }
 
 // SaveDraft mocks base method.
-func (m *MockMeetingUsecase) SaveDraft(meetingID uint, answers []entity.Answer) error {
+func (m *MockMeetingUsecase) SaveDraft(meetingID uint, answers []outputmodel.AnswerOutput) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SaveDraft", meetingID, answers)
 	ret0, _ := ret[0].(error)
@@ -297,19 +297,19 @@ func (c *MockMeetingUsecaseSaveDraftCall) Return(arg0 error) *MockMeetingUsecase
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockMeetingUsecaseSaveDraftCall) Do(f func(uint, []entity.Answer) error) *MockMeetingUsecaseSaveDraftCall {
+func (c *MockMeetingUsecaseSaveDraftCall) Do(f func(uint, []outputmodel.AnswerOutput) error) *MockMeetingUsecaseSaveDraftCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockMeetingUsecaseSaveDraftCall) DoAndReturn(f func(uint, []entity.Answer) error) *MockMeetingUsecaseSaveDraftCall {
+func (c *MockMeetingUsecaseSaveDraftCall) DoAndReturn(f func(uint, []outputmodel.AnswerOutput) error) *MockMeetingUsecaseSaveDraftCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
 // Submit mocks base method.
-func (m *MockMeetingUsecase) Submit(meetingID uint, answers []entity.Answer) error {
+func (m *MockMeetingUsecase) Submit(meetingID uint, answers []outputmodel.AnswerOutput) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Submit", meetingID, answers)
 	ret0, _ := ret[0].(error)
@@ -335,13 +335,76 @@ func (c *MockMeetingUsecaseSubmitCall) Return(arg0 error) *MockMeetingUsecaseSub
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockMeetingUsecaseSubmitCall) Do(f func(uint, []entity.Answer) error) *MockMeetingUsecaseSubmitCall {
+func (c *MockMeetingUsecaseSubmitCall) Do(f func(uint, []outputmodel.AnswerOutput) error) *MockMeetingUsecaseSubmitCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockMeetingUsecaseSubmitCall) DoAndReturn(f func(uint, []entity.Answer) error) *MockMeetingUsecaseSubmitCall {
+func (c *MockMeetingUsecaseSubmitCall) DoAndReturn(f func(uint, []outputmodel.AnswerOutput) error) *MockMeetingUsecaseSubmitCall {
+	c.Call = c.Call.DoAndReturn(f)
+	return c
+}
+
+// MockMeetingList is a mock of MeetingList interface.
+type MockMeetingList struct {
+	ctrl     *gomock.Controller
+	recorder *MockMeetingListMockRecorder
+	isgomock struct{}
+}
+
+// MockMeetingListMockRecorder is the mock recorder for MockMeetingList.
+type MockMeetingListMockRecorder struct {
+	mock *MockMeetingList
+}
+
+// NewMockMeetingList creates a new mock instance.
+func NewMockMeetingList(ctrl *gomock.Controller) *MockMeetingList {
+	mock := &MockMeetingList{ctrl: ctrl}
+	mock.recorder = &MockMeetingListMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockMeetingList) EXPECT() *MockMeetingListMockRecorder {
+	return m.recorder
+}
+
+// ListMyMeeting mocks base method.
+func (m *MockMeetingList) ListMyMeeting(menteeID uint) ([]outputmodel.MeetingOutput, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListMyMeeting", menteeID)
+	ret0, _ := ret[0].([]outputmodel.MeetingOutput)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListMyMeeting indicates an expected call of ListMyMeeting.
+func (mr *MockMeetingListMockRecorder) ListMyMeeting(menteeID any) *MockMeetingListListMyMeetingCall {
+	mr.mock.ctrl.T.Helper()
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListMyMeeting", reflect.TypeOf((*MockMeetingList)(nil).ListMyMeeting), menteeID)
+	return &MockMeetingListListMyMeetingCall{Call: call}
+}
+
+// MockMeetingListListMyMeetingCall wrap *gomock.Call
+type MockMeetingListListMyMeetingCall struct {
+	*gomock.Call
+}
+
+// Return rewrite *gomock.Call.Return
+func (c *MockMeetingListListMyMeetingCall) Return(arg0 []outputmodel.MeetingOutput, arg1 error) *MockMeetingListListMyMeetingCall {
+	c.Call = c.Call.Return(arg0, arg1)
+	return c
+}
+
+// Do rewrite *gomock.Call.Do
+func (c *MockMeetingListListMyMeetingCall) Do(f func(uint) ([]outputmodel.MeetingOutput, error)) *MockMeetingListListMyMeetingCall {
+	c.Call = c.Call.Do(f)
+	return c
+}
+
+// DoAndReturn rewrite *gomock.Call.DoAndReturn
+func (c *MockMeetingListListMyMeetingCall) DoAndReturn(f func(uint) ([]outputmodel.MeetingOutput, error)) *MockMeetingListListMyMeetingCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
@@ -371,10 +434,10 @@ func (m *MockAnswerReader) EXPECT() *MockAnswerReaderMockRecorder {
 }
 
 // GetAnswer mocks base method.
-func (m *MockAnswerReader) GetAnswer(answerID uint) (*entity.Answer, error) {
+func (m *MockAnswerReader) GetAnswer(answerID uint) (*outputmodel.AnswerOutput, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetAnswer", answerID)
-	ret0, _ := ret[0].(*entity.Answer)
+	ret0, _ := ret[0].(*outputmodel.AnswerOutput)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -392,28 +455,28 @@ type MockAnswerReaderGetAnswerCall struct {
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MockAnswerReaderGetAnswerCall) Return(arg0 *entity.Answer, arg1 error) *MockAnswerReaderGetAnswerCall {
+func (c *MockAnswerReaderGetAnswerCall) Return(arg0 *outputmodel.AnswerOutput, arg1 error) *MockAnswerReaderGetAnswerCall {
 	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockAnswerReaderGetAnswerCall) Do(f func(uint) (*entity.Answer, error)) *MockAnswerReaderGetAnswerCall {
+func (c *MockAnswerReaderGetAnswerCall) Do(f func(uint) (*outputmodel.AnswerOutput, error)) *MockAnswerReaderGetAnswerCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockAnswerReaderGetAnswerCall) DoAndReturn(f func(uint) (*entity.Answer, error)) *MockAnswerReaderGetAnswerCall {
+func (c *MockAnswerReaderGetAnswerCall) DoAndReturn(f func(uint) (*outputmodel.AnswerOutput, error)) *MockAnswerReaderGetAnswerCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
 
 // ListAnswersByMeeting mocks base method.
-func (m *MockAnswerReader) ListAnswersByMeeting(meetingID uint) ([]entity.Answer, error) {
+func (m *MockAnswerReader) ListAnswersByMeeting(meetingID uint) ([]outputmodel.AnswerOutput, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListAnswersByMeeting", meetingID)
-	ret0, _ := ret[0].([]entity.Answer)
+	ret0, _ := ret[0].([]outputmodel.AnswerOutput)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -431,19 +494,19 @@ type MockAnswerReaderListAnswersByMeetingCall struct {
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MockAnswerReaderListAnswersByMeetingCall) Return(arg0 []entity.Answer, arg1 error) *MockAnswerReaderListAnswersByMeetingCall {
+func (c *MockAnswerReaderListAnswersByMeetingCall) Return(arg0 []outputmodel.AnswerOutput, arg1 error) *MockAnswerReaderListAnswersByMeetingCall {
 	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockAnswerReaderListAnswersByMeetingCall) Do(f func(uint) ([]entity.Answer, error)) *MockAnswerReaderListAnswersByMeetingCall {
+func (c *MockAnswerReaderListAnswersByMeetingCall) Do(f func(uint) ([]outputmodel.AnswerOutput, error)) *MockAnswerReaderListAnswersByMeetingCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockAnswerReaderListAnswersByMeetingCall) DoAndReturn(f func(uint) ([]entity.Answer, error)) *MockAnswerReaderListAnswersByMeetingCall {
+func (c *MockAnswerReaderListAnswersByMeetingCall) DoAndReturn(f func(uint) ([]outputmodel.AnswerOutput, error)) *MockAnswerReaderListAnswersByMeetingCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
@@ -473,7 +536,7 @@ func (m *MockDraftSaver) EXPECT() *MockDraftSaverMockRecorder {
 }
 
 // SaveDraft mocks base method.
-func (m *MockDraftSaver) SaveDraft(meetingID uint, answers []entity.Answer) error {
+func (m *MockDraftSaver) SaveDraft(meetingID uint, answers []outputmodel.AnswerOutput) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SaveDraft", meetingID, answers)
 	ret0, _ := ret[0].(error)
@@ -499,13 +562,13 @@ func (c *MockDraftSaverSaveDraftCall) Return(arg0 error) *MockDraftSaverSaveDraf
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockDraftSaverSaveDraftCall) Do(f func(uint, []entity.Answer) error) *MockDraftSaverSaveDraftCall {
+func (c *MockDraftSaverSaveDraftCall) Do(f func(uint, []outputmodel.AnswerOutput) error) *MockDraftSaverSaveDraftCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockDraftSaverSaveDraftCall) DoAndReturn(f func(uint, []entity.Answer) error) *MockDraftSaverSaveDraftCall {
+func (c *MockDraftSaverSaveDraftCall) DoAndReturn(f func(uint, []outputmodel.AnswerOutput) error) *MockDraftSaverSaveDraftCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
@@ -535,7 +598,7 @@ func (m *MockSubmitter) EXPECT() *MockSubmitterMockRecorder {
 }
 
 // Submit mocks base method.
-func (m *MockSubmitter) Submit(meetingID uint, answers []entity.Answer) error {
+func (m *MockSubmitter) Submit(meetingID uint, answers []outputmodel.AnswerOutput) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Submit", meetingID, answers)
 	ret0, _ := ret[0].(error)
@@ -561,13 +624,13 @@ func (c *MockSubmitterSubmitCall) Return(arg0 error) *MockSubmitterSubmitCall {
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockSubmitterSubmitCall) Do(f func(uint, []entity.Answer) error) *MockSubmitterSubmitCall {
+func (c *MockSubmitterSubmitCall) Do(f func(uint, []outputmodel.AnswerOutput) error) *MockSubmitterSubmitCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockSubmitterSubmitCall) DoAndReturn(f func(uint, []entity.Answer) error) *MockSubmitterSubmitCall {
+func (c *MockSubmitterSubmitCall) DoAndReturn(f func(uint, []outputmodel.AnswerOutput) error) *MockSubmitterSubmitCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }

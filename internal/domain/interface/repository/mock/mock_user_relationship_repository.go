@@ -117,6 +117,44 @@ func (c *MockUserRelationshipRepositoryDeleteCall) DoAndReturn(f func(uint) erro
 	return c
 }
 
+// DeleteByBossUserID mocks base method.
+func (m *MockUserRelationshipRepository) DeleteByBossUserID(bossUserID uint) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteByBossUserID", bossUserID)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteByBossUserID indicates an expected call of DeleteByBossUserID.
+func (mr *MockUserRelationshipRepositoryMockRecorder) DeleteByBossUserID(bossUserID any) *MockUserRelationshipRepositoryDeleteByBossUserIDCall {
+	mr.mock.ctrl.T.Helper()
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteByBossUserID", reflect.TypeOf((*MockUserRelationshipRepository)(nil).DeleteByBossUserID), bossUserID)
+	return &MockUserRelationshipRepositoryDeleteByBossUserIDCall{Call: call}
+}
+
+// MockUserRelationshipRepositoryDeleteByBossUserIDCall wrap *gomock.Call
+type MockUserRelationshipRepositoryDeleteByBossUserIDCall struct {
+	*gomock.Call
+}
+
+// Return rewrite *gomock.Call.Return
+func (c *MockUserRelationshipRepositoryDeleteByBossUserIDCall) Return(arg0 error) *MockUserRelationshipRepositoryDeleteByBossUserIDCall {
+	c.Call = c.Call.Return(arg0)
+	return c
+}
+
+// Do rewrite *gomock.Call.Do
+func (c *MockUserRelationshipRepositoryDeleteByBossUserIDCall) Do(f func(uint) error) *MockUserRelationshipRepositoryDeleteByBossUserIDCall {
+	c.Call = c.Call.Do(f)
+	return c
+}
+
+// DoAndReturn rewrite *gomock.Call.DoAndReturn
+func (c *MockUserRelationshipRepositoryDeleteByBossUserIDCall) DoAndReturn(f func(uint) error) *MockUserRelationshipRepositoryDeleteByBossUserIDCall {
+	c.Call = c.Call.DoAndReturn(f)
+	return c
+}
+
 // Get mocks base method.
 func (m *MockUserRelationshipRepository) Get(relationshipID uint) (*entity.UserRelationship, error) {
 	m.ctrl.T.Helper()

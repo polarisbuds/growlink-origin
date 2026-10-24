@@ -1,13 +1,13 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 	import { api } from '$lib/api';
 
 	type Topic = { displayNo?: number; question?: string; description?: string; isRequire?: boolean };
 	type Template = { title?: string; topics?: Topic[] };
 
 	let tpl = $state<Template | null>(null);
-	let uuid = $derived($page.params.uuid);
+	let uuid = $derived(page.params.uuid);
 
 	onMount(async () => {
 		tpl = await api<Template>('GET', `/api/v1/templates/${uuid}`);

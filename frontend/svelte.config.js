@@ -12,7 +12,7 @@ const config = {
 			strict: false
 		}),
 		paths: {
-			assets: '/static/app'
+			relative: false
 		}
 	}
 };

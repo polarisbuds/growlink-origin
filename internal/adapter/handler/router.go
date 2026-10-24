@@ -35,6 +35,7 @@ type Deps struct {
 
 func RegisterRoutes(e *echo.Echo, deps Deps, auditLogger *slog.Logger) {
 	e.Static("/static", "static")
+	e.Static("/_app", "static/app/_app")
 	e.Static("/uploads", "uploads")
 
 	ph := page.New(page.Deps{

@@ -2,10 +2,12 @@
 	import '../app.css';
 	import { onMount } from 'svelte';
 	import { beforeNavigate } from '$app/navigation';
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 	import { ensureSession } from '$lib/session';
 	import type { AvatarMe } from '$lib/types';
 	import AppShell from '$lib/components/AppShell.svelte';
+
+	let { children }: { children: import('svelte').Snippet } = $props();
 
 	let me = $state<AvatarMe | null>(null);
 	let loading = $state(true);
@@ -31,7 +33,5 @@
 		読み込み中…
 	</div>
 {:else if me}
-	<AppShell {me} pathname={$page.url.pathname} breadcrumb={$page.data?.breadcrumb}>
-		<slot />
-	</AppShell>
+	<AppShell {me} pathname={page.url.pathname} breadcrumb={page.data?.breadcrumb} {children} />
 {/if}

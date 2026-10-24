@@ -12,6 +12,7 @@ import (
 
 const (
 	validTemplateID uint = 301
+	validUserID     uint = 501
 	topicID1        uint = 401
 	topicID2        uint = 402
 )

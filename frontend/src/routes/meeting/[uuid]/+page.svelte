@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 	import { api } from '$lib/api';
 	import { showToast } from '$lib/toast';
 	import { formatDate, displayTopics, type MeetingPayload } from '$lib/meeting-helpers';
@@ -13,7 +13,12 @@
 	let meeting = $derived((payload?.meeting || {}) as Record<string, unknown>);
 	let template = $derived(meeting.template as { title?: string } | undefined);
 	let canEdit = $derived(!!payload?.canEdit);
-	let uuid = $derived($page.params.uuid);
+	let uuid = $derived(page.params.uuid);
+
+	function rowKey(row: { topic?: unknown; displayNo: number }) {
+		const topic = row.topic as { id?: number } | undefined;
+		return topic?.id ?? row.displayNo;
+	}
 
 	onMount(async () => {
 		payload = await api<MeetingPayload>('GET', `/api/v1/meetings/${uuid}`);
@@ -51,7 +56,7 @@
 		</div>
 	</div>
 	<div class="mt-6 max-w-2xl space-y-4">
-		{#each rows as row (row.topic as { id?: number })?.id || row.displayNo}
+		{#each rows as row (rowKey(row))}
 			<div class="rounded-3xl border border-base-300 bg-base-100 p-5 shadow-sm">
 				<div class="flex items-start gap-2">
 					<span class="badge badge-primary badge-outline shrink-0">Q{row.displayNo}</span>
