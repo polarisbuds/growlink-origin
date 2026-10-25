@@ -1,1 +1,0 @@
-import"../chunks/Bzak7iHL.js";import"../chunks/DDdDbyX6.js";import{P as o}from"../chunks/ZmFOlm6Q.js";const r=()=>({breadcrumb:"ペア作成"}),i=Object.freeze(Object.defineProperty({__proto__:null,load:r},Symbol.toStringTag,{value:"Module"}));function m(e){o(e,{mode:"create"})}export{m as component,i as universal};

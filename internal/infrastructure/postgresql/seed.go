@@ -83,7 +83,15 @@ func genSeed(db *gorm.DB) error {
 			DepartmentID: deptSales.ID,
 			Authority:    valueobject.AuthorityGeneral,
 		}
-		if err := tx.Create([]*entity.User{owner, boss, mentor, mentee, sharer}).Error; err != nil {
+		mentee2 := &entity.User{
+			Name:         "メンティ2",
+			Email:        "mentee2@example.com",
+			Password:     password,
+			RoleID:       roleGeneral.ID,
+			DepartmentID: deptDev.ID,
+			Authority:    valueobject.AuthorityGeneral,
+		}
+		if err := tx.Create([]*entity.User{owner, boss, mentor, mentee, sharer, mentee2}).Error; err != nil {
 			return err
 		}
 
@@ -169,6 +177,31 @@ func genSeed(db *gorm.DB) error {
 			return err
 		}
 
+		templateCheckin := &entity.Template{
+			Title:     "週次チェックイン",
+			DisplayNo: 2,
+			IsSample:  false,
+			UserID:    boss.ID,
+		}
+		if err := tx.Create(templateCheckin).Error; err != nil {
+			return err
+		}
+		topicCheckinGoal := &entity.Topic{
+			DisplayNo:  1,
+			Question:   "今週の目標",
+			IsRequire:  true,
+			TemplateID: templateCheckin.ID,
+		}
+		topicCheckinBlocker := &entity.Topic{
+			DisplayNo:  2,
+			Question:   "ブロッカーはありますか",
+			IsRequire:  false,
+			TemplateID: templateCheckin.ID,
+		}
+		if err := tx.Create([]*entity.Topic{topicCheckinGoal, topicCheckinBlocker}).Error; err != nil {
+			return err
+		}
+
 		if err := tx.Create(&entity.SystemSettings{
 			MeetingWeek:       1,
 			MeetingWeekday:    1,
@@ -182,17 +215,58 @@ func genSeed(db *gorm.DB) error {
 			return err
 		}
 
+		recurWeek := 1
+		recurWeekday := 1
 		pairing := &entity.Pairing{
-			MentorID: mentor.ID,
-			MenteeID: mentee.ID,
+			MentorID:        mentor.ID,
+			MenteeID:        mentee.ID,
+			CreatedByUserID: mentor.ID,
+			RecurWeek:       &recurWeek,
+			RecurWeekday:    &recurWeekday,
 		}
 		if err := tx.Create(pairing).Error; err != nil {
 			return err
 		}
-		if err := tx.Create(&entity.PairingTarget{
+		if err := tx.Create([]*entity.PairingTarget{
+			{
+				PairingID: pairing.ID,
+				Kind:      entity.PairingTargetKindUser,
+				TargetID:  mentee.ID,
+			},
+		}).Error; err != nil {
+			return err
+		}
+		if err := tx.Create(&entity.PairingMentee{
 			PairingID: pairing.ID,
+			UserID:    mentee.ID,
+		}).Error; err != nil {
+			return err
+		}
+		if err := tx.Create(&entity.PairingSharer{
+			PairingID: pairing.ID,
+			UserID:    sharer.ID,
+		}).Error; err != nil {
+			return err
+		}
+
+		pairingBoss := &entity.Pairing{
+			MentorID:        boss.ID,
+			MenteeID:        mentee2.ID,
+			CreatedByUserID: boss.ID,
+		}
+		if err := tx.Create(pairingBoss).Error; err != nil {
+			return err
+		}
+		if err := tx.Create(&entity.PairingTarget{
+			PairingID: pairingBoss.ID,
 			Kind:      entity.PairingTargetKindUser,
-			TargetID:  mentee.ID,
+			TargetID:  mentee2.ID,
+		}).Error; err != nil {
+			return err
+		}
+		if err := tx.Create(&entity.PairingMentee{
+			PairingID: pairingBoss.ID,
+			UserID:    mentee2.ID,
 		}).Error; err != nil {
 			return err
 		}
@@ -200,44 +274,77 @@ func genSeed(db *gorm.DB) error {
 		now := time.Now()
 		pastDoneAt := now.AddDate(0, -1, 0)
 		todayDoneAt := now
+		todayPendingAt := now
 		draftAt := now.AddDate(0, 0, -3)
 		futurePendingAt := now.AddDate(0, 0, 14)
+		bossPastDoneAt := now.AddDate(0, 0, -14)
+		bossFuturePendingAt := now.AddDate(0, 0, 7)
 
 		meetingPastDone := &entity.Meeting{
-			ImplementedAt: &pastDoneAt,
-			Status:        valueobject.MeetingStatusDone,
-			TemplateID:    template.ID,
-			PairingID:     pairing.ID,
+			ImplementedAt:     &pastDoneAt,
+			Status:            valueobject.MeetingStatusDone,
+			TemplateID:        template.ID,
+			PairingID:         pairing.ID,
+			CreatedByUserID:   mentor.ID,
 		}
 		meetingTodayDone := &entity.Meeting{
-			ImplementedAt: &todayDoneAt,
-			Status:        valueobject.MeetingStatusDone,
-			TemplateID:    template.ID,
-			PairingID:     pairing.ID,
+			ImplementedAt:     &todayDoneAt,
+			Status:            valueobject.MeetingStatusDone,
+			TemplateID:        template.ID,
+			PairingID:         pairing.ID,
+			CreatedByUserID:   mentor.ID,
+		}
+		meetingTodayPending := &entity.Meeting{
+			ImplementedAt:     &todayPendingAt,
+			Status:            valueobject.MeetingStatusPending,
+			TemplateID:        templateCheckin.ID,
+			PairingID:         pairing.ID,
+			CreatedByUserID:   mentor.ID,
 		}
 		meetingDraft := &entity.Meeting{
-			ImplementedAt: &draftAt,
-			Status:        valueobject.MeetingStatusDraft,
-			TemplateID:    template.ID,
-			PairingID:     pairing.ID,
+			ImplementedAt:     &draftAt,
+			Status:            valueobject.MeetingStatusDraft,
+			TemplateID:        template.ID,
+			PairingID:         pairing.ID,
+			CreatedByUserID:   mentor.ID,
 		}
 		meetingFuturePending := &entity.Meeting{
-			ImplementedAt: &futurePendingAt,
-			Status:        valueobject.MeetingStatusPending,
-			TemplateID:    template.ID,
-			PairingID:     pairing.ID,
+			ImplementedAt:     &futurePendingAt,
+			Status:            valueobject.MeetingStatusPending,
+			TemplateID:        template.ID,
+			PairingID:         pairing.ID,
+			CreatedByUserID:   mentor.ID,
+		}
+		meetingBossPastDone := &entity.Meeting{
+			ImplementedAt:     &bossPastDoneAt,
+			Status:            valueobject.MeetingStatusDone,
+			TemplateID:        templateCheckin.ID,
+			PairingID:         pairingBoss.ID,
+			CreatedByUserID:   boss.ID,
+		}
+		meetingBossFuturePending := &entity.Meeting{
+			ImplementedAt:     &bossFuturePendingAt,
+			Status:            valueobject.MeetingStatusPending,
+			TemplateID:        templateCheckin.ID,
+			PairingID:         pairingBoss.ID,
+			CreatedByUserID:   boss.ID,
 		}
 		if err := tx.Create([]*entity.Meeting{
 			meetingPastDone,
 			meetingTodayDone,
+			meetingTodayPending,
 			meetingDraft,
 			meetingFuturePending,
+			meetingBossPastDone,
+			meetingBossFuturePending,
 		}).Error; err != nil {
 			return err
 		}
-		if err := tx.Create(&entity.MeetingSharer{
-			MeetingID: meetingPastDone.ID,
-			UserID:    sharer.ID,
+		if err := tx.Create([]*entity.MeetingSharer{
+			{MeetingID: meetingPastDone.ID, UserID: sharer.ID},
+			{MeetingID: meetingTodayDone.ID, UserID: sharer.ID},
+			{MeetingID: meetingDraft.ID, UserID: sharer.ID},
+			{MeetingID: meetingBossPastDone.ID, UserID: mentor.ID},
 		}).Error; err != nil {
 			return err
 		}
@@ -297,6 +404,24 @@ func genSeed(db *gorm.DB) error {
 				TopicID:   topicRequired.ID,
 				UserID:    mentee.ID,
 			},
+			{
+				Content:   "週次の目標を達成しました。",
+				MeetingID: meetingBossPastDone.ID,
+				TopicID:   topicCheckinGoal.ID,
+				UserID:    mentee2.ID,
+			},
+			{
+				Content:   "特になし",
+				MeetingID: meetingBossPastDone.ID,
+				TopicID:   topicCheckinBlocker.ID,
+				UserID:    mentee2.ID,
+			},
+			{
+				Content:   "来週はレビュー体制を整えましょう。",
+				MeetingID: meetingBossPastDone.ID,
+				TopicID:   topicCheckinGoal.ID,
+				UserID:    boss.ID,
+			},
 		}
 		if err := tx.Create(doneMeetingAnswers).Error; err != nil {
 			return err
@@ -314,6 +439,18 @@ func genSeed(db *gorm.DB) error {
 				IsLimited: false,
 				MeetingID: meetingTodayDone.ID,
 				UserID:    mentor.ID,
+			},
+			{
+				Content:   "メンター限定のフィードバックです。",
+				IsLimited: true,
+				MeetingID: meetingTodayDone.ID,
+				UserID:    mentor.ID,
+			},
+			{
+				Content:   "次回までにブロッカーを整理してください。",
+				IsLimited: false,
+				MeetingID: meetingBossPastDone.ID,
+				UserID:    boss.ID,
 			},
 		}).Error; err != nil {
 			return err

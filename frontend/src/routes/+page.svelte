@@ -2,17 +2,17 @@
 	import { onMount } from 'svelte';
 	import { api } from '$lib/api';
 	import { statusBadge, statusLabel } from '$lib/status';
-	import { formatDate, pairLabel, splitByToday } from '$lib/meeting-helpers';
+	import { formatDate, pairLabel, splitByToday, type MeetingListItem } from '$lib/meeting-helpers';
 
 	let tab = $state<'own' | 'shared'>('own');
-	let untilToday = $state<Record<string, unknown>[]>([]);
-	let fromTomorrow = $state<Record<string, unknown>[]>([]);
-	let sharedMeetings = $state<Record<string, unknown>[]>([]);
+	let untilToday = $state<MeetingListItem[]>([]);
+	let fromTomorrow = $state<MeetingListItem[]>([]);
+	let sharedMeetings = $state<MeetingListItem[]>([]);
 
 	onMount(async () => {
 		const [own, shared] = await Promise.all([
-			api<Record<string, unknown>[]>('GET', '/api/v1/meetings/involved'),
-			api<Record<string, unknown>[]>('GET', '/api/v1/meetings/shared')
+			api<MeetingListItem[]>('GET', '/api/v1/meetings/involved'),
+			api<MeetingListItem[]>('GET', '/api/v1/meetings/shared')
 		]);
 		const split = splitByToday(own);
 		untilToday = split.untilToday;
@@ -46,15 +46,15 @@
 						<div class="min-w-0">
 							<p class="text-sm text-base-content/60 truncate">{pairLabel(item)}</p>
 							<h3 class="mt-1 font-semibold">
-								{(item.template as { title?: string })?.title || '1on1'}
+								{item.template?.title || '1on1'}
 							</h3>
 						</div>
-						<span class="badge shrink-0 {statusBadge(item.status as number)}">
-							{statusLabel(item.status as number)}
+						<span class="badge shrink-0 {statusBadge(item.status ?? 0)}">
+							{statusLabel(item.status ?? 0)}
 						</span>
 					</div>
 					<p class="mt-3 text-sm text-base-content/70">
-						実施予定日: {formatDate(item.implementedAt as string)}
+						実施予定日: {formatDate(item.implementedAt)}
 					</p>
 					<div class="mt-4 flex flex-wrap gap-2 items-center">
 						<a href="/meeting/{item.uuid}/answer" class="btn btn-sm btn-primary">記入</a>
@@ -76,9 +76,9 @@
 			{#each fromTomorrow as item (item.uuid)}
 				<div class="group rounded-3xl border border-base-300 bg-base-100 p-5 shadow-sm">
 					<p class="text-sm text-base-content/60">{pairLabel(item)}</p>
-					<h3 class="mt-1 font-semibold">{(item.template as { title?: string })?.title || '1on1'}</h3>
+					<h3 class="mt-1 font-semibold">{item.template?.title || '1on1'}</h3>
 					<p class="mt-3 text-sm text-base-content/70">
-						実施予定日: {formatDate(item.implementedAt as string)}
+						実施予定日: {formatDate(item.implementedAt)}
 					</p>
 					<div class="mt-4 flex items-center gap-2">
 						<a href="/meeting/{item.uuid}/answer" class="btn btn-sm btn-primary">記入</a>
@@ -101,13 +101,13 @@
 			{#each sharedMeetings as item (item.uuid)}
 				<div class="rounded-3xl border border-base-300 bg-base-100 p-5 shadow-sm">
 					<p class="text-sm text-base-content/60">{pairLabel(item)}</p>
-					<h3 class="mt-1 font-semibold">{(item.template as { title?: string })?.title || '1on1'}</h3>
+					<h3 class="mt-1 font-semibold">{item.template?.title || '1on1'}</h3>
 					<p class="mt-3 text-sm text-base-content/70">
-						実施予定日: {formatDate(item.implementedAt as string)}
+						実施予定日: {formatDate(item.implementedAt)}
 					</p>
 					<div class="mt-4 flex gap-2">
-						<span class="badge badge-sm {statusBadge(item.status as number)}">
-							{statusLabel(item.status as number)}
+						<span class="badge badge-sm {statusBadge(item.status ?? 0)}">
+							{statusLabel(item.status ?? 0)}
 						</span>
 						<a href="/meeting/{item.uuid}" class="btn btn-sm btn-ghost ml-auto">閲覧</a>
 					</div>

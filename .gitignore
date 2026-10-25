@@ -2,6 +2,7 @@ node_modules
 .env
 
 # Generated files
+frontend/.svelte-kit/
 static/css/output.css
 static/vendor/
 static/app/

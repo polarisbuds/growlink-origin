@@ -30,6 +30,7 @@ type Deps struct {
 	TeamRepo       repository_interface.TeamRepository
 	TeamMemberRepo repository_interface.TeamMemberRepository
 	DepartmentRepo repository_interface.DepartmentRepository
+	TeamRefRepo    repository_interface.UserReferenceTeamRepository
 	RoleRepo       repository_interface.RoleRepository
 }
 
@@ -60,6 +61,7 @@ func RegisterRoutes(e *echo.Echo, deps Deps, auditLogger *slog.Logger) {
 		TeamRepo:       deps.TeamRepo,
 		TeamMemberRepo: deps.TeamMemberRepo,
 		DepartmentRepo: deps.DepartmentRepo,
+		TeamRefRepo:    deps.TeamRefRepo,
 		RoleRepo:       deps.RoleRepo,
 	})
 
@@ -129,6 +131,7 @@ func RegisterRoutes(e *echo.Echo, deps Deps, auditLogger *slog.Logger) {
 
 	apiAuth.GET("/planning/directory", ah.ListPlanningDirectory, PairingPlanningAPI(), auditLogging(auditLogger, false))
 	apiAuth.GET("/progress/summary", ah.ProgressSummary, ProgressAPI(), auditLogging(auditLogger, false))
+	apiAuth.GET("/progress/breakdown", ah.ProgressBreakdown, ProgressAPI(), auditLogging(auditLogger, false))
 
 	apiAuth.GET("/setting/profile", ah.GetProfile, auditLogging(auditLogger, false))
 	apiAuth.PUT("/setting", ah.UpdateSetting, auditLogging(auditLogger, false))

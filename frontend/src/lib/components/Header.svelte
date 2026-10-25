@@ -47,6 +47,7 @@
 				<ChevronDown class="h-4 w-4 opacity-60" />
 			</button>
 			<ul
+				role="menu"
 				tabindex="0"
 				class="menu dropdown-content z-50 mt-2 w-52 rounded-box border border-base-300 bg-base-100 p-2 shadow-lg"
 			>

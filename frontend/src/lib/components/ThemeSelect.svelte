@@ -30,7 +30,6 @@
 	</button>
 	{#if open}
 		<ul
-			tabindex="0"
 			class="menu dropdown-content z-50 mt-2 max-h-72 w-52 overflow-y-auto rounded-box border border-base-300 bg-base-100 p-2 shadow-lg"
 		>
 			{#each themeOptions as opt}

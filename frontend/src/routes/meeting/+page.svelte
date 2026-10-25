@@ -2,21 +2,21 @@
 	import { onMount } from 'svelte';
 	import { api } from '$lib/api';
 	import { statusBadge, statusLabel } from '$lib/status';
-	import { formatDate } from '$lib/meeting-helpers';
+	import { formatDate, type MeetingListItem } from '$lib/meeting-helpers';
 
-	let meetings = $state<Record<string, unknown>[]>([]);
+	let meetings = $state<MeetingListItem[]>([]);
 	let search = $state('');
 
 	let filtered = $derived.by(() => {
 		const q = search.trim().toLowerCase();
 		if (!q) return meetings;
 		return meetings.filter((m) => {
-			const template = m.template as { title?: string };
-			const pairing = m.pairing as {
-				mentor?: { name?: string };
-				mentee?: { name?: string };
-			};
-			const hay = [template?.title, pairing?.mentor?.name, pairing?.mentee?.name, statusLabel(m.status as number)]
+			const hay = [
+				m.template?.title,
+				m.pairing?.mentor?.name,
+				m.pairing?.mentee?.name,
+				statusLabel(m.status ?? 0)
+			]
 				.filter(Boolean)
 				.join(' ')
 				.toLowerCase();
@@ -25,7 +25,7 @@
 	});
 
 	onMount(async () => {
-		meetings = await api('GET', '/api/v1/meetings/involved');
+		meetings = await api<MeetingListItem[]>('GET', '/api/v1/meetings/involved');
 	});
 </script>
 
@@ -52,14 +52,14 @@
 		<tbody>
 			{#each filtered as m (m.uuid)}
 				<tr>
-					<td>{(m.template as { title?: string })?.title || '—'}</td>
+					<td>{m.template?.title || '—'}</td>
 					<td>
-						{(m.pairing as { mentor?: { name?: string } })?.mentor?.name || '—'} /
-						{(m.pairing as { mentee?: { name?: string } })?.mentee?.name || '—'}
+						{m.pairing?.mentor?.name || '—'} /
+						{m.pairing?.mentee?.name || '—'}
 					</td>
-					<td>{formatDate(m.implementedAt as string)}</td>
+					<td>{formatDate(m.implementedAt)}</td>
 					<td>
-						<span class="badge {statusBadge(m.status as number)}">{statusLabel(m.status as number)}</span>
+						<span class="badge {statusBadge(m.status ?? 0)}">{statusLabel(m.status ?? 0)}</span>
 					</td>
 					<td class="text-right">
 						<a href="/meeting/{m.uuid}" class="btn btn-ghost btn-xs">開く</a>

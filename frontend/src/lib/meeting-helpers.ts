@@ -5,13 +5,40 @@ export function formatDate(iso?: string): string {
 	return d.toLocaleDateString('ja-JP');
 }
 
-export function pairLabel(item: {
-	pairing?: {
-		mentor?: { name?: string };
-		mentee?: { name?: string };
-		mentees?: { name?: string }[];
-	};
-}): string {
+export type MeetingPairingRef = {
+	mentor?: { name?: string };
+	mentee?: { name?: string };
+	mentees?: { name?: string }[];
+};
+
+export type MeetingListItem = {
+	uuid?: string;
+	implementedAt?: string;
+	status?: number;
+	template?: { title?: string };
+	pairing?: MeetingPairingRef;
+};
+
+export type MeetingTopicRef = {
+	id?: number;
+	displayNo?: number;
+	question?: string;
+	description?: string;
+};
+
+export type MeetingAnswerRef = {
+	content?: string;
+	topicId?: number;
+	topic?: MeetingTopicRef;
+};
+
+export type DisplayTopicRow = {
+	displayNo: number;
+	topic?: MeetingTopicRef;
+	answer?: MeetingAnswerRef;
+};
+
+export function pairLabel(item: { pairing?: MeetingPairingRef }): string {
 	const p = item.pairing;
 	if (!p) return '';
 	const mentees = (p.mentees || []).map((m) => m.name).filter(Boolean);
@@ -34,29 +61,28 @@ export function splitByToday<T extends { implementedAt?: string }>(meetings: T[]
 
 export type MeetingPayload = {
 	uuid: string;
-	meeting: Record<string, unknown>;
-	answers: Record<string, unknown>[];
-	topics: Record<string, unknown>[];
+	meeting: MeetingListItem;
+	answers: MeetingAnswerRef[];
+	topics: MeetingTopicRef[];
 	canEdit: boolean;
 };
 
-export function displayTopics(payload: MeetingPayload) {
-	const answersByTopic = new Map<number, Record<string, unknown>>();
+export function displayTopics(payload: MeetingPayload): DisplayTopicRow[] {
+	const answersByTopic = new Map<number, MeetingAnswerRef>();
 	for (const a of payload.answers || []) {
-		const topic = a.topic as { id?: number } | undefined;
-		const tid = topic?.id ?? (a.topicId as number);
+		const tid = a.topic?.id ?? a.topicId;
 		if (tid) answersByTopic.set(tid, a);
 	}
 	const topics = payload.topics || [];
 	if (topics.length) {
 		return topics.map((topic, i) => {
-			const t = topic as { id?: number; displayNo?: number };
-			const answer = answersByTopic.get(t.id!);
-			return { topic, answer, displayNo: t.displayNo || i + 1 };
+			const answer = topic.id != null ? answersByTopic.get(topic.id) : undefined;
+			return { topic, answer, displayNo: topic.displayNo || i + 1 };
 		});
 	}
-	return (payload.answers || []).map((a, i) => {
-		const topic = a.topic as { displayNo?: number };
-		return { topic: a.topic, answer: a, displayNo: topic?.displayNo || i + 1 };
-	});
+	return (payload.answers || []).map((a, i) => ({
+		topic: a.topic,
+		answer: a,
+		displayNo: a.topic?.displayNo || i + 1
+	}));
 }

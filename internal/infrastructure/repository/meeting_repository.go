@@ -53,7 +53,10 @@ func preloadBasic(chain gorm.ChainInterface[entity.Meeting]) gorm.ChainInterface
 		Preload("Template", preloadNone).
 		Preload("Pairing", preloadNone).
 		Preload("Pairing.Mentor", preloadNone).
-		Preload("Pairing.Mentee", preloadNone)
+		Preload("Pairing.Mentee", preloadNone).
+		Preload("Pairing.Mentee.Department", preloadNone).
+		Preload("Pairing.Mentee.TeamMembers", preloadNone).
+		Preload("Pairing.Mentee.TeamMembers.Team", preloadNone)
 }
 
 func (repo *MeetingRepository) GetAll() ([]entity.Meeting, error) {

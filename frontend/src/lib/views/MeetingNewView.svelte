@@ -3,15 +3,13 @@
 	import { goto } from '$app/navigation';
 	import { api } from '$lib/api';
 	import { filterItems } from '$lib/searchable-select';
+	import { matchPairingIds, type MeetingPairingItem } from '$lib/meeting-pair-match';
+	import UserChipSearchField from '$lib/components/UserChipSearchField.svelte';
 
-	type Pairing = {
-		id: number;
-		mentor?: { name?: string };
-		mentee?: { name?: string };
-		targets?: { label?: string }[];
-	};
+	type Target = { kind: string; targetId: number; label: string };
 	type Template = { id: number; title?: string };
 	type User = { id: number; name: string; email: string };
+	type ManagedTeam = { id: number; name: string; members?: User[] };
 
 	function todayISO() {
 		const d = new Date();
@@ -21,23 +19,23 @@
 		const d = new Date();
 		return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
 	}
-	function pairingSummary(p: Pairing) {
-		const mentor = p.mentor?.name || '—';
-		const targetLabels = (p.targets || []).map((t) => t.label).filter(Boolean);
-		const targets = targetLabels.length ? targetLabels.join('、') : p.mentee?.name || '—';
-		return `${mentor} / ${targets}`;
-	}
-
-	let pairings = $state<Pairing[]>([]);
+	let pairings = $state<MeetingPairingItem[]>([]);
 	let templates = $state<Template[]>([]);
 	let users = $state<User[]>([]);
+	let managedTeams = $state<ManagedTeam[]>([]);
 	let mode = $state<'single' | 'all' | 'monthly'>('single');
+	let mentorId = $state(0);
+	let targets = $state<Target[]>([]);
+	let userTargets = $derived(targets.filter((t) => t.kind === 'user'));
 	let sharerUserIds = $state<number[]>([]);
+	let menteeChips = $derived(
+		userTargets.map((t) => ({ id: t.targetId, name: displayNameForTarget(t) }))
+	);
+	let sharerChips = $derived(sharerUserIds.map((id) => ({ id, name: userLabel(id) })));
 	let submitting = $state(false);
 	let error = $state('');
 
 	let form = $state({
-		pairingId: 0,
 		templateId: 0,
 		implementedAt: todayISO(),
 		baseMonth: currentMonthISO(),
@@ -45,14 +43,28 @@
 		weekday: 3
 	});
 
-	let pairPickOpen = $state(false);
-	let pairPickQuery = $state('');
+	let mentorPickOpen = $state(false);
+	let mentorPickQuery = $state('');
+	let userTargetPickOpen = $state(false);
+	let userTargetPickQuery = $state('');
+	let managedTeamPickOpen = $state(false);
+	let managedTeamPickQuery = $state('');
 	let templatePickOpen = $state(false);
 	let templatePickQuery = $state('');
 	let sharerPickOpen = $state(false);
 	let sharerPickQuery = $state('');
 
-	let pairPickFiltered = $derived(filterItems(pairings, pairPickQuery, pairingSummary));
+	let mentorPickFiltered = $derived(
+		filterItems(users, mentorPickQuery, (u) => `${u.name} (${u.email})`)
+	);
+	let userTargetPickFiltered = $derived.by(() => {
+		const picked = new Set(targets.filter((t) => t.kind === 'user').map((t) => t.targetId));
+		const list = users.filter((u) => !picked.has(u.id));
+		return filterItems(list, userTargetPickQuery, (u) => `${u.name} (${u.email})`);
+	});
+	let managedTeamPickFiltered = $derived(
+		filterItems(managedTeams, managedTeamPickQuery, (t) => t.name)
+	);
 	let templatePickFiltered = $derived(
 		filterItems(templates, templatePickQuery, (t) => t.title || '')
 	);
@@ -62,20 +74,60 @@
 		return filterItems(list, sharerPickQuery, (u) => `${u.name} (${u.email})`);
 	});
 
+	let matchedPairingCount = $derived(
+		matchPairingIds(
+			pairings,
+			mentorId ? [mentorId] : [],
+			targets.map((t) => ({ kind: t.kind, targetId: t.targetId }))
+		).length
+	);
+
 	function userLabel(id: number) {
 		const u = users.find((x) => x.id === id);
 		return u ? u.name : `#${id}`;
 	}
+	function displayNameForTarget(t: Target) {
+		const u = users.find((x) => x.id === t.targetId);
+		if (u) return u.name;
+		const idx = t.label.indexOf(' (');
+		if (idx > 0) return t.label.slice(0, idx);
+		return t.label || `#${t.targetId}`;
+	}
+	function targetKey(kind: string, targetId: number) {
+		return `${kind}:${targetId}`;
+	}
+	function addTarget(kind: string, targetId: number, label: string) {
+		const key = targetKey(kind, targetId);
+		if (targets.some((t) => targetKey(t.kind, t.targetId) === key)) return;
+		targets = [...targets, { kind, targetId, label }];
+	}
+	function removeTarget(kind: string, targetId: number) {
+		targets = targets.filter((t) => !(t.kind === kind && t.targetId === targetId));
+	}
 	function closePicks() {
-		pairPickOpen = false;
+		mentorPickOpen = false;
 		templatePickOpen = false;
 		sharerPickOpen = false;
+		userTargetPickOpen = false;
+		managedTeamPickOpen = false;
 	}
 	function submitLabel() {
 		if (submitting) return '作成中…';
 		if (mode === 'single') return '作成';
 		if (mode === 'all') return '全ペアに作成';
 		return '全ペアに定期作成';
+	}
+	function pickUserTarget(u: User) {
+		addTarget('user', u.id, `${u.name} (${u.email})`);
+		userTargetPickQuery = '';
+		userTargetPickOpen = false;
+	}
+	function pickManagedTeam(team: ManagedTeam) {
+		for (const m of team.members || []) {
+			addTarget('user', m.id, `${m.name} (${m.email})`);
+		}
+		managedTeamPickQuery = '';
+		managedTeamPickOpen = false;
 	}
 	function addSharer(u: User) {
 		if (!u?.id || sharerUserIds.includes(u.id)) return;
@@ -86,24 +138,34 @@
 	function removeSharer(id: number) {
 		sharerUserIds = sharerUserIds.filter((x) => x !== id);
 	}
+	function resolvePairingIds(): number[] {
+		return matchPairingIds(
+			pairings,
+			mentorId ? [mentorId] : [],
+			targets.map((t) => ({ kind: t.kind, targetId: t.targetId }))
+		);
+	}
 
 	onMount(async () => {
 		const [p, t, dir] = await Promise.all([
-			api<Pairing[]>('GET', '/api/v1/pairings'),
+			api<MeetingPairingItem[]>('GET', '/api/v1/pairings'),
 			api<Template[]>('GET', '/api/v1/templates'),
-			api<{ users?: User[] }>('GET', '/api/v1/planning/directory')
+			api<{ users?: User[]; managedTeams?: ManagedTeam[] }>('GET', '/api/v1/planning/directory')
 		]);
 		pairings = p;
 		templates = t;
 		users = dir.users || [];
+		managedTeams = dir.managedTeams || [];
 		form.templateId = templates[0]?.id || 0;
 
 		const onMouseDown = (ev: MouseEvent) => {
-			const t = ev.target;
-			if (!(t instanceof Element)) return;
-			if (!t.closest('[data-pick-root="pair"]')) pairPickOpen = false;
-			if (!t.closest('[data-pick-root="template"]')) templatePickOpen = false;
-			if (!t.closest('[data-pick-root="sharer"]')) sharerPickOpen = false;
+			const el = ev.target;
+			if (!(el instanceof Element)) return;
+			if (!el.closest('[data-pick-root="mentor"]')) mentorPickOpen = false;
+			if (!el.closest('[data-pick-root="user-target"]')) userTargetPickOpen = false;
+			if (!el.closest('[data-pick-root="managed-team"]')) managedTeamPickOpen = false;
+			if (!el.closest('[data-pick-root="template"]')) templatePickOpen = false;
+			if (!el.closest('[data-pick-root="sharer"]')) sharerPickOpen = false;
 		};
 		window.addEventListener('mousedown', onMouseDown);
 		return () => window.removeEventListener('mousedown', onMouseDown);
@@ -120,21 +182,31 @@
 			let url: string;
 			let body: Record<string, unknown>;
 			const sharerPayload = sharerUserIds.length ? sharerUserIds : undefined;
+
 			if (mode === 'single') {
-				if (!form.pairingId) {
-					error = 'ペアを選択してください。';
+				if (!mentorId) {
+					error = 'メンターを選択してください。';
+					return;
+				}
+				if (!userTargets.length) {
+					error = 'メンティを選択してください。';
+					return;
+				}
+				const pairingIds = resolvePairingIds();
+				if (!pairingIds.length) {
+					error = '該当するペアがありません。';
 					return;
 				}
 				if (!form.implementedAt) {
 					error = '実施日を入力してください。';
 					return;
 				}
-				url = '/api/v1/meetings';
+				url = '/api/v1/meetings/all';
 				body = {
-					pairingId: form.pairingId,
 					templateId: form.templateId,
 					implementedAt: form.implementedAt,
-					sharerUserIds: sharerPayload
+					sharerUserIds: sharerPayload,
+					pairingIds
 				};
 			} else if (mode === 'all') {
 				if (!form.implementedAt) {
@@ -148,6 +220,19 @@
 					sharerUserIds: sharerPayload
 				};
 			} else {
+				if (!mentorId) {
+					error = 'メンターを選択してください。';
+					return;
+				}
+				if (!userTargets.length) {
+					error = 'メンティを選択してください。';
+					return;
+				}
+				const pairingIds = resolvePairingIds();
+				if (!pairingIds.length) {
+					error = '該当するペアがありません。';
+					return;
+				}
 				if (!form.baseMonth) {
 					error = '基準月を入力してください。';
 					return;
@@ -162,7 +247,8 @@
 					baseDate: `${form.baseMonth}-01`,
 					week: form.week,
 					weekday: form.weekday,
-					sharerUserIds: sharerPayload
+					sharerUserIds: sharerPayload,
+					pairingIds
 				};
 			}
 			await api('POST', url, body);
@@ -181,7 +267,9 @@
 
 <main class="mx-auto w-full max-w-3xl min-w-0 p-4 md:p-8">
 	<h1 class="font-display text-2xl font-semibold">1on1ミーティング作成</h1>
-	<p class="mt-1 text-sm text-base-content/60">ペアとテンプレートを選び、実施日または定期スケジュールを指定します</p>
+	<p class="mt-1 text-sm text-base-content/60">
+		メンターと対象を指定して 1on1 を作成します（全ペア一括は対象指定なし）
+	</p>
 	<div class="mt-4 flex flex-wrap gap-2">
 		<button type="button" class="btn btn-sm" class:btn-primary={mode === 'single'} class:btn-outline={mode !== 'single'} onclick={() => (mode = 'single')}>1件作成</button>
 		<button type="button" class="btn btn-sm" class:btn-primary={mode === 'all'} class:btn-outline={mode !== 'all'} onclick={() => (mode = 'all')}>全ペア一括</button>
@@ -191,65 +279,102 @@
 		{#if error}
 			<div class="alert alert-error text-sm">{error}</div>
 		{/if}
-		{#if mode === 'single'}
-			<div class="form-control relative" data-pick-root="pair">
-				<span class="label-text font-medium">ペア</span>
+		{#if mode === 'single' || mode === 'monthly'}
+			<div class="grid items-start gap-4 md:grid-cols-2">
+			<div class="form-control" data-pick-root="mentor">
+				<span class="label-text font-medium">メンター</span>
 				<div class="relative mt-1">
 					<input
 						type="text"
-						class="input input-bordered w-full pr-10"
+						class="input input-bordered w-full"
 						autocomplete="off"
-						placeholder={form.pairingId ? '' : '名前で検索して選択'}
-						value={pairPickOpen
-							? pairPickQuery
-							: form.pairingId
-								? pairingSummary(pairings.find((p) => p.id === form.pairingId)!)
-								: ''}
+						placeholder={mentorId ? '' : '名前で検索'}
+						value={mentorPickOpen ? mentorPickQuery : mentorId ? userLabel(mentorId) : ''}
 						onfocus={() => {
-							pairPickOpen = true;
-							if (form.pairingId) pairPickQuery = '';
+							mentorPickOpen = true;
+							if (mentorId) mentorPickQuery = '';
 						}}
 						oninput={(e) => {
-							pairPickQuery = e.currentTarget.value;
-							pairPickOpen = true;
+							mentorPickQuery = e.currentTarget.value;
+							mentorPickOpen = true;
 						}}
 					/>
-					{#if form.pairingId}
-						<button
-							type="button"
-							class="btn btn-ghost btn-xs btn-circle absolute right-1 top-1/2 -translate-y-1/2"
-							aria-label="クリア"
-							onclick={() => {
-								form.pairingId = 0;
-								pairPickQuery = '';
-								pairPickOpen = false;
-							}}>×</button
+					{#if mentorPickOpen}
+						<ul
+							class="absolute left-0 top-full z-20 mt-1 max-h-48 w-full overflow-y-auto rounded-2xl border border-base-300 bg-base-100 py-1 shadow-lg"
 						>
+							{#each mentorPickFiltered as u (u.id)}
+								<li>
+									<button
+										type="button"
+										class="btn btn-ghost btn-sm w-full justify-start font-normal"
+										onclick={() => {
+											mentorId = u.id;
+											mentorPickQuery = '';
+											mentorPickOpen = false;
+										}}>{u.name} ({u.email})</button
+									>
+								</li>
+							{/each}
+						</ul>
 					{/if}
 				</div>
-				{#if pairPickOpen}
-					<ul class="absolute z-20 mt-1 max-h-48 w-full overflow-y-auto rounded-2xl border border-base-300 bg-base-100 py-1 shadow-lg">
-						{#each pairPickFiltered as p (p.id)}
-							<li>
-								<button
-									type="button"
-									class="btn btn-ghost btn-sm w-full justify-start font-normal"
-									onclick={() => {
-										form.pairingId = p.id;
-										pairPickQuery = '';
-										pairPickOpen = false;
-									}}>{pairingSummary(p)}</button
-								>
-							</li>
-						{/each}
-						{#if pairPickFiltered.length === 0}
-							<li class="px-4 py-3 text-sm text-base-content/50">該当なし</li>
-						{/if}
-					</ul>
+			</div>
+			<div>
+				<span class="label-text font-medium">メンティ</span>
+				<div class="form-control" data-pick-root="user-target">
+					<UserChipSearchField
+						chips={menteeChips}
+						placeholder={menteeChips.length ? '追加で検索' : '名前で検索して追加'}
+						bind:query={userTargetPickQuery}
+						bind:open={userTargetPickOpen}
+						filteredUsers={userTargetPickFiltered}
+						onPick={pickUserTarget}
+						onRemove={(id) => removeTarget('user', id)}
+					/>
+				</div>
+				{#if managedTeams.length > 0}
+					<div class="form-control mt-3" data-pick-root="managed-team">
+						<span class="label-text font-medium">管理チームからまとめて追加</span>
+						<div class="relative mt-1">
+							<input
+								type="text"
+								class="input input-bordered w-full"
+								placeholder="チーム名で検索"
+								autocomplete="off"
+								value={managedTeamPickOpen ? managedTeamPickQuery : ''}
+								onfocus={() => (managedTeamPickOpen = true)}
+								oninput={(e) => {
+									managedTeamPickQuery = e.currentTarget.value;
+									managedTeamPickOpen = true;
+								}}
+							/>
+							{#if managedTeamPickOpen}
+								<ul class="absolute left-0 top-full z-20 mt-1 max-h-48 w-full overflow-y-auto rounded-2xl border border-base-300 bg-base-100 py-1 shadow-lg">
+									{#each managedTeamPickFiltered as team (team.id)}
+										<li>
+											<button
+												type="button"
+												class="btn btn-ghost btn-sm w-full justify-start font-normal"
+												onclick={() => pickManagedTeam(team)}
+												>{team.name}（{team.members?.length ?? 0}人）</button
+											>
+										</li>
+									{/each}
+								</ul>
+							{/if}
+						</div>
+					</div>
 				{/if}
 			</div>
+			</div>
+			{#if mentorId && userTargets.length}
+				<p class="text-sm text-base-content/60">
+					一致するペア: <span class="font-medium text-base-content">{matchedPairingCount}</span> 件（各ペアに面談を1件作成）
+				</p>
+			{/if}
 		{/if}
-		<div class="form-control relative" data-pick-root="template">
+		<div class="form-control" data-pick-root="template">
 			<span class="label-text font-medium">テンプレート</span>
 			<div class="relative mt-1">
 				<input
@@ -283,63 +408,39 @@
 						}}>×</button
 					>
 				{/if}
+				{#if templatePickOpen}
+					<ul class="absolute left-0 top-full z-20 mt-1 max-h-48 w-full overflow-y-auto rounded-2xl border border-base-300 bg-base-100 py-1 shadow-lg">
+						{#each templatePickFiltered as t (t.id)}
+							<li>
+								<button
+									type="button"
+									class="btn btn-ghost btn-sm w-full justify-start font-normal"
+									onclick={() => {
+										form.templateId = t.id;
+										templatePickQuery = '';
+										templatePickOpen = false;
+									}}>{t.title}</button
+								>
+							</li>
+						{/each}
+						{#if templatePickFiltered.length === 0}
+							<li class="px-4 py-3 text-sm text-base-content/50">該当なし</li>
+						{/if}
+					</ul>
+				{/if}
 			</div>
-			{#if templatePickOpen}
-				<ul class="absolute z-20 mt-1 max-h-48 w-full overflow-y-auto rounded-2xl border border-base-300 bg-base-100 py-1 shadow-lg">
-					{#each templatePickFiltered as t (t.id)}
-						<li>
-							<button
-								type="button"
-								class="btn btn-ghost btn-sm w-full justify-start font-normal"
-								onclick={() => {
-									form.templateId = t.id;
-									templatePickQuery = '';
-									templatePickOpen = false;
-								}}>{t.title}</button
-							>
-						</li>
-					{/each}
-					{#if templatePickFiltered.length === 0}
-						<li class="px-4 py-3 text-sm text-base-content/50">該当なし</li>
-					{/if}
-				</ul>
-			{/if}
 		</div>
-		<div class="form-control relative" data-pick-root="sharer">
+		<div class="form-control" data-pick-root="sharer">
 			<span class="label-text font-medium">共有者（任意・複数）</span>
-			<div class="mt-2 flex flex-wrap gap-2">
-				{#each sharerUserIds as id (id)}
-					<span class="badge badge-lg gap-1">
-						<span>{userLabel(id)}</span>
-						<button type="button" class="btn btn-ghost btn-xs btn-circle" onclick={() => removeSharer(id)}>×</button>
-					</span>
-				{/each}
-			</div>
-			<div class="relative mt-2">
-				<input
-					type="text"
-					class="input input-bordered w-full"
-					placeholder="名前で検索して追加"
-					autocomplete="off"
-					value={sharerPickOpen ? sharerPickQuery : ''}
-					onfocus={() => (sharerPickOpen = true)}
-					oninput={(e) => {
-						sharerPickQuery = e.currentTarget.value;
-						sharerPickOpen = true;
-					}}
-				/>
-			</div>
-			{#if sharerPickOpen}
-				<ul class="absolute z-20 mt-1 max-h-48 w-full overflow-y-auto rounded-2xl border border-base-300 bg-base-100 py-1 shadow-lg">
-					{#each sharerPickFiltered as u (u.id)}
-						<li>
-							<button type="button" class="btn btn-ghost btn-sm w-full justify-start font-normal" onclick={() => addSharer(u)}
-								>{u.name} ({u.email})</button
-							>
-						</li>
-					{/each}
-				</ul>
-			{/if}
+			<UserChipSearchField
+				chips={sharerChips}
+				placeholder={sharerChips.length ? '追加で検索' : '名前で検索して追加'}
+				bind:query={sharerPickQuery}
+				bind:open={sharerPickOpen}
+				filteredUsers={sharerPickFiltered}
+				onPick={addSharer}
+				onRemove={removeSharer}
+			/>
 		</div>
 		{#if mode !== 'monthly'}
 			<label class="form-control">

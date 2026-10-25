@@ -44,11 +44,29 @@ func (uc *MeetingCreator) saveSharers(meetingID uint, sharerUserIDs []uint) erro
 	return uc.meetingRepo.ReplaceSharers(meetingID, sharerUserIDs)
 }
 
-func (uc *MeetingCreator) CreateMeetingEveryMonth(templateID uint, baseDate time.Time, week int, weekday time.Weekday, createdByUserID uint, sharerUserIDs []uint) ([]outputmodel.MeetingOutput, error) {
+func filterPairingsByIDs(pairings []entity.Pairing, pairingIDs []uint) []entity.Pairing {
+	if len(pairingIDs) == 0 {
+		return pairings
+	}
+	allowed := make(map[uint]bool, len(pairingIDs))
+	for _, id := range pairingIDs {
+		allowed[id] = true
+	}
+	filtered := make([]entity.Pairing, 0, len(pairingIDs))
+	for _, p := range pairings {
+		if allowed[p.ID] {
+			filtered = append(filtered, p)
+		}
+	}
+	return filtered
+}
+
+func (uc *MeetingCreator) CreateMeetingEveryMonth(templateID uint, baseDate time.Time, week int, weekday time.Weekday, createdByUserID uint, sharerUserIDs []uint, pairingIDs []uint) ([]outputmodel.MeetingOutput, error) {
 	pairings, err := uc.pairingRepo.GetAll()
 	if err != nil {
 		return nil, fmt.Errorf("定期ミーティング作成処理時に全てのペアリング情報の取得に失敗しました: %w", err)
 	}
+	pairings = filterPairingsByIDs(pairings, pairingIDs)
 	var (
 		result = []entity.Meeting{}
 		mux    = sync.Mutex{}
@@ -108,11 +126,12 @@ func (uc *MeetingCreator) CreateMeeting(pairingID, templateID uint, implementDat
 	return converter.MeetingEntityToOutputPtr(meeting), nil
 }
 
-func (uc *MeetingCreator) CreateMeetingByAll(templateID uint, implementDate time.Time, createdByUserID uint, sharerUserIDs []uint) ([]outputmodel.MeetingOutput, error) {
+func (uc *MeetingCreator) CreateMeetingByAll(templateID uint, implementDate time.Time, createdByUserID uint, sharerUserIDs []uint, pairingIDs []uint) ([]outputmodel.MeetingOutput, error) {
 	pairings, err := uc.pairingRepo.GetAll()
 	if err != nil {
 		return nil, fmt.Errorf("ミーティング作成時に全てのペアリング情報の取得に失敗しました: %w", err)
 	}
+	pairings = filterPairingsByIDs(pairings, pairingIDs)
 	var (
 		result = []entity.Meeting{}
 		mux    = sync.Mutex{}

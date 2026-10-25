@@ -152,6 +152,7 @@ func main() {
 		TeamRepo:       teamRepo,
 		TeamMemberRepo: teamMemberRepo,
 		DepartmentRepo: deptRepo,
+		TeamRefRepo:    teamRefRepo,
 		RoleRepo:       roleRepo,
 	}
 

@@ -3,7 +3,6 @@
 	import { page } from '$app/state';
 	import PairingFormView from '$lib/views/PairingFormView.svelte';
 	import { api } from '$lib/api';
-
 	let pairing = $state<Record<string, unknown> | null>(null);
 	let uuid = $derived(page.params.uuid);
 

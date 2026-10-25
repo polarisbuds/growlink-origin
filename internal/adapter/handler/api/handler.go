@@ -24,6 +24,7 @@ type Deps struct {
 	TeamRepo        repository_interface.TeamRepository
 	TeamMemberRepo  repository_interface.TeamMemberRepository
 	DepartmentRepo  repository_interface.DepartmentRepository
+	TeamRefRepo     repository_interface.UserReferenceTeamRepository
 	RoleRepo        repository_interface.RoleRepository
 }
 
