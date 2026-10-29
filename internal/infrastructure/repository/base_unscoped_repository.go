@@ -1,0 +1,109 @@
+package repository
+
+import (
+	"context"
+	"fmt"
+
+	"gorm.io/gorm"
+)
+
+type BaseUnScopedRepository[T any] struct {
+	udp  *gorm.DB
+	uctx context.Context
+}
+
+func NewBaseUnScopedRepository[T any](ctx context.Context, dp *gorm.DB) *BaseUnScopedRepository[T] {
+	return &BaseUnScopedRepository[T]{
+		udp:  dp.Unscoped(),
+		uctx: ctx,
+	}
+}
+
+func (repo *BaseUnScopedRepository[T]) UExists(query string, args ...any) (bool, error) {
+	count, err := repo.UCount(query, args...)
+	if err != nil {
+		return false, err
+	}
+	return count > 0, nil
+}
+
+func (repo *BaseUnScopedRepository[T]) UFirst(order, query string, args ...any) (*T, error) {
+	whereChain, err := repo.UWhereChain(order, query, args...)
+	if err != nil {
+		return nil, err
+	}
+	if whereChain == nil {
+		return nil, nil
+	}
+	result, err := whereChain.First(repo.uctx)
+	return &result, err
+}
+
+func (repo *BaseUnScopedRepository[T]) UWhere(order, query string, args ...any) ([]T, error) {
+	whereChain, err := repo.UWhereChain(order, query, args...)
+	if err != nil {
+		return nil, err
+	}
+	if whereChain == nil {
+		return nil, nil
+	}
+	return whereChain.Find(repo.uctx)
+}
+
+func (repo *BaseUnScopedRepository[T]) UWhereInBatch(batchSize int, order, query string, args ...any) ([]T, error) {
+	whereChain, err := repo.UWhereChain(order, query, args...)
+	if err != nil {
+		return nil, err
+	}
+	if whereChain == nil {
+		return nil, nil
+	}
+
+	result := []T{}
+	if err := whereChain.FindInBatches(repo.uctx, batchSize, func(data []T, batch int) error {
+		result = append(result, data...)
+		return nil
+	}); err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+func (repo *BaseUnScopedRepository[T]) UChain(order string, preloads ...string) gorm.ChainInterface[T] {
+	chain := gorm.G[T](repo.udp).Scopes(func(stmt *gorm.Statement) {
+		stmt.Unscoped = true
+	}).Order(order)
+	for _, preload := range preloads {
+		chain = chain.Preload(preload, nil)
+	}
+	return chain
+}
+
+func (repo *BaseUnScopedRepository[T]) UWhereChain(order, query string, args ...any) (gorm.ChainInterface[T], error) {
+	exists, err := repo.UExists(query, args...)
+	if err != nil {
+		return nil, fmt.Errorf("レコードの参照で問題が発生しました: %w", err)
+	}
+	if !exists {
+		return nil, nil
+	}
+	return gorm.G[T](repo.udp).Scopes(func(stmt *gorm.Statement) {
+		stmt.Unscoped = true
+	}).Where(query, args...).Order(order), nil
+}
+
+func (repo *BaseUnScopedRepository[T]) UAll(order string) ([]T, error) {
+	return gorm.G[T](repo.udp).Scopes(func(stmt *gorm.Statement) {
+		stmt.Unscoped = true
+	}).Order(order).Find(repo.uctx)
+}
+
+func (repo *BaseUnScopedRepository[T]) UCount(query string, args ...any) (int64, error) {
+	count, err := gorm.G[T](repo.udp).Scopes(func(stmt *gorm.Statement) {
+		stmt.Unscoped = true
+	}).Where(query, args...).Count(repo.uctx, "*")
+	if err != nil {
+		return 0, fmt.Errorf("レコードのカウントで問題が発生しました: %w", err)
+	}
+	return count, nil
+}

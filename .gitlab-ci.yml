@@ -1,0 +1,49 @@
+# パイプラインの流れを定義（左から順番に実行されます）
+stages:
+    - test
+    - build
+    - deploy
+
+variables:
+    GOPATH: $CI_PROJECT_DIR/.go
+cache:
+    paths:
+        - .go/pkg/mod/
+
+# 対象ブランチのルールを共通化
+.branch-rules:
+    only:
+        - master
+        - develop
+        - /^feature\/.*$/
+
+# 1. テストフェーズ
+go-test:
+    stage: test
+    extends: .branch-rules
+    image: golang:latest
+    before_script:
+        - mkdir -p .go
+        - go mod download
+    script:
+        - go test -v -race ./...
+
+# 2. ビルドフェーズ
+go-build:
+    stage: build
+    extends: .branch-rules
+    image: golang:latest
+    before_script:
+        - mkdir -p .go
+        - go mod download
+    script:
+        - go build -v -o ./dist/app main.go
+
+# 3. CD（デプロイ）フェーズ
+go-deploy:
+    stage: deploy
+    extends: .branch-rules
+    image: alpine:latest # デプロイ用の軽量なイメージ（必要に応じて変更）
+    script:
+        - echo "Test -> Build -> OK! Starting CD..."
+        # *** ここにCD（自動デプロイ）の処理を記入してください ***
