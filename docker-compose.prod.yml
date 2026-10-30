@@ -1,0 +1,8 @@
+services:
+  web:
+    volumes:
+      - frontend_node_modules:/app/frontend/node_modules
+
+volumes:
+  frontend_node_modules:
+    name: growlink-frontend-node-modules

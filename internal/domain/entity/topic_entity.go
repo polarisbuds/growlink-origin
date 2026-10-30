@@ -1,0 +1,22 @@
+package entity
+
+import (
+	"github.com/google/uuid"
+	"gorm.io/gorm"
+)
+
+type Topic struct {
+	gorm.Model
+
+	UUID      uuid.UUID `gorm:"type:uuid;not null;uniqueIndex;default:gen_random_uuid()"`
+	DisplayNo uint      `gorm:"not null"`
+	Question    string `gorm:"type:text;not null"`
+	Description string `gorm:"type:text;not null;default:''"`
+	IsRequire   bool   `gorm:"not null"`
+
+	TemplateID uint `gorm:"not null;index"`
+
+	Template *Template `gorm:"foreignKey:TemplateID"`
+
+	Answers []Answer `gorm:"foreignKey:TopicID"`
+}

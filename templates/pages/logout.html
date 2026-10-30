@@ -1,0 +1,19 @@
+{{define "logout.html"}}
+<!DOCTYPE html>
+<html lang="ja" data-theme="growlink">
+<head>
+<meta charset="UTF-8">
+<title>ログアウト | Growlink</title>
+<link href="/static/css/output.css" rel="stylesheet">
+</head>
+<body class="min-h-screen bg-base-200 flex flex-col items-center justify-center gap-4">
+<p class="text-lg">ログアウトしました</p>
+<p class="text-sm text-base-content/60">3秒後にログイン画面へ移動します</p>
+<script>
+fetch('/api/v1/logout', { method: 'POST' }).finally(() => {
+  setTimeout(() => { location.href = '/login'; }, 3000);
+});
+</script>
+</body>
+</html>
+{{end}}
