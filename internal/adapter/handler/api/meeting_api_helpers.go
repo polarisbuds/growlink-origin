@@ -1,9 +1,12 @@
 package api
 
 import (
+	"strings"
+
 	"growlink/internal/application/converter"
 	outputmodel "growlink/internal/application/model/output_model"
 	"growlink/internal/domain/entity"
+	"growlink/internal/domain/valueobject"
 )
 
 func enrichAnswersForMeeting(meetingID, userID uint, answers []outputmodel.AnswerOutput) []outputmodel.AnswerOutput {
@@ -13,8 +16,79 @@ func enrichAnswersForMeeting(meetingID, userID uint, answers []outputmodel.Answe
 		if out[i].MeetingID == 0 {
 			out[i].MeetingID = meetingID
 		}
-		if out[i].UserID == 0 {
-			out[i].UserID = userID
+		out[i].UserID = userID
+	}
+	return out
+}
+
+func sanitizeAnswerOutputs(
+	meetingID, userID uint,
+	answers []outputmodel.AnswerOutput,
+	lookup func(answerID uint) (*outputmodel.AnswerOutput, error),
+) ([]outputmodel.AnswerOutput, error) {
+	out := enrichAnswersForMeeting(meetingID, userID, answers)
+	for i := range out {
+		if out[i].ID == 0 {
+			continue
+		}
+		existing, err := lookup(out[i].ID)
+		if err != nil {
+			return nil, err
+		}
+		if existing == nil || existing.MeetingID != meetingID || existing.UserID != userID {
+			out[i].ID = 0
+		}
+	}
+	return out, nil
+}
+
+func meetingViewerRole(meeting *entity.Meeting, viewerID uint) string {
+	if meeting == nil || viewerID == 0 || meeting.Pairing == nil {
+		return "viewer"
+	}
+	if meeting.Pairing.MentorID == viewerID {
+		return "mentor"
+	}
+	if meeting.Pairing.MenteeID == viewerID {
+		return "mentee"
+	}
+	for _, m := range meeting.Pairing.Mentees {
+		if m.UserID == viewerID {
+			return "mentee"
+		}
+	}
+	return "viewer"
+}
+
+func canWriteMeetingAnswers(meeting *entity.Meeting, viewerID uint) bool {
+	if meeting == nil || viewerID == 0 {
+		return false
+	}
+	if meeting.Status == valueobject.MeetingStatusDone {
+		return false
+	}
+	role := meetingViewerRole(meeting, viewerID)
+	return role == "mentor" || role == "mentee"
+}
+
+func canEditMeetingSharers(meeting *entity.Meeting, viewerID uint) bool {
+	if meeting == nil || viewerID == 0 {
+		return false
+	}
+	role := meetingViewerRole(meeting, viewerID)
+	return role == "mentor" || role == "mentee"
+}
+
+func meetingSharersToOutputs(meeting *entity.Meeting) []outputmodel.UserOutput {
+	if meeting == nil || len(meeting.Sharers) == 0 {
+		return nil
+	}
+	out := make([]outputmodel.UserOutput, 0, len(meeting.Sharers))
+	for _, s := range meeting.Sharers {
+		if s.User != nil {
+			out = append(out, converter.UserEntityToOutput(*s.User))
+		} else if s.UserID != 0 {
+			out = append(out, outputmodel.UserOutput{ID: s.UserID})
 		}
 	}
 	return out
@@ -46,6 +120,20 @@ func canViewLimitedMeetingComments(meeting *entity.Meeting, viewerID uint) bool 
 		return false
 	}
 	if meeting.Pairing.MentorID == viewerID || meeting.Pairing.MenteeID == viewerID {
+		return true
+	}
+	return false
+}
+
+func userMatchesSharerQuery(u entity.User, q string) bool {
+	if q == "" {
+		return true
+	}
+	q = strings.ToLower(q)
+	if strings.Contains(strings.ToLower(u.Name), q) {
+		return true
+	}
+	if strings.Contains(strings.ToLower(u.Email), q) {
 		return true
 	}
 	return false

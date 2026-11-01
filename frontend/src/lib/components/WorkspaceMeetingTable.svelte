@@ -1,15 +1,17 @@
 <script lang="ts">
 	import { statusBadge, statusLabel } from '$lib/status';
-	import { formatDate, pairLabel, type MeetingListItem } from '$lib/meeting-helpers';
+	import { formatDate, pairLabel, canUserAnswerMeeting, type MeetingListItem } from '$lib/meeting-helpers';
 
 	let {
 		items,
 		showAnswer = true,
-		showSetting = true
+		showSetting = true,
+		currentUserId
 	}: {
 		items: MeetingListItem[];
 		showAnswer?: boolean;
 		showSetting?: boolean;
+		currentUserId?: number;
 	} = $props();
 </script>
 
@@ -37,7 +39,7 @@
 					<td class="whitespace-nowrap">{formatDate(item.implementedAt)}</td>
 					<td class="text-right">
 						<div class="flex flex-wrap justify-end gap-1">
-							{#if showAnswer}
+							{#if showAnswer && canUserAnswerMeeting(item, currentUserId)}
 								<a href="/meeting/{item.uuid}/answer" class="btn btn-xs btn-primary">記入</a>
 							{/if}
 							<a href="/meeting/{item.uuid}" class="btn btn-xs btn-ghost">閲覧</a>

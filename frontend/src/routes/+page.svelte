@@ -2,7 +2,7 @@
 	import { onMount } from 'svelte';
 	import { api } from '$lib/api';
 	import { statusBadge, statusLabel } from '$lib/status';
-	import { formatDate, pairLabel, splitByToday, type MeetingListItem } from '$lib/meeting-helpers';
+	import { formatDate, pairLabel, splitByToday, canUserAnswerMeeting, type MeetingListItem } from '$lib/meeting-helpers';
 	import WorkspaceMeetingTable from '$lib/components/WorkspaceMeetingTable.svelte';
 	import LayoutGrid from 'lucide-svelte/icons/layout-grid';
 	import Table from 'lucide-svelte/icons/table';
@@ -12,16 +12,19 @@
 	let untilToday = $state<MeetingListItem[]>([]);
 	let fromTomorrow = $state<MeetingListItem[]>([]);
 	let sharedMeetings = $state<MeetingListItem[]>([]);
+	let currentUserId = $state<number | undefined>();
 
 	onMount(async () => {
-		const [own, shared] = await Promise.all([
+		const [own, shared, profile] = await Promise.all([
 			api<MeetingListItem[]>('GET', '/api/v1/meetings/involved'),
-			api<MeetingListItem[]>('GET', '/api/v1/meetings/shared')
+			api<MeetingListItem[]>('GET', '/api/v1/meetings/shared'),
+			api<{ id?: number }>('GET', '/api/v1/setting/profile')
 		]);
 		const split = splitByToday(own);
 		untilToday = split.untilToday;
 		fromTomorrow = split.fromTomorrow;
 		sharedMeetings = shared;
+		currentUserId = profile.id;
 	});
 </script>
 
@@ -78,7 +81,7 @@
 		<h2 class="text-sm font-semibold text-base-content/70">今日まで</h2>
 		{#if viewMode === 'table'}
 			<div class="mt-4">
-				<WorkspaceMeetingTable items={untilToday} />
+				<WorkspaceMeetingTable items={untilToday} {currentUserId} />
 			</div>
 		{:else}
 			<div class="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
@@ -101,7 +104,9 @@
 							実施予定日: {formatDate(item.implementedAt)}
 						</p>
 						<div class="mt-4 flex flex-wrap gap-2 items-center">
-							<a href="/meeting/{item.uuid}/answer" class="btn btn-sm btn-primary">記入</a>
+							{#if canUserAnswerMeeting(item, currentUserId)}
+								<a href="/meeting/{item.uuid}/answer" class="btn btn-sm btn-primary">記入</a>
+							{/if}
 							<a href="/meeting/{item.uuid}" class="btn btn-sm btn-ghost">閲覧</a>
 							<a href="/meeting/{item.uuid}/setting" class="btn btn-sm btn-ghost">設定</a>
 						</div>
@@ -119,7 +124,7 @@
 		<h2 class="mt-10 text-sm font-semibold text-base-content/70">明日以降</h2>
 		{#if viewMode === 'table'}
 			<div class="mt-4">
-				<WorkspaceMeetingTable items={fromTomorrow} showSetting={false} />
+				<WorkspaceMeetingTable items={fromTomorrow} showSetting={false} {currentUserId} />
 			</div>
 		{:else}
 			<div class="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
@@ -131,7 +136,9 @@
 							実施予定日: {formatDate(item.implementedAt)}
 						</p>
 						<div class="mt-4 flex items-center gap-2">
-							<a href="/meeting/{item.uuid}/answer" class="btn btn-sm btn-primary">記入</a>
+							{#if canUserAnswerMeeting(item, currentUserId)}
+								<a href="/meeting/{item.uuid}/answer" class="btn btn-sm btn-primary">記入</a>
+							{/if}
 							<a href="/meeting/{item.uuid}" class="btn btn-sm btn-ghost">閲覧</a>
 						</div>
 					</div>

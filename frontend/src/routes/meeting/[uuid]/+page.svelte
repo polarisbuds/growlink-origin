@@ -5,9 +5,10 @@
     import { showToast } from "$lib/toast";
     import {
         formatDate,
-        displayTopics,
+        dualTopicRows,
+        isMeetingDone,
         type MeetingPayload,
-        type DisplayTopicRow,
+        type DualTopicRow,
     } from "$lib/meeting-helpers";
     import { statusBadge, statusLabel } from "$lib/status";
     import { goto } from "$app/navigation";
@@ -15,13 +16,17 @@
     let payload = $state<MeetingPayload | null>(null);
     let comment = $state("");
 
-    let rows = $derived(payload ? displayTopics(payload) : []);
+    let rows = $derived(payload ? dualTopicRows(payload) : []);
     let meeting = $derived(payload?.meeting);
     let template = $derived(meeting?.template);
     let canEdit = $derived(!!payload?.canEdit);
+    let canWrite = $derived(!!payload?.canWriteAnswers);
+    let canOpenAnswer = $derived(
+        !!payload?.canWriteAnswers || !!payload?.canEditSharers,
+    );
     let uuid = $derived(page.params.uuid);
 
-    function rowKey(row: DisplayTopicRow) {
+    function rowKey(row: DualTopicRow) {
         return row.topic?.id ?? row.displayNo;
     }
 
@@ -77,11 +82,14 @@
                     }}
                     class="btn btn-outline btn-sm">設定</button>
             {/if}
-            <button
-                onclick={() => {
-                    goto("/meeting/" + uuid + "/answer");
-                }}
-                class="btn btn-outline btn-sm">更新</button>
+            {#if canOpenAnswer}
+                <button
+                    onclick={() => {
+                        goto("/meeting/" + uuid + "/answer");
+                    }}
+                    class="btn btn-outline btn-sm"
+                    >{canWrite ? "記入" : isMeetingDone(meeting?.status) ? "共有者" : "記入"}</button>
+            {/if}
             <button
                 onclick={() => {
                     goto("/");
@@ -108,16 +116,28 @@
                         {/if}
                     </div>
                 </div>
-                {#if row.answer?.content}
-                    <p
-                        class="mt-3 whitespace-pre-wrap text-sm text-base-content/80">
-                        {row.answer.content}
-                    </p>
-                {:else}
-                    <p class="mt-3 text-sm italic text-base-content/40">
-                        （未回答）
-                    </p>
-                {/if}
+                <div class="mt-4 space-y-3">
+                    <div>
+                        <p class="text-xs font-semibold text-base-content/60">メンティー</p>
+                        {#if row.menteeAnswer?.content}
+                            <p class="mt-1 whitespace-pre-wrap text-sm text-base-content/80">
+                                {row.menteeAnswer.content}
+                            </p>
+                        {:else}
+                            <p class="mt-1 text-sm italic text-base-content/40">（未回答）</p>
+                        {/if}
+                    </div>
+                    <div>
+                        <p class="text-xs font-semibold text-base-content/60">メンター</p>
+                        {#if row.mentorAnswer?.content}
+                            <p class="mt-1 whitespace-pre-wrap text-sm text-base-content/80">
+                                {row.mentorAnswer.content}
+                            </p>
+                        {:else}
+                            <p class="mt-1 text-sm italic text-base-content/40">（未回答）</p>
+                        {/if}
+                    </div>
+                </div>
             </div>
         {/each}
     </div>

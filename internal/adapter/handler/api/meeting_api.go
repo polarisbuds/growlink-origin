@@ -2,6 +2,7 @@ package api
 
 import (
 	"net/http"
+	"strings"
 
 	"growlink/internal/adapter/handler/authctx"
 	"growlink/internal/application/converter"
@@ -28,19 +29,34 @@ func (h *Handler) GetMeeting(c *echo.Context) error {
 	}
 	canEdit := false
 	var viewerID uint
+	viewerRole := "viewer"
+	canWriteAnswers := false
+	canEditSharers := false
 	if claims := authctx.Claims(c); claims != nil {
 		viewerID = claims.UserID
 		canEdit = authctx.CanModify(claims.UserID, claims.SystemRole, meeting.CreatedByUserID)
+		viewerRole = meetingViewerRole(meeting, viewerID)
+		canWriteAnswers = canWriteMeetingAnswers(meeting, viewerID)
+		canEditSharers = canEditMeetingSharers(meeting, viewerID)
 	}
 	meetingComments := filterMeetingComments(meeting, viewerID)
+	sharers := meetingSharersToOutputs(meeting)
 	return c.JSON(http.StatusOK, map[string]interface{}{
-		"uuid":             id.String(),
-		"meeting":          out,
-		"answers":          answers,
-		"topics":           topics,
-		"meetingComments":  meetingComments,
-		"canEdit":          canEdit,
+		"uuid":            id.String(),
+		"meeting":         out,
+		"answers":         answers,
+		"topics":          topics,
+		"meetingComments": meetingComments,
+		"canEdit":         canEdit,
+		"viewerRole":      viewerRole,
+		"canWriteAnswers": canWriteAnswers,
+		"canEditSharers":  canEditSharers,
+		"sharers":         sharers,
 	})
+}
+
+func (h *Handler) lookupAnswerOutput(answerID uint) (*outputmodel.AnswerOutput, error) {
+	return h.deps.Meeting.AnswerReader.GetAnswer(answerID)
 }
 
 func (h *Handler) SaveDraft(c *echo.Context) error {
@@ -56,13 +72,19 @@ func (h *Handler) SaveDraft(c *echo.Context) error {
 	if err != nil {
 		return c.JSON(http.StatusNotFound, map[string]string{"error": "not found"})
 	}
+	if !canWriteMeetingAnswers(meeting, claims.UserID) {
+		return c.JSON(http.StatusForbidden, map[string]string{"error": "forbidden"})
+	}
 	var req struct {
 		Answers []outputmodel.AnswerOutput `json:"answers"`
 	}
 	if err := c.Bind(&req); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid request"})
 	}
-	req.Answers = enrichAnswersForMeeting(meeting.ID, claims.UserID, req.Answers)
+	req.Answers, err = sanitizeAnswerOutputs(meeting.ID, claims.UserID, req.Answers, h.lookupAnswerOutput)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+	}
 	if err := h.deps.Meeting.DraftSaver.SaveDraft(meeting.ID, req.Answers); err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
@@ -82,13 +104,19 @@ func (h *Handler) SubmitMeeting(c *echo.Context) error {
 	if err != nil {
 		return c.JSON(http.StatusNotFound, map[string]string{"error": "not found"})
 	}
+	if !canWriteMeetingAnswers(meeting, claims.UserID) {
+		return c.JSON(http.StatusForbidden, map[string]string{"error": "forbidden"})
+	}
 	var req struct {
 		Answers []outputmodel.AnswerOutput `json:"answers"`
 	}
 	if err := c.Bind(&req); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid request"})
 	}
-	req.Answers = enrichAnswersForMeeting(meeting.ID, claims.UserID, req.Answers)
+	req.Answers, err = sanitizeAnswerOutputs(meeting.ID, claims.UserID, req.Answers, h.lookupAnswerOutput)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+	}
 	if err := h.deps.Meeting.Submitter.Submit(meeting.ID, req.Answers); err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
@@ -96,6 +124,10 @@ func (h *Handler) SubmitMeeting(c *echo.Context) error {
 }
 
 func (h *Handler) CancelSubmit(c *echo.Context) error {
+	claims := authctx.Claims(c)
+	if claims == nil {
+		return c.JSON(http.StatusUnauthorized, map[string]string{"error": "unauthorized"})
+	}
 	id, err := uuid.Parse(c.Param("uuid"))
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid uuid"})
@@ -104,10 +136,89 @@ func (h *Handler) CancelSubmit(c *echo.Context) error {
 	if err != nil {
 		return c.JSON(http.StatusNotFound, map[string]string{"error": "not found"})
 	}
+	if !canWriteMeetingAnswers(meeting, claims.UserID) {
+		return c.JSON(http.StatusForbidden, map[string]string{"error": "forbidden"})
+	}
 	if err := h.deps.Meeting.SubmitCanceller.CancelSubmit(meeting.ID); err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
 	return c.JSON(http.StatusOK, map[string]string{"ok": "true"})
+}
+
+func (h *Handler) UpdateMeetingSharers(c *echo.Context) error {
+	claims := authctx.Claims(c)
+	if claims == nil {
+		return c.JSON(http.StatusUnauthorized, map[string]string{"error": "unauthorized"})
+	}
+	id, err := uuid.Parse(c.Param("uuid"))
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid uuid"})
+	}
+	meeting, err := h.deps.MeetingRepo.GetByUUID(id)
+	if err != nil {
+		return c.JSON(http.StatusNotFound, map[string]string{"error": "not found"})
+	}
+	if !canEditMeetingSharers(meeting, claims.UserID) {
+		return c.JSON(http.StatusForbidden, map[string]string{"error": "forbidden"})
+	}
+	var req struct {
+		SharerUserIDs []uint `json:"sharerUserIds"`
+	}
+	if err := c.Bind(&req); err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid request"})
+	}
+	if err := h.deps.MeetingRepo.ReplaceSharers(meeting.ID, req.SharerUserIDs); err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+	}
+	updated, err := h.deps.MeetingRepo.GetByUUID(id)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+	}
+	return c.JSON(http.StatusOK, map[string]interface{}{
+		"sharers": meetingSharersToOutputs(updated),
+	})
+}
+
+func (h *Handler) ListMeetingSharerCandidates(c *echo.Context) error {
+	claims := authctx.Claims(c)
+	if claims == nil {
+		return c.JSON(http.StatusUnauthorized, map[string]string{"error": "unauthorized"})
+	}
+	id, err := uuid.Parse(c.Param("uuid"))
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid uuid"})
+	}
+	meeting, err := h.deps.MeetingRepo.GetByUUID(id)
+	if err != nil {
+		return c.JSON(http.StatusNotFound, map[string]string{"error": "not found"})
+	}
+	if !canEditMeetingSharers(meeting, claims.UserID) {
+		return c.JSON(http.StatusForbidden, map[string]string{"error": "forbidden"})
+	}
+	q := strings.TrimSpace(c.QueryParam("q"))
+	users, err := h.deps.UserRepo.GetAll()
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+	}
+	type candidate struct {
+		ID    uint   `json:"id"`
+		Name  string `json:"name"`
+		Email string `json:"email"`
+	}
+	out := make([]candidate, 0, 32)
+	for _, u := range users {
+		if u.Suspended {
+			continue
+		}
+		if !userMatchesSharerQuery(u, q) {
+			continue
+		}
+		out = append(out, candidate{ID: u.ID, Name: u.Name, Email: u.Email})
+		if len(out) >= 50 {
+			break
+		}
+	}
+	return c.JSON(http.StatusOK, out)
 }
 
 func (h *Handler) PostMeetingComment(c *echo.Context) error {

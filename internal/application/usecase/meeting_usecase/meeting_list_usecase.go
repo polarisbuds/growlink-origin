@@ -114,7 +114,7 @@ func (uc *MeetingListUsecase) ListInvolvedMeetings(userID uint) ([]outputmodel.M
 		return nil, fmt.Errorf("ペアリング一覧の取得に失敗しました: %w", err)
 	}
 
-	var all []outputmodel.MeetingOutput
+	all := []outputmodel.MeetingOutput{}
 	for _, p := range pairings {
 		if !userInvolvedInPairing(userID, user.DepartmentID, teamIDs, p) {
 			continue
