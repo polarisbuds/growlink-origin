@@ -106,6 +106,116 @@ export function splitByToday<T extends { implementedAt?: string }>(meetings: T[]
 	return { untilToday, fromTomorrow };
 }
 
+export type MeetingPeriodSplit<T> = {
+	thisMonth: T[];
+	past: T[];
+	planned: T[];
+};
+
+function monthBounds(now = new Date()) {
+	const y = now.getFullYear();
+	const m = now.getMonth();
+	const thisMonthStart = new Date(y, m, 1, 0, 0, 0, 0);
+	const nextMonthStart = new Date(y, m + 1, 1, 0, 0, 0, 0);
+	return { thisMonthStart, nextMonthStart };
+}
+
+export function splitByMeetingPeriod<T extends { implementedAt?: string }>(
+	meetings: T[],
+	now = new Date()
+): MeetingPeriodSplit<T> {
+	const { thisMonthStart, nextMonthStart } = monthBounds(now);
+	const thisMonth: T[] = [];
+	const past: T[] = [];
+	const planned: T[] = [];
+	for (const meeting of meetings) {
+		const raw = meeting.implementedAt;
+		if (!raw) {
+			thisMonth.push(meeting);
+			continue;
+		}
+		const d = new Date(raw);
+		if (Number.isNaN(d.getTime())) {
+			thisMonth.push(meeting);
+			continue;
+		}
+		if (d < thisMonthStart) {
+			past.push(meeting);
+		} else if (d >= nextMonthStart) {
+			planned.push(meeting);
+		} else {
+			thisMonth.push(meeting);
+		}
+	}
+	return { thisMonth, past, planned };
+}
+
+export function isUserMentorOfMeeting(
+	item: { pairing?: MeetingPairingRef },
+	userId: number | undefined
+): boolean {
+	if (!userId || !item.pairing) return false;
+	return item.pairing.mentor?.id === userId;
+}
+
+export function isUserMenteeOfMeeting(
+	item: { pairing?: MeetingPairingRef },
+	userId: number | undefined
+): boolean {
+	if (!userId || !item.pairing) return false;
+	return item.pairing.mentee?.id === userId;
+}
+
+export const BADGE_YOU_ARE_MENTEE = 'あなたがメンティーの面談';
+export const BADGE_YOU_ARE_MENTOR = 'あなたがメンターの面談';
+
+export function meetingRoleBadgeLabel(
+	item: { pairing?: MeetingPairingRef },
+	userId: number | undefined,
+	mode: 'mentee-only' | 'mentor-always' | 'none'
+): string | null {
+	if (mode === 'none' || !userId) return null;
+	if (mode === 'mentor-always' || isUserMentorOfMeeting(item, userId)) {
+		if (isUserMentorOfMeeting(item, userId)) return BADGE_YOU_ARE_MENTOR;
+	}
+	if (mode === 'mentee-only' && isUserMenteeOfMeeting(item, userId)) {
+		return BADGE_YOU_ARE_MENTEE;
+	}
+	return null;
+}
+
+export function canShowMeetingSetting(implementedAt?: string): boolean {
+	if (!implementedAt) return true;
+	const d = new Date(implementedAt);
+	if (Number.isNaN(d.getTime())) return true;
+	const today = new Date();
+	today.setHours(23, 59, 59, 999);
+	return d <= today;
+}
+
+export function splitInvolvedMeetingsForWorkspace(
+	meetings: MeetingListItem[],
+	userId: number | undefined
+): { own: MeetingListItem[]; asMentor: MeetingListItem[]; showMentorTab: boolean } {
+	const asMentor: MeetingListItem[] = [];
+	const own: MeetingListItem[] = [];
+	for (const m of meetings) {
+		if (isUserMentorOfMeeting(m, userId)) {
+			asMentor.push(m);
+		} else {
+			own.push(m);
+		}
+	}
+	return { own, asMentor, showMentorTab: asMentor.length > 0 };
+}
+
+export function mentorTabPairLabel(item: { pairing?: MeetingPairingRef }): string {
+	const mentee = menteeTargetLabel(item.pairing);
+	const mentor = item.pairing?.mentor?.name || '';
+	if (mentee && mentee !== '—') return `メンティー: ${mentee}`;
+	return pairLabel(item) || mentor;
+}
+
 export type MeetingPayload = {
 	uuid: string;
 	meeting: MeetingListItem;

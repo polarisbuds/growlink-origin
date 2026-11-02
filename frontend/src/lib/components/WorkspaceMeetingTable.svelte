@@ -1,24 +1,42 @@
 <script lang="ts">
 	import { statusBadge, statusLabel } from '$lib/status';
-	import { formatDate, pairLabel, canUserAnswerMeeting, type MeetingListItem } from '$lib/meeting-helpers';
+	import {
+		formatDate,
+		pairLabel,
+		canUserAnswerMeeting,
+		canShowMeetingSetting,
+		meetingRoleBadgeLabel,
+		type MeetingListItem
+	} from '$lib/meeting-helpers';
+
+	type RoleBadgeMode = 'mentee-only' | 'mentor-always' | 'none';
 
 	let {
 		items,
 		showAnswer = true,
 		showSetting = true,
-		currentUserId
+		currentUserId,
+		roleBadgeMode = 'none',
+		labelForItem = pairLabel
 	}: {
 		items: MeetingListItem[];
 		showAnswer?: boolean;
 		showSetting?: boolean;
 		currentUserId?: number;
+		roleBadgeMode?: RoleBadgeMode;
+		labelForItem?: (item: MeetingListItem) => string;
 	} = $props();
+
+	let showRoleColumn = $derived(roleBadgeMode !== 'none');
 </script>
 
 <div class="overflow-x-auto rounded-3xl border border-base-300 bg-base-100 shadow-sm">
 	<table class="table">
 		<thead>
 			<tr class="text-base-content/70">
+				{#if showRoleColumn}
+					<th>区分</th>
+				{/if}
 				<th>ペア</th>
 				<th>テンプレート</th>
 				<th>状態</th>
@@ -28,8 +46,18 @@
 		</thead>
 		<tbody>
 			{#each items as item (item.uuid)}
+				{@const roleBadge = meetingRoleBadgeLabel(item, currentUserId, roleBadgeMode)}
 				<tr class="hover:bg-base-200/40">
-					<td class="whitespace-nowrap">{pairLabel(item)}</td>
+					{#if showRoleColumn}
+						<td class="max-w-[11rem] text-xs">
+							{#if roleBadge}
+								<span class="badge badge-outline badge-sm whitespace-normal text-left">{roleBadge}</span>
+							{:else}
+								—
+							{/if}
+						</td>
+					{/if}
+					<td class="whitespace-nowrap">{labelForItem(item)}</td>
 					<td>{item.template?.title || '1on1'}</td>
 					<td>
 						<span class="badge badge-sm {statusBadge(item.status ?? 0)}">
@@ -43,7 +71,7 @@
 								<a href="/meeting/{item.uuid}/answer" class="btn btn-xs btn-primary">記入</a>
 							{/if}
 							<a href="/meeting/{item.uuid}" class="btn btn-xs btn-ghost">閲覧</a>
-							{#if showSetting}
+							{#if showSetting && canShowMeetingSetting(item.implementedAt)}
 								<a href="/meeting/{item.uuid}/setting" class="btn btn-xs btn-ghost">設定</a>
 							{/if}
 						</div>
