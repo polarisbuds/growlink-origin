@@ -95,13 +95,23 @@ func (h *Handler) CreateMeetingMonthly(c *echo.Context) error {
 	if req.Weekday < 0 || req.Weekday > 6 {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "weekday must be between 0 and 6"})
 	}
-	baseDate, ok := parseDateOnly(req.BaseDate)
+	fromDate, ok := parseDateOnly(req.From)
 	if !ok {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid baseDate"})
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid from"})
+	}
+	toDate, ok := parseDateOnly(req.To)
+	if !ok {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid to"})
+	}
+	fromMonth := time.Date(fromDate.Year(), fromDate.Month(), 1, 0, 0, 0, 0, fromDate.Location())
+	toMonth := time.Date(toDate.Year(), toDate.Month(), 1, 0, 0, 0, 0, toDate.Location())
+	if fromMonth.After(toMonth) {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "from must not be after to"})
 	}
 	outs, err := h.deps.Management.MeetingCreator.CreateMeetingEveryMonth(
 		req.TemplateID,
-		baseDate,
+		fromDate,
+		toDate,
 		req.Week,
 		time.Weekday(req.Weekday),
 		claims.UserID,

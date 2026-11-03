@@ -77,12 +77,43 @@ export function menteeTargetLabel(pairing?: MeetingPairingRef): string {
 }
 
 export function canUserAnswerMeeting(
-	item: { pairing?: MeetingPairingRef },
+	item: { pairing?: MeetingPairingRef; status?: number },
 	userId: number | undefined
 ): boolean {
 	if (!userId || !item.pairing) return false;
-	const p = item.pairing;
-	return p.mentor?.id === userId || p.mentee?.id === userId;
+	const done = isMeetingDone(item.status);
+	if (isUserMentorOfMeeting(item, userId)) {
+		return done;
+	}
+	if (isUserMenteeOfMeeting(item, userId)) {
+		return !done;
+	}
+	return false;
+}
+
+/** 一覧の「閲覧」。記入と同時には true にならない */
+export function canUserViewMeeting(
+	item: { pairing?: MeetingPairingRef; status?: number },
+	userId: number | undefined
+): boolean {
+	if (!item.pairing) return false;
+	const done = isMeetingDone(item.status);
+	if (userId != null && isUserMenteeOfMeeting(item, userId)) {
+		return done;
+	}
+	if (userId != null && isUserMentorOfMeeting(item, userId)) {
+		return !done;
+	}
+	return true;
+}
+
+/** メンター・共有者はメンティー提出前に面談の中身を画面に出さない */
+export function shouldHideMeetingContentBeforeSubmit(
+	viewerRole: 'mentee' | 'mentor' | 'viewer' | undefined,
+	status?: number
+): boolean {
+	if (viewerRole === 'mentee') return false;
+	return !isMeetingDone(status);
 }
 
 export function pairLabel(item: { pairing?: MeetingPairingRef }): string {

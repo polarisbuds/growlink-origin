@@ -42,6 +42,14 @@ func (repo *TemplateRepository) GetByUUID(templateUUID uuid.UUID) (*entity.Templ
 	return &template, nil
 }
 
+func (repo *TemplateRepository) Count() (int64, error) {
+	result, err := templateChain(repo.db).Count(repo.ctx, "id")
+	if err != nil {
+		return 0, fmt.Errorf("テンプレート数の取得に失敗しました: %w", err)
+	}
+	return result, nil
+}
+
 func (repo *TemplateRepository) Get(templateID uint) (*entity.Template, error) {
 	template, err := templateChain(repo.db).Where("id = ?", templateID).First(repo.ctx)
 	if err != nil {

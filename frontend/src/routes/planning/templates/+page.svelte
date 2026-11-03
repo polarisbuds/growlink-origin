@@ -155,8 +155,7 @@
 <svelte:head><title>テンプレート - Growlink</title></svelte:head>
 
 <svelte:window
-    onkeydown={(e: KeyboardEvent) => e.key === "Escape" && closeModal()}
-/>
+    onkeydown={(e: KeyboardEvent) => e.key === "Escape" && closeModal()} />
 
 <div class="flex flex-wrap items-center justify-between gap-2">
     <div>
@@ -165,58 +164,49 @@
             行をクリックして内容を確認できます
         </p>
     </div>
-    <a href="/planning/templates/new" class="btn btn-primary btn-sm">新規作成</a
-    >
+    <a href="/planning/templates/new" class="btn btn-primary btn-sm"
+        >新規作成</a>
 </div>
 <PlanningTabs active="templates" />
 
 <div class="mt-6 space-y-2">
     {#if templates.length === 0}
         <div
-            class="rounded-3xl border border-base-300 bg-base-100 p-12 text-center text-sm text-base-content/50"
-        >
+            class="rounded-3xl border border-base-300 bg-base-100 p-12 text-center text-sm text-base-content/50">
             テンプレートがありません
         </div>
     {:else}
-        {#each templates as t (t.id)}
+        {#each templates.entries() as [idx, t] (t.id)}
             <div
                 role="button"
                 tabindex="0"
                 class="group flex cursor-pointer flex-wrap items-center justify-between gap-2 rounded-2xl border border-base-300 bg-base-100 p-4 shadow-sm transition-all hover:border-primary/50 hover:shadow-md"
                 onclick={() => openView(t)}
-                onkeydown={(e) => e.key === "Enter" && openView(t)}
-            >
+                onkeydown={(e) => e.key === "Enter" && openView(t)}>
                 <div class="flex min-w-0 items-center gap-2">
-                    <span class="badge badge-ghost shrink-0"
-                        >#{t.displayNo}</span
-                    >
+                    <span class="badge badge-ghost shrink-0">#{idx}</span>
                     <span class="truncate font-medium">{t.title}</span>
                     {#if t.isSample}
                         <span class="badge badge-outline shrink-0"
-                            >サンプル</span
-                        >
+                            >サンプル</span>
                     {/if}
                 </div>
                 <div
                     class="flex items-center gap-1"
                     onclick={(e) => e.stopPropagation()}
-                    role="presentation"
-                >
+                    role="presentation">
                     <button
                         type="button"
                         class="btn btn-xs btn-outline"
-                        onclick={() => copy(t)}>コピー</button
-                    >
+                        onclick={() => copy(t)}>コピー</button>
                     <button
                         type="button"
                         class="btn btn-xs btn-ghost"
-                        onclick={() => moveUp(t)}>↑</button
-                    >
+                        onclick={() => moveUp(t)}>↑</button>
                     <button
                         type="button"
                         class="btn btn-xs btn-ghost"
-                        onclick={() => moveDown(t)}>↓</button
-                    >
+                        onclick={() => moveDown(t)}>↓</button>
                 </div>
             </div>
         {/each}
@@ -226,8 +216,7 @@
 <dialog class="modal" class:modal-open={modalOpen}>
     <div class="modal-box flex max-h-[85vh] max-w-2xl flex-col p-0">
         <div
-            class="flex shrink-0 items-start justify-between gap-2 border-b border-base-200 p-6 pb-2"
-        >
+            class="flex shrink-0 items-start justify-between gap-2 border-b border-base-200 p-6 pb-2">
             <div class="min-w-0">
                 <h3 class="truncate text-lg font-bold">{active?.title}</h3>
                 <p class="text-sm text-base-content/60">
@@ -239,41 +228,35 @@
                     <button
                         type="button"
                         class="btn btn-sm btn-outline"
-                        onclick={startEdit}>編集</button
-                    >
+                        onclick={startEdit}>編集</button>
                 {/if}
                 <button
                     type="button"
                     class="btn btn-sm btn-error btn-outline"
-                    onclick={askDelete}>削除</button
-                >
+                    onclick={askDelete}>削除</button>
                 <button
                     type="button"
                     class="btn btn-sm btn-circle btn-ghost"
                     aria-label="閉じる"
-                    onclick={closeModal}>×</button
-                >
+                    onclick={closeModal}>×</button>
             </div>
         </div>
         {#if !editMode}
             <div class="flex-1 overflow-y-auto px-6 py-4">
                 {#each active?.topics || [] as topic (topic.id || topic.displayNo)}
                     <div
-                        class="mb-3 rounded-2xl border border-base-300 bg-base-200/30 p-4"
-                    >
+                        class="mb-3 rounded-2xl border border-base-300 bg-base-200/30 p-4">
                         <div class="flex items-start gap-2">
                             <span
                                 class="badge badge-primary badge-outline shrink-0"
-                                >Q{topic.displayNo}</span
-                            >
+                                >Q{topic.displayNo}</span>
                             <div class="min-w-0 flex-1">
                                 <p class="text-sm leading-relaxed">
                                     {topic.question}
                                 </p>
                                 {#if topic.description}
                                     <p
-                                        class="mt-1 whitespace-pre-wrap text-xs text-base-content/60"
-                                    >
+                                        class="mt-1 whitespace-pre-wrap text-xs text-base-content/60">
                                         {topic.description}
                                     </p>
                                 {/if}
@@ -281,8 +264,7 @@
                             {#if topic.isRequire}
                                 <span
                                     class="badge badge-error badge-outline badge-sm shrink-0"
-                                    >必須</span
-                                >
+                                    >必須</span>
                             {/if}
                         </div>
                     </div>
@@ -294,33 +276,28 @@
                     <span class="label-text font-medium">タイトル</span>
                     <input
                         class="input input-bordered"
-                        bind:value={editForm.title}
-                    />
+                        bind:value={editForm.title} />
                 </label>
                 {#each editForm.topics as topic, i (i)}
                     <div
-                        class="flex items-center gap-2 rounded-2xl border border-base-300 p-2"
-                    >
+                        class="flex items-center gap-2 rounded-2xl border border-base-300 p-2">
                         <span class="badge badge-ghost shrink-0">Q{i + 1}</span>
                         <div class="min-w-0 flex-1 space-y-1">
                             <input
                                 class="input input-bordered input-sm w-full placeholder-current"
                                 bind:value={topic.question}
-                                placeholder="質問文"
-                            />
+                                placeholder="質問文" />
                             <textarea
                                 class="textarea textarea-bordered textarea-sm min-h-[2.5rem] w-full placeholder-current"
                                 rows="2"
                                 bind:value={topic.description}
-                                placeholder="説明（改行可能）"
-                            ></textarea>
+                                placeholder="説明（改行可能）"></textarea>
                         </div>
                         <label class="label shrink-0 cursor-pointer gap-1 py-0">
                             <input
                                 type="checkbox"
                                 class="checkbox checkbox-sm"
-                                bind:checked={topic.isRequire}
-                            />
+                                bind:checked={topic.isRequire} />
                             <span class="label-text text-xs">必須</span>
                         </label>
                         <button
@@ -328,25 +305,21 @@
                             class="btn btn-ghost btn-xs btn-square text-error"
                             title="削除"
                             disabled={editForm.topics.length <= 1}
-                            onclick={() => removeTopic(i)}>×</button
-                        >
+                            onclick={() => removeTopic(i)}>×</button>
                     </div>
                 {/each}
                 <button
                     type="button"
                     class="btn btn-outline btn-sm w-full"
-                    onclick={addTopic}>質問を追加</button
-                >
+                    onclick={addTopic}>質問を追加</button>
             </div>
         {/if}
         <div class="modal-action shrink-0 border-t border-base-200 p-4">
             <button type="button" class="btn btn-ghost" onclick={closeModal}
-                >閉じる</button
-            >
+                >閉じる</button>
             {#if editMode}
                 <button type="button" class="btn btn-primary" onclick={saveEdit}
-                    >保存</button
-                >
+                    >保存</button>
             {/if}
         </div>
     </div>
@@ -365,15 +338,13 @@
             <button
                 type="button"
                 class="btn btn-ghost"
-                onclick={() => (deleteOpen = false)}>キャンセル</button
-            >
+                onclick={() => (deleteOpen = false)}>キャンセル</button>
             <button type="button" class="btn btn-error" onclick={confirmDelete}
-                >削除確定</button
-            >
+                >削除確定</button>
         </div>
     </div>
     <form method="dialog" class="modal-backdrop">
-        <button type="button" onclick={() => (deleteOpen = false)}>close</button
-        >
+        <button type="button" onclick={() => (deleteOpen = false)}
+            >close</button>
     </form>
 </dialog>

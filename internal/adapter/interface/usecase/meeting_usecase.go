@@ -24,7 +24,7 @@ type (
 		ListAnswersByMeeting(meetingID uint) ([]outputmodel.AnswerOutput, error)
 	}
 	DraftSaver interface {
-		SaveDraft(meetingID uint, answers []outputmodel.AnswerOutput) error
+		SaveDraft(meetingID uint, answers []outputmodel.AnswerOutput, keepMeetingStatus bool) error
 	}
 	Submitter interface {
 		Submit(meetingID uint, answers []outputmodel.AnswerOutput) error

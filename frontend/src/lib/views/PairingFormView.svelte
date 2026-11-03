@@ -5,7 +5,6 @@
     import { showToast } from "$lib/toast";
     import UserChipSearchField from "$lib/components/UserChipSearchField.svelte";
     import SearchableSelect from "$lib/components/SearchableSelect.svelte";
-    import { filterItems } from "$lib/searchable-select";
 
     type SelectItem = { id: number };
     type Target = { kind: string; targetId: number; label: string };
@@ -47,9 +46,6 @@
     let sortKey = $state<"role" | "name" | "department" | "team">("name");
     let sortDir = $state<"asc" | "desc">("asc");
     let selectedMenteeIds = $state<Set<number>>(new Set());
-
-    let userTargetPickOpen = $state(false);
-    let userTargetPickQuery = $state("");
 
     let userTargets = $derived(targets.filter((t) => t.kind === "user"));
     let menteeChips = $derived(
@@ -95,16 +91,6 @@
         if (!filterTeamId) return;
         const ok = teamOptions.some((t) => t.id === filterTeamId);
         if (!ok) filterTeamId = 0;
-    });
-
-    let userTargetPickFiltered = $derived.by(() => {
-        const picked = new Set(userTargets.map((t) => t.targetId));
-        const list = users.filter((u) => !picked.has(u.id));
-        return filterItems(
-            list,
-            userTargetPickQuery,
-            (u) => `${u.name} (${u.email})`,
-        );
     });
 
     let tableRows = $derived.by(() => {
@@ -217,21 +203,10 @@
             name: t.name,
             departmentId: t.departmentId,
         }));
-
-        const onMouseDown = (ev: MouseEvent) => {
-            const t = ev.target;
-            if (!(t instanceof Element)) return;
-            if (!t.closest('[data-pick-root="user-target"]'))
-                userTargetPickOpen = false;
-        };
-        window.addEventListener("mousedown", onMouseDown);
-        // return () => window.removeEventListener("mousedown", onMouseDown);
     });
 
     function pickUserTarget(u: DirectoryUser) {
         addUserTarget(u);
-        userTargetPickQuery = "";
-        userTargetPickOpen = false;
     }
     function removeUserTarget(targetId: number) {
         targets = targets.filter(
@@ -384,16 +359,15 @@
                 選択中: {selectedMenteeIds.size} 人
             </p>
         {:else}
-            <div class="form-control" data-pick-root="user-target">
+            <div class="form-control">
                 <span class="label-text font-medium">メンティ</span>
                 <UserChipSearchField
+                    pickRootId="pairing-form-mentee"
                     chips={menteeChips}
+                    items={users}
                     placeholder={menteeChips.length
                         ? "追加で検索"
                         : "名前で検索して追加"}
-                    bind:query={userTargetPickQuery}
-                    bind:open={userTargetPickOpen}
-                    filteredUsers={userTargetPickFiltered}
                     onPick={pickUserTarget}
                     onRemove={removeUserTarget} />
             </div>

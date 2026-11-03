@@ -103,7 +103,7 @@ func TestDraftSaverUsecase_SaveDraft(t *testing.T) {
 				tt.setup(t, meetingRepo, answerRepo, cap)
 			}
 
-			err := uc.SaveDraft(tt.meetingID, converter.AnswerEntitiesToOutputs(tt.answers))
+			err := uc.SaveDraft(tt.meetingID, converter.AnswerEntitiesToOutputs(tt.answers), true)
 			assertUsecaseErr(t, err, tt.wantErr, tt.errContains, "SaveDraft")
 			if !t.Failed() && tt.assertFn != nil {
 				tt.assertFn(t, cap)

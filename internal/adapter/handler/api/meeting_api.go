@@ -7,6 +7,7 @@ import (
 	"growlink/internal/adapter/handler/authctx"
 	"growlink/internal/application/converter"
 	outputmodel "growlink/internal/application/model/output_model"
+	"growlink/internal/domain/valueobject"
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v5"
@@ -85,7 +86,9 @@ func (h *Handler) SaveDraft(c *echo.Context) error {
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
-	if err := h.deps.Meeting.DraftSaver.SaveDraft(meeting.ID, req.Answers); err != nil {
+	keepStatus := meetingViewerRole(meeting, claims.UserID) == "mentor" &&
+		meeting.Status == valueobject.MeetingStatusDone
+	if err := h.deps.Meeting.DraftSaver.SaveDraft(meeting.ID, req.Answers, keepStatus); err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
 	return c.JSON(http.StatusOK, map[string]string{"ok": "true"})
@@ -136,7 +139,7 @@ func (h *Handler) CancelSubmit(c *echo.Context) error {
 	if err != nil {
 		return c.JSON(http.StatusNotFound, map[string]string{"error": "not found"})
 	}
-	if !canWriteMeetingAnswers(meeting, claims.UserID) {
+	if !canCancelMeetingSubmit(meeting, claims.UserID) {
 		return c.JSON(http.StatusForbidden, map[string]string{"error": "forbidden"})
 	}
 	if err := h.deps.Meeting.SubmitCanceller.CancelSubmit(meeting.ID); err != nil {

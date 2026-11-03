@@ -2,7 +2,8 @@
     import { onMount } from "svelte";
     import { api } from "$lib/api";
     import PlanningTabs from "$lib/components/PlanningTabs.svelte";
-    import SearchableSelect from "$lib/components/SearchableSelect.svelte";
+    import MultiCheckSelect from "$lib/components/MultiCheckSelect.svelte";
+    import ChevronRight from "lucide-svelte/icons/chevron-right";
     import { formatDate } from "$lib/meeting-helpers";
     import { statusBadge, statusLabel } from "$lib/status";
     import {
@@ -17,6 +18,7 @@
         toggleSortKey,
         type SortDir,
     } from "$lib/list-sort";
+    import { goto } from "$app/navigation";
 
     type Meeting = {
         uuid: string;
@@ -42,9 +44,9 @@
     let directoryUsers = $state<PlanningDirectoryUser[]>([]);
     let departments = $state<{ id: number; name: string }[]>([]);
 
-    let filterMentorId = $state(0);
-    let filterMenteeId = $state(0);
-    let filterDeptId = $state(0);
+    let filterMentorIds = $state<number[]>([]);
+    let filterMenteeIds = $state<number[]>([]);
+    let filterDeptIds = $state<number[]>([]);
     let filterStatus = $state("");
     let filterDateFrom = $state("");
     let filterDateTo = $state("");
@@ -53,16 +55,12 @@
 
     let deptMaps = $derived(buildUserDepartmentMaps(directoryUsers));
 
-    type SelectItem = { id: number };
-
-    function userLabel(id: number) {
-        const u = directoryUsers.find((x) => x.id === id);
-        return u ? u.name : `#${id}`;
+    function userOptionLabel(u: PlanningDirectoryUser) {
+        return `${u.name} (${u.email})`;
     }
 
-    function userLabelOf(item: SelectItem) {
-        const u = directoryUsers.find((x) => x.id === item.id);
-        return u ? `${u.name} ${u.email}` : `#${item.id}`;
+    function departmentOptionLabel(d: { id: number; name: string }) {
+        return d.name;
     }
 
     onMount(async () => {
@@ -80,20 +78,36 @@
 
     let displayedMeetings = $derived.by(() => {
         let list = [...meetings];
-        if (filterMentorId) {
-            list = list.filter((m) => m.pairing?.mentor?.id === filterMentorId);
+        if (filterMentorIds.length) {
+            const set = new Set(filterMentorIds);
+            list = list.filter((m) => {
+                const id = m.pairing?.mentor?.id;
+                return id != null && set.has(id);
+            });
         }
-        if (filterMenteeId) {
-            list = list.filter((m) => m.pairing?.mentee?.id === filterMenteeId);
+        if (filterMenteeIds.length) {
+            const set = new Set(filterMenteeIds);
+            list = list.filter((m) => {
+                const id = m.pairing?.mentee?.id;
+                return id != null && set.has(id);
+            });
         }
-        if (filterDeptId) {
-            list = list.filter(
-                (m) =>
-                    departmentIdForUser(m.pairing?.mentor?.id, deptMaps) ===
-                        filterDeptId ||
-                    departmentIdForUser(m.pairing?.mentee?.id, deptMaps) ===
-                        filterDeptId,
-            );
+        if (filterDeptIds.length) {
+            const set = new Set(filterDeptIds);
+            list = list.filter((m) => {
+                const mentorDept = departmentIdForUser(
+                    m.pairing?.mentor?.id,
+                    deptMaps,
+                );
+                const menteeDept = departmentIdForUser(
+                    m.pairing?.mentee?.id,
+                    deptMaps,
+                );
+                return (
+                    (mentorDept != null && set.has(mentorDept)) ||
+                    (menteeDept != null && set.has(menteeDept))
+                );
+            });
         }
         if (filterStatus !== "") {
             const st = Number(filterStatus);
@@ -206,38 +220,30 @@
 <div class="mt-4 grid gap-3 sm:grid-cols-3 lg:grid-cols-6">
     <label class="form-control">
         <span class="label-text text-xs">メンター</span>
-        <SearchableSelect
+        <MultiCheckSelect
             pickRootId="meeting-list-mentor"
             items={directoryUsers}
-            bind:value={filterMentorId}
-            labelOf={userLabelOf}
-            selectedLabel={userLabel}
-            placeholder="すべて"
-            allowClear={true}
-            inputClass="input input-bordered input-sm w-full placeholder-current" />
+            bind:selectedIds={filterMentorIds}
+            labelOf={userOptionLabel}
+            placeholder="すべて" />
     </label>
     <label class="form-control">
         <span class="label-text text-xs">メンティ</span>
-        <SearchableSelect
+        <MultiCheckSelect
             pickRootId="meeting-list-mentee"
             items={directoryUsers}
-            bind:value={filterMenteeId}
-            labelOf={userLabelOf}
-            selectedLabel={userLabel}
-            placeholder="すべて"
-            allowClear={true}
-            inputClass="input input-bordered input-sm w-full placeholder-current" />
+            bind:selectedIds={filterMenteeIds}
+            labelOf={userOptionLabel}
+            placeholder="すべて" />
     </label>
     <label class="form-control">
         <span class="label-text text-xs">部署</span>
-        <select
-            class="select select-bordered select-sm"
-            bind:value={filterDeptId}>
-            <option value={0}>すべて</option>
-            {#each departments as d (d.id)}
-                <option value={d.id}>{d.name}</option>
-            {/each}
-        </select>
+        <MultiCheckSelect
+            pickRootId="meeting-list-dept"
+            items={departments}
+            bind:selectedIds={filterDeptIds}
+            labelOf={departmentOptionLabel}
+            placeholder="すべて" />
     </label>
     <label class="form-control">
         <span class="label-text text-xs">状態</span>
@@ -289,17 +295,7 @@
                                 sortDir,
                             )}</button>
                     </th>
-                    <th>
-                        <button
-                            type="button"
-                            class="font-semibold hover:text-primary"
-                            onclick={() => toggleSort("mentorDept")}
-                            >部署{sortIndicator(
-                                "mentorDept",
-                                sortKey,
-                                sortDir,
-                            )}</button>
-                    </th>
+
                     <th>
                         <button
                             type="button"
@@ -360,13 +356,11 @@
             </thead>
             <tbody>
                 {#each displayedMeetings as m (m.uuid)}
-                    <tr class="hover:bg-base-200/40">
+                    <tr
+                        class="hover:bg-base-200/40 cursor-pointer"
+                        onclick={() => goto("/meeting/" + m.uuid)}>
                         <td>{m.pairing?.mentor?.name}</td>
-                        <td class="text-sm"
-                            >{departmentNameForUser(
-                                m.pairing?.mentor?.id,
-                                deptMaps,
-                            )}</td>
+
                         <td>{m.pairing?.mentee?.name}</td>
                         <td class="text-sm"
                             >{departmentNameForUser(
@@ -379,12 +373,9 @@
                                 >{statusLabel(m.status)}</span>
                         </td>
                         <td>{formatDate(m.implementedAt)}</td>
-                        <td
-                            ><a
-                                href="/meeting/{m.uuid}"
-                                class="btn btn-xs btn-ghost gap-1">閲覧</a
-                            ></td>
-                    </tr>
+                        <td>
+                            <ChevronRight></ChevronRight>
+                        </td></tr>
                 {/each}
             </tbody>
         </table>

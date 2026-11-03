@@ -109,43 +109,50 @@ func (uc *MeetingCreator) CreatePlannedMeetings(mentorID, templateID uint, mente
 	return converter.MeetingEntitiesToOutputs(result), nil
 }
 
-func (uc *MeetingCreator) CreateMeetingEveryMonth(templateID uint, baseDate time.Time, week int, weekday time.Weekday, createdByUserID uint, sharerUserIDs []uint, pairingIDs []uint) ([]outputmodel.MeetingOutput, error) {
+func (uc *MeetingCreator) CreateMeetingEveryMonth(templateID uint, from, to time.Time, week int, weekday time.Weekday, createdByUserID uint, sharerUserIDs []uint, pairingIDs []uint) ([]outputmodel.MeetingOutput, error) {
 	pairings, err := uc.pairingRepo.GetAll()
 	if err != nil {
 		return nil, fmt.Errorf("定期ミーティング作成処理時に全てのペアリング情報の取得に失敗しました: %w", err)
 	}
 	pairings = filterPairingsByIDs(pairings, pairingIDs)
+	implementDates := utils.ListSpecificWeekdays(from, to, week, weekday)
+	if len(implementDates) == 0 || len(pairings) == 0 {
+		return converter.MeetingEntitiesToOutputs(nil), nil
+	}
 	var (
 		result = []entity.Meeting{}
 		mux    = sync.Mutex{}
 		wg     = sync.WaitGroup{}
 	)
-	errCh := make(chan error, len(pairings))
-	implementDate := utils.GetSpecificWeekday(baseDate, week, weekday)
-	for _, pairing := range pairings {
-		wg.Add(1)
-		pairing := pairing
-		go func(pairingID uint, ec chan<- error) {
-			defer wg.Done()
-			meeting, err := uc.meetingRepo.Create(&entity.Meeting{
-				ImplementedAt:   implementedAtPtr(implementDate),
-				Status:          valueobject.MeetingStatusPending,
-				TemplateID:      templateID,
-				PairingID:       pairingID,
-				CreatedByUserID: createdByUserID,
-			})
-			if err != nil {
-				ec <- fmt.Errorf("定期ミーティングのペアリングのミーティング作成に失敗しました: %w", err)
-				return
-			}
-			if err := uc.saveSharers(meeting.ID, sharerUserIDs); err != nil {
-				ec <- err
-				return
-			}
-			mux.Lock()
-			result = append(result, *meeting)
-			mux.Unlock()
-		}(pairing.ID, errCh)
+	totalCreates := len(implementDates) * len(pairings)
+	errCh := make(chan error, totalCreates)
+	for _, implementDate := range implementDates {
+		implementDate := implementDate
+		for _, pairing := range pairings {
+			wg.Add(1)
+			pairingID := pairing.ID
+			go func(pairingID uint, ec chan<- error) {
+				defer wg.Done()
+				meeting, err := uc.meetingRepo.Create(&entity.Meeting{
+					ImplementedAt:   implementedAtPtr(implementDate),
+					Status:          valueobject.MeetingStatusPending,
+					TemplateID:      templateID,
+					PairingID:       pairingID,
+					CreatedByUserID: createdByUserID,
+				})
+				if err != nil {
+					ec <- fmt.Errorf("定期ミーティングのペアリングのミーティング作成に失敗しました: %w", err)
+					return
+				}
+				if err := uc.saveSharers(meeting.ID, sharerUserIDs); err != nil {
+					ec <- err
+					return
+				}
+				mux.Lock()
+				result = append(result, *meeting)
+				mux.Unlock()
+			}(pairingID, errCh)
+		}
 	}
 	wg.Wait()
 	close(errCh)

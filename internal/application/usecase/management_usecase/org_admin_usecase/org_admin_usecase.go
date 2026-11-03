@@ -5,7 +5,6 @@ import (
 	outputmodel "growlink/internal/application/model/output_model"
 	"growlink/internal/domain/entity"
 	repository_interface "growlink/internal/domain/interface/repository"
-	"log/slog"
 	"strings"
 )
 
@@ -128,8 +127,6 @@ func (uc *OrgAdmin) ListTree() ([]outputmodel.OrgTreeNodeOutput, error) {
 				headName = u.Name
 			}
 		}
-		slog.Info("ListTree", slog.Any("id", d.ID), slog.Any("map", childMap[d.ID]))
-
 		nodes = append(nodes, outputmodel.OrgTreeNodeOutput{
 			Kind:            "department",
 			ID:              d.ID,

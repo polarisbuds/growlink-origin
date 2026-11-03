@@ -21,9 +21,13 @@ func NewDraftSaverUsecase(meetingRepo repository_interface.MeetingRepository, an
 	}
 }
 
-func (uc *DraftSaverUsecase) SaveDraft(meetingID uint, answers []outputmodel.AnswerOutput) error {
+func (uc *DraftSaverUsecase) SaveDraft(meetingID uint, answers []outputmodel.AnswerOutput, keepMeetingStatus bool) error {
 	if _, err := uc.answerRepo.Submits(converter.AnswerOutputsToEntities(answers)); err != nil {
 		return fmt.Errorf("回答の下書き保存に失敗しました: %w", err)
+	}
+
+	if keepMeetingStatus {
+		return nil
 	}
 
 	if err := uc.meetingRepo.UpdateStatus(meetingID, valueobject.MeetingStatusDraft); err != nil {

@@ -11,6 +11,7 @@
     import ChevronRight from "lucide-svelte/icons/chevron-right";
     import Info from "lucide-svelte/icons/info";
     import type { UserDepartmentMaps } from "$lib/planning-directory";
+    import { fade } from "svelte/transition";
 
     const AUTHORITY_OPTIONS = [
         { value: "general", label: "メンバー" },
@@ -936,7 +937,8 @@
                         type="button"
                         class="btn btn-ghost btn-xs btn-square shrink-0 btn-outline"
                         aria-label="部署を展開"
-                        onclick={() => toggleExpandAllDept()}>
+                        onclick={() => toggleExpandAllDept()}
+                        transition:fade>
                         <ChevronsDownUp
                             class="h-4 w-4 transition-transform {expandedAllDept
                                 ? 'rotate-180'
@@ -948,7 +950,8 @@
                         type="button"
                         class="btn btn-ghost btn-xs btn-square shrink-0 btn-outline"
                         aria-label="部署を展開"
-                        onclick={() => toggleExpandAllDept()}>
+                        onclick={() => toggleExpandAllDept()}
+                        transition:fade>
                         <ChevronsUpDown
                             class="h-4 w-4 transition-transform {expandedAllDept
                                 ? 'rotate-180'

@@ -99,6 +99,7 @@ func (repo *PairingRepository) GetAll() ([]entity.Pairing, error) {
 	pairing, err := gorm.G[entity.Pairing](repo.db).Order("id ASC").
 		Preload("Mentor", nil).
 		Preload("Mentee", nil).
+		Preload("Mentees", nil).
 		Preload("Targets", nil).
 		Find(repo.ctx)
 	if err != nil {

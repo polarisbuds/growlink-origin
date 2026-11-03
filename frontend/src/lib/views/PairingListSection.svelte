@@ -3,7 +3,7 @@
     import { api } from "$lib/api";
     import { showToast } from "$lib/toast";
     import { getAvatar } from "$lib/session";
-    import SearchableSelect from "$lib/components/SearchableSelect.svelte";
+    import MultiCheckSelect from "$lib/components/MultiCheckSelect.svelte";
     import {
         type PairingListItem,
         expandUserPairings,
@@ -20,15 +20,14 @@
         type SortDir,
     } from "$lib/list-sort";
 
-    type SelectItem = { id: number };
     type SortKey = "mentor" | "mentorDept" | "mentee" | "menteeDept";
     type ViewMode = "individual" | "department";
 
     let pairings = $state<PairingListItem[]>([]);
     let directoryUsers = $state<PlanningDirectoryUser[]>([]);
 
-    let filterMentorId = $state(0);
-    let filterMenteeId = $state(0);
+    let filterMentorIds = $state<number[]>([]);
+    let filterMenteeIds = $state<number[]>([]);
     let viewMode = $state<ViewMode>("individual");
     let sortKey = $state<SortKey>("mentor");
     let sortDir = $state<SortDir>("asc");
@@ -40,9 +39,8 @@
 
     let displayRows = $derived(expandUserPairings(pairings));
 
-    function userLabel(id: number) {
-        const u = directoryUsers.find((x) => x.id === id);
-        return u ? u.name : `#${id}`;
+    function userOptionLabel(u: PlanningDirectoryUser) {
+        return `${u.name} (${u.email})`;
     }
 
     function sortRows(rows: ReturnType<typeof expandUserPairings>) {
@@ -77,11 +75,13 @@
     let filteredRows = $derived.by(() => {
         let rows = displayRows;
         if (isSystemAdmin) {
-            if (filterMentorId) {
-                rows = rows.filter((r) => r.mentorUserId === filterMentorId);
+            if (filterMentorIds.length) {
+                const set = new Set(filterMentorIds);
+                rows = rows.filter((r) => set.has(r.mentorUserId));
             }
-            if (filterMenteeId) {
-                rows = rows.filter((r) => r.menteeUserId === filterMenteeId);
+            if (filterMenteeIds.length) {
+                const set = new Set(filterMenteeIds);
+                rows = rows.filter((r) => set.has(r.menteeUserId));
             }
         }
         return sortRows(rows);
@@ -123,12 +123,6 @@
         const next = toggleSortKey(sortKey, sortDir, key);
         sortKey = next.sortKey;
         sortDir = next.sortDir;
-    }
-
-    function userLabelOf(item: SelectItem) {
-        const u = directoryUsers.find((x) => x.id === item.id);
-        if (!u) return `#${item.id}`;
-        return `${u.name} ${u.email}`;
     }
 
     function askDelete(p: PairingListItem) {
@@ -177,27 +171,21 @@
     <div class="mt-4 grid gap-3 sm:grid-cols-2">
         <label class="form-control">
             <span class="label-text text-xs">メンター</span>
-            <SearchableSelect
+            <MultiCheckSelect
                 pickRootId="pair-list-mentor"
                 items={directoryUsers}
-                bind:value={filterMentorId}
-                labelOf={userLabelOf}
-                selectedLabel={userLabel}
-                placeholder="すべて"
-                allowClear={true}
-                inputClass="input input-bordered input-sm w-full placeholder-current" />
+                bind:selectedIds={filterMentorIds}
+                labelOf={userOptionLabel}
+                placeholder="すべて" />
         </label>
         <label class="form-control">
             <span class="label-text text-xs">メンティ</span>
-            <SearchableSelect
+            <MultiCheckSelect
                 pickRootId="pair-list-mentee"
                 items={directoryUsers}
-                bind:value={filterMenteeId}
-                labelOf={userLabelOf}
-                selectedLabel={userLabel}
-                placeholder="すべて"
-                allowClear={true}
-                inputClass="input input-bordered input-sm w-full placeholder-current" />
+                bind:selectedIds={filterMenteeIds}
+                labelOf={userOptionLabel}
+                placeholder="すべて" />
         </label>
     </div>
 {/if}

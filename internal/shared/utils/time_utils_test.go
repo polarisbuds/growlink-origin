@@ -83,9 +83,10 @@ func TestGetSpecificWeekday(t *testing.T) {
 		weekday time.Weekday
 	}
 	tests := []struct {
-		name string
-		args args
-		want time.Time
+		name    string
+		args    args
+		want    time.Time
+		wantOK  bool
 	}{
 		{
 			name: "通常系: 2006年1月第2月曜日",
@@ -94,7 +95,8 @@ func TestGetSpecificWeekday(t *testing.T) {
 				weekNum: 2,
 				weekday: time.Monday,
 			},
-			want: time.Date(2006, time.January, 9, 0, 0, 0, 0, time.UTC),
+			want:   time.Date(2006, time.January, 9, 0, 0, 0, 0, time.UTC),
+			wantOK: true,
 		},
 		{
 			name: "通常系: 月初が対象曜日なら第1週はその1日",
@@ -103,7 +105,8 @@ func TestGetSpecificWeekday(t *testing.T) {
 				weekNum: 1,
 				weekday: time.Tuesday,
 			},
-			want: time.Date(2026, time.September, 1, 0, 0, 0, 0, time.UTC),
+			want:   time.Date(2026, time.September, 1, 0, 0, 0, 0, time.UTC),
+			wantOK: true,
 		},
 		{
 			name: "通常系: タイムゾーンは基準日の Location を維持する",
@@ -112,24 +115,71 @@ func TestGetSpecificWeekday(t *testing.T) {
 				weekNum: 1,
 				weekday: time.Wednesday,
 			},
-			want: time.Date(2026, time.September, 2, 0, 0, 0, 0, jst),
+			want:   time.Date(2026, time.September, 2, 0, 0, 0, 0, jst),
+			wantOK: true,
 		},
 		{
-			name: "異常系: 第5週が月末を超えると翌月に正規化される",
+			name: "異常系: 第5週が月内に無い場合は false",
 			args: args{
 				base:    time.Date(2026, time.September, 1, 0, 0, 0, 0, time.UTC),
 				weekNum: 5,
 				weekday: time.Thursday,
 			},
-			want: time.Date(2026, time.October, 1, 0, 0, 0, 0, time.UTC),
+			wantOK: false,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := GetSpecificWeekday(tt.args.base, tt.args.weekNum, tt.args.weekday)
-			if !got.Equal(tt.want) || got.Location() != tt.want.Location() {
+			got, ok := GetSpecificWeekday(tt.args.base, tt.args.weekNum, tt.args.weekday)
+			if ok != tt.wantOK {
+				t.Errorf("GetSpecificWeekday() ok = %v, want %v", ok, tt.wantOK)
+			}
+			if tt.wantOK && (!got.Equal(tt.want) || got.Location() != tt.want.Location()) {
 				t.Errorf("GetSpecificWeekday() = %v (%s), want %v (%s)", got, got.Location(), tt.want, tt.want.Location())
 			}
 		})
 	}
+}
+
+func TestListSpecificWeekdays(t *testing.T) {
+	from := time.Date(2026, time.September, 1, 0, 0, 0, 0, time.UTC)
+	to := time.Date(2026, time.November, 1, 0, 0, 0, 0, time.UTC)
+
+	t.Run("両端の月を含む", func(t *testing.T) {
+		got := ListSpecificWeekdays(from, to, 2, time.Monday)
+		requireLen := 3
+		if len(got) != requireLen {
+			t.Fatalf("len = %d, want %d", len(got), requireLen)
+		}
+		wantSep, ok := GetSpecificWeekday(from, 2, time.Monday)
+		if !ok {
+			t.Fatal("September 2nd Monday should exist")
+		}
+		if !got[0].Equal(wantSep) {
+			t.Errorf("got[0] = %v, want %v", got[0], wantSep)
+		}
+	})
+
+	t.Run("第5週が無い月だけ欠ける", func(t *testing.T) {
+		// 2026-09 から 2026-10: 第5木曜は9月のみ存在しない想定で件数を確認
+		got := ListSpecificWeekdays(
+			time.Date(2026, time.September, 1, 0, 0, 0, 0, time.UTC),
+			time.Date(2026, time.October, 1, 0, 0, 0, 0, time.UTC),
+			5,
+			time.Thursday,
+		)
+		sep, sepOK := GetSpecificWeekday(time.Date(2026, time.September, 1, 0, 0, 0, 0, time.UTC), 5, time.Thursday)
+		oct, octOK := GetSpecificWeekday(time.Date(2026, time.October, 1, 0, 0, 0, 0, time.UTC), 5, time.Thursday)
+		_ = sep
+		wantLen := 0
+		if octOK {
+			wantLen++
+		}
+		if !sepOK && wantLen == 1 && len(got) == 1 && got[0].Equal(oct) {
+			return
+		}
+		if len(got) != wantLen {
+			t.Errorf("len = %d, want %d (sepOK=%v octOK=%v)", len(got), wantLen, sepOK, octOK)
+		}
+	})
 }

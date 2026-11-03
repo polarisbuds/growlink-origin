@@ -6,7 +6,6 @@ import (
 	"growlink/internal/domain/entity"
 	"growlink/internal/domain/valueobject"
 	"growlink/internal/shared/utils"
-	"log/slog"
 	"time"
 
 	"github.com/google/uuid"
@@ -143,7 +142,6 @@ func (repo *MeetingRepository) GetBetweenDates(from, to time.Time) ([]entity.Mee
 }
 
 func (repo *MeetingRepository) Create(meeting *entity.Meeting) (*entity.Meeting, error) {
-	slog.Debug("MeetingRepository.Create", slog.Any("meeting", *meeting))
 	if err := gorm.G[entity.Meeting](repo.db).Create(repo.ctx, meeting); err != nil {
 		return nil, fmt.Errorf("ミーティングの新規追加に失敗しました: %w", err)
 	}

@@ -109,7 +109,7 @@ func main() {
 	authUC := authenticate_usecase.NewAuthUsecase(ldapClient, userRepo)
 
 	meetingBundle := meeting_usecase.Bundle{
-		List:             meeting_usecase.NewMeetingListUsecase(meetingRepo, pairingRepo, relationshipRepo, userRepo, teamMemberRepo),
+		List:             meeting_usecase.NewMeetingListUsecase(meetingRepo, pairingRepo),
 		AnswerReader:     meeting_usecase.NewAnswerReaderUsecase(answerRepo),
 		DraftSaver:       meeting_usecase.NewDraftSaverUsecase(meetingRepo, answerRepo),
 		Submitter:        meeting_usecase.NewSubmitterUsecase(meetingRepo, answerRepo),

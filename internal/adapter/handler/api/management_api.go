@@ -5,10 +5,10 @@ import (
 	"strconv"
 	"strings"
 
-	user_admin_usecase "growlink/internal/application/usecase/management_usecase/user_admin_usecase"
+	"growlink/internal/adapter/handler/authctx"
 	org_admin_usecase "growlink/internal/application/usecase/management_usecase/org_admin_usecase"
 	remind_settings_usecase "growlink/internal/application/usecase/management_usecase/remind_settings_usecase"
-	"growlink/internal/adapter/handler/authctx"
+	user_admin_usecase "growlink/internal/application/usecase/management_usecase/user_admin_usecase"
 	"growlink/internal/domain/entity"
 
 	"github.com/labstack/echo/v5"

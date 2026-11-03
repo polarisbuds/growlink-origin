@@ -6,26 +6,27 @@
     import PanelRightClose from "lucide-svelte/icons/panel-right-close";
     import PanelRightOpen from "lucide-svelte/icons/panel-right-open";
 
-    type User = { id: number; name: string; email: string };
+    type User = { id: number; name?: string; email?: string };
 
     let {
         open = $bindable(true),
         uuid,
-        implementedAt,
+        implementedDate = $bindable(""),
         menteeLabel,
         sharers = $bindable([] as MeetingUserRef[]),
         canEditSharers = false,
+        canEditImplementedDate = false,
     }: {
         open?: boolean;
-        uuid: string;
-        implementedAt?: string;
+        uuid: string | undefined;
+        implementedDate?: string;
         menteeLabel: string;
         sharers?: MeetingUserRef[];
         canEditSharers?: boolean;
+        canEditImplementedDate?: boolean;
     } = $props();
 
     let sharerUserIds = $state<number[]>([]);
-    let sharerPickOpen = $state(false);
     let sharerPickQuery = $state("");
     let candidateUsers = $state<User[]>([]);
     let savingSharers = $state(false);
@@ -36,11 +37,6 @@
             return { id, name: fromSharers?.name || `ユーザ #${id}` };
         }),
     );
-
-    let sharerPickFiltered = $derived.by(() => {
-        const picked = new Set(sharerUserIds);
-        return candidateUsers.filter((u) => !picked.has(u.id));
-    });
 
     $effect(() => {
         sharerUserIds = (sharers || [])
@@ -65,12 +61,7 @@
     function addSharer(u: User) {
         if (sharerUserIds.includes(u.id)) return;
         sharerUserIds = [...sharerUserIds, u.id];
-        sharers = [
-            ...sharers,
-            { id: u.id, name: u.name, email: u.email },
-        ];
-        sharerPickQuery = "";
-        sharerPickOpen = false;
+        sharers = [...sharers, { id: u.id, name: u.name, email: u.email }];
     }
 
     function removeSharer(id: number) {
@@ -92,6 +83,10 @@
             savingSharers = false;
         }
     }
+
+    function saveImplementedDate() {
+        showToast("実施日の API は今後接続されます（表示のみ更新可）", "info");
+    }
 </script>
 
 {#if open}
@@ -109,10 +104,6 @@
         </div>
         <dl class="mt-4 space-y-4 text-sm">
             <div>
-                <dt class="text-base-content/60">実施日</dt>
-                <dd class="mt-0.5 font-medium">{formatDate(implementedAt)}</dd>
-            </div>
-            <div>
                 <dt class="text-base-content/60">対象者</dt>
                 <dd class="mt-0.5 font-medium">{menteeLabel}</dd>
             </div>
@@ -120,18 +111,16 @@
                 <dt class="text-base-content/60">共有者</dt>
                 <dd class="mt-1">
                     {#if canEditSharers}
-                        <div data-pick-root="meeting-answer-sharer">
-                            <UserChipSearchField
-                                chips={sharerChips}
-                                placeholder={sharerChips.length
-                                    ? "追加で検索"
-                                    : "名前で検索して追加"}
-                                bind:query={sharerPickQuery}
-                                bind:open={sharerPickOpen}
-                                filteredUsers={sharerPickFiltered}
-                                onPick={addSharer}
-                                onRemove={removeSharer} />
-                        </div>
+                        <UserChipSearchField
+                            pickRootId="meeting-answer-sharer"
+                            chips={sharerChips}
+                            items={candidateUsers}
+                            bind:query={sharerPickQuery}
+                            placeholder={sharerChips.length
+                                ? "追加で検索"
+                                : "名前で検索して追加"}
+                            onPick={addSharer}
+                            onRemove={removeSharer} />
                         <button
                             type="button"
                             class="btn btn-primary btn-sm mt-3 w-full"
@@ -147,6 +136,26 @@
                         </ul>
                     {:else}
                         <p class="text-base-content/50">未設定</p>
+                    {/if}
+                </dd>
+            </div>
+            <div>
+                <dt class="text-base-content/60">実施予定日</dt>
+                <dd class="mt-1">
+                    {#if canEditImplementedDate}
+                        <input
+                            type="date"
+                            class="input input-bordered input-sm w-full"
+                            bind:value={implementedDate} />
+                        <button
+                            type="button"
+                            class="btn btn-outline btn-sm mt-2 w-full"
+                            onclick={saveImplementedDate}>
+                            実施予定日を保存
+                        </button>
+                    {:else}
+                        <span class="font-medium"
+                            >{formatDate(implementedDate)}</span>
                     {/if}
                 </dd>
             </div>

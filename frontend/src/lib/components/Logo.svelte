@@ -1,4 +1,6 @@
 <script lang="ts">
+    import { draw } from "svelte/transition";
+
     let { class: className = "h-8 w-8 rounded-full" }: { class?: string } =
         $props();
 </script>
@@ -11,8 +13,7 @@
             y1="0"
             x2="512"
             y2="512"
-            gradientUnits="userSpaceOnUse"
-        >
+            gradientUnits="userSpaceOnUse">
             <stop offset="0%" style="stop-color: oklch(var(--p));" />
             <stop offset="100%" style="stop-color: oklch(var(--n));" />
         </linearGradient>
@@ -24,8 +25,7 @@
             y1="255"
             x2="412"
             y2="255"
-            gradientUnits="userSpaceOnUse"
-        >
+            gradientUnits="userSpaceOnUse">
             <stop offset="0%" stop-color="#F06A2B" />
             <stop offset="35%" stop-color="#F79B36" />
             <stop offset="55%" stop-color="#F9C449" />
@@ -40,8 +40,7 @@
             y1="225"
             x2="412"
             y2="285"
-            gradientUnits="userSpaceOnUse"
-        >
+            gradientUnits="userSpaceOnUse">
             <stop offset="0%" stop-color="#FF9852" />
             <stop offset="45%" stop-color="#FFE07D" />
             <stop offset="100%" stop-color="#A6E26B" />
@@ -54,8 +53,7 @@
             y1="215"
             x2="302"
             y2="295"
-            gradientUnits="userSpaceOnUse"
-        >
+            gradientUnits="userSpaceOnUse">
             <stop offset="0%" stop-color="#050E1C" stop-opacity="0" />
             <stop offset="32%" stop-color="#050E1C" stop-opacity="0.4" />
             <stop offset="50%" stop-color="#050E1C" stop-opacity="0.52" />
@@ -73,8 +71,7 @@
             cx="256"
             cy="140"
             r="90"
-            gradientUnits="userSpaceOnUse"
-        >
+            gradientUnits="userSpaceOnUse">
             <stop offset="0%" stop-color="#FFB84D" stop-opacity="0.42" />
             <stop offset="60%" stop-color="#FFB84D" stop-opacity="0.12" />
             <stop offset="100%" stop-color="#FFB84D" stop-opacity="0" />
@@ -89,8 +86,7 @@
         height="640"
         rx="143"
         ry="143"
-        fill="url(#bgcolor)"
-    />
+        fill="url(#bgcolor)" />
 
     <!-- ロゴシンボル全体（視覚的な重心に合わせて中央配置） -->
     <g transform="translate(0, 26)">
@@ -108,8 +104,7 @@
             stroke="url(#warmRibbon)"
             stroke-width="38"
             stroke-linecap="round"
-            stroke-linejoin="round"
-        />
+            stroke-linejoin="round" />
 
         <path
             d="M 256,255
@@ -122,8 +117,7 @@
             stroke-width="14"
             stroke-linecap="round"
             stroke-linejoin="round"
-            opacity="0.65"
-        />
+            opacity="0.65" />
 
         <!-- 下を通るラインのシャドウ -->
         <path
@@ -131,15 +125,13 @@
             fill="none"
             stroke="url(#underShadow2)"
             stroke-width="38"
-            stroke-linecap="round"
-        />
+            stroke-linecap="round" />
         <path
             d="M 400,255 C 400,320 300,315 256,255"
             fill="none"
             stroke="url(#underShadow2)"
             stroke-width="38"
-            stroke-linecap="round"
-        />
+            stroke-linecap="round" />
 
         <!-- 上を通るライン（立体交差） -->
         <g clip-path="url(#centerClip2)">
@@ -150,8 +142,7 @@
                 fill="none"
                 stroke="url(#warmRibbon)"
                 stroke-width="38"
-                stroke-linecap="round"
-            />
+                stroke-linecap="round" />
             <path
                 d="M 112,255
                  C 112,320 212,315 256,255
@@ -160,8 +151,7 @@
                 stroke="url(#warmHighlight)"
                 stroke-width="14"
                 stroke-linecap="round"
-                opacity="0.65"
-            />
+                opacity="0.65" />
         </g>
 
         <!-- 茎と3枚の若葉 -->
@@ -170,60 +160,51 @@
             fill="none"
             stroke="#F8A541"
             stroke-width="8"
-            stroke-linecap="round"
-        />
+            stroke-linecap="round" />
         <path
             d="M 256,190 C 244,175 232,163 214,155"
             fill="none"
             stroke="#F69338"
             stroke-width="7"
-            stroke-linecap="round"
-        />
+            stroke-linecap="round" />
         <path
             d="M 256,185 C 268,171 282,159 298,151"
             fill="none"
             stroke="#8AD14F"
             stroke-width="7"
-            stroke-linecap="round"
-        />
+            stroke-linecap="round" />
 
         <!-- 左の葉（オレンジゴールド） -->
         <path
             d="M 245,177 C 235,147 212,137 184,141 C 194,167 216,181 245,177 Z"
-            fill="#F89B38"
-        />
+            fill="#F89B38" />
         <path
             d="M 242,175 C 226,163 212,155 198,149"
             fill="none"
             stroke="#FFD27D"
             stroke-width="3"
-            stroke-linecap="round"
-        />
+            stroke-linecap="round" />
 
         <!-- 中央の葉（ゴールデンイエロー） -->
         <path
             d="M 256,151 C 238,123 242,97 256,77 C 270,97 274,123 256,151 Z"
-            fill="#FCD053"
-        />
+            fill="#FCD053" />
         <path
             d="M 256,145 L 256,93"
             fill="none"
             stroke="#FFF0A6"
             stroke-width="3"
-            stroke-linecap="round"
-        />
+            stroke-linecap="round" />
 
         <!-- 右の葉（フレッシュグリーン） -->
         <path
             d="M 267,173 C 276,139 302,127 332,131 C 322,161 298,175 267,173 Z"
-            fill="#84CC49"
-        />
+            fill="#84CC49" />
         <path
             d="M 270,170 C 286,159 302,149 316,141"
             fill="none"
             stroke="#C2F28D"
             stroke-width="3"
-            stroke-linecap="round"
-        />
+            stroke-linecap="round" />
     </g>
 </svg>

@@ -14,7 +14,7 @@ type Template struct {
 	DisplayNo int  `gorm:"not null;default:0;index"`
 	IsSample  bool `gorm:"not null;default:false"`
 
-	UserID uint `gorm:"not null;index"`
+	UserID uint `gorm:"not null;index;column:creator_id"`
 
 	User *User `gorm:"foreignKey:UserID"`
 

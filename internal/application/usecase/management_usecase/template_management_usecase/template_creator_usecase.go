@@ -23,23 +23,27 @@ func NewTemplateCreator(templateRepo repository_interface.TemplateRepository,
 
 func (uc *TemplateCreator) CreateTemplate(input inputmodel.TemplateInput, userID uint) error {
 	input.Topics = normalizeTopicInputs(input.Topics)
-	topics := []entity.Topic{}
-	for _, inputTopic := range input.Topics {
-		err := uc.topicRepo.Create(converter.TopicInputToEntity(inputTopic))
-		if err != nil {
-			return fmt.Errorf("トピックの作成に失敗しました: %w", err)
-		}
-		topic := converter.TopicInputToEntity(inputTopic)
-		topics = append(topics, *topic)
+
+	recordCount, err := uc.templateRepo.Count()
+	if err != nil {
+		return fmt.Errorf("テンプレート数のカウントに失敗しました: %w", err)
 	}
 
-	if err := uc.templateRepo.Create(&entity.Template{
-		Title:  input.Title,
-		UserID: userID,
-		Topics: topics,
-	}); err != nil {
+	template := &entity.Template{
+		Title:     input.Title,
+		UserID:    userID,
+		DisplayNo: int(recordCount + 1),
+	}
+	if err := uc.templateRepo.Create(template); err != nil {
 		return fmt.Errorf("テンプレートの新規作成に失敗しました: %w", err)
 	}
 
+	for _, inputTopic := range input.Topics {
+		topic := converter.TopicInputToEntity(inputTopic)
+		topic.TemplateID = template.ID
+		if err := uc.topicRepo.Create(topic); err != nil {
+			return fmt.Errorf("トピックの作成に失敗しました: %w", err)
+		}
+	}
 	return nil
 }

@@ -64,11 +64,26 @@ func canWriteMeetingAnswers(meeting *entity.Meeting, viewerID uint) bool {
 	if meeting == nil || viewerID == 0 {
 		return false
 	}
-	if meeting.Status == valueobject.MeetingStatusDone {
+	role := meetingViewerRole(meeting, viewerID)
+	switch role {
+	case "mentee":
+		return meeting.Status == valueobject.MeetingStatusPending ||
+			meeting.Status == valueobject.MeetingStatusDraft
+	case "mentor":
+		return meeting.Status == valueobject.MeetingStatusDone
+	default:
 		return false
 	}
-	role := meetingViewerRole(meeting, viewerID)
-	return role == "mentor" || role == "mentee"
+}
+
+func canCancelMeetingSubmit(meeting *entity.Meeting, viewerID uint) bool {
+	if meeting == nil || viewerID == 0 {
+		return false
+	}
+	if meeting.Status != valueobject.MeetingStatusDone {
+		return false
+	}
+	return meetingViewerRole(meeting, viewerID) == "mentee"
 }
 
 func canEditMeetingSharers(meeting *entity.Meeting, viewerID uint) bool {

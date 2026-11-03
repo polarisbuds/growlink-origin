@@ -17,7 +17,8 @@ type CreateMeetingByAllInput struct {
 
 type CreateMeetingMonthlyInput struct {
 	TemplateID    uint   `json:"templateId"`
-	BaseDate      string `json:"baseDate"`
+	From          string `json:"from"`
+	To            string `json:"to"`
 	Week          int    `json:"week"`
 	Weekday       int    `json:"weekday"`
 	SharerUserIDs []uint `json:"sharerUserIds"`

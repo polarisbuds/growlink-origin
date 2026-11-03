@@ -271,17 +271,17 @@ func (c *MockMeetingUsecasePostCommentCall) DoAndReturn(f func(uint, string) err
 }
 
 // SaveDraft mocks base method.
-func (m *MockMeetingUsecase) SaveDraft(meetingID uint, answers []outputmodel.AnswerOutput) error {
+func (m *MockMeetingUsecase) SaveDraft(meetingID uint, answers []outputmodel.AnswerOutput, keepMeetingStatus bool) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SaveDraft", meetingID, answers)
+	ret := m.ctrl.Call(m, "SaveDraft", meetingID, answers, keepMeetingStatus)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // SaveDraft indicates an expected call of SaveDraft.
-func (mr *MockMeetingUsecaseMockRecorder) SaveDraft(meetingID, answers any) *MockMeetingUsecaseSaveDraftCall {
+func (mr *MockMeetingUsecaseMockRecorder) SaveDraft(meetingID, answers, keepMeetingStatus any) *MockMeetingUsecaseSaveDraftCall {
 	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveDraft", reflect.TypeOf((*MockMeetingUsecase)(nil).SaveDraft), meetingID, answers)
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveDraft", reflect.TypeOf((*MockMeetingUsecase)(nil).SaveDraft), meetingID, answers, keepMeetingStatus)
 	return &MockMeetingUsecaseSaveDraftCall{Call: call}
 }
 
@@ -297,13 +297,13 @@ func (c *MockMeetingUsecaseSaveDraftCall) Return(arg0 error) *MockMeetingUsecase
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockMeetingUsecaseSaveDraftCall) Do(f func(uint, []outputmodel.AnswerOutput) error) *MockMeetingUsecaseSaveDraftCall {
+func (c *MockMeetingUsecaseSaveDraftCall) Do(f func(uint, []outputmodel.AnswerOutput, bool) error) *MockMeetingUsecaseSaveDraftCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockMeetingUsecaseSaveDraftCall) DoAndReturn(f func(uint, []outputmodel.AnswerOutput) error) *MockMeetingUsecaseSaveDraftCall {
+func (c *MockMeetingUsecaseSaveDraftCall) DoAndReturn(f func(uint, []outputmodel.AnswerOutput, bool) error) *MockMeetingUsecaseSaveDraftCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
@@ -536,17 +536,17 @@ func (m *MockDraftSaver) EXPECT() *MockDraftSaverMockRecorder {
 }
 
 // SaveDraft mocks base method.
-func (m *MockDraftSaver) SaveDraft(meetingID uint, answers []outputmodel.AnswerOutput) error {
+func (m *MockDraftSaver) SaveDraft(meetingID uint, answers []outputmodel.AnswerOutput, keepMeetingStatus bool) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SaveDraft", meetingID, answers)
+	ret := m.ctrl.Call(m, "SaveDraft", meetingID, answers, keepMeetingStatus)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // SaveDraft indicates an expected call of SaveDraft.
-func (mr *MockDraftSaverMockRecorder) SaveDraft(meetingID, answers any) *MockDraftSaverSaveDraftCall {
+func (mr *MockDraftSaverMockRecorder) SaveDraft(meetingID, answers, keepMeetingStatus any) *MockDraftSaverSaveDraftCall {
 	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveDraft", reflect.TypeOf((*MockDraftSaver)(nil).SaveDraft), meetingID, answers)
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveDraft", reflect.TypeOf((*MockDraftSaver)(nil).SaveDraft), meetingID, answers, keepMeetingStatus)
 	return &MockDraftSaverSaveDraftCall{Call: call}
 }
 
@@ -562,13 +562,13 @@ func (c *MockDraftSaverSaveDraftCall) Return(arg0 error) *MockDraftSaverSaveDraf
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockDraftSaverSaveDraftCall) Do(f func(uint, []outputmodel.AnswerOutput) error) *MockDraftSaverSaveDraftCall {
+func (c *MockDraftSaverSaveDraftCall) Do(f func(uint, []outputmodel.AnswerOutput, bool) error) *MockDraftSaverSaveDraftCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockDraftSaverSaveDraftCall) DoAndReturn(f func(uint, []outputmodel.AnswerOutput) error) *MockDraftSaverSaveDraftCall {
+func (c *MockDraftSaverSaveDraftCall) DoAndReturn(f func(uint, []outputmodel.AnswerOutput, bool) error) *MockDraftSaverSaveDraftCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }

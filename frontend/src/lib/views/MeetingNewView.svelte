@@ -2,7 +2,6 @@
     import { onMount } from "svelte";
     import { goto } from "$app/navigation";
     import { api } from "$lib/api";
-    import { filterItems } from "$lib/searchable-select";
     import {
         matchPairingIds,
         type MeetingPairingItem,
@@ -65,46 +64,13 @@
     let form = $state({
         templateId: 0,
         implementedAt: todayISO(),
-        baseMonth: currentMonthISO(),
+        fromMonth: currentMonthISO(),
+        toMonth: currentMonthISO(),
         week: 2,
         weekday: 3,
     });
 
-    let userTargetPickOpen = $state(false);
-    let userTargetPickQuery = $state("");
-    let managedTeamPickOpen = $state(false);
-    let managedTeamPickQuery = $state("");
-    let templatePickOpen = $state(false);
-    let templatePickQuery = $state("");
-    let sharerPickOpen = $state(false);
-    let sharerPickQuery = $state("");
-
-    let userTargetPickFiltered = $derived.by(() => {
-        const picked = new Set(
-            targets.filter((t) => t.kind === "user").map((t) => t.targetId),
-        );
-        const list = users.filter((u) => !picked.has(u.id));
-        return filterItems(
-            list,
-            userTargetPickQuery,
-            (u) => `${u.name} (${u.email})`,
-        );
-    });
-    let managedTeamPickFiltered = $derived(
-        filterItems(managedTeams, managedTeamPickQuery, (t) => t.name),
-    );
-    let templatePickFiltered = $derived(
-        filterItems(templates, templatePickQuery, (t) => t.title || ""),
-    );
-    let sharerPickFiltered = $derived.by(() => {
-        const picked = new Set(sharerUserIds);
-        const list = users.filter((u) => !picked.has(u.id));
-        return filterItems(
-            list,
-            sharerPickQuery,
-            (u) => `${u.name} (${u.email})`,
-        );
-    });
+    let managedTeamPickValue = $state(0);
 
     let deptMaps = $derived(buildUserDepartmentMaps(users));
     let teamMaps = $derived(buildUserTeamMaps(users));
@@ -148,6 +114,15 @@
         const u = users.find((x) => x.id === item.id);
         return u ? `${u.name} (${u.email})` : `#${item.id}`;
     }
+    function templateLabelOf(item: SelectItem) {
+        const t = templates.find((x) => x.id === item.id);
+        return t?.title || "";
+    }
+    function managedTeamLabelOf(item: SelectItem) {
+        const team = managedTeams.find((x) => x.id === item.id);
+        if (!team) return `#${item.id}`;
+        return `${team.name}（${team.members?.length ?? 0}人）`;
+    }
     function displayNameForTarget(t: Target) {
         const u = users.find((x) => x.id === t.targetId);
         if (u) return u.name;
@@ -168,38 +143,30 @@
             (t) => !(t.kind === kind && t.targetId === targetId),
         );
     }
-    function closePicks() {
-        templatePickOpen = false;
-        sharerPickOpen = false;
-        userTargetPickOpen = false;
-        managedTeamPickOpen = false;
+    function pickUserTarget(u: User) {
+        addTarget("user", u.id, `${u.name} (${u.email})`);
+    }
+    function pickManagedTeamFromSelect(item: SelectItem) {
+        const team = managedTeams.find((t) => t.id === item.id);
+        if (team) pickManagedTeam(team);
+    }
+    function pickManagedTeam(team: ManagedTeam) {
+        for (const m of team.members || []) {
+            addTarget("user", m.id, `${m.name} (${m.email})`);
+        }
+    }
+    function addSharer(u: User) {
+        if (!u?.id || sharerUserIds.includes(u.id)) return;
+        sharerUserIds = [...sharerUserIds, u.id];
+    }
+    function removeSharer(id: number) {
+        sharerUserIds = sharerUserIds.filter((x) => x !== id);
     }
     function submitLabel() {
         if (submitting) return "作成中…";
         if (mode === "planned") return "作成";
         if (mode === "pair") return "作成";
         return "定期作成";
-    }
-    function pickUserTarget(u: User) {
-        addTarget("user", u.id, `${u.name} (${u.email})`);
-        userTargetPickQuery = "";
-        userTargetPickOpen = false;
-    }
-    function pickManagedTeam(team: ManagedTeam) {
-        for (const m of team.members || []) {
-            addTarget("user", m.id, `${m.name} (${m.email})`);
-        }
-        managedTeamPickQuery = "";
-        managedTeamPickOpen = false;
-    }
-    function addSharer(u: User) {
-        if (!u?.id || sharerUserIds.includes(u.id)) return;
-        sharerUserIds = [...sharerUserIds, u.id];
-        sharerPickQuery = "";
-        sharerPickOpen = false;
-    }
-    function removeSharer(id: number) {
-        sharerUserIds = sharerUserIds.filter((x) => x !== id);
     }
     function resolvePairingIds(): number[] {
         return matchPairingIds(
@@ -248,20 +215,6 @@
         users = dir.users || [];
         managedTeams = dir.managedTeams || [];
         form.templateId = templates[0]?.id || 0;
-
-        const onMouseDown = (ev: MouseEvent) => {
-            const el = ev.target;
-            if (!(el instanceof Element)) return;
-            if (!el.closest('[data-pick-root="user-target"]'))
-                userTargetPickOpen = false;
-            if (!el.closest('[data-pick-root="managed-team"]'))
-                managedTeamPickOpen = false;
-            if (!el.closest('[data-pick-root="template"]'))
-                templatePickOpen = false;
-            if (!el.closest('[data-pick-root="sharer"]'))
-                sharerPickOpen = false;
-        };
-        window.addEventListener("mousedown", onMouseDown);
     });
 
     async function submit() {
@@ -347,8 +300,12 @@
                     error = "該当するペアがありません。";
                     return;
                 }
-                if (!form.baseMonth) {
-                    error = "基準月を入力してください。";
+                if (!form.fromMonth || !form.toMonth) {
+                    error = "期間を入力してください。";
+                    return;
+                }
+                if (form.fromMonth > form.toMonth) {
+                    error = "開始月は終了月以前にしてください。";
                     return;
                 }
                 if (form.week < 1 || form.week > 5) {
@@ -357,7 +314,8 @@
                 }
                 await api("POST", "/api/v1/meetings/monthly", {
                     templateId: form.templateId,
-                    baseDate: `${form.baseMonth}-01`,
+                    from: `${form.fromMonth}-01`,
+                    to: `${form.toMonth}-01`,
                     week: form.week,
                     weekday: form.weekday,
                     sharerUserIds: sharerPayload,
@@ -372,8 +330,6 @@
         }
     }
 </script>
-
-<svelte:window onkeydown={(e) => e.key === "Escape" && closePicks()} />
 
 <svelte:head><title>1on1作成 - Growlink</title></svelte:head>
 
@@ -407,61 +363,16 @@
         {#if error}
             <div class="alert alert-error text-sm">{error}</div>
         {/if}
-        <div class="form-control" data-pick-root="template">
+        <div class="form-control">
             <span class="label-text font-medium">テンプレート</span>
-            <div class="relative mt-1">
-                <input
-                    type="text"
-                    class="input input-bordered w-full pr-10 placeholder-current"
-                    autocomplete="off"
-                    placeholder={form.templateId ? "" : "名前で検索して選択"}
-                    value={templatePickOpen
-                        ? templatePickQuery
-                        : form.templateId
-                          ? templates.find((t) => t.id === form.templateId)
-                                ?.title || ""
-                          : ""}
-                    onfocus={() => {
-                        templatePickOpen = true;
-                        if (form.templateId) templatePickQuery = "";
-                    }}
-                    oninput={(e) => {
-                        templatePickQuery = e.currentTarget.value;
-                        templatePickOpen = true;
-                    }} />
-                {#if form.templateId}
-                    <button
-                        type="button"
-                        class="btn btn-ghost btn-xs btn-circle absolute right-1 top-1/2 -translate-y-1/2"
-                        aria-label="クリア"
-                        onclick={() => {
-                            form.templateId = 0;
-                            templatePickQuery = "";
-                            templatePickOpen = false;
-                        }}>×</button>
-                {/if}
-                {#if templatePickOpen}
-                    <ul
-                        class="absolute left-0 top-full z-20 mt-1 max-h-48 w-full overflow-y-auto rounded-2xl border border-base-300 bg-base-100 py-1 shadow-lg">
-                        {#each templatePickFiltered as t (t.id)}
-                            <li>
-                                <button
-                                    type="button"
-                                    class="btn btn-ghost btn-sm w-full justify-start font-normal"
-                                    onclick={() => {
-                                        form.templateId = t.id;
-                                        templatePickQuery = "";
-                                        templatePickOpen = false;
-                                    }}>{t.title}</button>
-                            </li>
-                        {/each}
-                        {#if templatePickFiltered.length === 0}
-                            <li class="px-4 py-3 text-sm text-base-content/50">
-                                該当なし
-                            </li>
-                        {/if}
-                    </ul>
-                {/if}
+            <div class="mt-1">
+                <SearchableSelect
+                    pickRootId="meeting-new-template"
+                    items={templates}
+                    bind:value={form.templateId}
+                    labelOf={templateLabelOf}
+                    placeholder="名前で検索して選択"
+                    allowClear={true} />
             </div>
         </div>
         {#if mode === "pair"}
@@ -560,57 +471,31 @@
                 </div>
                 <div class="md:col-span-2">
                     <span class="label-text font-medium">メンティ</span>
-                    <div class="form-control" data-pick-root="user-target">
+                    <div class="form-control mt-1">
                         <UserChipSearchField
+                            pickRootId="meeting-new-mentee"
                             chips={menteeChips}
+                            items={users}
                             className="border border-base-content border-opacity-25 h-12"
                             placeholder={menteeChips.length
                                 ? "追加で検索"
                                 : "名前で検索して追加"}
-                            bind:query={userTargetPickQuery}
-                            bind:open={userTargetPickOpen}
-                            filteredUsers={userTargetPickFiltered}
                             onPick={pickUserTarget}
                             onRemove={(id) => removeTarget("user", id)} />
                     </div>
                     {#if managedTeams.length > 0}
-                        <div
-                            class="form-control mt-3"
-                            data-pick-root="managed-team">
+                        <div class="form-control mt-3">
                             <span class="label-text font-medium"
                                 >管理チームからまとめて追加</span>
-                            <div class="relative mt-1">
-                                <input
-                                    type="text"
-                                    class="input input-bordered w-full placeholder-current"
+                            <div class="mt-1">
+                                <SearchableSelect
+                                    pickRootId="meeting-new-managed-team"
+                                    items={managedTeams}
+                                    bind:value={managedTeamPickValue}
+                                    labelOf={managedTeamLabelOf}
                                     placeholder="チーム名で検索"
-                                    autocomplete="off"
-                                    value={managedTeamPickOpen
-                                        ? managedTeamPickQuery
-                                        : ""}
-                                    onfocus={() => (managedTeamPickOpen = true)}
-                                    oninput={(e) => {
-                                        managedTeamPickQuery =
-                                            e.currentTarget.value;
-                                        managedTeamPickOpen = true;
-                                    }} />
-                                {#if managedTeamPickOpen}
-                                    <ul
-                                        class="absolute left-0 top-full z-20 mt-1 max-h-48 w-full overflow-y-auto rounded-2xl border border-base-300 bg-base-100 py-1 shadow-lg">
-                                        {#each managedTeamPickFiltered as team (team.id)}
-                                            <li>
-                                                <button
-                                                    type="button"
-                                                    class="btn btn-ghost btn-sm w-full justify-start font-normal"
-                                                    onclick={() =>
-                                                        pickManagedTeam(team)}
-                                                    >{team.name}（{team.members
-                                                        ?.length ??
-                                                        0}人）</button>
-                                            </li>
-                                        {/each}
-                                    </ul>
-                                {/if}
+                                    clearOnSelect={true}
+                                    onSelect={pickManagedTeamFromSelect} />
                             </div>
                         </div>
                     {/if}
@@ -623,17 +508,16 @@
                 </p>
             {/if}
         {/if}
-        <div class="form-control" data-pick-root="sharer">
+        <div class="form-control">
             <span class="label-text font-medium">共有者（任意・複数）</span>
             <UserChipSearchField
+                pickRootId="meeting-new-sharer"
                 chips={sharerChips}
+                items={users}
                 className="border border-base-content border-opacity-25 h-12"
                 placeholder={sharerChips.length
                     ? "追加で検索"
                     : "名前で検索して追加"}
-                bind:query={sharerPickQuery}
-                bind:open={sharerPickOpen}
-                filteredUsers={sharerPickFiltered}
                 onPick={addSharer}
                 onRemove={removeSharer} />
         </div>
@@ -652,14 +536,14 @@
                     <input
                         class="input input-bordered"
                         type="month"
-                        bind:value={form.baseMonth} />
+                        bind:value={form.fromMonth} />
                 </label>
                 <label class="form-control w-2/6">
                     <span class="label-text font-medium">年月（まで）</span>
                     <input
                         class="input input-bordered"
                         type="month"
-                        bind:value={form.baseMonth} />
+                        bind:value={form.toMonth} />
                 </label>
                 <label class="form-control w-1/6">
                     <span class="label-text font-medium">実施週</span>

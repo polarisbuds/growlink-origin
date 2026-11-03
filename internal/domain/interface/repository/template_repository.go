@@ -10,6 +10,7 @@ import (
 
 type TemplateRepository interface {
 	GetAll() ([]entity.Template, error)
+	Count() (int64, error)
 	Get(templateID uint) (*entity.Template, error)
 	GetByUUID(templateUUID uuid.UUID) (*entity.Template, error)
 	Create(input *entity.Template) error
