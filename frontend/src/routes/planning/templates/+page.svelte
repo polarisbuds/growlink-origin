@@ -3,6 +3,7 @@
     import { api } from "$lib/api";
     import { showToast } from "$lib/toast";
     import PlanningTabs from "$lib/components/PlanningTabs.svelte";
+    import { validateTemplateForm } from "$lib/template-validation";
 
     type Topic = {
         id?: number;
@@ -16,6 +17,8 @@
         uuid?: string;
         displayNo?: number;
         title?: string;
+        description?: string;
+        creatorName?: string;
         isSample?: boolean;
         topics?: Topic[];
     };
@@ -23,12 +26,13 @@
     let templates = $state<Template[]>([]);
     let modalOpen = $state(false);
     let editMode = $state(false);
+    let deleteOpen = $state(false);
     let active = $state<Template | null>(null);
-    let editForm = $state<{ title: string; topics: Topic[] }>({
+    let editForm = $state<{ title: string; description: string; topics: Topic[] }>({
         title: "",
+        description: "",
         topics: [],
     });
-    let deleteOpen = $state(false);
 
     async function persistOrder(list: Template[]) {
         const items = list.map((t, i) => ({ id: t.id, displayNo: i + 1 }));
@@ -56,6 +60,7 @@
         if (!active) return;
         editForm = {
             title: active.title || "",
+            description: active.description || "",
             topics: (active.topics || []).map((x: Topic) => ({
                 question: x.question,
                 description: x.description || "",
@@ -64,6 +69,9 @@
             })),
         };
         editMode = true;
+    }
+    function askDelete() {
+        deleteOpen = true;
     }
     function addTopic() {
         editForm.topics = [
@@ -84,6 +92,15 @@
     }
     async function saveEdit() {
         if (!active) return;
+        const validationError = validateTemplateForm(
+            editForm.title,
+            editForm.description,
+            editForm.topics,
+        );
+        if (validationError) {
+            showToast(validationError, "error");
+            return;
+        }
         const topics = editForm.topics.map((t: Topic, i: number) => ({
             ...t,
             displayNo: i + 1,
@@ -91,6 +108,7 @@
         try {
             await api("PUT", `/api/v1/templates/${active.uuid || active.id}`, {
                 title: editForm.title,
+                description: editForm.description,
                 topics,
             });
             showToast("保存しました");
@@ -99,12 +117,9 @@
                 (a, b) => (a.displayNo || 0) - (b.displayNo || 0),
             );
             closeModal();
-        } catch {
-            showToast("保存に失敗しました", "error");
+        } catch (e) {
+            showToast(e instanceof Error ? e.message : "保存に失敗しました", "error");
         }
-    }
-    function askDelete() {
-        deleteOpen = true;
     }
     async function confirmDelete() {
         if (!active) return;
@@ -180,34 +195,43 @@
             <div
                 role="button"
                 tabindex="0"
-                class="group flex cursor-pointer flex-wrap items-center justify-between gap-2 rounded-2xl border border-base-300 bg-base-100 p-4 shadow-sm transition-all hover:border-primary/50 hover:shadow-md"
+                class="group cursor-pointer rounded-2xl border border-base-300 bg-base-100 p-4 shadow-sm transition-all hover:border-primary/50 hover:shadow-md"
                 onclick={() => openView(t)}
                 onkeydown={(e) => e.key === "Enter" && openView(t)}>
-                <div class="flex min-w-0 items-center gap-2">
-                    <span class="badge badge-ghost shrink-0">#{idx}</span>
-                    <span class="truncate font-medium">{t.title}</span>
-                    {#if t.isSample}
-                        <span class="badge badge-outline shrink-0"
-                            >サンプル</span>
-                    {/if}
-                </div>
                 <div
-                    class="flex items-center gap-1"
-                    onclick={(e) => e.stopPropagation()}
-                    role="presentation">
-                    <button
-                        type="button"
-                        class="btn btn-xs btn-outline"
-                        onclick={() => copy(t)}>コピー</button>
-                    <button
-                        type="button"
-                        class="btn btn-xs btn-ghost"
-                        onclick={() => moveUp(t)}>↑</button>
-                    <button
-                        type="button"
-                        class="btn btn-xs btn-ghost"
-                        onclick={() => moveDown(t)}>↓</button>
+                    class="flex min-w-0 items-center justify-between gap-3">
+                    <div class="flex min-w-0 items-center gap-2">
+                        <span class="badge badge-ghost shrink-0">#{idx}</span>
+                        <span class="truncate font-medium">{t.title}</span>
+                        {#if t.isSample}
+                            <span class="badge badge-outline shrink-0"
+                                >サンプル</span>
+                        {/if}
+                    </div>
+                    <div
+                        class="flex shrink-0 items-center gap-2"
+                        onclick={(e) => e.stopPropagation()}
+                        role="presentation">
+                        <span class="text-xs text-base-content/50"
+                            >作成者: {t.creatorName || "—"}</span>
+                        <button
+                            type="button"
+                            class="btn btn-xs btn-outline"
+                            onclick={() => copy(t)}>コピー</button>
+                        <button
+                            type="button"
+                            class="btn btn-xs btn-ghost"
+                            onclick={() => moveUp(t)}>↑</button>
+                        <button
+                            type="button"
+                            class="btn btn-xs btn-ghost"
+                            onclick={() => moveDown(t)}>↓</button>
+                    </div>
                 </div>
+                <p
+                    class="mt-1 text-sm text-base-content/60 whitespace-pre-wrap line-clamp-3">
+                    {t.description?.trim() || "—"}
+                </p>
             </div>
         {/each}
     {/if}
@@ -222,6 +246,11 @@
                 <p class="text-sm text-base-content/60">
                     {editMode ? "質問を編集" : "質問一覧"}
                 </p>
+                {#if active?.description}
+                    <p class="mt-1 text-sm text-base-content/60 whitespace-pre-wrap">
+                        {active.description}
+                    </p>
+                {/if}
             </div>
             <div class="flex shrink-0 gap-1">
                 {#if !editMode}
@@ -277,6 +306,14 @@
                     <input
                         class="input input-bordered"
                         bind:value={editForm.title} />
+                </label>
+                <label class="form-control">
+                    <span class="label-text font-medium">説明</span>
+                    <textarea
+                        class="textarea textarea-bordered min-h-[4rem]"
+                        rows="3"
+                        bind:value={editForm.description}
+                        placeholder="このテンプレートの目的や使い方"></textarea>
                 </label>
                 {#each editForm.topics as topic, i (i)}
                     <div

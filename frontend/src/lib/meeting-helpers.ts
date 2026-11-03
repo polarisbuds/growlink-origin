@@ -16,7 +16,7 @@ export type MeetingListItem = {
 	uuid?: string;
 	implementedAt?: string;
 	status?: number;
-	template?: { title?: string };
+	template?: { title?: string; description?: string };
 	pairing?: MeetingPairingRef;
 };
 

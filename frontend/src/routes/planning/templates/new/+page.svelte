@@ -2,6 +2,7 @@
     import { goto } from "$app/navigation";
     import { api } from "$lib/api";
     import { showToast } from "$lib/toast";
+    import { validateTemplateForm } from "$lib/template-validation";
 
     type Topic = {
         question: string;
@@ -11,6 +12,7 @@
     };
 
     let title = $state("");
+    let description = $state("");
     let topics = $state<Topic[]>([
         { question: "", description: "", isRequire: true, displayNo: 1 },
     ]);
@@ -33,12 +35,17 @@
             .map((t, idx: number) => ({ ...t, displayNo: idx + 1 }));
     }
     async function save() {
+        const validationError = validateTemplateForm(title, description, topics);
+        if (validationError) {
+            showToast(validationError, "error");
+            return;
+        }
         try {
-            await api("POST", "/api/v1/templates", { title, topics });
+            await api("POST", "/api/v1/templates", { title, description, topics });
             showToast("テンプレートを作成しました");
             await goto("/planning/templates");
-        } catch {
-            showToast("保存に失敗しました", "error");
+        } catch (e) {
+            showToast(e instanceof Error ? e.message : "保存に失敗しました", "error");
         }
     }
 </script>
@@ -58,6 +65,15 @@
             <input class="input input-bordered" bind:value={title} />
         </label>
         {#each topics as topic, i (i)}
+        <label class="form-control">
+            <span class="label-text font-medium">説明</span>
+            <textarea
+                class="textarea textarea-bordered min-h-[4rem]"
+                rows="3"
+                bind:value={description}
+                placeholder="このテンプレートの目的や使い方"
+            ></textarea>
+        </label>
             <div
                 class="flex items-center gap-2 rounded-2xl border border-base-300 p-2"
             >

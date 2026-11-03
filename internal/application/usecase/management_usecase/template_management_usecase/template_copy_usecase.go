@@ -26,7 +26,10 @@ func (uc *TemplateCopier) CopyTemplate(sourceID uint, newTitle string) error {
 	if err != nil {
 		return fmt.Errorf("テンプレートの取得に失敗しました: %w", err)
 	}
-	in := inputmodel.TemplateInput{Title: newTitle}
+	in := inputmodel.TemplateInput{
+		Title:       newTitle,
+		Description: src.Description,
+	}
 	for _, t := range src.Topics {
 		in.Topics = append(in.Topics, inputmodel.TopicInput{
 			DisplayNo:   t.DisplayNo,

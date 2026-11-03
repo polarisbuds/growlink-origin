@@ -1,11 +1,13 @@
 package api
 
 import (
+	"errors"
 	"net/http"
 	"strconv"
 
 	"growlink/internal/adapter/handler/authctx"
 	inputmodel "growlink/internal/application/model/input_model"
+	template_mng_usecase "growlink/internal/application/usecase/management_usecase/template_management_usecase"
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v5"
@@ -56,6 +58,9 @@ func (h *Handler) CreateTemplate(c *echo.Context) error {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid request"})
 	}
 	if err := h.deps.Management.TemplateCreator.CreateTemplate(req, claims.UserID); err != nil {
+		if errors.Is(err, template_mng_usecase.ErrInvalidTemplateInput) {
+			return c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
+		}
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
 	return c.JSON(http.StatusOK, map[string]string{"ok": "true"})
@@ -82,6 +87,9 @@ func (h *Handler) UpdateTemplate(c *echo.Context) error {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid request"})
 	}
 	if err := h.deps.Management.TemplateUpdater.UpdateTemplate(templateID, req); err != nil {
+		if errors.Is(err, template_mng_usecase.ErrInvalidTemplateInput) {
+			return c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
+		}
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
 	return c.JSON(http.StatusOK, map[string]string{"ok": "true"})
@@ -111,6 +119,9 @@ func (h *Handler) CopyTemplate(c *echo.Context) error {
 		title = tpl.Title + " のコピー"
 	}
 	if err := h.deps.Management.TemplateCopier.CopyTemplate(templateID, title); err != nil {
+		if errors.Is(err, template_mng_usecase.ErrInvalidTemplateInput) {
+			return c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
+		}
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
 	_ = claims

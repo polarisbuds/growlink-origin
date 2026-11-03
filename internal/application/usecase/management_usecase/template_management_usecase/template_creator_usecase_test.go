@@ -32,15 +32,17 @@ func newTemplateCreator(t *testing.T) (
 
 func TestTemplateCreator_CreateTemplate(t *testing.T) {
 	inputWithTopics := inputmodel.TemplateInput{
-		Title: "test-template",
+		Title:       "test-template",
+		Description: "test description",
 		Topics: []inputmodel.TopicInput{
 			{DisplayNo: 1, Question: "question-1", IsRequire: true},
 			{DisplayNo: 2, Question: "question-2", IsRequire: false},
 		},
 	}
 	inputEmptyTopics := inputmodel.TemplateInput{
-		Title:  "empty-topics-template",
-		Topics: []inputmodel.TopicInput{},
+		Title:       "empty-topics-template",
+		Description: "desc",
+		Topics:      []inputmodel.TopicInput{},
 	}
 
 	tests := []struct {
@@ -56,12 +58,13 @@ func TestTemplateCreator_CreateTemplate(t *testing.T) {
 			input:   inputWithTopics,
 			wantErr: false,
 			setup: func(templateRepo *repomock.MockTemplateRepository, topicRepo *repomock.MockTopicRepository, cap *templateCreatorCaptures) {
-				topicRepo.EXPECT().Create(gomock.Any()).Times(2).DoAndReturn(func(topic *entity.Topic) error {
-					cap.createdTopics = append(cap.createdTopics, topic)
-					return nil
-				})
+				templateRepo.EXPECT().Count().Return(int64(0), nil)
 				templateRepo.EXPECT().Create(gomock.Any()).DoAndReturn(func(template *entity.Template) error {
 					cap.createdTemplate = template
+					return nil
+				})
+				topicRepo.EXPECT().Create(gomock.Any()).Times(2).DoAndReturn(func(topic *entity.Topic) error {
+					cap.createdTopics = append(cap.createdTopics, topic)
 					return nil
 				})
 			},
@@ -76,36 +79,26 @@ func TestTemplateCreator_CreateTemplate(t *testing.T) {
 
 				require.NotNil(t, cap.createdTemplate)
 				assert.Equal(t, "test-template", cap.createdTemplate.Title)
+				assert.Equal(t, "test description", cap.createdTemplate.Description)
 				assert.Equal(t, validUserID, cap.createdTemplate.UserID)
-				require.Len(t, cap.createdTemplate.Topics, 2)
-				assert.Equal(t, "question-1", cap.createdTemplate.Topics[0].Question)
-				assert.Equal(t, "question-2", cap.createdTemplate.Topics[1].Question)
+				assert.Equal(t, 1, cap.createdTemplate.DisplayNo)
 			},
 		},
 		{
-			name:    "通常系_トピック空",
-			input:   inputEmptyTopics,
-			wantErr: false,
-			setup: func(templateRepo *repomock.MockTemplateRepository, _ *repomock.MockTopicRepository, cap *templateCreatorCaptures) {
-				templateRepo.EXPECT().Create(gomock.Any()).DoAndReturn(func(template *entity.Template) error {
-					cap.createdTemplate = template
-					return nil
-				})
-			},
-			assertFn: func(t *testing.T, cap *templateCreatorCaptures) {
-				assert.Empty(t, cap.createdTopics)
-				require.NotNil(t, cap.createdTemplate)
-				assert.Equal(t, "empty-topics-template", cap.createdTemplate.Title)
-				assert.Equal(t, validUserID, cap.createdTemplate.UserID)
-				assert.Empty(t, cap.createdTemplate.Topics)
-			},
+			name:        "異常系_トピック空",
+			input:       inputEmptyTopics,
+			wantErr:     true,
+			errContains: "質問を1件以上",
+			setup:       func(_ *repomock.MockTemplateRepository, _ *repomock.MockTopicRepository, _ *templateCreatorCaptures) {},
 		},
 		{
 			name:        "異常系_トピック作成失敗",
 			input:       inputWithTopics,
 			wantErr:     true,
 			errContains: "トピックの作成に失敗しました",
-			setup: func(_ *repomock.MockTemplateRepository, topicRepo *repomock.MockTopicRepository, _ *templateCreatorCaptures) {
+			setup: func(templateRepo *repomock.MockTemplateRepository, topicRepo *repomock.MockTopicRepository, _ *templateCreatorCaptures) {
+				templateRepo.EXPECT().Count().Return(int64(0), nil)
+				templateRepo.EXPECT().Create(gomock.Any()).Return(nil)
 				topicRepo.EXPECT().Create(gomock.Any()).Return(errCreateTopicFailed)
 			},
 		},
@@ -115,7 +108,7 @@ func TestTemplateCreator_CreateTemplate(t *testing.T) {
 			wantErr:     true,
 			errContains: "テンプレートの新規作成に失敗しました",
 			setup: func(templateRepo *repomock.MockTemplateRepository, topicRepo *repomock.MockTopicRepository, _ *templateCreatorCaptures) {
-				topicRepo.EXPECT().Create(gomock.Any()).Times(2).Return(nil)
+				templateRepo.EXPECT().Count().Return(int64(0), nil)
 				templateRepo.EXPECT().Create(gomock.Any()).Return(errCreateTemplateFailed)
 			},
 		},

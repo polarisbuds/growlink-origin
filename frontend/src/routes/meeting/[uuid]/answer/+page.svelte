@@ -42,6 +42,12 @@
     let canEditImplementedDate = $derived(
         !!payload?.canEditSharers || !!payload?.canEdit,
     );
+    let templateTitle = $derived(
+        payload?.meeting?.template?.title || "面談記入",
+    );
+    let templateDescription = $derived(
+        payload?.meeting?.template?.description?.trim() || "",
+    );
 
     function rowKey(row: DualTopicRow) {
         return row.topic?.id ?? row.displayNo;
@@ -118,7 +124,12 @@
 {#if payload}
     <div class="flex max-w-7xl items-center justify-between gap-4">
         <div>
-            <h1 class="font-display text-2xl font-semibold">面談記入</h1>
+            <h1 class="font-display text-2xl font-semibold">{templateTitle}</h1>
+            {#if templateDescription}
+                <p class="mt-1 text-xs text-base-content/50">
+                    {templateDescription}
+                </p>
+            {/if}
             <p class="mt-1 text-sm text-base-content/60">
                 {#if showBothReadOnly}
                     提出済みの内容を確認できます。

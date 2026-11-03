@@ -28,6 +28,9 @@ func (uc *TemplateUpdater) UpdateDisplayNo(templateID uint, displayNo int) error
 
 func (uc *TemplateUpdater) UpdateTemplate(templateID uint, input inputmodel.TemplateInput) error {
 	input.Topics = normalizeTopicInputs(input.Topics)
+	if err := validateTemplateInput(input); err != nil {
+		return err
+	}
 	newTemplate := converter.TemplateInputToEntity(input)
 	if err := uc.templateRepo.Update(templateID, newTemplate); err != nil {
 		return fmt.Errorf("テンプレートの情報更新に失敗しました: %w", err)

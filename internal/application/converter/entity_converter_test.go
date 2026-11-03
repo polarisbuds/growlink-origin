@@ -46,7 +46,8 @@ func TestMeetingInputToEntityAndBack(t *testing.T) {
 
 func TestTemplateInputToEntityAndBack(t *testing.T) {
 	input := inputmodel.TemplateInput{
-		Title: "weekly",
+		Title:       "weekly",
+		Description: "weekly check-in",
 		Topics: []inputmodel.TopicInput{
 			{DisplayNo: 1, Question: "Q1", IsRequire: true},
 		},
@@ -59,8 +60,9 @@ func TestTemplateInputToEntityAndBack(t *testing.T) {
 	assert.Equal(t, "Q1", got.Topics[0].Question)
 
 	entityTemplate := entity.Template{
-		Model: gorm.Model{ID: 5},
-		Title: "weekly",
+		Model:       gorm.Model{ID: 5},
+		Title:       "weekly",
+		Description: "weekly check-in",
 		Topics: []entity.Topic{
 			{Model: gorm.Model{ID: 7}, DisplayNo: 1, Question: "Q1", IsRequire: true},
 		},

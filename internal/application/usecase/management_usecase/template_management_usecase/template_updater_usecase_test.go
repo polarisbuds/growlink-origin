@@ -31,7 +31,8 @@ func newTemplateUpdater(t *testing.T) (
 
 func TestTemplateUpdater_UpdateTemplate(t *testing.T) {
 	input := inputmodel.TemplateInput{
-		Title: "updated-template",
+		Title:       "updated-template",
+		Description: "updated description",
 		Topics: []inputmodel.TopicInput{
 			{DisplayNo: 1, Question: "updated-question", IsRequire: true},
 		},

@@ -8,8 +8,9 @@ import (
 type Template struct {
 	gorm.Model
 
-	UUID  uuid.UUID `gorm:"type:uuid;not null;uniqueIndex;default:gen_random_uuid()"`
-	Title string    `gorm:"type:text;not null;uniqueIndex"`
+	UUID        uuid.UUID `gorm:"type:uuid;not null;uniqueIndex;default:gen_random_uuid()"`
+	Title       string    `gorm:"type:text;not null;uniqueIndex"`
+	Description string    `gorm:"type:text;not null;default:''"`
 
 	DisplayNo int  `gorm:"not null;default:0;index"`
 	IsSample  bool `gorm:"not null;default:false"`

@@ -152,10 +152,11 @@ func genSeed(db *gorm.DB) error {
 		}
 
 		template := &entity.Template{
-			Title:     "1on1テンプレート",
-			DisplayNo: 1,
-			IsSample:  true,
-			UserID:    owner.ID,
+			Title:       "1on1テンプレート",
+			Description: "メンターとメンティーの定例1on1で、成果と課題を共有するためのテンプレートです。",
+			DisplayNo:   1,
+			IsSample:    true,
+			UserID:      owner.ID,
 		}
 		if err := tx.Create(template).Error; err != nil {
 			return err
@@ -178,10 +179,11 @@ func genSeed(db *gorm.DB) error {
 		}
 
 		templateCheckin := &entity.Template{
-			Title:     "週次チェックイン",
-			DisplayNo: 2,
-			IsSample:  false,
-			UserID:    boss.ID,
+			Title:       "週次チェックイン",
+			Description: "週の目標とブロッカーを短時間で確認するためのテンプレートです。",
+			DisplayNo:   2,
+			IsSample:    false,
+			UserID:      boss.ID,
 		}
 		if err := tx.Create(templateCheckin).Error; err != nil {
 			return err

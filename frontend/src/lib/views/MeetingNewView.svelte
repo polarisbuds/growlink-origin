@@ -13,10 +13,12 @@
         departmentNameForUser,
         teamNameForUser,
     } from "$lib/planning-directory";
-    import UserChipSearchField from "$lib/components/UserChipSearchField.svelte";
+    import MultiCheckSelect from "$lib/components/MultiCheckSelect.svelte";
     import SearchableSelect from "$lib/components/SearchableSelect.svelte";
 
-    type Target = { kind: string; targetId: number; label: string };
+    const multiPickInputClass =
+        "input input-bordered w-full text-left font-normal placeholder-current";
+
     type Template = { id: number; title?: string };
     type User = {
         id: number;
@@ -43,20 +45,19 @@
     let pairSearch = $state("");
     let templates = $state<Template[]>([]);
     let users = $state<User[]>([]);
+    let currentUserId = $state<number | undefined>();
     let managedTeams = $state<ManagedTeam[]>([]);
     let mode = $state<CreateMode>("planned");
     let mentorId = $state(0);
-    let targets = $state<Target[]>([]);
-    let userTargets = $derived(targets.filter((t) => t.kind === "user"));
+    let menteeIds = $state<number[]>([]);
     let sharerUserIds = $state<number[]>([]);
-    let menteeChips = $derived(
-        userTargets.map((t) => ({
-            id: t.targetId,
-            name: displayNameForTarget(t),
-        })),
+    let pickableUsers = $derived(
+        currentUserId != null
+            ? users.filter((u) => u.id !== currentUserId)
+            : users,
     );
-    let sharerChips = $derived(
-        sharerUserIds.map((id) => ({ id, name: userLabel(id) })),
+    let menteeTargetPicks = $derived(
+        menteeIds.map((targetId) => ({ kind: "user", targetId })),
     );
     let submitting = $state(false);
     let error = $state("");
@@ -99,7 +100,7 @@
         matchPairingIds(
             pairings,
             mentorId ? [mentorId] : [],
-            targets.map((t) => ({ kind: t.kind, targetId: t.targetId })),
+            menteeTargetPicks,
         ).length,
     );
 
@@ -123,44 +124,18 @@
         if (!team) return `#${item.id}`;
         return `${team.name}（${team.members?.length ?? 0}人）`;
     }
-    function displayNameForTarget(t: Target) {
-        const u = users.find((x) => x.id === t.targetId);
-        if (u) return u.name;
-        const idx = t.label.indexOf(" (");
-        if (idx > 0) return t.label.slice(0, idx);
-        return t.label || `#${t.targetId}`;
-    }
-    function targetKey(kind: string, targetId: number) {
-        return `${kind}:${targetId}`;
-    }
-    function addTarget(kind: string, targetId: number, label: string) {
-        const key = targetKey(kind, targetId);
-        if (targets.some((t) => targetKey(t.kind, t.targetId) === key)) return;
-        targets = [...targets, { kind, targetId, label }];
-    }
-    function removeTarget(kind: string, targetId: number) {
-        targets = targets.filter(
-            (t) => !(t.kind === kind && t.targetId === targetId),
-        );
-    }
-    function pickUserTarget(u: User) {
-        addTarget("user", u.id, `${u.name} (${u.email})`);
-    }
     function pickManagedTeamFromSelect(item: SelectItem) {
         const team = managedTeams.find((t) => t.id === item.id);
         if (team) pickManagedTeam(team);
     }
     function pickManagedTeam(team: ManagedTeam) {
+        const next = new Set(menteeIds);
         for (const m of team.members || []) {
-            addTarget("user", m.id, `${m.name} (${m.email})`);
+            if (!m?.id) continue;
+            if (currentUserId != null && m.id === currentUserId) continue;
+            next.add(m.id);
         }
-    }
-    function addSharer(u: User) {
-        if (!u?.id || sharerUserIds.includes(u.id)) return;
-        sharerUserIds = [...sharerUserIds, u.id];
-    }
-    function removeSharer(id: number) {
-        sharerUserIds = sharerUserIds.filter((x) => x !== id);
+        menteeIds = [...next];
     }
     function submitLabel() {
         if (submitting) return "作成中…";
@@ -172,7 +147,7 @@
         return matchPairingIds(
             pairings,
             mentorId ? [mentorId] : [],
-            targets.map((t) => ({ kind: t.kind, targetId: t.targetId })),
+            menteeTargetPicks,
         );
     }
     function toggleAllPairRows(checked: boolean) {
@@ -204,16 +179,18 @@
     }
 
     onMount(async () => {
-        const [t, dir] = await Promise.all([
+        const [t, dir, profile] = await Promise.all([
             api<Template[]>("GET", "/api/v1/templates"),
             api<{ users?: User[]; managedTeams?: ManagedTeam[] }>(
                 "GET",
                 "/api/v1/planning/directory",
             ),
+            api<{ id?: number }>("GET", "/api/v1/setting/profile"),
         ]);
         templates = t;
         users = dir.users || [];
         managedTeams = dir.managedTeams || [];
+        currentUserId = profile.id;
         form.templateId = templates[0]?.id || 0;
     });
 
@@ -234,7 +211,7 @@
                     error = "メンターを選択してください。";
                     return;
                 }
-                if (!userTargets.length) {
+                if (!menteeIds.length) {
                     error = "メンティを選択してください。";
                     return;
                 }
@@ -242,21 +219,10 @@
                     error = "実施日を入力してください。";
                     return;
                 }
-                const menteeIds = userTargets.map((t) => t.targetId);
                 if (menteeIds.some((id) => id === mentorId)) {
                     error = "メンターと同じユーザをメンティに指定できません。";
                     return;
                 }
-                console.log(
-                    {
-                        mentorId,
-                        menteeIds,
-                        templateId: form.templateId,
-                        implementedAt: form.implementedAt,
-                        sharerUserIds: sharerPayload,
-                    },
-                    form,
-                );
                 await api("POST", "/api/v1/meetings", {
                     mentorId,
                     menteeIds,
@@ -290,7 +256,7 @@
                     error = "メンターを選択してください。";
                     return;
                 }
-                if (!userTargets.length) {
+                if (!menteeIds.length) {
                     error = "メンティを選択してください。";
                     return;
                 }
@@ -470,19 +436,16 @@
                         placeholder="名前で検索" />
                 </div>
                 <div class="md:col-span-2">
-                    <span class="label-text font-medium">メンティ</span>
-                    <div class="form-control mt-1">
-                        <UserChipSearchField
+                    <label class="form-control">
+                        <span class="label-text font-medium">メンティ</span>
+                        <MultiCheckSelect
                             pickRootId="meeting-new-mentee"
-                            chips={menteeChips}
-                            items={users}
-                            className="border border-base-content border-opacity-25 h-12"
-                            placeholder={menteeChips.length
-                                ? "追加で検索"
-                                : "名前で検索して追加"}
-                            onPick={pickUserTarget}
-                            onRemove={(id) => removeTarget("user", id)} />
-                    </div>
+                            items={pickableUsers}
+                            bind:selectedIds={menteeIds}
+                            labelOf={userLabelOf}
+                            placeholder="選択してください"
+                            inputClass={multiPickInputClass} />
+                    </label>
                     {#if managedTeams.length > 0}
                         <div class="form-control mt-3">
                             <span class="label-text font-medium"
@@ -501,26 +464,23 @@
                     {/if}
                 </div>
             </div>
-            {#if mode === "monthly" && mentorId && userTargets.length}
+            {#if mode === "monthly" && mentorId && menteeIds.length}
                 <p class="text-sm text-base-content/60">
                     一致するペア: <span class="font-medium text-base-content"
                         >{matchedPairingCount}</span> 件（各ペアに面談を1件作成）
                 </p>
             {/if}
         {/if}
-        <div class="form-control">
+        <label class="form-control">
             <span class="label-text font-medium">共有者（任意・複数）</span>
-            <UserChipSearchField
+            <MultiCheckSelect
                 pickRootId="meeting-new-sharer"
-                chips={sharerChips}
-                items={users}
-                className="border border-base-content border-opacity-25 h-12"
-                placeholder={sharerChips.length
-                    ? "追加で検索"
-                    : "名前で検索して追加"}
-                onPick={addSharer}
-                onRemove={removeSharer} />
-        </div>
+                items={pickableUsers}
+                bind:selectedIds={sharerUserIds}
+                labelOf={userLabelOf}
+                placeholder="選択してください"
+                inputClass={multiPickInputClass} />
+        </label>
         {#if mode !== "monthly"}
             <label class="form-control">
                 <span class="label-text font-medium">実施日</span>
