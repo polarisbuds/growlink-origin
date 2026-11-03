@@ -16,11 +16,13 @@
         currentUserId,
         roleBadgeMode = "none",
         labelForItem = pairLabel,
+        emptyMessage = "面談はありません",
     }: {
         items: MeetingListItem[];
         currentUserId?: number;
         roleBadgeMode?: RoleBadgeMode;
         labelForItem?: (item: MeetingListItem) => string;
+        emptyMessage?: string;
     } = $props();
 
     let showRoleColumn = $derived(roleBadgeMode !== "none");
@@ -91,7 +93,7 @@
     </table>
     {#if items.length === 0}
         <p class="p-8 text-center text-sm text-base-content/50">
-            面談はありません
+            {emptyMessage}
         </p>
     {/if}
 </div>
