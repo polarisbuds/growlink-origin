@@ -2,6 +2,7 @@
     import { onMount } from "svelte";
     import { goto } from "$app/navigation";
     import { api } from "$lib/api";
+    import { getAvatar } from "$lib/session";
     import {
         matchPairingIds,
         type MeetingPairingItem,
@@ -46,6 +47,7 @@
     let templates = $state<Template[]>([]);
     let users = $state<User[]>([]);
     let currentUserId = $state<number | undefined>();
+    let canSpecifyPair = $state(false);
     let managedTeams = $state<ManagedTeam[]>([]);
     let mode = $state<CreateMode>("planned");
     let mentorId = $state(0);
@@ -160,7 +162,7 @@
         try {
             pairings = await api<MeetingPairingItem[]>(
                 "GET",
-                "/api/v1/pairings",
+                "/api/v1/pairings/meeting",
             );
             pairingsLoaded = true;
         } finally {
@@ -191,6 +193,7 @@
         users = dir.users || [];
         managedTeams = dir.managedTeams || [];
         currentUserId = profile.id;
+        canSpecifyPair = getAvatar()?.canSpecifyPair ?? false;
         form.templateId = templates[0]?.id || 0;
     });
 
@@ -311,12 +314,14 @@
             class:btn-primary={mode === "planned"}
             class:btn-outline={mode !== "planned"}
             onclick={() => onModeChange("planned")}>作成</button>
-        <button
-            type="button"
-            class="btn btn-sm"
-            class:btn-primary={mode === "pair"}
-            class:btn-outline={mode !== "pair"}
-            onclick={() => onModeChange("pair")}>ペア指定</button>
+        {#if canSpecifyPair}
+            <button
+                type="button"
+                class="btn btn-sm"
+                class:btn-primary={mode === "pair"}
+                class:btn-outline={mode !== "pair"}
+                onclick={() => onModeChange("pair")}>ペア指定</button>
+        {/if}
         <button
             type="button"
             class="btn btn-sm"

@@ -27,7 +27,23 @@ func (h *Handler) resolvePairingID(param string) (uint, error) {
 }
 
 func (h *Handler) ListPairings(c *echo.Context) error {
-	list, err := h.deps.Management.Pairing.ListPairingsByAll()
+	claims := authctx.Claims(c)
+	if claims == nil {
+		return c.JSON(http.StatusUnauthorized, map[string]string{"error": "unauthorized"})
+	}
+	list, err := h.deps.Planning.ListPairingsForManagement(claims.UserID, authctx.IsSystemAdmin(c))
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+	}
+	return c.JSON(http.StatusOK, list)
+}
+
+func (h *Handler) ListPairingsForMeeting(c *echo.Context) error {
+	claims := authctx.Claims(c)
+	if claims == nil {
+		return c.JSON(http.StatusUnauthorized, map[string]string{"error": "unauthorized"})
+	}
+	list, err := h.deps.Planning.ListPairingsForMeeting(claims.UserID, authctx.IsSystemAdmin(c))
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}

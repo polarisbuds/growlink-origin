@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"growlink/internal/adapter/handler/authctx"
+	"growlink/internal/application/usecase/planning_usecase"
 	"growlink/internal/domain/valueobject"
 	repository_interface "growlink/internal/domain/interface/repository"
 	"growlink/internal/shared/auth"
@@ -110,6 +111,41 @@ func PairingPlanningAPI() echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c *echo.Context) error {
 			if !authctx.CanAccessPairingPlanning(c) {
+				return c.JSON(http.StatusForbidden, map[string]string{"error": "forbidden"})
+			}
+			return next(c)
+		}
+	}
+}
+
+func PlanningPairManagementPage(planning *planning_usecase.PlanningAccessUsecase) echo.MiddlewareFunc {
+	return func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c *echo.Context) error {
+			claims := authctx.Claims(c)
+			if claims == nil {
+				return c.Redirect(http.StatusFound, "/login")
+			}
+			ok, err := planning.HasPairManagementAccess(claims.UserID, authctx.IsSystemAdmin(c))
+			if err != nil || !ok {
+				return c.Redirect(http.StatusFound, "/planning/meetings")
+			}
+			return next(c)
+		}
+	}
+}
+
+func PlanningPairManagementAPI(planning *planning_usecase.PlanningAccessUsecase) echo.MiddlewareFunc {
+	return func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c *echo.Context) error {
+			claims := authctx.Claims(c)
+			if claims == nil {
+				return c.JSON(http.StatusUnauthorized, map[string]string{"error": "unauthorized"})
+			}
+			ok, err := planning.HasPairManagementAccess(claims.UserID, authctx.IsSystemAdmin(c))
+			if err != nil {
+				return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			}
+			if !ok {
 				return c.JSON(http.StatusForbidden, map[string]string{"error": "forbidden"})
 			}
 			return next(c)

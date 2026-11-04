@@ -18,6 +18,7 @@ import (
 	template_mng_usecase "growlink/internal/application/usecase/management_usecase/template_management_usecase"
 	user_admin_usecase "growlink/internal/application/usecase/management_usecase/user_admin_usecase"
 	"growlink/internal/application/usecase/meeting_usecase"
+	"growlink/internal/application/usecase/planning_usecase"
 	"growlink/internal/application/usecase/pairing_usecase"
 	"growlink/internal/application/usecase/setting_usecase"
 	"growlink/internal/infrastructure/external/ldap"
@@ -138,6 +139,18 @@ func main() {
 		Progress:        progress_mng_usecase.NewProgressViewer(meetingRepo, userRepo, teamMemberRepo, userDeptRepo, pairingRepo),
 	}
 
+	planningAccess := planning_usecase.NewPlanningAccessUsecase(
+		meetingRepo,
+		userRepo,
+		teamRefRepo,
+		relationshipRepo,
+		teamMemberRepo,
+		managementBundle.Meeting,
+		meetingBundle.List,
+		managementBundle.Pairing,
+		pairingRepo,
+	)
+
 	deps := handler.Deps{
 		Auth:           authUC,
 		Meeting:        meetingBundle,
@@ -155,6 +168,7 @@ func main() {
 		DepartmentRepo: deptRepo,
 		TeamRefRepo:    teamRefRepo,
 		RoleRepo:       roleRepo,
+		Planning:       planningAccess,
 	}
 
 	handler.RegisterRoutes(ec, deps, logs.Audit)

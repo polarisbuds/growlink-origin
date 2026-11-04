@@ -29,13 +29,23 @@ func (h *Handler) AvatarMe(c *echo.Context) error {
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
+	canAccessPairs, err := h.deps.Planning.HasPairManagementAccess(claims.UserID, authctx.IsSystemAdmin(c))
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+	}
+	canSpecifyPair, err := h.deps.Planning.CanSpecifyPairMeeting(claims.UserID, claims.SystemRole, claims.Authority)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+	}
 	return c.JSON(http.StatusOK, map[string]interface{}{
-		"name":          claims.Name,
-		"email":         claims.Email,
-		"imageUri":      user.ImageURI,
-		"isSystemAdmin": authctx.IsSystemAdmin(c),
-		"isAnalyst":     authctx.IsAnalyst(c),
-		"canPairing":    authctx.CanPairing(c),
+		"name":           claims.Name,
+		"email":          claims.Email,
+		"imageUri":       user.ImageURI,
+		"isSystemAdmin":  authctx.IsSystemAdmin(c),
+		"isAnalyst":      authctx.IsAnalyst(c),
+		"canPairing":     authctx.CanPairing(c),
+		"canAccessPairs": canAccessPairs,
+		"canSpecifyPair": canSpecifyPair,
 	})
 }
 

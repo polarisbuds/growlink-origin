@@ -9,6 +9,7 @@ import (
 	management_usecase "growlink/internal/application/usecase/management_usecase"
 	"growlink/internal/application/usecase/meeting_usecase"
 	"growlink/internal/application/usecase/pairing_usecase"
+	"growlink/internal/application/usecase/planning_usecase"
 	"growlink/internal/application/usecase/setting_usecase"
 	repository_interface "growlink/internal/domain/interface/repository"
 
@@ -32,6 +33,7 @@ type Deps struct {
 	DepartmentRepo repository_interface.DepartmentRepository
 	TeamRefRepo    repository_interface.UserReferenceTeamRepository
 	RoleRepo       repository_interface.RoleRepository
+	Planning       *planning_usecase.PlanningAccessUsecase
 }
 
 func RegisterRoutes(e *echo.Echo, deps Deps, auditLogger *slog.Logger) {
@@ -64,6 +66,7 @@ func RegisterRoutes(e *echo.Echo, deps Deps, auditLogger *slog.Logger) {
 		DepartmentRepo: deps.DepartmentRepo,
 		TeamRefRepo:    deps.TeamRefRepo,
 		RoleRepo:       deps.RoleRepo,
+		Planning:       deps.Planning,
 	})
 
 	e.GET("/login", ph.LoginPage)
@@ -73,16 +76,17 @@ func RegisterRoutes(e *echo.Echo, deps Deps, auditLogger *slog.Logger) {
 	auth := e.Group("", JWTConfig(auditLogger), ActiveUserCheck(deps.UserRepo, auditLogger))
 	auth.GET("/", spa, auditLogging(auditLogger, false))
 	auth.GET("/meeting", spa, auditLogging(auditLogger, false))
-	auth.GET("/meeting/new", spa, PairingPlanningPage(), auditLogging(auditLogger, false))
+	auth.GET("/meeting/new", spa, auditLogging(auditLogger, false))
 	auth.GET("/meeting/:uuid", spa, auditLogging(auditLogger, false))
 	auth.GET("/meeting/:uuid/answer", spa, auditLogging(auditLogger, false))
 	auth.GET("/meeting/:uuid/setting", spa, auditLogging(auditLogger, false))
 
-	auth.GET("/planning/meetings", spa, PairingPlanningPage(), auditLogging(auditLogger, false))
-	auth.GET("/planning/meetings/new", spa, PairingPlanningPage(), auditLogging(auditLogger, false))
-	auth.GET("/planning/pairs", spa, PairingPlanningPage(), auditLogging(auditLogger, false))
-	auth.GET("/planning/pairs/new", spa, PairingPlanningPage(), auditLogging(auditLogger, false))
-	auth.GET("/planning/pairs/:uuid/edit", spa, PairingPlanningPage(), auditLogging(auditLogger, false))
+	auth.GET("/planning/meetings", spa, auditLogging(auditLogger, false))
+	auth.GET("/planning/meetings/new", spa, auditLogging(auditLogger, false))
+	pairPage := PlanningPairManagementPage(deps.Planning)
+	auth.GET("/planning/pairs", spa, pairPage, auditLogging(auditLogger, false))
+	auth.GET("/planning/pairs/new", spa, pairPage, auditLogging(auditLogger, false))
+	auth.GET("/planning/pairs/:uuid/edit", spa, pairPage, auditLogging(auditLogger, false))
 	auth.GET("/planning/templates", spa, auditLogging(auditLogger, false))
 	auth.GET("/planning/templates/new", spa, auditLogging(auditLogger, false))
 	auth.GET("/planning/templates/:uuid", spa, auditLogging(auditLogger, false))
@@ -114,16 +118,18 @@ func RegisterRoutes(e *echo.Echo, deps Deps, auditLogger *slog.Logger) {
 	apiAuth.POST("/meetings/:uuid/draft/cancel", ah.CancelSubmit, auditLogging(auditLogger, false))
 	apiAuth.POST("/meetings/:uuid/meeting-comment", ah.PostMeetingComment, auditLogging(auditLogger, false))
 	apiAuth.POST("/meetings/answer-comment", ah.PostAnswerComment, auditLogging(auditLogger, false))
-	apiAuth.GET("/meetings/all", ah.ListMeetingsAll, PairingPlanningAPI(), auditLogging(auditLogger, false))
-	apiAuth.POST("/meetings", ah.CreateMeeting, PairingPlanningAPI(), auditLogging(auditLogger, false))
-	apiAuth.POST("/meetings/all", ah.CreateMeetingByAll, PairingPlanningAPI(), auditLogging(auditLogger, false))
-	apiAuth.POST("/meetings/monthly", ah.CreateMeetingMonthly, PairingPlanningAPI(), auditLogging(auditLogger, false))
+	apiAuth.GET("/meetings/all", ah.ListMeetingsAll, auditLogging(auditLogger, false))
+	apiAuth.POST("/meetings", ah.CreateMeeting, auditLogging(auditLogger, false))
+	apiAuth.POST("/meetings/all", ah.CreateMeetingByAll, auditLogging(auditLogger, false))
+	apiAuth.POST("/meetings/monthly", ah.CreateMeetingMonthly, auditLogging(auditLogger, false))
 
-	apiAuth.GET("/pairings", ah.ListPairings, PairingPlanningAPI(), auditLogging(auditLogger, false))
-	apiAuth.GET("/pairings/:uuid", ah.GetPairing, PairingPlanningAPI(), auditLogging(auditLogger, false))
-	apiAuth.POST("/pairings", ah.CreatePairing, PairingPlanningAPI(), auditLogging(auditLogger, false))
-	apiAuth.PUT("/pairings/:uuid", ah.UpdatePairing, PairingPlanningAPI(), auditLogging(auditLogger, false))
-	apiAuth.DELETE("/pairings/:uuid", ah.DeletePairing, PairingPlanningAPI(), auditLogging(auditLogger, false))
+	pairAPI := PlanningPairManagementAPI(deps.Planning)
+	apiAuth.GET("/pairings/meeting", ah.ListPairingsForMeeting, auditLogging(auditLogger, false))
+	apiAuth.GET("/pairings", ah.ListPairings, pairAPI, auditLogging(auditLogger, false))
+	apiAuth.GET("/pairings/:uuid", ah.GetPairing, pairAPI, auditLogging(auditLogger, false))
+	apiAuth.POST("/pairings", ah.CreatePairing, pairAPI, auditLogging(auditLogger, false))
+	apiAuth.PUT("/pairings/:uuid", ah.UpdatePairing, pairAPI, auditLogging(auditLogger, false))
+	apiAuth.DELETE("/pairings/:uuid", ah.DeletePairing, pairAPI, auditLogging(auditLogger, false))
 
 	apiAuth.GET("/templates", ah.ListTemplates, auditLogging(auditLogger, false))
 	apiAuth.GET("/templates/:uuid", ah.GetTemplate, auditLogging(auditLogger, false))
@@ -133,7 +139,7 @@ func RegisterRoutes(e *echo.Echo, deps Deps, auditLogger *slog.Logger) {
 	apiAuth.POST("/templates/:uuid/copy", ah.CopyTemplate, auditLogging(auditLogger, false))
 	apiAuth.PUT("/templates/reorder", ah.ReorderTemplates, auditLogging(auditLogger, false))
 
-	apiAuth.GET("/planning/directory", ah.ListPlanningDirectory, PairingPlanningAPI(), auditLogging(auditLogger, false))
+	apiAuth.GET("/planning/directory", ah.ListPlanningDirectory, auditLogging(auditLogger, false))
 	apiAuth.GET("/progress/summary", ah.ProgressSummary, ProgressAPI(), auditLogging(auditLogger, false))
 	apiAuth.GET("/progress/breakdown", ah.ProgressBreakdown, ProgressAPI(), auditLogging(auditLogger, false))
 

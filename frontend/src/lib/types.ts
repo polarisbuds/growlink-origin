@@ -5,6 +5,8 @@ export type AvatarMe = {
 	isSystemAdmin: boolean;
 	isAnalyst: boolean;
 	canPairing: boolean;
+	canAccessPairs: boolean;
+	canSpecifyPair: boolean;
 };
 
 export type NavItem = {

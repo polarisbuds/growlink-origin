@@ -75,12 +75,8 @@ func (h *Handler) UpdateTemplate(c *echo.Context) error {
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid id"})
 	}
-	tpl, err := h.deps.TemplateRepo.Get(templateID)
-	if err != nil {
+	if _, err := h.deps.TemplateRepo.Get(templateID); err != nil {
 		return c.JSON(http.StatusNotFound, map[string]string{"error": "not found"})
-	}
-	if !authctx.CanModify(claims.UserID, claims.SystemRole, tpl.UserID) {
-		return c.JSON(http.StatusForbidden, map[string]string{"error": "forbidden"})
 	}
 	var req inputmodel.TemplateInput
 	if err := c.Bind(&req); err != nil {
@@ -155,12 +151,8 @@ func (h *Handler) DeleteTemplate(c *echo.Context) error {
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid id"})
 	}
-	tpl, err := h.deps.TemplateRepo.Get(templateID)
-	if err != nil {
+	if _, err := h.deps.TemplateRepo.Get(templateID); err != nil {
 		return c.JSON(http.StatusNotFound, map[string]string{"error": "not found"})
-	}
-	if !authctx.CanModify(claims.UserID, claims.SystemRole, tpl.UserID) {
-		return c.JSON(http.StatusForbidden, map[string]string{"error": "forbidden"})
 	}
 	if err := h.deps.Management.TemplateDeleter.DeleteTemplate(templateID); err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})

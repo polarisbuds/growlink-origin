@@ -59,6 +59,13 @@ func (h *Handler) CreateMeetingByAll(c *echo.Context) error {
 	if claims == nil {
 		return c.JSON(http.StatusUnauthorized, map[string]string{"error": "unauthorized"})
 	}
+	canSpecify, err := h.deps.Planning.CanSpecifyPairMeeting(claims.UserID, claims.SystemRole, claims.Authority)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+	}
+	if !canSpecify {
+		return c.JSON(http.StatusForbidden, map[string]string{"error": "forbidden"})
+	}
 	var req inputmodel.CreateMeetingByAllInput
 	if err := c.Bind(&req); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid request"})

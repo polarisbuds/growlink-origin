@@ -5,6 +5,7 @@ import (
 	management_usecase "growlink/internal/application/usecase/management_usecase"
 	"growlink/internal/application/usecase/meeting_usecase"
 	"growlink/internal/application/usecase/pairing_usecase"
+	"growlink/internal/application/usecase/planning_usecase"
 	"growlink/internal/application/usecase/setting_usecase"
 	repository_interface "growlink/internal/domain/interface/repository"
 )
@@ -26,6 +27,7 @@ type Deps struct {
 	DepartmentRepo  repository_interface.DepartmentRepository
 	TeamRefRepo     repository_interface.UserReferenceTeamRepository
 	RoleRepo        repository_interface.RoleRepository
+	Planning        *planning_usecase.PlanningAccessUsecase
 }
 
 type Handler struct {

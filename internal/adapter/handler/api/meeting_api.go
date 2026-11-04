@@ -22,6 +22,15 @@ func (h *Handler) GetMeeting(c *echo.Context) error {
 	if err != nil {
 		return c.JSON(http.StatusNotFound, map[string]string{"error": "not found"})
 	}
+	if claims := authctx.Claims(c); claims != nil {
+		ok, err := h.deps.Planning.CanViewPlanningMeeting(claims.UserID, authctx.IsSystemAdmin(c), meeting.ID)
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		}
+		if !ok {
+			return c.JSON(http.StatusNotFound, map[string]string{"error": "not found"})
+		}
+	}
 	out := converter.MeetingEntityToOutput(*meeting)
 	answers, _ := h.deps.Meeting.AnswerReader.ListAnswersByMeeting(meeting.ID)
 	topics := out.Template.Topics
@@ -265,9 +274,13 @@ func (h *Handler) PostAnswerComment(c *echo.Context) error {
 }
 
 func (h *Handler) ListMeetingsAll(c *echo.Context) error {
-	meetings, err := h.deps.MeetingRepo.GetAll()
+	claims := authctx.Claims(c)
+	if claims == nil {
+		return c.JSON(http.StatusUnauthorized, map[string]string{"error": "unauthorized"})
+	}
+	list, err := h.deps.Planning.ListPlanningMeetings(claims.UserID, authctx.IsSystemAdmin(c))
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
-	return c.JSON(http.StatusOK, converter.MeetingEntitiesToOutputs(meetings))
+	return c.JSON(http.StatusOK, list)
 }
