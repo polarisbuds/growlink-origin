@@ -4,6 +4,7 @@
     import { showToast } from "$lib/toast";
     import { getAvatar } from "$lib/session";
     import MultiCheckSelect from "$lib/components/MultiCheckSelect.svelte";
+    import Icon from "$lib/components/Icon.svelte";
     import {
         type PairingListItem,
         expandUserPairings,
@@ -11,6 +12,8 @@
     import {
         buildUserDepartmentMaps,
         departmentNameForUser,
+        teamNameForUser,
+        buildUserTeamMaps,
         type PlanningDirectoryUser,
     } from "$lib/planning-directory";
     import {
@@ -20,7 +23,12 @@
         type SortDir,
     } from "$lib/list-sort";
 
-    type SortKey = "mentor" | "mentorDept" | "mentee" | "menteeDept";
+    type SortKey =
+        | "mentor"
+        | "mentorDept"
+        | "mentee"
+        | "menteeDept"
+        | "menteeTeam";
     type ViewMode = "individual" | "department";
 
     let pairings = $state<PairingListItem[]>([]);
@@ -36,8 +44,14 @@
     let isSystemAdmin = $state(false);
 
     let deptMaps = $derived(buildUserDepartmentMaps(directoryUsers));
+    let teamMaps = $derived(buildUserTeamMaps(directoryUsers));
 
     let displayRows = $derived(expandUserPairings(pairings));
+
+    function avatarURL(user: PlanningDirectoryUser | undefined) {
+        if (!user?.imageUri) return "";
+        return `/uploads/${user.imageUri}`;
+    }
 
     function userOptionLabel(u: PlanningDirectoryUser) {
         return `${u.name} (${u.email})`;
@@ -65,6 +79,10 @@
                 case "menteeDept":
                     av = departmentNameForUser(a.menteeUserId, deptMaps);
                     bv = departmentNameForUser(b.menteeUserId, deptMaps);
+                    break;
+                case "menteeTeam":
+                    av = teamNameForUser(a.menteeUserId, teamMaps);
+                    bv = teamNameForUser(b.menteeUserId, teamMaps);
                     break;
             }
             return dir * compareJa(av, bv);
@@ -149,22 +167,27 @@
     onkeydown={(e: KeyboardEvent) =>
         e.key === "Escape" && (deleteOpen = false)} />
 
-<div class="mt-4 flex flex-wrap items-center gap-2">
-    <span class="text-xs text-base-content/60">表示</span>
-    <div class="join">
-        <button
-            type="button"
-            class="btn btn-sm join-item"
-            class:btn-primary={viewMode === "individual"}
-            class:btn-outline={viewMode !== "individual"}
-            onclick={() => (viewMode = "individual")}>個人</button>
-        <button
-            type="button"
-            class="btn btn-sm join-item"
-            class:btn-primary={viewMode === "department"}
-            class:btn-outline={viewMode !== "department"}
-            onclick={() => (viewMode = "department")}>部署</button>
+<div class="mt-4 flex flex-wrap items-center gap-2 justify-between">
+    <div>
+        <span class="text-xs text-base-content/60">表示</span>
+        <div class="join">
+            <button
+                type="button"
+                class="btn btn-sm join-item"
+                class:btn-primary={viewMode === "individual"}
+                class:btn-outline={viewMode !== "individual"}
+                onclick={() => (viewMode = "individual")}>個人</button>
+            <button
+                type="button"
+                class="btn btn-sm join-item"
+                class:btn-primary={viewMode === "department"}
+                class:btn-outline={viewMode !== "department"}
+                onclick={() => (viewMode = "department")}>部署</button>
+        </div>
     </div>
+    <dir class="flex flex-1 justify-end mb-0">
+        <a class="btn btn-primary btn-sm" href="/planning/pairs/new">+ 作成</a>
+    </dir>
 </div>
 
 {#if isSystemAdmin}
@@ -197,6 +220,17 @@
                 <button
                     type="button"
                     class="font-semibold hover:text-primary"
+                    onclick={() => toggleSort("mentorDept")}
+                    >部署{sortIndicator(
+                        "mentorDept",
+                        sortKey,
+                        sortDir,
+                    )}</button>
+            </th>
+            <th>
+                <button
+                    type="button"
+                    class="font-semibold hover:text-primary"
                     onclick={() => toggleSort("mentor")}
                     >メンター{sortIndicator(
                         "mentor",
@@ -208,9 +242,9 @@
                 <button
                     type="button"
                     class="font-semibold hover:text-primary"
-                    onclick={() => toggleSort("mentorDept")}
+                    onclick={() => toggleSort("menteeDept")}
                     >部署{sortIndicator(
-                        "mentorDept",
+                        "menteeDept",
                         sortKey,
                         sortDir,
                     )}</button>
@@ -230,9 +264,9 @@
                 <button
                     type="button"
                     class="font-semibold hover:text-primary"
-                    onclick={() => toggleSort("menteeDept")}
-                    >部署{sortIndicator(
-                        "menteeDept",
+                    onclick={() => toggleSort("menteeTeam")}
+                    >チーム{sortIndicator(
+                        "menteeTeam",
                         sortKey,
                         sortDir,
                     )}</button>
@@ -245,13 +279,40 @@
 {#snippet tableBody(rows: ReturnType<typeof expandUserPairings>)}
     <tbody>
         {#each rows as row (row.rowKey)}
+            {@const mentorUser = directoryUsers.find(
+                (u) => u.id === row.mentorUserId,
+            )}
+            {@const menteeUser = directoryUsers.find(
+                (u) => u.id === row.menteeUserId,
+            )}
             <tr class="hover:bg-base-200/40">
-                <td>{row.mentorName}</td>
                 <td class="text-sm"
                     >{departmentNameForUser(row.mentorUserId, deptMaps)}</td>
-                <td class="text-sm">{row.menteeName}</td>
+                <td>
+                    <span class="flex gap-2 items-center">
+                        <Icon
+                            url={avatarURL(mentorUser)}
+                            text={row.mentorName}
+                            width={28}
+                            height={28} />
+                        {row.mentorName}
+                    </span>
+                </td>
                 <td class="text-sm"
                     >{departmentNameForUser(row.menteeUserId, deptMaps)}</td>
+                <td>
+                    <span class="flex gap-2 items-center">
+                        <Icon
+                            url={avatarURL(menteeUser)}
+                            text={row.menteeName}
+                            width={28}
+                            height={28} />
+                        {row.menteeName}
+                    </span>
+                </td>
+                <td class="text-sm">
+                    {menteeUser?.teamNames || ""}
+                </td>
                 <td class="space-x-1 whitespace-nowrap text-right">
                     <a
                         href="/planning/pairs/{row.pairing.uuid}/edit"

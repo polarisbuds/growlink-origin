@@ -4,9 +4,9 @@ import (
 	"fmt"
 
 	"growlink/internal/application/converter"
+	outputmodel "growlink/internal/application/model/output_model"
 	meeting_mng_usecase "growlink/internal/application/usecase/management_usecase/meeting_management_usecase"
 	pairing_mng_usecase "growlink/internal/application/usecase/management_usecase/pairing_management_usecase"
-	outputmodel "growlink/internal/application/model/output_model"
 	"growlink/internal/application/usecase/meeting_usecase"
 	repository_interface "growlink/internal/domain/interface/repository"
 	"growlink/internal/domain/valueobject"
@@ -84,33 +84,37 @@ func (uc *PlanningAccessUsecase) ListPlanningMeetings(userID uint, isSystemAdmin
 	if isSystemAdmin {
 		meetings, err := uc.meetingRepo.GetAll()
 		if err != nil {
-			return nil, fmt.Errorf("ミーティング一覧の取得に失敗しました: %w", err)
+			return []outputmodel.MeetingOutput{}, fmt.Errorf("ミーティング一覧の取得に失敗しました: %w", err)
 		}
 		return converter.MeetingEntitiesToOutputs(meetings), nil
 	}
-	var merged []outputmodel.MeetingOutput
+	merged := []outputmodel.MeetingOutput{}
 
+	// メンティー分
 	involved, err := uc.meetingList.ListInvolvedMeetings(userID)
 	if err != nil {
-		return nil, err
+		return []outputmodel.MeetingOutput{}, err
 	}
 	merged = append(merged, involved...)
 
+	// 上司分
 	bossMeetings, err := uc.meetingViewer.ListMeetingsByBoss(userID)
 	if err != nil {
-		return nil, err
+		return []outputmodel.MeetingOutput{}, err
 	}
 	merged = append(merged, bossMeetings...)
 
+	// チームリーダー分
 	teamMeetings, err := uc.listMeetingsForManagedTeams(userID)
 	if err != nil {
-		return nil, err
+		return []outputmodel.MeetingOutput{}, err
 	}
 	merged = append(merged, teamMeetings...)
 
+	// 共有された分
 	shared, err := uc.meetingList.ListSharedMeetings(userID)
 	if err != nil {
-		return nil, err
+		return []outputmodel.MeetingOutput{}, err
 	}
 	merged = append(merged, shared...)
 
@@ -201,7 +205,8 @@ func (uc *PlanningAccessUsecase) ListPairingsForMeeting(userID uint, isSystemAdm
 	if isSystemAdmin {
 		return uc.pairingViewer.ListPairingsByAll()
 	}
-	var merged []outputmodel.PairingOutput
+
+	merged := []outputmodel.PairingOutput{}
 	mentorPairs, err := uc.pairingViewer.ListPairingsByMentor(userID)
 	if err != nil {
 		return nil, err

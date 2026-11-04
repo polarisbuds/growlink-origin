@@ -57,8 +57,6 @@
                                 <span
                                     class="badge badge-outline badge-sm whitespace-normal text-left"
                                     >{roleBadge}</span>
-                            {:else}
-                                —
                             {/if}
                         </td>
                     {/if}

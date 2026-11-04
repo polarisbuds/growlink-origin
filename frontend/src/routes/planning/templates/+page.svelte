@@ -28,7 +28,11 @@
     let editMode = $state(false);
     let deleteOpen = $state(false);
     let active = $state<Template | null>(null);
-    let editForm = $state<{ title: string; description: string; topics: Topic[] }>({
+    let editForm = $state<{
+        title: string;
+        description: string;
+        topics: Topic[];
+    }>({
         title: "",
         description: "",
         topics: [],
@@ -118,7 +122,10 @@
             );
             closeModal();
         } catch (e) {
-            showToast(e instanceof Error ? e.message : "保存に失敗しました", "error");
+            showToast(
+                e instanceof Error ? e.message : "保存に失敗しました",
+                "error",
+            );
         }
     }
     async function confirmDelete() {
@@ -198,8 +205,7 @@
                 class="group cursor-pointer rounded-2xl border border-base-300 bg-base-100 p-4 shadow-sm transition-all hover:border-primary/50 hover:shadow-md"
                 onclick={() => openView(t)}
                 onkeydown={(e) => e.key === "Enter" && openView(t)}>
-                <div
-                    class="flex min-w-0 items-center justify-between gap-3">
+                <div class="flex min-w-0 items-center justify-between gap-3">
                     <div class="flex min-w-0 items-center gap-2">
                         <span class="badge badge-ghost shrink-0">#{idx}</span>
                         <span class="truncate font-medium">{t.title}</span>
@@ -243,11 +249,9 @@
             class="flex shrink-0 items-start justify-between gap-2 border-b border-base-200 p-6 pb-2">
             <div class="min-w-0">
                 <h3 class="truncate text-lg font-bold">{active?.title}</h3>
-                <p class="text-sm text-base-content/60">
-                    {editMode ? "質問を編集" : "質問一覧"}
-                </p>
                 {#if active?.description}
-                    <p class="mt-1 text-sm text-base-content/60 whitespace-pre-wrap">
+                    <p
+                        class="mt-1 text-sm text-base-content/60 whitespace-pre-wrap">
                         {active.description}
                     </p>
                 {/if}

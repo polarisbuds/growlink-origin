@@ -1,6 +1,10 @@
 <script lang="ts">
     import { statusBadge, statusLabel } from "$lib/status";
     import {
+        workspace,
+        type WorkspaceTab,
+    } from "$lib/stores/workspaceTab.svelte";
+    import {
         formatDate,
         pairLabel,
         splitByMeetingPeriod,
@@ -12,8 +16,7 @@
     import WorkspaceMeetingTable from "$lib/components/WorkspaceMeetingTable.svelte";
 
     type RoleBadgeMode = "mentee-only" | "mentor-always" | "none";
-    type PeriodKey = "thisMonth" | "past" | "planned";
-    type PeriodTab = "all" | PeriodKey;
+    type PeriodKey = Exclude<WorkspaceTab, "all">;
 
     let {
         meetings,
@@ -29,7 +32,7 @@
         labelForItem?: (item: MeetingListItem) => string;
     } = $props();
 
-    let periodTab = $state<PeriodTab>("all");
+    let periodTab = $derived(workspace.workspaceTab);
 
     let periods = $derived(splitByMeetingPeriod(meetings));
 
@@ -75,7 +78,7 @@
         role="tab"
         class="tab"
         class:tab-active={periodTab === "all"}
-        onclick={() => (periodTab = "all")}>
+        onclick={() => workspace.changeTab("all")}>
         すべて ({meetings.length})
     </button>
     {#each sections as section (section.key)}
@@ -84,7 +87,7 @@
             role="tab"
             class="tab"
             class:tab-active={periodTab === section.key}
-            onclick={() => (periodTab = section.key)}>
+            onclick={() => workspace.changeTab(section.key)}>
             {section.tabLabel} ({periods[section.key].length})
         </button>
     {/each}
@@ -103,8 +106,7 @@
                 <div class="flex items-start justify-between gap-3">
                     <div class="min-w-0">
                         {#if roleBadge}
-                            <span
-                                class="badge badge-outline badge-sm mb-2"
+                            <span class="badge badge-outline badge-sm mb-2"
                                 >{roleBadge}</span>
                         {/if}
                         <p class="text-sm text-base-content/60 truncate">
@@ -122,8 +124,7 @@
                 <p class="mt-3 text-sm text-base-content/70">
                     実施予定日: {formatDate(item.implementedAt)}
                 </p>
-                <div
-                    class="mt-4 flex flex-wrap gap-2 items-center justify-end">
+                <div class="mt-4 flex flex-wrap gap-2 items-center justify-end">
                     {#if canUserAnswerMeeting(item, currentUserId)}
                         <a
                             href="/meeting/{item.uuid}/answer"

@@ -40,7 +40,7 @@ func RegisterRoutes(e *echo.Echo, deps Deps, auditLogger *slog.Logger) {
 	e.File("/favicon.ico", "favicon.ico")
 	e.Static("/static", "static")
 	e.Static("/_app", "static/app/_app")
-	e.Static("/uploads", "uploads")
+	e.Static("/uploads", "uploads", JWTConfig(auditLogger), ActiveUserCheck(deps.UserRepo, auditLogger))
 
 	ph := page.New(page.Deps{
 		Meeting:     deps.Meeting,

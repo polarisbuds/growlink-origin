@@ -16,6 +16,7 @@
     } from "$lib/planning-directory";
     import MultiCheckSelect from "$lib/components/MultiCheckSelect.svelte";
     import SearchableSelect from "$lib/components/SearchableSelect.svelte";
+    import Icon from "$lib/components/Icon.svelte";
 
     const multiPickInputClass =
         "input input-bordered w-full text-left font-normal placeholder-current";
@@ -26,6 +27,7 @@
         name: string;
         email: string;
         departmentNames?: string;
+        imageUri?: string;
     };
     type ManagedTeam = { id: number; name: string; members?: User[] };
     type CreateMode = "planned" | "pair" | "monthly";
@@ -99,14 +101,16 @@
     );
 
     let matchedPairingCount = $derived(
-        matchPairingIds(
-            pairings,
-            mentorId ? [mentorId] : [],
-            menteeTargetPicks,
-        ).length,
+        matchPairingIds(pairings, mentorId ? [mentorId] : [], menteeTargetPicks)
+            .length,
     );
 
     type SelectItem = { id: number };
+
+    function avatarURL(user: User | undefined) {
+        if (!user?.imageUri) return "";
+        return `/uploads/${user.imageUri}`;
+    }
 
     function userLabel(id: number) {
         const u = users.find((x) => x.id === id);
@@ -196,6 +200,12 @@
         canSpecifyPair = getAvatar()?.canSpecifyPair ?? false;
         form.templateId = templates[0]?.id || 0;
     });
+
+    function togglePair(id: number) {
+        let index = selectedPairingIds.indexOf(id);
+        if (index !== -1) selectedPairingIds.push(id);
+        else selectedPairingIds.filter((p) => p !== id);
+    }
 
     async function submit() {
         error = "";
@@ -398,18 +408,51 @@
                                 </thead>
                                 <tbody>
                                     {#each filteredPairTableRows as row (row.rowKey)}
-                                        <tr class="hover:bg-base-200/50">
+                                        {@const mentorUser = users.find(
+                                            (u) => u.id === row.mentorUserId,
+                                        )}
+                                        {@const menteeUser = users.find(
+                                            (u) => u.id === row.menteeUserId,
+                                        )}
+                                        <tr
+                                            class="hover:bg-base-200/50 cursor-pointer"
+                                            onclick={() => {
+                                                togglePair(row.pairing.id);
+                                            }}>
                                             <td>
                                                 <input
                                                     type="checkbox"
                                                     class="checkbox checkbox-sm"
-                                                    value={row.pairing.id}
-                                                    bind:group={
-                                                        selectedPairingIds
+                                                    bind:value={
+                                                        row.pairing.id
                                                     } />
                                             </td>
-                                            <td>{row.mentorName}</td>
-                                            <td>{row.menteeName}</td>
+                                            <td>
+                                                <span
+                                                    class="flex gap-2 items-center">
+                                                    <Icon
+                                                        url={avatarURL(
+                                                            mentorUser,
+                                                        )}
+                                                        text={row.mentorName}
+                                                        width={28}
+                                                        height={28} />
+                                                    {row.mentorName}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <span
+                                                    class="flex gap-2 items-center">
+                                                    <Icon
+                                                        url={avatarURL(
+                                                            menteeUser,
+                                                        )}
+                                                        text={row.menteeName}
+                                                        width={28}
+                                                        height={28} />
+                                                    {row.menteeName}
+                                                </span>
+                                            </td>
                                             <td
                                                 >{departmentNameForUser(
                                                     row.menteeUserId,
@@ -535,7 +578,7 @@
                 </label>
             </div>
         {/if}
-        <div class="flex flex-wrap gap-2 pt-2">
+        <div class="flex flex-wrap justify-end gap-2 pt-2">
             <button
                 type="button"
                 class="btn btn-primary"

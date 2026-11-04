@@ -5,6 +5,7 @@
     import { showToast } from "$lib/toast";
     import UserChipSearchField from "$lib/components/UserChipSearchField.svelte";
     import SearchableSelect from "$lib/components/SearchableSelect.svelte";
+    import Icon from "$lib/components/Icon.svelte";
 
     type SelectItem = { id: number };
     type Target = { kind: string; targetId: number; label: string };
@@ -16,6 +17,7 @@
         departmentNames?: string;
         teamNames?: string;
         departmentId?: number;
+        imageUri?: string;
     };
     type DirectoryTeam = { id: number; name: string; departmentId: number };
     type PairingInitial = {
@@ -55,6 +57,10 @@
         })),
     );
 
+    function avatarURL(user: DirectoryUser) {
+        if (!user.imageUri) return "";
+        return `/uploads/${user.imageUri}`;
+    }
     function displayNameForTarget(t: Target) {
         const u = users.find((x) => x.id === t.targetId);
         if (u) return u.name;
@@ -238,7 +244,7 @@
                 await api("PUT", `/api/v1/pairings/${pairingUUID}`, body);
             }
             showToast("保存しました");
-            await goto("/planning/pairs/users");
+            await goto("/planning/pairs");
         } catch {
             showToast("保存に失敗しました", "error");
         }
@@ -270,31 +276,36 @@
         </div>
 
         {#if mode === "create"}
-            <div class="flex flex-wrap gap-3">
-                <label
-                    class="input input-bordered flex items-center gap-2 max-w-xs">
-                    <input
-                        type="search"
-                        class="grow"
-                        placeholder="氏名で検索"
-                        bind:value={nameSearch} />
-                </label>
-                <select
-                    class="select select-bordered select-sm"
-                    bind:value={filterDeptId}>
-                    <option value={0}>部署: すべて</option>
-                    {#each departments as d (d.id)}
-                        <option value={d.id}>{d.name}</option>
-                    {/each}
-                </select>
-                <select
-                    class="select select-bordered select-sm"
-                    bind:value={filterTeamId}>
-                    <option value={0}>チーム: すべて</option>
-                    {#each teamOptions as t (t.id)}
-                        <option value={t.id}>{t.name}</option>
-                    {/each}
-                </select>
+            <div class="flex flex-wrap justify-between gap-3 items-end">
+                <span class="label-text font-medium w-1/2 min-w-48"
+                    >メンティー
+                    <label
+                        class="input input-bordered flex items-center w-full">
+                        <input
+                            type="search"
+                            class="grow"
+                            placeholder="氏名で検索"
+                            bind:value={nameSearch} />
+                    </label>
+                </span>
+                <div class="flex gap-2 justify-end">
+                    <select
+                        class="select select-bordered w-full"
+                        bind:value={filterDeptId}>
+                        <option value={0}>部署: すべて</option>
+                        {#each departments as d (d.id)}
+                            <option value={d.id}>{d.name}</option>
+                        {/each}
+                    </select>
+                    <select
+                        class="select select-bordered w-full"
+                        bind:value={filterTeamId}>
+                        <option value={0}>チーム: すべて</option>
+                        {#each teamOptions as t (t.id)}
+                            <option value={t.id}>{t.name}</option>
+                        {/each}
+                    </select>
+                </div>
             </div>
             <div class="overflow-x-auto rounded-2xl border border-base-300">
                 <table class="table table-sm">
@@ -305,6 +316,13 @@
                                     class="checkbox"
                                     type="checkbox"
                                     onclick={(e: Event) => toggleAllUsers(e)} />
+                            </th>
+                            <th>
+                                <button
+                                    type="button"
+                                    class="font-semibold"
+                                    onclick={() => toggleSort("department")}
+                                    >部署{sortMark("department")}</button>
                             </th>
                             <th>
                                 <button
@@ -324,13 +342,6 @@
                                 <button
                                     type="button"
                                     class="font-semibold"
-                                    onclick={() => toggleSort("department")}
-                                    >部署{sortMark("department")}</button>
-                            </th>
-                            <th>
-                                <button
-                                    type="button"
-                                    class="font-semibold"
                                     onclick={() => toggleSort("team")}
                                     >チーム{sortMark("team")}</button>
                             </th>
@@ -338,18 +349,28 @@
                     </thead>
                     <tbody>
                         {#each tableRows as u (u.id)}
-                            <tr class="hover:bg-base-200/40">
+                            <tr
+                                class="hover:bg-base-200/40 cursor-pointer"
+                                onclick={() => toggleMentee(u.id)}>
                                 <td>
                                     <input
                                         type="checkbox"
                                         class="checkbox checkbox-sm"
-                                        checked={selectedMenteeIds.has(u.id)}
-                                        onchange={() => toggleMentee(u.id)} />
+                                        checked={selectedMenteeIds.has(u.id)} />
                                 </td>
-                                <td>{u.roleName || "—"}</td>
-                                <td>{u.name}</td>
-                                <td>{u.departmentNames || "—"}</td>
-                                <td>{u.teamNames || "—"}</td>
+                                <td>{u.departmentNames || "所属無し"}</td>
+                                <td>{u.roleName || ""}</td>
+                                <td>
+                                    <span class="flex gap-2 items-center">
+                                        <Icon
+                                            url={avatarURL(u)}
+                                            text={u.name ?? ""}
+                                            width={28}
+                                            height={28} />
+                                        {u.name}
+                                    </span>
+                                </td>
+                                <td>{u.teamNames || ""}</td>
                             </tr>
                         {/each}
                     </tbody>
@@ -372,10 +393,10 @@
                     onRemove={removeUserTarget} />
             </div>
         {/if}
-        <div class="flex flex-wrap gap-2 pt-2">
+        <div class="flex flex-wrap gap-2 pt-2 justify-end">
             <button type="button" class="btn btn-primary" onclick={requestSave}
                 >{mode === "create" ? "作成" : "保存"}</button>
-            <a href="/planning/pairs/users" class="btn btn-ghost">戻る</a>
+            <a href="/planning/pairs" class="btn btn-ghost">戻る</a>
         </div>
     </div>
 </main>

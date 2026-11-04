@@ -2,6 +2,7 @@ export type PlanningDirectoryUser = {
 	id: number;
 	name: string;
 	email: string;
+	imageUri?: string;
 	teamId?: number;
 	teamNames?: string;
 	departmentId?: number;

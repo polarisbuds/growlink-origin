@@ -30,7 +30,7 @@
 			role="tab"
 			class="tab gap-2"
 			class:tab-active={active === 'pairs'}
-			onclick={() => go('/planning/pairs/users')}
+			onclick={() => go('/planning/pairs')}
 		>
 			<Users class="h-4 w-4" />ペア
 		</button>

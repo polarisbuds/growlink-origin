@@ -102,6 +102,7 @@ func (repo *MeetingRepository) GetByPairingID(pairingID uint) ([]entity.Meeting,
 		Preload("Pairing", nil).
 		Preload("Pairing.Mentor", nil).
 		Preload("Pairing.Mentee", nil).
+		Preload("Template", nil).
 		Find(repo.ctx)
 	if err != nil {
 		return nil, fmt.Errorf("ペアリングID指定でのペアリング情報取得に失敗しました: %w", err)

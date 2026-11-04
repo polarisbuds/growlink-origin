@@ -1,12 +1,17 @@
 package repository
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"growlink/internal/shared/utils"
+	"image"
+	"image/png"
 	"io"
 	"os"
 	"path/filepath"
+
+	"github.com/disintegration/imaging"
 )
 
 const FIRST_GENERATION = 1
@@ -52,7 +57,12 @@ func (repo *StorageFileRepository) NewFile(name string, content io.Reader) error
 	}
 	defer f.Close()
 
-	if _, err := io.Copy(f, content); err != nil {
+	resizedImage, err := resizeImage(content)
+	if err != nil {
+		return fmt.Errorf("画像ファイルのリサイズに失敗しました: %w", err)
+	}
+
+	if _, err := io.Copy(f, resizedImage); err != nil {
 		return fmt.Errorf("データの書き込みで失敗しました: %w", err)
 	}
 	return nil
@@ -82,4 +92,36 @@ func (repo *StorageFileRepository) DeleteFile(name string) error {
 		return fmt.Errorf("アイコンファイルの削除に失敗しました: %w", err)
 	}
 	return nil
+}
+
+// 15MB
+const (
+	MaxIconUploadBytes = 15 << 20
+	ResizedImageSize   = 128
+)
+
+func resizeImage(reader io.Reader) (io.Reader, error) {
+	limited := io.LimitReader(reader, MaxIconUploadBytes+1)
+	data, err := io.ReadAll(limited)
+	if err != nil {
+		return nil, fmt.Errorf("アップロードファイルの読込に失敗しました: %w", err)
+	}
+	if len(data) > MaxIconUploadBytes {
+		return nil, fmt.Errorf("画像が大きすぎます")
+	}
+	orgImg, _, err := image.Decode(bytes.NewReader(data))
+	if err != nil {
+		return nil, fmt.Errorf("イメージファイルのデコードに失敗しました: %w", err)
+	}
+
+	var (
+		buf        = bytes.NewBuffer(nil)
+		resizedImg = imaging.Fill(orgImg, ResizedImageSize, ResizedImageSize, imaging.Center, imaging.Lanczos)
+	)
+
+	if err := png.Encode(buf, resizedImg); err != nil {
+		return nil, fmt.Errorf("リサイズ後イメージのエンコードに失敗しました: %w", err)
+	}
+
+	return bytes.NewReader(buf.Bytes()), nil
 }

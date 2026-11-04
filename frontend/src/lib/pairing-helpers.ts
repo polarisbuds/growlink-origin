@@ -1,8 +1,8 @@
 export type PairingListItem = {
 	id: number;
 	uuid: string;
-	mentor?: { id?: number; name?: string };
-	mentee?: { id?: number; name?: string };
+	mentor?: { id?: number; name?: string; imageUri?: string };
+	mentee?: { id?: number; name?: string; imageUri?: string };
 	targets?: { kind: string; targetId: number; label?: string }[];
 };
 

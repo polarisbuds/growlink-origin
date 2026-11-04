@@ -10,8 +10,7 @@
     let allowed = $state(false);
 
     let showListHeader = $derived(
-        allowed &&
-            /^\/planning\/pairs(\/users)?\/?$/.test(page.url.pathname),
+        allowed && /^\/planning\/pairs?\/?$/.test(page.url.pathname),
     );
 
     onMount(async () => {
@@ -33,9 +32,6 @@
                     メンターとメンティの 1:1 ペア
                 </p>
             </div>
-            <a href="/planning/pairs/new" class="btn btn-primary btn-sm"
-                >+ 作成</a
-            >
         </div>
     {/if}
     <PlanningTabs active="pairs" />

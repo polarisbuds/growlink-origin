@@ -19,6 +19,7 @@
         type SortDir,
     } from "$lib/list-sort";
     import { goto } from "$app/navigation";
+    import Icon from "$lib/components/Icon.svelte";
 
     type Meeting = {
         uuid: string;
@@ -54,6 +55,11 @@
     let sortDir = $state<SortDir>("desc");
 
     let deptMaps = $derived(buildUserDepartmentMaps(directoryUsers));
+
+    function avatarURL(user: PlanningDirectoryUser | undefined) {
+        if (!user?.imageUri) return "";
+        return `/uploads/${user.imageUri}`;
+    }
 
     function userOptionLabel(u: PlanningDirectoryUser) {
         return `${u.name} (${u.email})`;
@@ -288,21 +294,20 @@
                         <button
                             type="button"
                             class="font-semibold hover:text-primary"
-                            onclick={() => toggleSort("mentor")}
-                            >メンター{sortIndicator(
-                                "mentor",
+                            onclick={() => toggleSort("mentorDept")}
+                            >部署{sortIndicator(
+                                "mentorDept",
                                 sortKey,
                                 sortDir,
                             )}</button>
                     </th>
-
                     <th>
                         <button
                             type="button"
                             class="font-semibold hover:text-primary"
-                            onclick={() => toggleSort("mentee")}
-                            >メンティ{sortIndicator(
-                                "mentee",
+                            onclick={() => toggleSort("mentor")}
+                            >メンター{sortIndicator(
+                                "mentor",
                                 sortKey,
                                 sortDir,
                             )}</button>
@@ -314,6 +319,17 @@
                             onclick={() => toggleSort("menteeDept")}
                             >部署{sortIndicator(
                                 "menteeDept",
+                                sortKey,
+                                sortDir,
+                            )}</button>
+                    </th>
+                    <th>
+                        <button
+                            type="button"
+                            class="font-semibold hover:text-primary"
+                            onclick={() => toggleSort("mentee")}
+                            >メンティ{sortIndicator(
+                                "mentee",
                                 sortKey,
                                 sortDir,
                             )}</button>
@@ -356,17 +372,47 @@
             </thead>
             <tbody>
                 {#each displayedMeetings as m (m.uuid)}
+                    {@const mentorUser = directoryUsers.find(
+                        (u) => u.id === m.pairing?.mentor?.id,
+                    )}
+                    {@const menteeUser = directoryUsers.find(
+                        (u) => u.id === m.pairing?.mentee?.id,
+                    )}
                     <tr
                         class="hover:bg-base-200/40 cursor-pointer"
                         onclick={() => goto("/meeting/" + m.uuid)}>
-                        <td>{m.pairing?.mentor?.name}</td>
-
-                        <td>{m.pairing?.mentee?.name}</td>
+                        <td class="text-sm"
+                            >{departmentNameForUser(
+                                m.pairing?.mentor?.id,
+                                deptMaps,
+                            )}
+                        </td>
+                        <td>
+                            <span class="flex gap-2 items-center">
+                                <Icon
+                                    url={avatarURL(mentorUser)}
+                                    text={m.pairing?.mentor?.name}
+                                    width={28}
+                                    height={28} />
+                                {m.pairing?.mentor?.name}
+                            </span>
+                        </td>
                         <td class="text-sm"
                             >{departmentNameForUser(
                                 m.pairing?.mentee?.id,
                                 deptMaps,
-                            )}</td>
+                            )}
+                        </td>
+                        <td>
+                            <span class="flex gap-2 items-center">
+                                <Icon
+                                    url={avatarURL(menteeUser)}
+                                    text={m.pairing?.mentee?.name}
+                                    width={28}
+                                    height={28} />
+                                {m.pairing?.mentee?.name}
+                            </span>
+                        </td>
                         <td>{m.template?.title || "—"}</td>
                         <td>
                             <span class="badge badge-sm {statusBadge(m.status)}"

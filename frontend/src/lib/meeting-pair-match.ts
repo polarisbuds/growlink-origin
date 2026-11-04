@@ -3,7 +3,7 @@ import type { PairingListItem } from '$lib/pairing-helpers';
 export type MeetingTargetPick = { kind: string; targetId: number };
 
 export type MeetingPairingItem = PairingListItem & {
-	mentor?: { id?: number; name?: string };
+	mentor?: { id?: number; name?: string; imageUri?: string; };
 };
 
 function pairingMatchesUserTarget(p: MeetingPairingItem, userId: number): boolean {
