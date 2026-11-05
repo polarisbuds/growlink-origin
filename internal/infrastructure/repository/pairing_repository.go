@@ -5,8 +5,8 @@ import (
 	"errors"
 	"fmt"
 
-	repository_interface "growlink/internal/domain/interface/repository"
 	"growlink/internal/domain/entity"
+	repository_interface "growlink/internal/domain/interface/repository"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -151,6 +151,7 @@ func (repo *PairingRepository) GetByMenteeID(menteeID uint) (*entity.Pairing, er
 func (repo *PairingRepository) GetByMentorID(mentorID uint) ([]entity.Pairing, error) {
 	pairings, err := gorm.G[entity.Pairing](repo.db).
 		Where("mentor_id = ?", mentorID).
+		Not("is_temporary = ?", true).
 		Order("id ASC").
 		Preload("Mentee", nil).
 		Preload("Mentor", nil).

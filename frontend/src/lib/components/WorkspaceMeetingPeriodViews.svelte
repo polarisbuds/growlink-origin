@@ -50,15 +50,15 @@
         },
         {
             key: "past",
-            tabLabel: "過去",
-            sectionTitle: "過去の面談",
-            empty: "過去の面談はありません",
+            tabLabel: "これまで",
+            sectionTitle: "これまでの面談",
+            empty: "面談の履歴はありません",
         },
         {
             key: "planned",
             tabLabel: "これから",
-            sectionTitle: "計画された面談",
-            empty: "計画された面談はありません",
+            sectionTitle: "計画済みの面談",
+            empty: "計画済みの面談はありません",
         },
     ];
 

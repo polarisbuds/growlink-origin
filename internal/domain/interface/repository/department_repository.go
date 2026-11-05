@@ -9,5 +9,6 @@ type DepartmentRepository interface {
 	GetAll() ([]entity.Department, error)
 	Create(department *entity.Department) error
 	UpdateByID(department *entity.Department) error
+	UpdateHeadUserID(id, headUserID uint) error
 	Delete(id uint) error
 }

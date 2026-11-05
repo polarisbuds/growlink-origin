@@ -50,6 +50,11 @@ classDiagram
         リーダーか isReader
     }
 
+    class DepartmentMember {
+        部長か isHead
+        管理者か isManager
+    }
+
     class DepartmentHierarchy {
         親部署ID parentDepartmentID
         子部署ID childDepartmentID
@@ -145,6 +150,8 @@ classDiagram
     Department "1" --> "*" Team : 含む
     Team "1" --> "*" TeamMember : 含む
     User "1" --> "*" TeamMember : メンバー
+    Department "1" --> "*" DepartmentMember : 含む
+    User "1" --> "*" DepartmentMember : メンバー
     Department "1" --> "*" DepartmentHierarchy : 親子
     User "1" --> "*" DepartmentRole : 役職表示
     Department "1" --> "*" DepartmentRole : ""
@@ -179,7 +186,7 @@ classDiagram
 %%
 %% User
 %% - authority=owner は Basic ログインに制限する運用。password は nullable（LDAP ユーザは NULL 可）
-%% - 閲覧スコープ: general は自分のミーティング。メンターは pairings。上司は user_relationships の部下。owner は全件
+%% - 閲覧スコープ: general は自分のミーティング。メンターは pairings。department_members の is_head または is_manager は自部署と子孫部署。team_members.is_reader はそのチーム。上司は user_relationships の部下。owner は全件。役職名は表示のみ
 %%
 %% Pairing vs UserRelationship
 %% - Pairing: mentor–mentee（1on1 参加ペア）。ミーティング作成・メンター閲覧の基準
@@ -204,7 +211,7 @@ classDiagram
 %%
 %% 集約と Repository（実装の目安）
 %% - User: UserRepository
-%% - Department / Team / DepartmentHierarchy / DepartmentRole: 各 Repository
+%% - Department / Team / DepartmentHierarchy / DepartmentRole / DepartmentMember: 各 Repository
 %% - Pairing: PairingRepository
 %% - UserRelationship: UserRelationshipRepository
 %% - Template + Topic: TemplateRepository, TopicRepository

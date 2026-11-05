@@ -231,3 +231,41 @@ func (c *MockDepartmentRepositoryUpdateByIDCall) DoAndReturn(f func(*entity.Depa
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
+
+// UpdateHeadUserID mocks base method.
+func (m *MockDepartmentRepository) UpdateHeadUserID(id, headUserID uint) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateHeadUserID", id, headUserID)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateHeadUserID indicates an expected call of UpdateHeadUserID.
+func (mr *MockDepartmentRepositoryMockRecorder) UpdateHeadUserID(id, headUserID any) *MockDepartmentRepositoryUpdateHeadUserIDCall {
+	mr.mock.ctrl.T.Helper()
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateHeadUserID", reflect.TypeOf((*MockDepartmentRepository)(nil).UpdateHeadUserID), id, headUserID)
+	return &MockDepartmentRepositoryUpdateHeadUserIDCall{Call: call}
+}
+
+// MockDepartmentRepositoryUpdateHeadUserIDCall wrap *gomock.Call
+type MockDepartmentRepositoryUpdateHeadUserIDCall struct {
+	*gomock.Call
+}
+
+// Return rewrite *gomock.Call.Return
+func (c *MockDepartmentRepositoryUpdateHeadUserIDCall) Return(arg0 error) *MockDepartmentRepositoryUpdateHeadUserIDCall {
+	c.Call = c.Call.Return(arg0)
+	return c
+}
+
+// Do rewrite *gomock.Call.Do
+func (c *MockDepartmentRepositoryUpdateHeadUserIDCall) Do(f func(uint, uint) error) *MockDepartmentRepositoryUpdateHeadUserIDCall {
+	c.Call = c.Call.Do(f)
+	return c
+}
+
+// DoAndReturn rewrite *gomock.Call.DoAndReturn
+func (c *MockDepartmentRepositoryUpdateHeadUserIDCall) DoAndReturn(f func(uint, uint) error) *MockDepartmentRepositoryUpdateHeadUserIDCall {
+	c.Call = c.Call.DoAndReturn(f)
+	return c
+}

@@ -13,10 +13,10 @@ type OrgAdmin struct {
 	teamRepo       repository_interface.TeamRepository
 	hierarchyRepo  repository_interface.DepartmentHierarchyRepository
 	deptRoleRepo   repository_interface.DepartmentRoleRepository
+	deptMemberRepo repository_interface.DepartmentMemberRepository
 	teamMemberRepo repository_interface.TeamMemberRepository
 	userRepo       repository_interface.UserRepository
 	userDeptRepo   repository_interface.UserDepartmentRepository
-	roleRepo       repository_interface.RoleRepository
 }
 
 func NewOrgAdmin(
@@ -24,20 +24,20 @@ func NewOrgAdmin(
 	teamRepo repository_interface.TeamRepository,
 	hierarchyRepo repository_interface.DepartmentHierarchyRepository,
 	deptRoleRepo repository_interface.DepartmentRoleRepository,
+	deptMemberRepo repository_interface.DepartmentMemberRepository,
 	teamMemberRepo repository_interface.TeamMemberRepository,
 	userRepo repository_interface.UserRepository,
 	userDeptRepo repository_interface.UserDepartmentRepository,
-	roleRepo repository_interface.RoleRepository,
 ) *OrgAdmin {
 	return &OrgAdmin{
 		deptRepo:       deptRepo,
 		teamRepo:       teamRepo,
 		hierarchyRepo:  hierarchyRepo,
 		deptRoleRepo:   deptRoleRepo,
+		deptMemberRepo: deptMemberRepo,
 		teamMemberRepo: teamMemberRepo,
 		userRepo:       userRepo,
 		userDeptRepo:   userDeptRepo,
-		roleRepo:       roleRepo,
 	}
 }
 
@@ -175,7 +175,7 @@ func (uc *OrgAdmin) GetDepartmentDetail(id uint) (*outputmodel.OrgDetailOutput, 
 	if err != nil {
 		return nil, err
 	}
-	users, err := uc.userRepo.GetByDepartmentID(id)
+	deptMembers, err := uc.deptMemberRepo.GetByDepartmentID(id)
 	if err != nil {
 		return nil, err
 	}
@@ -187,15 +187,19 @@ func (uc *OrgAdmin) GetDepartmentDetail(id uint) (*outputmodel.OrgDetailOutput, 
 	for _, r := range roles {
 		roleByUser[r.UserID] = r.Name
 	}
-	members := make([]outputmodel.OrgMemberOutput, 0, len(users))
-	for _, u := range users {
-		title := roleByUser[u.ID]
+	members := make([]outputmodel.OrgMemberOutput, 0, len(deptMembers))
+	for _, row := range deptMembers {
+		name := ""
+		if row.User != nil {
+			name = row.User.Name
+		}
+		title := roleByUser[row.UserID]
 		if title == "" {
 			title = "メンバー"
 		}
 		members = append(members, outputmodel.OrgMemberOutput{
-			UserID:   u.ID,
-			UserName: u.Name,
+			UserID:   row.UserID,
+			UserName: name,
 			Title:    title,
 		})
 	}
@@ -204,9 +208,9 @@ func (uc *OrgAdmin) GetDepartmentDetail(id uint) (*outputmodel.OrgDetailOutput, 
 	for _, t := range teams {
 		teamIDs = append(teamIDs, t.ID)
 	}
-	userIDs := make([]uint, 0, len(users))
-	for _, u := range users {
-		userIDs = append(userIDs, u.ID)
+	userIDs := make([]uint, 0, len(deptMembers))
+	for _, row := range deptMembers {
+		userIDs = append(userIDs, row.UserID)
 	}
 	return &outputmodel.OrgDetailOutput{
 		Kind:       "department",
@@ -219,6 +223,25 @@ func (uc *OrgAdmin) GetDepartmentDetail(id uint) (*outputmodel.OrgDetailOutput, 
 		UserIDs:    userIDs,
 		HeadUserID: dept.HeadUserID,
 	}, nil
+}
+
+func departmentIsAncestor(ancestorID, deptID uint, parentOf map[uint]uint) bool {
+	seen := map[uint]bool{}
+	for cur := deptID; cur != 0; {
+		if seen[cur] {
+			break
+		}
+		seen[cur] = true
+		parentID, ok := parentOf[cur]
+		if !ok {
+			break
+		}
+		if parentID == ancestorID {
+			return true
+		}
+		cur = parentID
+	}
+	return false
 }
 
 func (uc *OrgAdmin) departmentMeta(id uint) (isRoot bool, childIDs []uint, err error) {
@@ -298,16 +321,27 @@ func (uc *OrgAdmin) UpdateDepartment(id uint, input UpdateDepartmentInput) error
 			return err
 		}
 	}
-	isRoot, _, err := uc.departmentMeta(id)
-	if err != nil {
-		return err
-	}
-
-	if isRoot && input.ChildDepartmentIDs != nil {
+	if input.ChildDepartmentIDs != nil {
+		hierarchies, err := uc.hierarchyRepo.GetAll()
+		if err != nil {
+			return err
+		}
+		childSet := map[uint]bool{}
+		parentOf := map[uint]uint{}
+		for _, h := range hierarchies {
+			childSet[h.ChildDepartmentID] = true
+			parentOf[h.ChildDepartmentID] = h.ParentDepartmentID
+		}
 		want := map[uint]bool{}
 		for _, childID := range input.ChildDepartmentIDs {
 			if childID == id {
 				return fmt.Errorf("自分自身を子部署に指定できません")
+			}
+			if !childSet[childID] {
+				return fmt.Errorf("ルート部署を子部署に指定できません")
+			}
+			if departmentIsAncestor(childID, id, parentOf) {
+				return fmt.Errorf("循環する子部署は指定できません")
 			}
 			want[childID] = true
 		}
@@ -327,81 +361,112 @@ func (uc *OrgAdmin) UpdateDepartment(id uint, input UpdateDepartmentInput) error
 			}
 		}
 		for childID := range want {
-			if have[childID] == 0 {
-				if err := uc.hierarchyRepo.Create(id, childID); err != nil {
+			if have[childID] != 0 {
+				continue
+			}
+			parents, err := uc.hierarchyRepo.GetByChildDepartmentID(childID)
+			if err != nil {
+				return err
+			}
+			for _, p := range parents {
+				if err := uc.hierarchyRepo.Delete(p.ID); err != nil {
 					return err
 				}
 			}
-		}
-	}
-	if input.HeadUserID != 0 {
-		if err := uc.validateDepartmentHead(input.HeadUserID); err != nil {
-			return err
-		}
-		dept.HeadUserID = input.HeadUserID
-		if err := uc.deptRepo.UpdateByID(dept); err != nil {
-			return err
-		}
-	}
-	if !isRoot {
-		if input.TeamIDs != nil {
-			for _, teamID := range input.TeamIDs {
-				team, err := uc.teamRepo.GetByID(teamID)
-				if err != nil {
-					return err
-				}
-				team.DepartmentID = id
-				if err := uc.teamRepo.UpdateByID(team); err != nil {
-					return err
-				}
-			}
-		}
-		if input.UserIDs != nil {
-			if err := uc.userDeptRepo.SyncDepartmentMembers(id, input.UserIDs); err != nil {
+			if err := uc.hierarchyRepo.Create(id, childID); err != nil {
 				return err
 			}
 		}
 	}
-	return nil
-}
-
-func (uc *OrgAdmin) minHeadRoleRank() (int, error) {
-	roles, err := uc.roleRepo.GetAll()
-	if err != nil {
-		return 0, err
-	}
-	for _, r := range roles {
-		if r.Name == "部長" {
-			return r.Rank, nil
+	if input.TeamIDs != nil {
+		for _, teamID := range input.TeamIDs {
+			team, err := uc.teamRepo.GetByID(teamID)
+			if err != nil {
+				return err
+			}
+			team.DepartmentID = id
+			if err := uc.teamRepo.UpdateByID(team); err != nil {
+				return err
+			}
 		}
 	}
-	return 100, nil
+	if input.UserIDs != nil {
+		if err := uc.userDeptRepo.SyncDepartmentMembers(id, input.UserIDs); err != nil {
+			return err
+		}
+		return uc.syncDepartmentMemberFlags(id, input.UserIDs, input.HeadUserID)
+	}
+	return uc.applyDepartmentHeadOnly(id, input.HeadUserID)
 }
 
-func (uc *OrgAdmin) validateDepartmentHead(userID uint) error {
-	user, err := uc.userRepo.GetByID(userID)
+func (uc *OrgAdmin) applyDepartmentHeadOnly(departmentID uint, headUserID uint) error {
+	existing, err := uc.deptMemberRepo.GetByDepartmentID(departmentID)
 	if err != nil {
 		return err
 	}
-	minRank, err := uc.minHeadRoleRank()
+	prevManager := map[uint]bool{}
+	prevHead := map[uint]bool{}
+	userIDsInDept := map[uint]struct{}{}
+	for _, member := range existing {
+		prevManager[member.UserID] = member.IsManager
+		prevHead[member.UserID] = member.IsHead
+		userIDsInDept[member.UserID] = struct{}{}
+	}
+	if headUserID != 0 {
+		userIDsInDept[headUserID] = struct{}{}
+	}
+	rows := make([]entity.DepartmentMember, 0, len(userIDsInDept))
+	for userID := range userIDsInDept {
+		isHead := headUserID != 0 && userID == headUserID
+		keptManager := prevManager[userID] && !prevHead[userID]
+		rows = append(rows, entity.DepartmentMember{
+			DepartmentID: departmentID,
+			UserID:       userID,
+			IsHead:       isHead,
+			IsManager:    isHead || keptManager,
+		})
+	}
+	if err := uc.deptMemberRepo.ReplaceByDepartment(departmentID, rows); err != nil {
+		return err
+	}
+	return uc.deptRepo.UpdateHeadUserID(departmentID, headUserID)
+}
+
+func (uc *OrgAdmin) syncDepartmentMemberFlags(departmentID uint, userIDs []uint, headUserID uint) error {
+	existing, err := uc.deptMemberRepo.GetByDepartmentID(departmentID)
 	if err != nil {
 		return err
 	}
-	roles, err := uc.roleRepo.GetAll()
-	if err != nil {
-		return err
+	prevManager := map[uint]bool{}
+	prevHead := map[uint]bool{}
+	for _, member := range existing {
+		prevManager[member.UserID] = member.IsManager
+		prevHead[member.UserID] = member.IsHead
 	}
-	userRank := 0
-	for _, r := range roles {
-		if r.ID == user.RoleID {
-			userRank = r.Rank
-			break
+	want := map[uint]struct{}{}
+	for _, userID := range userIDs {
+		if userID != 0 {
+			want[userID] = struct{}{}
 		}
 	}
-	if userRank < minRank {
-		return fmt.Errorf("部長は役職が部長以上のユーザのみ指定できます")
+	if headUserID != 0 {
+		want[headUserID] = struct{}{}
 	}
-	return nil
+	rows := make([]entity.DepartmentMember, 0, len(want))
+	for userID := range want {
+		isHead := headUserID != 0 && userID == headUserID
+		keptManager := prevManager[userID] && !prevHead[userID]
+		rows = append(rows, entity.DepartmentMember{
+			DepartmentID: departmentID,
+			UserID:       userID,
+			IsHead:       isHead,
+			IsManager:    isHead || keptManager,
+		})
+	}
+	if err := uc.deptMemberRepo.ReplaceByDepartment(departmentID, rows); err != nil {
+		return err
+	}
+	return uc.deptRepo.UpdateHeadUserID(departmentID, headUserID)
 }
 
 type CreateTeamInput struct {
@@ -441,23 +506,48 @@ func (uc *OrgAdmin) UpdateTeam(id uint, input UpdateTeamInput) error {
 			return err
 		}
 	}
-	if input.MemberIDs == nil {
+	if input.MemberIDs != nil {
+		existing, err := uc.teamMemberRepo.GetByTeamID(id)
+		if err != nil {
+			return err
+		}
+		for _, m := range existing {
+			if err := uc.teamMemberRepo.Delete(m.ID); err != nil {
+				return err
+			}
+		}
+		for _, memberID := range input.MemberIDs {
+			isReader := memberID == input.LeaderID
+			if err := uc.teamMemberRepo.Create(id, memberID, isReader); err != nil {
+				return err
+			}
+		}
 		return nil
 	}
-	existing, err := uc.teamMemberRepo.GetByTeamID(id)
+	return uc.applyTeamLeaderOnly(id, input.LeaderID)
+}
+
+func (uc *OrgAdmin) applyTeamLeaderOnly(teamID uint, leaderID uint) error {
+	existing, err := uc.teamMemberRepo.GetByTeamID(teamID)
 	if err != nil {
 		return err
 	}
-	for _, m := range existing {
-		if err := uc.teamMemberRepo.Delete(m.ID); err != nil {
-			return err
+	foundLeader := false
+	for i := range existing {
+		m := &existing[i]
+		isReader := leaderID != 0 && m.MemberID == leaderID
+		if isReader {
+			foundLeader = true
+		}
+		if m.IsReader != isReader {
+			m.IsReader = isReader
+			if err := uc.teamMemberRepo.Update(m.ID, m); err != nil {
+				return err
+			}
 		}
 	}
-	for _, memberID := range input.MemberIDs {
-		isReader := memberID == input.LeaderID
-		if err := uc.teamMemberRepo.Create(id, memberID, isReader); err != nil {
-			return err
-		}
+	if leaderID != 0 && !foundLeader {
+		return uc.teamMemberRepo.Create(teamID, leaderID, true)
 	}
 	return nil
 }
@@ -483,6 +573,9 @@ func (uc *OrgAdmin) DeleteDepartment(id uint) error {
 	}
 	if len(users) > 0 {
 		return fmt.Errorf("所属ユーザが存在するため削除できません")
+	}
+	if err := uc.deptMemberRepo.ReplaceByDepartment(id, nil); err != nil {
+		return err
 	}
 	if isRoot {
 		if err := uc.hierarchyRepo.DeleteByParentDepartmentID(id); err != nil {
@@ -548,9 +641,21 @@ func (uc *OrgAdmin) ListDepartmentOptions() ([]outputmodel.DepartmentOptionOutpu
 	if err != nil {
 		return nil, err
 	}
+	hierarchies, err := uc.hierarchyRepo.GetAll()
+	if err != nil {
+		return nil, err
+	}
+	childSet := map[uint]bool{}
+	for _, h := range hierarchies {
+		childSet[h.ChildDepartmentID] = true
+	}
 	out := make([]outputmodel.DepartmentOptionOutput, 0, len(depts))
 	for _, d := range depts {
-		out = append(out, outputmodel.DepartmentOptionOutput{ID: d.ID, Name: d.Name})
+		out = append(out, outputmodel.DepartmentOptionOutput{
+			ID:     d.ID,
+			Name:   d.Name,
+			IsRoot: !childSet[d.ID],
+		})
 	}
 	return out, nil
 }

@@ -93,8 +93,11 @@ func (h *Handler) CreateMeetingMonthly(c *echo.Context) error {
 	if err := c.Bind(&req); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid request"})
 	}
-	if req.TemplateID == 0 {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": "templateId is required"})
+	if req.MentorID == 0 || req.TemplateID == 0 {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "mentorId and templateId are required"})
+	}
+	if len(req.MenteeIDs) == 0 {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "menteeIds are required"})
 	}
 	if req.Week < 1 || req.Week > 5 {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "week must be between 1 and 5"})
@@ -116,14 +119,15 @@ func (h *Handler) CreateMeetingMonthly(c *echo.Context) error {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "from must not be after to"})
 	}
 	outs, err := h.deps.Management.MeetingCreator.CreateMeetingEveryMonth(
+		req.MentorID,
 		req.TemplateID,
+		req.MenteeIDs,
 		fromDate,
 		toDate,
 		req.Week,
 		time.Weekday(req.Weekday),
 		claims.UserID,
 		req.SharerUserIDs,
-		req.PairingIDs,
 	)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})

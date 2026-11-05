@@ -30,10 +30,31 @@
     let drilldownOpen = $state(false);
     let drilldownTitle = $state("");
     let drilldownUsers = $state<string[]>([]);
+    let beginDate = $state("");
+    let finishDate = $state("");
 
     let groupLabel = $derived(
         breakdownGroup === "department" ? "部署" : "チーム",
     );
+
+    function getMonthRange() {
+        const now = new Date();
+
+        const start = new Date(now.getFullYear(), now.getMonth(), 1);
+        const end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+
+        const formatDate = (dateObj: Date) => {
+            const y = dateObj.getFullYear();
+            const m = String(dateObj.getMonth() + 1).padStart(2, "0");
+            const d = String(dateObj.getDate()).padStart(2, "0");
+            return `${y}-${m}-${d}`;
+        };
+        dateFrom = formatDate(start);
+        dateTo = formatDate(end);
+        console.log(start, dateFrom, end, dateTo);
+
+        // return [formatDate(start), formatDate(end)];
+    }
 
     function buildQuery(extra: Record<string, string> = {}) {
         const p = new URLSearchParams();
@@ -88,7 +109,10 @@
         await loadBreakdown();
     }
 
-    onMount(reloadAll);
+    onMount(() => {
+        reloadAll;
+        getMonthRange;
+    });
 
     async function setBreakdownGroup(group: BreakdownGroup) {
         if (breakdownGroup === group) return;
@@ -128,20 +152,17 @@
         <input
             type="date"
             class="input input-bordered input-sm"
-            bind:value={dateFrom}
-        />
+            bind:value={dateFrom} />
     </label>
     <label class="form-control">
         <span class="label-text text-xs">終了日</span>
         <input
             type="date"
             class="input input-bordered input-sm"
-            bind:value={dateTo}
-        />
+            bind:value={dateTo} />
     </label>
     <button type="button" class="btn btn-primary btn-sm" onclick={reloadAll}
-        >期間を適用</button
-    >
+        >期間を適用</button>
 </div>
 
 <div class="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
@@ -169,8 +190,7 @@
 </div>
 
 <section
-    class="mt-10 rounded-3xl border border-base-300 bg-base-100 p-6 shadow-sm"
->
+    class="mt-10 rounded-3xl border border-base-300 bg-base-100 p-6 shadow-sm">
     <div class="flex flex-wrap items-center justify-between gap-3">
         <div>
             <h2 class="text-lg font-semibold">ステータス内訳</h2>
@@ -184,15 +204,13 @@
                 role="tab"
                 class="tab"
                 class:tab-active={breakdownGroup === "department"}
-                onclick={() => setBreakdownGroup("department")}>部署</button
-            >
+                onclick={() => setBreakdownGroup("department")}>部署</button>
             <button
                 type="button"
                 role="tab"
                 class="tab"
                 class:tab-active={breakdownGroup === "team"}
-                onclick={() => setBreakdownGroup("team")}>チーム</button
-            >
+                onclick={() => setBreakdownGroup("team")}>チーム</button>
         </div>
     </div>
     <div class="mt-6">
@@ -204,8 +222,7 @@
             <ProgressChart
                 rows={breakdownRows}
                 {groupLabel}
-                onSegmentClick={onChartClick}
-            />
+                onSegmentClick={onChartClick} />
         {/if}
     </div>
     {#if breakdownRows.length > 0}
@@ -250,13 +267,11 @@
             <button
                 type="button"
                 class="btn"
-                onclick={() => (drilldownOpen = false)}>閉じる</button
-            >
+                onclick={() => (drilldownOpen = false)}>閉じる</button>
         </div>
     </div>
     <form method="dialog" class="modal-backdrop">
         <button type="button" onclick={() => (drilldownOpen = false)}
-            >close</button
-        >
+            >close</button>
     </form>
 </dialog>

@@ -109,6 +109,17 @@ func genSeed(db *gorm.DB) error {
 		}).Error; err != nil {
 			return err
 		}
+		if err := tx.Model(&entity.Department{}).Where("id = ?", deptDev.ID).Update("head_user_id", boss.ID).Error; err != nil {
+			return err
+		}
+		if err := tx.Create(&entity.DepartmentMember{
+			DepartmentID: deptDev.ID,
+			UserID:       boss.ID,
+			IsHead:       true,
+			IsManager:    true,
+		}).Error; err != nil {
+			return err
+		}
 
 		team := &entity.Team{Name: "開発チームA", DepartmentID: deptDev.ID}
 		if err := tx.Create(team).Error; err != nil {
@@ -283,53 +294,53 @@ func genSeed(db *gorm.DB) error {
 		bossFuturePendingAt := now.AddDate(0, 0, 7)
 
 		meetingPastDone := &entity.Meeting{
-			ImplementedAt:     &pastDoneAt,
-			Status:            valueobject.MeetingStatusDone,
-			TemplateID:        template.ID,
-			PairingID:         pairing.ID,
-			CreatedByUserID:   mentor.ID,
+			ImplementedAt:   &pastDoneAt,
+			Status:          valueobject.MeetingStatusDone,
+			TemplateID:      template.ID,
+			PairingID:       pairing.ID,
+			CreatedByUserID: mentor.ID,
 		}
 		meetingTodayDone := &entity.Meeting{
-			ImplementedAt:     &todayDoneAt,
-			Status:            valueobject.MeetingStatusDone,
-			TemplateID:        template.ID,
-			PairingID:         pairing.ID,
-			CreatedByUserID:   mentor.ID,
+			ImplementedAt:   &todayDoneAt,
+			Status:          valueobject.MeetingStatusDone,
+			TemplateID:      template.ID,
+			PairingID:       pairing.ID,
+			CreatedByUserID: mentor.ID,
 		}
 		meetingTodayPending := &entity.Meeting{
-			ImplementedAt:     &todayPendingAt,
-			Status:            valueobject.MeetingStatusPending,
-			TemplateID:        templateCheckin.ID,
-			PairingID:         pairing.ID,
-			CreatedByUserID:   mentor.ID,
+			ImplementedAt:   &todayPendingAt,
+			Status:          valueobject.MeetingStatusPending,
+			TemplateID:      templateCheckin.ID,
+			PairingID:       pairing.ID,
+			CreatedByUserID: mentor.ID,
 		}
 		meetingDraft := &entity.Meeting{
-			ImplementedAt:     &draftAt,
-			Status:            valueobject.MeetingStatusDraft,
-			TemplateID:        template.ID,
-			PairingID:         pairing.ID,
-			CreatedByUserID:   mentor.ID,
+			ImplementedAt:   &draftAt,
+			Status:          valueobject.MeetingStatusDraft,
+			TemplateID:      template.ID,
+			PairingID:       pairing.ID,
+			CreatedByUserID: mentor.ID,
 		}
 		meetingFuturePending := &entity.Meeting{
-			ImplementedAt:     &futurePendingAt,
-			Status:            valueobject.MeetingStatusPending,
-			TemplateID:        template.ID,
-			PairingID:         pairing.ID,
-			CreatedByUserID:   mentor.ID,
+			ImplementedAt:   &futurePendingAt,
+			Status:          valueobject.MeetingStatusPending,
+			TemplateID:      template.ID,
+			PairingID:       pairing.ID,
+			CreatedByUserID: mentor.ID,
 		}
 		meetingBossPastDone := &entity.Meeting{
-			ImplementedAt:     &bossPastDoneAt,
-			Status:            valueobject.MeetingStatusDone,
-			TemplateID:        templateCheckin.ID,
-			PairingID:         pairingBoss.ID,
-			CreatedByUserID:   boss.ID,
+			ImplementedAt:   &bossPastDoneAt,
+			Status:          valueobject.MeetingStatusDone,
+			TemplateID:      templateCheckin.ID,
+			PairingID:       pairingBoss.ID,
+			CreatedByUserID: boss.ID,
 		}
 		meetingBossFuturePending := &entity.Meeting{
-			ImplementedAt:     &bossFuturePendingAt,
-			Status:            valueobject.MeetingStatusPending,
-			TemplateID:        templateCheckin.ID,
-			PairingID:         pairingBoss.ID,
-			CreatedByUserID:   boss.ID,
+			ImplementedAt:   &bossFuturePendingAt,
+			Status:          valueobject.MeetingStatusPending,
+			TemplateID:      templateCheckin.ID,
+			PairingID:       pairingBoss.ID,
+			CreatedByUserID: boss.ID,
 		}
 		if err := tx.Create([]*entity.Meeting{
 			meetingPastDone,

@@ -186,8 +186,10 @@
             行をクリックして内容を確認できます
         </p>
     </div>
-    <a href="/planning/templates/new" class="btn btn-primary btn-sm"
-        >新規作成</a>
+    <dir class="flex flex-1 justify-end items-end">
+        <a href="/planning/templates/new" class="btn btn-primary btn-sm"
+            >新規作成</a>
+    </dir>
 </div>
 <PlanningTabs active="templates" />
 
@@ -248,12 +250,16 @@
         <div
             class="flex shrink-0 items-start justify-between gap-2 border-b border-base-200 p-6 pb-2">
             <div class="min-w-0">
-                <h3 class="truncate text-lg font-bold">{active?.title}</h3>
-                {#if active?.description}
-                    <p
-                        class="mt-1 text-sm text-base-content/60 whitespace-pre-wrap">
-                        {active.description}
-                    </p>
+                {#if !editMode}
+                    <h3 class="truncate text-lg font-bold">テンプレート編集</h3>
+                {:else}
+                    <h3 class="truncate text-lg font-bold">{active?.title}</h3>
+                    {#if active?.description}
+                        <p
+                            class="mt-1 text-sm text-base-content/60 whitespace-pre-wrap">
+                            {active.description}
+                        </p>
+                    {/if}
                 {/if}
             </div>
             <div class="flex shrink-0 gap-1">

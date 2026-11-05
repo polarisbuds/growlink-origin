@@ -32,6 +32,10 @@
                     メンターとメンティの 1:1 ペア
                 </p>
             </div>
+            <dir class="flex flex-1 justify-end mb-0">
+                <a class="btn btn-primary btn-sm" href="/planning/pairs/new"
+                    >+ 作成</a>
+            </dir>
         </div>
     {/if}
     <PlanningTabs active="pairs" />

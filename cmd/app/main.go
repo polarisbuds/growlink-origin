@@ -18,8 +18,8 @@ import (
 	template_mng_usecase "growlink/internal/application/usecase/management_usecase/template_management_usecase"
 	user_admin_usecase "growlink/internal/application/usecase/management_usecase/user_admin_usecase"
 	"growlink/internal/application/usecase/meeting_usecase"
-	"growlink/internal/application/usecase/planning_usecase"
 	"growlink/internal/application/usecase/pairing_usecase"
+	"growlink/internal/application/usecase/planning_usecase"
 	"growlink/internal/application/usecase/setting_usecase"
 	"growlink/internal/infrastructure/external/ldap"
 	applogger "growlink/internal/infrastructure/logger"
@@ -93,6 +93,7 @@ func main() {
 	teamRepo := repository.NewTeamsRepository(ctx, db)
 	deptHierarchyRepo := repository.NewDepartmentHierarchyRepository(ctx, db)
 	deptRoleRepo := repository.NewDepartmentRoleRepository(ctx, db)
+	deptMemberRepo := repository.NewDepartmentMemberRepository(ctx, db)
 	deptRefRepo := repository.NewUserReferenceDepartmentRepository(ctx, db)
 	teamRefRepo := repository.NewUserReferenceTeamRepository(ctx, db)
 	roleRepo := repository.NewRoleRepository(ctx, db)
@@ -134,15 +135,16 @@ func main() {
 		TemplateDeleter: template_mng_usecase.NewTemplateDeleter(templateRepo, topicRepo),
 		TemplateCopier:  template_mng_usecase.NewTemplateCopier(templateRepo, topicRepo),
 		UserAdmin:       user_admin_usecase.NewUserAdmin(userRepo, deptRefRepo, teamRefRepo, relationshipRepo),
-		OrgAdmin:        org_admin_usecase.NewOrgAdmin(deptRepo, teamRepo, deptHierarchyRepo, deptRoleRepo, teamMemberRepo, userRepo, userDeptRepo, roleRepo),
+		OrgAdmin:        org_admin_usecase.NewOrgAdmin(deptRepo, teamRepo, deptHierarchyRepo, deptRoleRepo, deptMemberRepo, teamMemberRepo, userRepo, userDeptRepo),
 		RemindSettings:  remind_settings_usecase.NewRemindSettings(systemSettingsRepo),
 		Progress:        progress_mng_usecase.NewProgressViewer(meetingRepo, userRepo, teamMemberRepo, userDeptRepo, pairingRepo),
 	}
 
 	planningAccess := planning_usecase.NewPlanningAccessUsecase(
 		meetingRepo,
-		userRepo,
-		teamRefRepo,
+		deptMemberRepo,
+		deptHierarchyRepo,
+		teamRepo,
 		relationshipRepo,
 		teamMemberRepo,
 		managementBundle.Meeting,

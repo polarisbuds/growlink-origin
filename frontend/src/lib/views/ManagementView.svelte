@@ -10,8 +10,6 @@
     import ChevronsDownUp from "lucide-svelte/icons/chevrons-down-up";
     import ChevronRight from "lucide-svelte/icons/chevron-right";
     import Info from "lucide-svelte/icons/info";
-    import type { UserDepartmentMaps } from "$lib/planning-directory";
-    import { fade } from "svelte/transition";
 
     const AUTHORITY_OPTIONS = [
         { value: "general", label: "メンバー" },
@@ -35,8 +33,6 @@
         { value: 3, label: "水曜日" },
         { value: 4, label: "木曜日" },
         { value: 5, label: "金曜日" },
-        { value: 6, label: "土曜日" },
-        { value: 7, label: "日曜日" },
     ];
 
     type ManagementUser = {
@@ -96,7 +92,7 @@
     };
 
     type Options = {
-        departments: { id: number; name: string }[];
+        departments: { id: number; name: string; isRoot: boolean }[];
         teams: { id: number; name: string }[];
         roles: { id: number; name: string; rank?: number }[];
     };
@@ -154,8 +150,6 @@
     let targetSearch = $state("");
     let orgChildSearch = $state("");
     let orgTeamSearch = $state("");
-    let orgUserSearch = $state("");
-    let orgMemberSearch = $state("");
     let userModalOpen = $state(false);
     let userForm = $state<UserForm | null>(null);
     let authoritySelect = $state("general");
@@ -183,22 +177,12 @@
         name: "",
         childIds: [] as number[],
         teamIds: [] as number[],
-        userIds: [] as number[],
-        memberIds: [] as number[],
         leaderId: 0,
         headUserId: 0,
     });
 
-    let headRankThreshold = $derived(
-        (options.roles || []).find((r) => r.name === "部長")?.rank ?? 100,
-    );
-
-    let headUserCandidates = $derived(
-        users.filter((u) => {
-            const role = (options.roles || []).find((r) => r.id === u.roleId);
-            return (role?.rank ?? 0) >= headRankThreshold;
-        }),
-    );
+    let headUserCandidates = $derived(users);
+    let teamLeaderCandidates = $derived(users);
 
     let visibleOrgNodes = $derived.by(() => {
         const visibleNode: OrgTreeNode[] = [];
@@ -283,14 +267,6 @@
 
     function filteredOrgTeams() {
         return filterByQuery(options.teams || [], orgTeamSearch);
-    }
-
-    function filteredOrgUsers() {
-        return filterByQuery(users, orgUserSearch);
-    }
-
-    function filteredOrgMembers() {
-        return filterByQuery(users, orgMemberSearch);
     }
 
     function isInList(list: number[] | undefined, id: number | string) {
@@ -384,17 +360,6 @@
 
     function toggleOrgTeam(id: number) {
         orgEdit.teamIds = toggleInList(orgEdit.teamIds || [], id);
-    }
-
-    function toggleOrgUser(id: number) {
-        orgEdit.userIds = toggleInList(orgEdit.userIds || [], id);
-    }
-
-    function toggleOrgMember(id: number) {
-        orgEdit.memberIds = toggleInList(orgEdit.memberIds || [], id);
-        if (!orgEdit.memberIds.includes(Number(orgEdit.leaderId))) {
-            orgEdit.leaderId = orgEdit.memberIds[0] || 0;
-        }
     }
 
     function setOperationTarget(value: string) {
@@ -594,8 +559,6 @@
         orgEditMode = false;
         orgChildSearch = "";
         orgTeamSearch = "";
-        orgUserSearch = "";
-        orgMemberSearch = "";
         const url =
             n.kind === "team"
                 ? `/api/v1/management/teams/${n.id}`
@@ -612,8 +575,6 @@
             name: detail.name,
             childIds: (detail.childIds || []).map(Number),
             teamIds: (detail.teamIds || []).map(Number),
-            userIds: (detail.userIds || []).map(Number),
-            memberIds: (detail.memberIds || []).map(Number),
             leaderId: detail.leaderId || 0,
             headUserId: detail.headUserId || 0,
         };
@@ -658,7 +619,6 @@
             if (orgDetail.kind === "team") {
                 await api("PUT", `/api/v1/management/teams/${orgDetail.id}`, {
                     name: orgEdit.name,
-                    memberIds: orgEdit.memberIds.map(Number),
                     leaderId: orgEdit.leaderId,
                 });
             } else {
@@ -669,7 +629,6 @@
                         name: orgEdit.name,
                         childDepartmentIds: orgEdit.childIds.map(Number),
                         teamIds: orgEdit.teamIds.map(Number),
-                        userIds: orgEdit.userIds.map(Number),
                         headUserId: orgEdit.headUserId,
                     },
                 );
@@ -937,8 +896,7 @@
                         type="button"
                         class="btn btn-ghost btn-xs btn-square shrink-0 btn-outline"
                         aria-label="部署を展開"
-                        onclick={() => toggleExpandAllDept()}
-                        transition:fade>
+                        onclick={() => toggleExpandAllDept()}>
                         <ChevronsDownUp
                             class="h-4 w-4 transition-transform {expandedAllDept
                                 ? 'rotate-180'
@@ -950,8 +908,7 @@
                         type="button"
                         class="btn btn-ghost btn-xs btn-square shrink-0 btn-outline"
                         aria-label="部署を展開"
-                        onclick={() => toggleExpandAllDept()}
-                        transition:fade>
+                        onclick={() => toggleExpandAllDept()}>
                         <ChevronsUpDown
                             class="h-4 w-4 transition-transform {expandedAllDept
                                 ? 'rotate-180'
@@ -1007,16 +964,10 @@
                                     class="min-w-0 flex-1 text-left"
                                     onclick={() => openOrgModal(n)}>
                                     <span class="font-medium">{n.name}</span>
-                                    {#if n.departmentCount}
-                                        <span
-                                            class="ml-2 text-sm text-base-content/60"
-                                            >{n.departmentCount} 部署</span>
-                                    {/if}
-                                    {#if n.teamCount}
-                                        <span
-                                            class="ml-2 text-sm text-base-content/60"
-                                            >{n.teamCount} チーム</span>
-                                    {/if}
+                                    <span
+                                        class="ml-2 text-sm text-base-content/60"
+                                        >部長 {n.headUserName ||
+                                            "未設定"}</span>
                                 </button>
                                 <button
                                     type="button"
@@ -1039,12 +990,8 @@
                                     <span class="font-medium">{n.name}</span>
                                     <span
                                         class="ml-2 text-sm text-base-content/60"
-                                        >{n.teamMemberCount ?? 0}人</span>
-                                    {#if n.leaderName}
-                                        <span
-                                            class="ml-2 badge badge-secondary badge-sm"
-                                            >SM {n.leaderName}</span>
-                                    {/if}
+                                        >リーダー {n.leaderName ||
+                                            "未設定"}</span>
                                 </button>
                                 <button
                                     type="button"
@@ -1373,40 +1320,25 @@
         </div>
         {#if !orgEditMode}
             <div class="overflow-y-auto px-6 py-4 flex-1 space-y-4">
-                {#if orgDetail?.kind === "department" && orgDetail.headUserId}
+                {#if orgDetail?.kind === "department"}
                     <div
                         class="rounded-xl border border-base-300 bg-base-200/30 px-3 py-2 text-sm">
                         <span class="text-base-content/60">部長</span>
                         <span class="ml-2 font-medium"
-                            >{userName(orgDetail.headUserId)}</span>
+                            >{orgDetail.headUserId
+                                ? userName(orgDetail.headUserId)
+                                : "未設定"}</span>
                     </div>
                 {/if}
-                {#if orgDetail?.kind === "team" && orgDetail.leaderId}
+                {#if orgDetail?.kind === "team"}
                     <div
                         class="rounded-xl border border-base-300 bg-base-200/30 px-3 py-2 text-sm">
-                        <span class="text-base-content/60">SM</span>
+                        <span class="text-base-content/60">チームリーダー</span>
                         <span class="ml-2 font-medium"
-                            >{userName(orgDetail.leaderId)}</span>
+                            >{orgDetail.leaderId
+                                ? userName(orgDetail.leaderId)
+                                : "未設定"}</span>
                     </div>
-                {/if}
-                {#if (orgDetail?.members || []).length}
-                    <p class="text-xs font-medium text-base-content/60">
-                        メンバー（{(orgDetail?.members || []).length}人）
-                    </p>
-                    <ul class="space-y-2">
-                        {#each orgDetail?.members || [] as m (m.userId)}
-                            <li
-                                class="flex justify-between items-center rounded-xl border border-base-300 px-3 py-2">
-                                <span class="font-medium">{m.userName}</span>
-                                <span class="badge badge-ghost badge-sm"
-                                    >{m.title}</span>
-                            </li>
-                        {/each}
-                    </ul>
-                {:else}
-                    <p class="text-sm text-base-content/50 text-center py-8">
-                        所属メンバーはいません
-                    </p>
                 {/if}
             </div>
         {/if}
@@ -1416,7 +1348,7 @@
                     ><span class="label-text font-medium">名前</span><input
                         class="input input-bordered"
                         bind:value={orgEdit.name} /></label>
-                {#if orgDetail?.kind === "department" && orgDetail?.isRoot}
+                {#if orgDetail?.kind === "department"}
                     <div class="space-y-2">
                         <span class="label-text font-medium">子部署</span>
                         <input
@@ -1426,7 +1358,7 @@
                         <div
                             class="border border-base-300 rounded-2xl max-h-44 overflow-y-auto p-2">
                             {#each filteredOrgDepartments() as d (`c-${d.id}`)}
-                                {#if d.id !== orgDetail?.id}
+                                {#if d.id !== orgDetail?.id && !d.isRoot}
                                     <label
                                         class="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-base-200 cursor-pointer">
                                         <input
@@ -1445,7 +1377,7 @@
                         </div>
                     </div>
                 {/if}
-                {#if orgDetail?.kind === "department" && !orgDetail?.isRoot}
+                {#if orgDetail?.kind === "department"}
                     <div class="space-y-4">
                         <label class="form-control">
                             <span class="label-text font-medium">部長</span>
@@ -1483,85 +1415,21 @@
                                 {/each}
                             </div>
                         </div>
-                        <div class="space-y-2">
-                            <span class="label-text font-medium"
-                                >所属ユーザ</span>
-                            <input
-                                class="input input-bordered input-sm w-full placeholder-current"
-                                placeholder="検索"
-                                bind:value={orgUserSearch} />
-                            <div
-                                class="border border-base-300 rounded-2xl max-h-36 overflow-y-auto p-2">
-                                {#each filteredOrgUsers() as u (`ou-${u.id}`)}
-                                    <label
-                                        class="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-base-200 cursor-pointer">
-                                        <input
-                                            type="checkbox"
-                                            class="checkbox checkbox-sm"
-                                            checked={isInList(
-                                                orgEdit.userIds,
-                                                u.id,
-                                            )}
-                                            onchange={() =>
-                                                toggleOrgUser(u.id)} />
-                                        <span>{u.name}</span>
-                                    </label>
-                                {/each}
-                            </div>
-                        </div>
                     </div>
                 {/if}
                 {#if orgDetail?.kind === "team"}
-                    <div class="space-y-4">
-                        <div class="space-y-2">
-                            <span class="label-text font-medium">メンバー</span>
-                            <input
-                                class="input input-bordered input-sm w-full placeholder-current"
-                                placeholder="検索"
-                                bind:value={orgMemberSearch} />
-                            <div
-                                class="border border-base-300 rounded-2xl max-h-36 overflow-y-auto p-2">
-                                {#each filteredOrgMembers() as u (`tm-${u.id}`)}
-                                    <label
-                                        class="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-base-200 cursor-pointer">
-                                        <input
-                                            type="checkbox"
-                                            class="checkbox checkbox-sm"
-                                            checked={isInList(
-                                                orgEdit.memberIds,
-                                                u.id,
-                                            )}
-                                            onchange={() =>
-                                                toggleOrgMember(u.id)} />
-                                        <span>{u.name}</span>
-                                    </label>
-                                {/each}
-                            </div>
-                        </div>
-                        {#if orgEdit.memberIds.length}
-                            <div>
-                                <span class="label-text font-medium"
-                                    >リーダー（SM）</span>
-                                <div class="flex flex-wrap gap-2 mt-2">
-                                    {#each orgEdit.memberIds as uid (`ld-${uid}`)}
-                                        <button
-                                            type="button"
-                                            class="btn btn-sm"
-                                            class:btn-secondary={Number(
-                                                orgEdit.leaderId,
-                                            ) === Number(uid)}
-                                            class:btn-outline={Number(
-                                                orgEdit.leaderId,
-                                            ) !== Number(uid)}
-                                            onclick={() =>
-                                                (orgEdit.leaderId =
-                                                    Number(uid))}
-                                            >{userName(uid)}</button>
-                                    {/each}
-                                </div>
-                            </div>
-                        {/if}
-                    </div>
+                    <label class="form-control">
+                        <span class="label-text font-medium"
+                            >チームリーダー</span>
+                        <select
+                            class="select select-bordered"
+                            bind:value={orgEdit.leaderId}>
+                            <option value={0}>未設定</option>
+                            {#each teamLeaderCandidates as u (`team-lead-${u.id}`)}
+                                <option value={u.id}>{u.name}</option>
+                            {/each}
+                        </select>
+                    </label>
                 {/if}
                 <div class="border-t border-base-300 pt-4">
                     <button

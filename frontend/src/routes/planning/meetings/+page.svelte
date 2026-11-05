@@ -212,13 +212,15 @@
 
 <svelte:head><title>全ての面談 - Growlink</title></svelte:head>
 
-<div class="flex flex-wrap items-start justify-between gap-3">
+<div class="flex flex-wrap items-center justify-between gap-2">
     <div>
         <h1 class="font-display text-2xl font-semibold">面談一覧</h1>
         <p class="mt-1 text-sm text-base-content/60">組織内の面談を一覧表示</p>
     </div>
-    <a href="/planning/meetings/new" class="btn btn-sm btn-primary"
-        >1on1を追加</a>
+    <div class="flex justify-end items-end">
+        <a href="/planning/meetings/new" class="btn btn-sm btn-primary"
+            >1on1を追加</a>
+    </div>
 </div>
 
 <PlanningTabs active="meetings" />

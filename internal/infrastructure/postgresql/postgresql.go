@@ -48,6 +48,7 @@ func AutoMigrate(db *gorm.DB) error {
 		&entity.Department{},
 		&entity.Team{},
 		&entity.TeamMember{},
+		&entity.DepartmentMember{},
 		&entity.Pairing{},
 		&entity.PairingMentee{},
 		&entity.PairingTarget{},

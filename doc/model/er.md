@@ -9,10 +9,11 @@ erDiagram
 %% 各テーブルは created_at, updated_at, deleted_atを所持
 %% 各テーブルは uuid uuid UK(Unique Key)を所持
 %% tables { bigint id PK, datetime created_at, datetime updated_at, deleted_at } が存在する前提とする。
-%% pending|draft|done / general|boss|owner / boss|subordinate は Domain Value Object（列挙体）。マスタテーブルは持たない。
+%% pending|draft|done / general|boss|owner / boss|subordinate / none|system_admin|analyst / none|department|team|subordinate は Domain Value Object（列挙体）。マスタテーブルは持たない。
 %% VO列は smallint で保持する。
 %% histories / read_commentables テーブルは持たない。
-%% users.image_uri はプロフィール画像の保存先（nullable）。バイナリ列は持たない。
+%% users.image_uri はプロフィール画像の保存先（nullable）。バイナリ列は持たない。ImageBase64 は永続化しない。
+%% users.department_id は主所属。複数部署への所属は user_departments で表す。
 
 %% ユーザ系
 users {
@@ -21,15 +22,28 @@ users {
     text password "nullable。Basic認証用。Owner は Basic ログインに制限する運用"
     text image_uri "nullable。イメージ画像の保存先"
     smallint authority "not null, general|boss|owner"
+    smallint system_role "not null, default 1(none)。none|system_admin|analyst"
+    smallint operation_target "not null, default 1(none)。none|department|team|subordinate"
+    boolean suspended "not null, default false。停止中"
+    text line_works_id "not null, default 空文字。LINE WORKS ID"
+    boolean remind_enabled "not null, default false。リマインド対象"
 
     bigint role_id FK
-    bigint department_id FK
+    bigint department_id FK "主所属部署"
 }
 roles ||--o{ users: ""
-departments ||--|{ users: ""
+departments ||--|{ users: "主所属"
+
+%% ユーザが複数部署に所属する中間テーブル。users.department_id（主所属）とは別に持つ
+user_departments {
+    bigint user_id FK "UK(user_id, department_id)"
+    bigint department_id FK "UK(user_id, department_id)"
+}
+users ||--o{ user_departments: "所属ユーザ"
+departments ||--o{ user_departments: "所属部署"
 
 team_members {
-    boolean is_reader "チームリーダーフラグ"
+    boolean is_reader "not null, default false。チームリーダーフラグ"
 
     bigint team_id FK
     bigint member_id FK
@@ -37,12 +51,25 @@ team_members {
 teams ||--o{ team_members: "チームID"
 users ||--o{ team_members: "メンバーID"
 
+department_members {
+    boolean is_head "not null, default false。部長。is_manager も true"
+    boolean is_manager "not null, default false。部内と子孫部署の面談を参照"
+
+    bigint department_id FK "UK(department_id, user_id)"
+    bigint user_id FK "UK(department_id, user_id)"
+}
+departments ||--o{ department_members: "部署メンバー"
+users ||--o{ department_members: "ユーザ"
+
 departments {
     text name "not null"
+
+    bigint head_user_id FK "not null, default 0。部署長"
 }
 
 roles {
     text name "not null"
+    number rank "not null, default 0。表示・並び順"
 }
 
 teams {
@@ -53,12 +80,40 @@ teams {
 departments ||--|{ teams: "部署＞チーム（SM以下のチームを想定）"
 
 pairings {
+    boolean is_temporary "not null, default false。一時ペア"
+    number recur_week "nullable。定期実施：第N週"
+    number recur_weekday "nullable。定期実施：曜日（0=日曜）"
+
     bigint mentor_id FK
-    bigint mentee_id FK
+    bigint mentee_id FK "代表メンティ"
+    bigint created_by_user_id FK "not null, default 0。作成者"
 }
 %% pairings: 1on1 の mentor–mentee。ミーティング作成・メンター閲覧の基準
+%% 複数メンティは pairing_mentees。共有先は pairing_sharers / pairing_targets
 users ||--o{ pairings: "Mentor"
 users ||--o{ pairings: "Mentee"
+
+pairing_mentees {
+    bigint pairing_id FK
+    bigint user_id FK
+}
+pairings ||--o{ pairing_mentees: ""
+users ||--o{ pairing_mentees: "メンティ"
+
+pairing_sharers {
+    bigint pairing_id FK
+    bigint user_id FK
+}
+pairings ||--o{ pairing_sharers: ""
+users ||--o{ pairing_sharers: "共有先ユーザ"
+
+pairing_targets {
+    text kind "not null, user|team|department"
+    bigint target_id "not null。kind に応じた対象ID（多相。単一FKではない）"
+
+    bigint pairing_id FK
+}
+pairings ||--o{ pairing_targets: "共有対象"
 
 %% ミーティング系
 %% status が done 以外では他ユーザから見られないようにする
@@ -68,20 +123,32 @@ meetings {
 
     bigint template_id FK
     bigint pairing_id FK
+    bigint created_by_user_id FK "not null, default 0。作成者"
 }
 templates ||--o{ meetings: "ミーティングにはテンプレートの指定が必須"
 pairings ||--o{ meetings: "参加ペア"
 
+meeting_sharers {
+    bigint meeting_id FK
+    bigint user_id FK
+}
+meetings ||--o{ meeting_sharers: ""
+users ||--o{ meeting_sharers: "共有先ユーザ"
+
 templates {
     text title UK
+    text description "not null, default 空文字"
+    number display_no "not null, default 0。表示順序"
+    boolean is_sample "not null, default false。サンプルテンプレート"
 
-    bigint user_id FK "作成者のユーザID"
+    bigint creator_id FK "作成者のユーザID（列名 creator_id）"
 }
 users ||--o{ templates: "テンプレートには作成者が存在"
 
 topics {
     number display_no "表示順序 1~N"
     text question "not null"
+    text description "not null, default 空文字"
     bool is_require "not null"
 
     bigint template_id FK
@@ -101,6 +168,7 @@ users ||--o{ answers: "メンティの回答"
 
 meeting_comments {
     text content "not null"
+    boolean is_limited "not null, default false。限定公開"
 
     bigint meeting_id FK
     bigint user_id FK
@@ -109,7 +177,7 @@ meetings ||--o{ meeting_comments: ""
 users ||--o{ meeting_comments: ""
 
 answer_comments {
-    text content
+    text content "nullable"
 
     bigint answer_id FK
     bigint user_id FK
@@ -135,6 +203,11 @@ system_settings {
     bigint default_template_id FK "デフォルトテンプレート"
     text log_output_path "ログ出力先"
     text log_file_prefix "ログファイルPrefix"
+    boolean remind_auto_send "not null, default false。リマインド自動送信"
+    text remind_mode "not null, default prev_weekday。送信モード"
+    number remind_days_before "not null, default 1。何日前"
+    number remind_weekday "not null, default 1。曜日"
+    text remind_time "not null, default 09:00。送信時刻"
 }
 templates ||--o| system_settings: "default_template_id"
 
@@ -170,14 +243,20 @@ users ||--o{ user_reference_teams: "参照可能チームID"
 
 user_reference_departments {
     bigint user_id FK
-    bigint referable_departments_id FK
+    bigint referable_department_id FK
 }
 users ||--o{ user_reference_departments: ""
 users ||--o{ user_reference_departments: "参照可能部署ID"
 ```
 
+
 %% authority 閲覧範囲（列コメント補足）
 %% - general: 自分がメンティのミーティング
 %% - メンター閲覧: pairings.mentor_id
+%% - department_members.is_head または is_manager: その部署と子孫部署のメンバー、および所属チームのメンティー面談
+%% - team_members.is_reader: そのチームのメンティー面談
 %% - boss: user_relationships で部下のミーティング
 %% - owner: 全件
+%% 役職名（department_roles.name や SM 表示）は参照判定に使わない
+%% system_role: none / system_admin（システム管理者）/ analyst（分析者）
+%% operation_target: none / department（部署）/ team（チーム）/ subordinate（部下）

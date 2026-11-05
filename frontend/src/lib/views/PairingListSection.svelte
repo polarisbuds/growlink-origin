@@ -168,26 +168,21 @@
         e.key === "Escape" && (deleteOpen = false)} />
 
 <div class="mt-4 flex flex-wrap items-center gap-2 justify-between">
-    <div>
-        <span class="text-xs text-base-content/60">表示</span>
-        <div class="join">
-            <button
-                type="button"
-                class="btn btn-sm join-item"
-                class:btn-primary={viewMode === "individual"}
-                class:btn-outline={viewMode !== "individual"}
-                onclick={() => (viewMode = "individual")}>個人</button>
-            <button
-                type="button"
-                class="btn btn-sm join-item"
-                class:btn-primary={viewMode === "department"}
-                class:btn-outline={viewMode !== "department"}
-                onclick={() => (viewMode = "department")}>部署</button>
-        </div>
+    <span class="text-xs text-base-content/60">表示</span>
+    <div class="join">
+        <button
+            type="button"
+            class="btn btn-sm join-item"
+            class:btn-primary={viewMode === "individual"}
+            class:btn-outline={viewMode !== "individual"}
+            onclick={() => (viewMode = "individual")}>個人</button>
+        <button
+            type="button"
+            class="btn btn-sm join-item"
+            class:btn-primary={viewMode === "department"}
+            class:btn-outline={viewMode !== "department"}
+            onclick={() => (viewMode = "department")}>部署</button>
     </div>
-    <dir class="flex flex-1 justify-end mb-0">
-        <a class="btn btn-primary btn-sm" href="/planning/pairs/new">+ 作成</a>
-    </dir>
 </div>
 
 {#if isSystemAdmin}

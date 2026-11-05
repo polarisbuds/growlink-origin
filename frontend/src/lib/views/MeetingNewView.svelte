@@ -3,10 +3,7 @@
     import { goto } from "$app/navigation";
     import { api } from "$lib/api";
     import { getAvatar } from "$lib/session";
-    import {
-        matchPairingIds,
-        type MeetingPairingItem,
-    } from "$lib/meeting-pair-match";
+    import { type MeetingPairingItem } from "$lib/meeting-pair-match";
     import { expandUserPairings } from "$lib/pairing-helpers";
     import {
         buildUserDepartmentMaps,
@@ -60,9 +57,6 @@
             ? users.filter((u) => u.id !== currentUserId)
             : users,
     );
-    let menteeTargetPicks = $derived(
-        menteeIds.map((targetId) => ({ kind: "user", targetId })),
-    );
     let submitting = $state(false);
     let error = $state("");
 
@@ -98,11 +92,6 @@
     let allPairRowsSelected = $derived(
         displayedPairingIds.length > 0 &&
             displayedPairingIds.every((id) => selectedPairingIds.includes(id)),
-    );
-
-    let matchedPairingCount = $derived(
-        matchPairingIds(pairings, mentorId ? [mentorId] : [], menteeTargetPicks)
-            .length,
     );
 
     type SelectItem = { id: number };
@@ -149,15 +138,10 @@
         if (mode === "pair") return "作成";
         return "定期作成";
     }
-    function resolvePairingIds(): number[] {
-        return matchPairingIds(
-            pairings,
-            mentorId ? [mentorId] : [],
-            menteeTargetPicks,
-        );
-    }
     function toggleAllPairRows(checked: boolean) {
-        selectedPairingIds = checked ? [...displayedPairingIds] : [];
+        console.log(displayedPairingIds);
+        selectedPairingIds = checked ? displayedPairingIds : [];
+        console.log(selectedPairingIds);
     }
 
     async function loadPairingsIfNeeded() {
@@ -178,8 +162,6 @@
         mode = next;
         if (next === "pair") {
             selectedPairingIds = [];
-            await loadPairingsIfNeeded();
-        } else if (next === "monthly") {
             await loadPairingsIfNeeded();
         }
     }
@@ -273,10 +255,8 @@
                     error = "メンティを選択してください。";
                     return;
                 }
-                await loadPairingsIfNeeded();
-                const pairingIds = resolvePairingIds();
-                if (!pairingIds.length) {
-                    error = "該当するペアがありません。";
+                if (menteeIds.some((id) => id === mentorId)) {
+                    error = "メンターと同じユーザをメンティに指定できません。";
                     return;
                 }
                 if (!form.fromMonth || !form.toMonth) {
@@ -292,13 +272,14 @@
                     return;
                 }
                 await api("POST", "/api/v1/meetings/monthly", {
+                    mentorId,
+                    menteeIds,
                     templateId: form.templateId,
                     from: `${form.fromMonth}-01`,
                     to: `${form.toMonth}-01`,
                     week: form.week,
                     weekday: form.weekday,
                     sharerUserIds: sharerPayload,
-                    pairingIds,
                 });
             }
             await goto("/planning/meetings");
@@ -512,12 +493,6 @@
                     {/if}
                 </div>
             </div>
-            {#if mode === "monthly" && mentorId && menteeIds.length}
-                <p class="text-sm text-base-content/60">
-                    一致するペア: <span class="font-medium text-base-content"
-                        >{matchedPairingCount}</span> 件（各ペアに面談を1件作成）
-                </p>
-            {/if}
         {/if}
         <label class="form-control">
             <span class="label-text font-medium">共有者（任意・複数）</span>
@@ -538,7 +513,7 @@
                     bind:value={form.implementedAt} />
             </label>
         {:else}
-            <div class="flex justify-between gap-2 space-y-4 items-baseline">
+            <div class="flex justify-between gap-2 items-baseline">
                 <label class="form-control w-2/6">
                     <span class="label-text font-medium">年月（から）</span>
                     <input
@@ -584,7 +559,8 @@
                 class="btn btn-primary"
                 disabled={submitting}
                 onclick={submit}>{submitLabel()}</button>
-            <a href="/planning/meetings" class="btn btn-ghost">戻る</a>
+            <a href="/planning/meetings" class="btn btn-ghost　btn-outline"
+                >戻る</a>
         </div>
     </div>
 </main>

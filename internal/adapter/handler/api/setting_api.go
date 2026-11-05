@@ -3,8 +3,8 @@ package api
 import (
 	"net/http"
 
-	user_admin_usecase "growlink/internal/application/usecase/management_usecase/user_admin_usecase"
 	"growlink/internal/adapter/handler/authctx"
+	user_admin_usecase "growlink/internal/application/usecase/management_usecase/user_admin_usecase"
 
 	"github.com/labstack/echo/v5"
 )
@@ -50,19 +50,11 @@ func (h *Handler) UpdateSetting(c *echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
 	var req struct {
-		Name          string `json:"name"`
-		Email         string `json:"email"`
 		LineWorksID   string `json:"lineWorksId"`
 		RemindEnabled *bool  `json:"remindEnabled"`
 	}
 	if err := c.Bind(&req); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid request"})
-	}
-	if req.Name != "" {
-		user.Name = req.Name
-	}
-	if req.Email != "" {
-		user.Email = req.Email
 	}
 	if err := user_admin_usecase.ValidateLineWorksLocalID(req.LineWorksID); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})

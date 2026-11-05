@@ -54,6 +54,13 @@ func (repo *DepartmentRepository) UpdateByID(department *entity.Department) erro
 	return nil
 }
 
+func (repo *DepartmentRepository) UpdateHeadUserID(id, headUserID uint) error {
+	if err := repo.db.WithContext(repo.ctx).Model(&entity.Department{}).Where("id = ?", id).Update("head_user_id", headUserID).Error; err != nil {
+		return fmt.Errorf("部署長の更新に失敗しました: %w", err)
+	}
+	return nil
+}
+
 func (repo *DepartmentRepository) Delete(id uint) error {
 	if _, err := gorm.G[entity.Department](repo.db).Where("id = ?", id).Delete(repo.ctx); err != nil {
 		return fmt.Errorf("部署の削除に失敗しました: %w", err)

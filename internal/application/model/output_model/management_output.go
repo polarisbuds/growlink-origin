@@ -67,8 +67,9 @@ type RoleOptionOutput struct {
 }
 
 type DepartmentOptionOutput struct {
-	ID   uint   `json:"id"`
-	Name string `json:"name"`
+	ID     uint   `json:"id"`
+	Name   string `json:"name"`
+	IsRoot bool   `json:"isRoot"`
 }
 
 type TeamOptionOutput struct {
