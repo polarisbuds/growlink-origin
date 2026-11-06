@@ -29,6 +29,23 @@ func (repo *UserDepartmentRepository) GetUserIDsByDepartmentID(departmentID uint
 	return ids, nil
 }
 
+func (repo *UserDepartmentRepository) Create(userID, departmentID uint) error {
+	if err := repo.db.WithContext(repo.ctx).Create(&entity.UserDepartment{
+		UserID:       userID,
+		DepartmentID: departmentID,
+	}).Error; err != nil {
+		return fmt.Errorf("部署所属の作成に失敗しました: %w", err)
+	}
+	return nil
+}
+
+func (repo *UserDepartmentRepository) DeleteByUserID(userID uint) error {
+	if err := repo.db.WithContext(repo.ctx).Unscoped().Where("user_id = ?", userID).Delete(&entity.UserDepartment{}).Error; err != nil {
+		return fmt.Errorf("部署所属の削除に失敗しました: %w", err)
+	}
+	return nil
+}
+
 func (repo *UserDepartmentRepository) GetDepartmentIDsByUserID(userID uint) ([]uint, error) {
 	var rows []entity.UserDepartment
 	if err := repo.db.WithContext(repo.ctx).Where("user_id = ?", userID).Find(&rows).Error; err != nil {

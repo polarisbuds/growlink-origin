@@ -35,6 +35,9 @@
         { value: 5, label: "金曜日" },
     ];
 
+    type DeptAssignment = { departmentId: number; roleId: number };
+    type TeamAssignment = { teamId: number };
+
     type ManagementUser = {
         id: number;
         name: string;
@@ -45,6 +48,8 @@
         targetIds?: number[];
         departmentId: number;
         roleId: number;
+        departments?: DeptAssignment[];
+        teams?: TeamAssignment[];
         suspended: boolean;
         imageUri?: string;
     };
@@ -86,14 +91,14 @@
         systemRole: string;
         operationTarget: string;
         targetIds: number[];
-        departmentId: number;
-        roleId: number;
+        departments: DeptAssignment[];
+        teams: TeamAssignment[];
         suspended: boolean;
     };
 
     type Options = {
         departments: { id: number; name: string; isRoot: boolean }[];
-        teams: { id: number; name: string }[];
+        teams: { id: number; name: string; departmentId: number }[];
         roles: { id: number; name: string; rank?: number }[];
     };
 
@@ -158,9 +163,9 @@
     let createUserForm = $state({
         name: "",
         email: "",
-        departmentId: 0,
-        roleId: 0,
         password: "",
+        departments: [] as DeptAssignment[],
+        teams: [] as TeamAssignment[],
     });
     let createDeptOpen = $state(false);
     let createDeptForm = $state({ name: "", parentDepartmentId: 0 });
@@ -239,6 +244,144 @@
     function userName(id: number | string) {
         const u = users.find((x) => x.id === Number(id));
         return u ? u.name : "";
+    }
+
+    function selectedDepartmentIds(rows: DeptAssignment[]) {
+        return rows
+            .map((row) => Number(row.departmentId))
+            .filter((id) => id > 0);
+    }
+
+    function departmentChoices(rows: DeptAssignment[], index: number) {
+        const taken = new Set(
+            rows
+                .map((row, i) => (i === index ? 0 : Number(row.departmentId)))
+                .filter((id) => id > 0),
+        );
+        const current = Number(rows[index]?.departmentId);
+        return options.departments.filter(
+            (dept) => !taken.has(dept.id) || dept.id === current,
+        );
+    }
+
+    function teamChoices(
+        departments: DeptAssignment[],
+        teams: TeamAssignment[],
+        index: number,
+    ) {
+        const deptIds = new Set(selectedDepartmentIds(departments));
+        const taken = new Set(
+            teams
+                .map((row, i) => (i === index ? 0 : Number(row.teamId)))
+                .filter((id) => id > 0),
+        );
+        const current = Number(teams[index]?.teamId);
+        return options.teams.filter(
+            (team) =>
+                deptIds.has(team.departmentId) &&
+                (!taken.has(team.id) || team.id === current),
+        );
+    }
+
+    function pruneTeamRows(
+        departments: DeptAssignment[],
+        teams: TeamAssignment[],
+    ) {
+        const deptIds = new Set(selectedDepartmentIds(departments));
+        return teams.filter((row) => {
+            const team = options.teams.find(
+                (item) => item.id === Number(row.teamId),
+            );
+            return !!team && deptIds.has(team.departmentId);
+        });
+    }
+
+    function nextDepartmentRow(rows: DeptAssignment[]): DeptAssignment | null {
+        const taken = new Set(rows.map((row) => Number(row.departmentId)));
+        const dept = options.departments.find((item) => !taken.has(item.id));
+        if (!dept) return null;
+        return { departmentId: dept.id, roleId: options.roles[0]?.id || 0 };
+    }
+
+    function nextTeamRow(
+        departments: DeptAssignment[],
+        teams: TeamAssignment[],
+    ): TeamAssignment | null {
+        const choices = teamChoices(
+            departments,
+            [...teams, { teamId: 0 }],
+            teams.length,
+        );
+        const team = choices[0];
+        if (!team) return null;
+        return { teamId: team.id };
+    }
+
+    function onUserDepartmentChange() {
+        if (!userForm) return;
+        userForm.teams = pruneTeamRows(userForm.departments, userForm.teams);
+    }
+
+    function addUserDepartmentRow() {
+        if (!userForm) return;
+        const row = nextDepartmentRow(userForm.departments);
+        if (!row) return;
+        userForm.departments = [...userForm.departments, row];
+    }
+
+    function removeUserDepartmentRow(index: number) {
+        if (!userForm) return;
+        userForm.departments = userForm.departments.filter(
+            (_, i) => i !== index,
+        );
+        onUserDepartmentChange();
+    }
+
+    function addUserTeamRow() {
+        if (!userForm) return;
+        const row = nextTeamRow(userForm.departments, userForm.teams);
+        if (!row) return;
+        userForm.teams = [...userForm.teams, row];
+    }
+
+    function removeUserTeamRow(index: number) {
+        if (!userForm) return;
+        userForm.teams = userForm.teams.filter((_, i) => i !== index);
+    }
+
+    function onCreateDepartmentChange() {
+        createUserForm.teams = pruneTeamRows(
+            createUserForm.departments,
+            createUserForm.teams,
+        );
+    }
+
+    function addCreateDepartmentRow() {
+        const row = nextDepartmentRow(createUserForm.departments);
+        if (!row) return;
+        createUserForm.departments = [...createUserForm.departments, row];
+    }
+
+    function removeCreateDepartmentRow(index: number) {
+        createUserForm.departments = createUserForm.departments.filter(
+            (_, i) => i !== index,
+        );
+        onCreateDepartmentChange();
+    }
+
+    function addCreateTeamRow() {
+        const row = nextTeamRow(
+            createUserForm.departments,
+            createUserForm.teams,
+        );
+        if (!row) return;
+        createUserForm.teams = [...createUserForm.teams, row];
+    }
+
+    function removeCreateTeamRow(index: number) {
+        createUserForm.teams = createUserForm.teams.filter(
+            (_, i) => i !== index,
+        );
     }
 
     function userAvatar(u: ManagementUser) {
@@ -370,6 +513,17 @@
 
     function openUserModal(u: ManagementUser) {
         targetSearch = "";
+        const departments = (
+            u.departments && u.departments.length
+                ? u.departments
+                : [{ departmentId: u.departmentId, roleId: u.roleId }]
+        ).map((row) => ({
+            departmentId: Number(row.departmentId),
+            roleId: Number(row.roleId),
+        }));
+        const teams = (u.teams || []).map((row) => ({
+            teamId: Number(row.teamId),
+        }));
         userForm = {
             id: u.id,
             name: u.name,
@@ -377,8 +531,8 @@
             systemRole: u.systemRole,
             operationTarget: u.operationTarget,
             targetIds: (u.targetIds || []).map(Number),
-            departmentId: u.departmentId,
-            roleId: u.roleId,
+            departments,
+            teams: pruneTeamRows(departments, teams),
             suspended: u.suspended,
         };
         authoritySelect = u.authority;
@@ -421,27 +575,50 @@
     }
 
     function openCreateUserModal() {
-        const deptId = options.departments?.[0]?.id || 0;
-        const roleId = options.roles?.[0]?.id || 0;
+        const row = nextDepartmentRow([]);
         createUserForm = {
             name: "",
             email: "",
-            departmentId: deptId,
-            roleId,
             password: "",
+            departments: row ? [row] : [],
+            teams: [],
         };
         createUserOpen = true;
     }
 
     async function submitCreateUser() {
+        const departments = createUserForm.departments.map((row) => ({
+            departmentId: Number(row.departmentId),
+            roleId: Number(row.roleId),
+        }));
+        if (
+            departments.length === 0 ||
+            departments.some((row) => !row.departmentId || !row.roleId)
+        ) {
+            showToast("所属部署と役職を選択してください", "error");
+            return;
+        }
+        const teams = createUserForm.teams.map((row) => ({
+            teamId: Number(row.teamId),
+        }));
+        if (teams.some((row) => !row.teamId)) {
+            showToast("チームを選択してください", "error");
+            return;
+        }
         try {
-            await api("POST", "/api/v1/management/users", createUserForm);
+            await api("POST", "/api/v1/management/users", {
+                name: createUserForm.name,
+                email: createUserForm.email,
+                password: createUserForm.password,
+                departments,
+                teams,
+            });
         } catch (e) {
             showToast(apiErrorMessage(e, "作成に失敗しました"), "error");
             return;
         }
         createUserOpen = false;
-        await loadUsers();
+        await Promise.all([loadUsers(), loadOrgTree()]);
         showToast("ユーザを追加しました");
     }
 
@@ -464,13 +641,31 @@
 
     async function saveUser() {
         if (!userForm) return;
+        const departments = userForm.departments.map((row) => ({
+            departmentId: Number(row.departmentId),
+            roleId: Number(row.roleId),
+        }));
+        if (
+            departments.length === 0 ||
+            departments.some((row) => !row.departmentId || !row.roleId)
+        ) {
+            showToast("所属部署と役職を選択してください", "error");
+            return;
+        }
+        const teams = userForm.teams.map((row) => ({
+            teamId: Number(row.teamId),
+        }));
+        if (teams.some((row) => !row.teamId)) {
+            showToast("チームを選択してください", "error");
+            return;
+        }
         const body = {
             authority: userForm.authority,
             systemRole: userForm.systemRole,
             operationTarget: userForm.operationTarget,
             targetIds: (userForm.targetIds || []).map(Number),
-            departmentId: userForm.departmentId,
-            roleId: userForm.roleId,
+            departments,
+            teams,
             suspended: userForm.suspended,
         };
         try {
@@ -480,7 +675,7 @@
             return;
         }
         userModalOpen = false;
-        await loadUsers();
+        await Promise.all([loadUsers(), loadOrgTree()]);
         showToast("ユーザ情報を保存しました");
     }
 
@@ -1234,28 +1429,71 @@
                         </div>
                     </div>
                 {/if}
-                <div class="grid sm:grid-cols-2 gap-4">
-                    <label class="form-control"
-                        ><span class="label-text font-medium">所属部署</span>
-                        <select
-                            class="select select-bordered"
-                            bind:value={userForm.departmentId}>
-                            {#each options.departments as d (`dept-${d.id}`)}
-                                <option value={d.id}>{d.name}</option>
-                            {/each}
-                        </select>
-                    </label>
-                    <label class="form-control"
-                        ><span class="label-text font-medium"
-                            >役職（マスタ）</span>
-                        <select
-                            class="select select-bordered"
-                            bind:value={userForm.roleId}>
-                            {#each options.roles as r (r.id)}
-                                <option value={r.id}>{r.name}</option>
-                            {/each}
-                        </select>
-                    </label>
+                <div class="space-y-3">
+                    <div class="flex items-center justify-between gap-2">
+                        <span class="label-text font-medium">部署</span>
+                        <button
+                            type="button"
+                            class="btn btn-outline btn-xs"
+                            onclick={addUserDepartmentRow}>行を追加</button>
+                    </div>
+                    {#each userForm.departments as row, i (`user-dept-${i}`)}
+                        <div class="flex items-center gap-2">
+                            <select
+                                class="select select-bordered select-sm flex-1"
+                                bind:value={row.departmentId}
+                                onchange={onUserDepartmentChange}>
+                                <option value={0}>部署を選択</option>
+                                {#each departmentChoices(userForm.departments, i) as d (`user-dept-opt-${i}-${d.id}`)}
+                                    <option value={d.id}>{d.name}</option>
+                                {/each}
+                            </select>
+                            <select
+                                class="select select-bordered select-sm flex-1"
+                                bind:value={row.roleId}>
+                                <option value={0}>役職を選択</option>
+                                {#each options.roles as r (`user-role-opt-${i}-${r.id}`)}
+                                    <option value={r.id}>{r.name}</option>
+                                {/each}
+                            </select>
+                            <button
+                                type="button"
+                                class="btn btn-ghost btn-sm"
+                                onclick={() => removeUserDepartmentRow(i)}
+                                >削除</button>
+                        </div>
+                    {/each}
+                </div>
+                <div class="space-y-3">
+                    <div class="flex items-center justify-between gap-2">
+                        <span class="label-text font-medium">チーム</span>
+                        <button
+                            type="button"
+                            class="btn btn-outline btn-xs"
+                            onclick={addUserTeamRow}>行を追加</button>
+                    </div>
+                    {#each userForm.teams as row, i (`user-team-${i}`)}
+                        <div class="flex items-center gap-2">
+                            <select
+                                class="select select-bordered select-sm flex-1"
+                                bind:value={row.teamId}>
+                                <option value={0}>チームを選択</option>
+                                {#each teamChoices(userForm.departments, userForm.teams, i) as t (`user-team-opt-${i}-${t.id}`)}
+                                    <option value={t.id}>{t.name}</option>
+                                {/each}
+                            </select>
+                            <select
+                                class="select select-bordered select-sm flex-1"
+                                value="leader"
+                                disabled>
+                                <option value="leader">リーダー</option>
+                            </select>
+                            <button
+                                type="button"
+                                class="btn btn-ghost btn-sm"
+                                onclick={() => removeUserTeamRow(i)}>削除</button>
+                        </div>
+                    {/each}
                 </div>
                 <div class="border-t border-base-300 pt-4 flex flex-wrap gap-2">
                     <button
@@ -1486,28 +1724,72 @@
                     type="email"
                     class="input input-bordered"
                     bind:value={createUserForm.email} /></label>
-            <label class="form-control"
-                ><span class="label-text font-medium">所属部署</span>
-                <select
-                    class="select select-bordered"
-                    bind:value={createUserForm.departmentId}>
-                    <option value={0}>選択してください</option>
-                    {#each options.departments as d (`new-dept-${d.id}`)}
-                        <option value={d.id}>{d.name}</option>
-                    {/each}
-                </select>
-            </label>
-            <label class="form-control"
-                ><span class="label-text font-medium">役職（マスタ）</span>
-                <select
-                    class="select select-bordered"
-                    bind:value={createUserForm.roleId}>
-                    <option value={0}>選択してください</option>
-                    {#each options.roles as r (`new-role-${r.id}`)}
-                        <option value={r.id}>{r.name}</option>
-                    {/each}
-                </select>
-            </label>
+            <div class="space-y-3">
+                <div class="flex items-center justify-between gap-2">
+                    <span class="label-text font-medium">部署</span>
+                    <button
+                        type="button"
+                        class="btn btn-outline btn-xs"
+                        onclick={addCreateDepartmentRow}>行を追加</button>
+                </div>
+                {#each createUserForm.departments as row, i (`new-user-dept-${i}`)}
+                    <div class="flex items-center gap-2">
+                        <select
+                            class="select select-bordered select-sm flex-1"
+                            bind:value={row.departmentId}
+                            onchange={onCreateDepartmentChange}>
+                            <option value={0}>部署を選択</option>
+                            {#each departmentChoices(createUserForm.departments, i) as d (`new-dept-opt-${i}-${d.id}`)}
+                                <option value={d.id}>{d.name}</option>
+                            {/each}
+                        </select>
+                        <select
+                            class="select select-bordered select-sm flex-1"
+                            bind:value={row.roleId}>
+                            <option value={0}>役職を選択</option>
+                            {#each options.roles as r (`new-role-opt-${i}-${r.id}`)}
+                                <option value={r.id}>{r.name}</option>
+                            {/each}
+                        </select>
+                        <button
+                            type="button"
+                            class="btn btn-ghost btn-sm"
+                            onclick={() => removeCreateDepartmentRow(i)}
+                            >削除</button>
+                    </div>
+                {/each}
+            </div>
+            <div class="space-y-3">
+                <div class="flex items-center justify-between gap-2">
+                    <span class="label-text font-medium">チーム</span>
+                    <button
+                        type="button"
+                        class="btn btn-outline btn-xs"
+                        onclick={addCreateTeamRow}>行を追加</button>
+                </div>
+                {#each createUserForm.teams as row, i (`new-user-team-${i}`)}
+                    <div class="flex items-center gap-2">
+                        <select
+                            class="select select-bordered select-sm flex-1"
+                            bind:value={row.teamId}>
+                            <option value={0}>チームを選択</option>
+                            {#each teamChoices(createUserForm.departments, createUserForm.teams, i) as t (`new-team-opt-${i}-${t.id}`)}
+                                <option value={t.id}>{t.name}</option>
+                            {/each}
+                        </select>
+                        <select
+                            class="select select-bordered select-sm flex-1"
+                            value="leader"
+                            disabled>
+                            <option value="leader">リーダー</option>
+                        </select>
+                        <button
+                            type="button"
+                            class="btn btn-ghost btn-sm"
+                            onclick={() => removeCreateTeamRow(i)}>削除</button>
+                    </div>
+                {/each}
+            </div>
             <label class="form-control"
                 ><span class="label-text font-medium"
                     >パスワード（任意・Basic認証用）</span

@@ -6,7 +6,6 @@ import (
 	"growlink/internal/domain/entity"
 
 	"gorm.io/gorm"
-	"gorm.io/gorm/clause"
 )
 
 type TeamMemberRepository struct {
@@ -30,7 +29,10 @@ func (repo *TeamMemberRepository) Create(teamID, memberID uint, isReader bool) e
 }
 
 func (repo *TeamMemberRepository) Update(teamMemberID uint, member *entity.TeamMember) error {
-	if _, err := gorm.G[entity.TeamMember](repo.db).Where("id = ?", teamMemberID).Omit(clause.Associations).Updates(repo.ctx, *member); err != nil {
+	if _, err := gorm.G[entity.TeamMember](repo.db).
+		Where("id = ?", teamMemberID).
+		Select("IsReader").
+		Updates(repo.ctx, *member); err != nil {
 		return fmt.Errorf("チームメンバーの更新に失敗しました: %w", err)
 	}
 	return nil

@@ -1,19 +1,30 @@
 package outputmodel
 
+type UserDepartmentAssignmentOutput struct {
+	DepartmentID uint `json:"departmentId"`
+	RoleID       uint `json:"roleId"`
+}
+
+type UserTeamAssignmentOutput struct {
+	TeamID uint `json:"teamId"`
+}
+
 type ManagementUserOutput struct {
-	ID              uint    `json:"id"`
-	Name            string  `json:"name"`
-	Email           string  `json:"email"`
-	ImageURI        *string `json:"imageUri,omitempty"`
-	Authority       string  `json:"authority"`
-	SystemRole      string  `json:"systemRole"`
-	OperationTarget string  `json:"operationTarget"`
-	TargetIDs       []uint  `json:"targetIds"`
-	DepartmentID    uint    `json:"departmentId"`
-	DepartmentName  string  `json:"departmentName"`
-	RoleID          uint    `json:"roleId"`
-	RoleName        string  `json:"roleName"`
-	Suspended       bool    `json:"suspended"`
+	ID              uint                             `json:"id"`
+	Name            string                           `json:"name"`
+	Email           string                           `json:"email"`
+	ImageURI        *string                          `json:"imageUri,omitempty"`
+	Authority       string                           `json:"authority"`
+	SystemRole      string                           `json:"systemRole"`
+	OperationTarget string                           `json:"operationTarget"`
+	TargetIDs       []uint                           `json:"targetIds"`
+	DepartmentID    uint                             `json:"departmentId"`
+	DepartmentName  string                           `json:"departmentName"`
+	RoleID          uint                             `json:"roleId"`
+	RoleName        string                           `json:"roleName"`
+	Departments     []UserDepartmentAssignmentOutput `json:"departments"`
+	Teams           []UserTeamAssignmentOutput       `json:"teams"`
+	Suspended       bool                             `json:"suspended"`
 }
 
 type OrgTreeNodeOutput struct {
