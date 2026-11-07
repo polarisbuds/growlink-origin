@@ -49,7 +49,8 @@ func (repo *TeamMemberRepository) GetAll() ([]entity.TeamMember, error) {
 	teamMembers, err := gorm.G[entity.TeamMember](repo.db).Order("id ASC").
 		Preload("Team", nil).
 		Preload("Team.Department", nil).
-		Preload("Member", nil).Find(repo.ctx)
+		Preload("Member", nil).
+		Preload("Member.Role", nil).Find(repo.ctx)
 	if err != nil {
 		return nil, fmt.Errorf("チームメンバーの全取得に失敗しました: %w", err)
 	}

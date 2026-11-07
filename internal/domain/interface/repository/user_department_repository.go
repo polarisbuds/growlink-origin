@@ -6,4 +6,5 @@ type UserDepartmentRepository interface {
 	GetDepartmentIDsByUserID(userID uint) ([]uint, error)
 	Create(userID, departmentID uint) error
 	DeleteByUserID(userID uint) error
+	DeleteByUserAndDepartment(userID, departmentID uint) error
 }

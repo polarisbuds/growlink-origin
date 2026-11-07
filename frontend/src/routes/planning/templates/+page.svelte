@@ -191,6 +191,7 @@
             >新規作成</a>
     </dir>
 </div>
+
 <PlanningTabs active="templates" />
 
 <div class="mt-6 space-y-2">
@@ -250,7 +251,7 @@
         <div
             class="flex shrink-0 items-start justify-between gap-2 border-b border-base-200 p-6 pb-2">
             <div class="min-w-0">
-                {#if !editMode}
+                {#if editMode}
                     <h3 class="truncate text-lg font-bold">テンプレート編集</h3>
                 {:else}
                     <h3 class="truncate text-lg font-bold">{active?.title}</h3>

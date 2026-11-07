@@ -145,3 +145,13 @@ func (repo *UserRepository) UpdateByID(user *entity.User) error {
 	}
 	return nil
 }
+
+func (repo *UserRepository) UpdateColumns(id uint, columns map[string]any) error {
+	if len(columns) == 0 {
+		return nil
+	}
+	if err := repo.db.WithContext(repo.ctx).Model(&entity.User{}).Where("id = ?", id).Updates(columns).Error; err != nil {
+		return fmt.Errorf("ユーザ情報の更新に失敗しました: %w", err)
+	}
+	return nil
+}

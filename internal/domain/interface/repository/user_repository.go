@@ -19,4 +19,5 @@ type UserRepository interface {
 	SetSuspendedByIDs(ids []uint, suspended bool) error
 	Create(user *entity.User) error
 	UpdateByID(user *entity.User) error
+	UpdateColumns(id uint, columns map[string]any) error
 }

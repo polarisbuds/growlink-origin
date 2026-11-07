@@ -30,14 +30,12 @@
     let drilldownOpen = $state(false);
     let drilldownTitle = $state("");
     let drilldownUsers = $state<string[]>([]);
-    let beginDate = $state("");
-    let finishDate = $state("");
 
     let groupLabel = $derived(
         breakdownGroup === "department" ? "部署" : "チーム",
     );
 
-    function getMonthRange() {
+    async function setTomonthRange() {
         const now = new Date();
 
         const start = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -51,9 +49,6 @@
         };
         dateFrom = formatDate(start);
         dateTo = formatDate(end);
-        console.log(start, dateFrom, end, dateTo);
-
-        // return [formatDate(start), formatDate(end)];
     }
 
     function buildQuery(extra: Record<string, string> = {}) {
@@ -109,9 +104,9 @@
         await loadBreakdown();
     }
 
-    onMount(() => {
-        reloadAll;
-        getMonthRange;
+    onMount(async () => {
+        await setTomonthRange();
+        await reloadAll();
     });
 
     async function setBreakdownGroup(group: BreakdownGroup) {

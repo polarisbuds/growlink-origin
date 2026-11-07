@@ -424,3 +424,41 @@ func (c *MockUserRepositoryUpdateByIDCall) DoAndReturn(f func(*entity.User) erro
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
+
+// UpdateColumns mocks base method.
+func (m *MockUserRepository) UpdateColumns(id uint, columns map[string]any) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateColumns", id, columns)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateColumns indicates an expected call of UpdateColumns.
+func (mr *MockUserRepositoryMockRecorder) UpdateColumns(id, columns any) *MockUserRepositoryUpdateColumnsCall {
+	mr.mock.ctrl.T.Helper()
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateColumns", reflect.TypeOf((*MockUserRepository)(nil).UpdateColumns), id, columns)
+	return &MockUserRepositoryUpdateColumnsCall{Call: call}
+}
+
+// MockUserRepositoryUpdateColumnsCall wrap *gomock.Call
+type MockUserRepositoryUpdateColumnsCall struct {
+	*gomock.Call
+}
+
+// Return rewrite *gomock.Call.Return
+func (c *MockUserRepositoryUpdateColumnsCall) Return(arg0 error) *MockUserRepositoryUpdateColumnsCall {
+	c.Call = c.Call.Return(arg0)
+	return c
+}
+
+// Do rewrite *gomock.Call.Do
+func (c *MockUserRepositoryUpdateColumnsCall) Do(f func(uint, map[string]any) error) *MockUserRepositoryUpdateColumnsCall {
+	c.Call = c.Call.Do(f)
+	return c
+}
+
+// DoAndReturn rewrite *gomock.Call.DoAndReturn
+func (c *MockUserRepositoryUpdateColumnsCall) DoAndReturn(f func(uint, map[string]any) error) *MockUserRepositoryUpdateColumnsCall {
+	c.Call = c.Call.DoAndReturn(f)
+	return c
+}

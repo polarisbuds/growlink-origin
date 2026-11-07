@@ -6,7 +6,8 @@ type UserDepartmentAssignmentOutput struct {
 }
 
 type UserTeamAssignmentOutput struct {
-	TeamID uint `json:"teamId"`
+	TeamID   uint `json:"teamId"`
+	IsLeader bool `json:"isLeader"`
 }
 
 type ManagementUserOutput struct {
@@ -34,7 +35,9 @@ type OrgTreeNodeOutput struct {
 	Depth           int    `json:"depth"`
 	DepartmentID    uint   `json:"departmentId,omitempty"`
 	LeaderName      string `json:"leaderName,omitempty"`
+	LeaderRole      string `json:"leaderRole,omitempty"`
 	HeadUserName    string `json:"headUserName,omitempty"`
+	HeadUserRole    string `json:"headUserRole,omitempty"`
 	IsRoot          bool   `json:"isRoot,omitempty"`
 	MemberCount     int    `json:"memberCount,omitempty"`
 	TeamMemberCount int    `json:"teamMemberCount,omitempty"`

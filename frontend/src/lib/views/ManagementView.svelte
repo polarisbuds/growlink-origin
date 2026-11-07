@@ -10,6 +10,8 @@
     import ChevronsDownUp from "lucide-svelte/icons/chevrons-down-up";
     import ChevronRight from "lucide-svelte/icons/chevron-right";
     import Info from "lucide-svelte/icons/info";
+    import SearchableSelect from "$lib/components/SearchableSelect.svelte";
+    import { fade } from "svelte/transition";
 
     const AUTHORITY_OPTIONS = [
         { value: "general", label: "メンバー" },
@@ -36,7 +38,11 @@
     ];
 
     type DeptAssignment = { departmentId: number; roleId: number };
-    type TeamAssignment = { teamId: number };
+    type TeamAssignment = {
+        teamId: number;
+        teamRole: string;
+        isLeader: boolean;
+    };
 
     type ManagementUser = {
         id: number;
@@ -63,7 +69,9 @@
         memberCount?: number;
         teamMemberCount?: number;
         leaderName?: string;
+        leaderRole?: string;
         headUserName?: string;
+        headUserRole?: string;
         teamCount?: number;
         departmentCount?: number;
     };
@@ -72,6 +80,7 @@
 
     type OrgDetail = {
         id: number;
+        departmentId: number;
         name: string;
         kind: "team" | "department";
         isRoot?: boolean;
@@ -168,9 +177,13 @@
         teams: [] as TeamAssignment[],
     });
     let createDeptOpen = $state(false);
-    let createDeptForm = $state({ name: "", parentDepartmentId: 0 });
+    let createDeptForm = $state({
+        name: "",
+        parentDepartmentId: 0,
+        headUserId: 0,
+    });
     let createTeamOpen = $state(false);
-    let createTeamForm = $state({ name: "", departmentId: 0 });
+    let createTeamForm = $state({ name: "", departmentId: 0, leaderId: 0 });
     let createRoleOpen = $state(false);
     let createRoleForm = $state({ name: "", rank: 50 });
     let expandedAllDept = $state(false);
@@ -252,6 +265,11 @@
             .filter((id) => id > 0);
     }
 
+    function departmentsHaveTeams(departments: DeptAssignment[]) {
+        const deptIds = new Set(selectedDepartmentIds(departments));
+        return options.teams.some((team) => deptIds.has(team.departmentId));
+    }
+
     function departmentChoices(rows: DeptAssignment[], index: number) {
         const taken = new Set(
             rows
@@ -309,12 +327,12 @@
     ): TeamAssignment | null {
         const choices = teamChoices(
             departments,
-            [...teams, { teamId: 0 }],
+            [...teams, { teamId: 0, isLeader: false, teamRole: "member" }],
             teams.length,
         );
         const team = choices[0];
         if (!team) return null;
-        return { teamId: team.id };
+        return { teamId: team.id, isLeader: false, teamRole: "member" };
     }
 
     function onUserDepartmentChange() {
@@ -521,9 +539,14 @@
             departmentId: Number(row.departmentId),
             roleId: Number(row.roleId),
         }));
-        const teams = (u.teams || []).map((row) => ({
-            teamId: Number(row.teamId),
-        }));
+        const teams = (u.teams || []).map((row) => {
+            const isLeader = !!row.isLeader || row.teamRole === "leader";
+            return {
+                teamId: Number(row.teamId),
+                teamRole: isLeader ? "leader" : "member",
+                isLeader,
+            };
+        });
         userForm = {
             id: u.id,
             name: u.name,
@@ -600,6 +623,7 @@
         }
         const teams = createUserForm.teams.map((row) => ({
             teamId: Number(row.teamId),
+            isLeader: row.teamRole === "leader",
         }));
         if (teams.some((row) => !row.teamId)) {
             showToast("チームを選択してください", "error");
@@ -623,7 +647,7 @@
     }
 
     function openCreateDeptModal() {
-        createDeptForm = { name: "", parentDepartmentId: 0 };
+        createDeptForm = { name: "", parentDepartmentId: 0, headUserId: 0 };
         createDeptOpen = true;
     }
 
@@ -636,6 +660,7 @@
         }
         createDeptOpen = false;
         await Promise.all([loadOrgTree(), loadOptions()]);
+        toggleExpandAllDept();
         showToast("部署を追加しました");
     }
 
@@ -654,6 +679,7 @@
         }
         const teams = userForm.teams.map((row) => ({
             teamId: Number(row.teamId),
+            isLeader: row.teamRole === "leader",
         }));
         if (teams.some((row) => !row.teamId)) {
             showToast("チームを選択してください", "error");
@@ -788,6 +814,7 @@
         }
         createTeamOpen = false;
         await Promise.all([loadOrgTree(), loadOptions()]);
+        toggleExpandAllDept();
         showToast("チームを追加しました");
     }
 
@@ -804,7 +831,7 @@
     }
 
     function openCreateTeamModal(departmentId: number) {
-        createTeamForm = { name: "", departmentId };
+        createTeamForm = { name: "", departmentId, leaderId: 0 };
         createTeamOpen = true;
     }
 
@@ -953,7 +980,8 @@
 
 {#if tab === "users"}
     <div class="mt-6">
-        <div class="flex flex-col sm:flex-row sm:items-center gap-3 mb-4">
+        <div
+            class="flex flex-col sm:flex-row sm:items-center gap-3 mb-4 justify-between">
             <label
                 class="input input-bordered flex items-center gap-2 flex-1 max-w-md">
                 <Search class="h-4 w-4 opacity-50" />
@@ -963,28 +991,34 @@
                     placeholder="氏名・メールで検索"
                     bind:value={userSearch} />
             </label>
-            <button
-                type="button"
-                class="btn btn-primary btn-sm shrink-0"
-                onclick={openCreateUserModal}>ユーザを追加</button>
-            <button
-                type="button"
-                class="btn btn-outline btn-sm shrink-0"
-                onclick={() => (createRoleOpen = true)}>役職を登録</button>
-            {#if selectedUserIds.length > 0}
-                <div class="flex items-center gap-2">
-                    <span class="text-sm text-base-content/60"
-                        >{selectedUserIds.length} 件選択中</span>
-                    <button
-                        type="button"
-                        class="btn btn-error btn-sm"
-                        onclick={askSuspend}>アカウント停止</button>
-                    <button
-                        type="button"
-                        class="btn btn-success btn-sm"
-                        onclick={askUnsuspend}>停止解除</button>
-                </div>
-            {/if}
+            <div class="flex justify-end gap-3">
+                {#if selectedUserIds.length > 0}
+                    <div class="flex items-center gap-2" transition:fade>
+                        <span class="text-sm text-base-content/60"
+                            >{selectedUserIds.length} 件選択中</span>
+                        {#if users.some((u) => selectedUserIds.indexOf(u.id) !== -1 && !u.suspended)}
+                            <button
+                                type="button"
+                                class="btn btn-error btn-sm"
+                                onclick={askSuspend}>アカウント停止</button>
+                        {/if}
+                        {#if users.some((u) => selectedUserIds.indexOf(u.id) !== -1 && u.suspended)}
+                            <button
+                                type="button"
+                                class="btn btn-success btn-sm"
+                                onclick={askUnsuspend}>停止解除</button>
+                        {/if}
+                    </div>
+                {/if}
+                <button
+                    type="button"
+                    class="btn btn-primary btn-sm shrink-0"
+                    onclick={openCreateUserModal}>ユーザを追加</button>
+                <button
+                    type="button"
+                    class="btn btn-outline btn-sm shrink-0"
+                    onclick={() => (createRoleOpen = true)}>役職を登録</button>
+            </div>
         </div>
         <div
             class="overflow-hidden rounded-3xl border border-base-300 bg-base-100 shadow-sm">
@@ -1085,7 +1119,7 @@
 {#if tab === "departments"}
     <div class="mt-6">
         <div class="flex justify-between mb-4 items-center">
-            <div class="flex justfy-start gap-1 items-center">
+            <div class="flex justfy-start gap-2 items-center">
                 {#if expandedAllDept}
                     <button
                         type="button"
@@ -1161,8 +1195,8 @@
                                     <span class="font-medium">{n.name}</span>
                                     <span
                                         class="ml-2 text-sm text-base-content/60"
-                                        >部長 {n.headUserName ||
-                                            "未設定"}</span>
+                                        >{n.headUserName || ""}
+                                        {n.headUserRole || ""}</span>
                                 </button>
                                 <button
                                     type="button"
@@ -1185,8 +1219,8 @@
                                     <span class="font-medium">{n.name}</span>
                                     <span
                                         class="ml-2 text-sm text-base-content/60"
-                                        >リーダー {n.leaderName ||
-                                            "未設定"}</span>
+                                        >{n.leaderName || ""}
+                                        {n.leaderRole || ""}</span>
                                 </button>
                                 <button
                                     type="button"
@@ -1464,37 +1498,41 @@
                         </div>
                     {/each}
                 </div>
-                <div class="space-y-3">
-                    <div class="flex items-center justify-between gap-2">
-                        <span class="label-text font-medium">チーム</span>
-                        <button
-                            type="button"
-                            class="btn btn-outline btn-xs"
-                            onclick={addUserTeamRow}>行を追加</button>
-                    </div>
-                    {#each userForm.teams as row, i (`user-team-${i}`)}
-                        <div class="flex items-center gap-2">
-                            <select
-                                class="select select-bordered select-sm flex-1"
-                                bind:value={row.teamId}>
-                                <option value={0}>チームを選択</option>
-                                {#each teamChoices(userForm.departments, userForm.teams, i) as t (`user-team-opt-${i}-${t.id}`)}
-                                    <option value={t.id}>{t.name}</option>
-                                {/each}
-                            </select>
-                            <select
-                                class="select select-bordered select-sm flex-1"
-                                value="leader"
-                                disabled>
-                                <option value="leader">リーダー</option>
-                            </select>
+                {#if departmentsHaveTeams(userForm.departments)}
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between gap-2">
+                            <span class="label-text font-medium">チーム</span>
                             <button
                                 type="button"
-                                class="btn btn-ghost btn-sm"
-                                onclick={() => removeUserTeamRow(i)}>削除</button>
+                                class="btn btn-outline btn-xs"
+                                onclick={addUserTeamRow}>行を追加</button>
                         </div>
-                    {/each}
-                </div>
+                        {#each userForm.teams as row, i (`user-team-${i}`)}
+                            <div class="flex items-center gap-2">
+                                <select
+                                    class="select select-bordered select-sm flex-1"
+                                    bind:value={row.teamId}>
+                                    <option value={0} selected
+                                        >チームを選択</option>
+                                    {#each teamChoices(userForm.departments, userForm.teams, i) as t (`user-team-opt-${i}-${t.id}`)}
+                                        <option value={t.id}>{t.name}</option>
+                                    {/each}
+                                </select>
+                                <select
+                                    class="select select-bordered select-sm flex-1"
+                                    bind:value={row.teamRole}>
+                                    <option value="member">メンバー</option>
+                                    <option value="leader">リーダー</option>
+                                </select>
+                                <button
+                                    type="button"
+                                    class="btn btn-ghost btn-sm"
+                                    onclick={() => removeUserTeamRow(i)}
+                                    >削除</button>
+                            </div>
+                        {/each}
+                    </div>
+                {/if}
                 <div class="border-t border-base-300 pt-4 flex flex-wrap gap-2">
                     <button
                         type="button"
@@ -1622,8 +1660,8 @@
                             <select
                                 class="select select-bordered"
                                 bind:value={orgEdit.headUserId}>
-                                <option value={0}>未設定</option>
-                                {#each headUserCandidates as u (`head-${u.id}`)}
+                                <option value={0} hidden>未設定</option>
+                                {#each headUserCandidates.filter((u) => u.authority !== "general") as u (`head-${u.id}`)}
                                     <option value={u.id}>{u.name}</option>
                                 {/each}
                             </select>
@@ -1662,8 +1700,11 @@
                         <select
                             class="select select-bordered"
                             bind:value={orgEdit.leaderId}>
-                            <option value={0}>未設定</option>
-                            {#each teamLeaderCandidates as u (`team-lead-${u.id}`)}
+                            <option value={0} hidden>未設定</option>
+                            {#each teamLeaderCandidates.filter((u) => {
+                                if (createTeamForm.departmentId === u.departmentId) return true;
+                                return (u.departments || []).some((d) => d.departmentId === orgDetail?.departmentId);
+                            }) as u (`team-lead-${u.id}`)}
                                 <option value={u.id}>{u.name}</option>
                             {/each}
                         </select>
@@ -1759,37 +1800,40 @@
                     </div>
                 {/each}
             </div>
-            <div class="space-y-3">
-                <div class="flex items-center justify-between gap-2">
-                    <span class="label-text font-medium">チーム</span>
-                    <button
-                        type="button"
-                        class="btn btn-outline btn-xs"
-                        onclick={addCreateTeamRow}>行を追加</button>
-                </div>
-                {#each createUserForm.teams as row, i (`new-user-team-${i}`)}
-                    <div class="flex items-center gap-2">
-                        <select
-                            class="select select-bordered select-sm flex-1"
-                            bind:value={row.teamId}>
-                            <option value={0}>チームを選択</option>
-                            {#each teamChoices(createUserForm.departments, createUserForm.teams, i) as t (`new-team-opt-${i}-${t.id}`)}
-                                <option value={t.id}>{t.name}</option>
-                            {/each}
-                        </select>
-                        <select
-                            class="select select-bordered select-sm flex-1"
-                            value="leader"
-                            disabled>
-                            <option value="leader">リーダー</option>
-                        </select>
+            {#if departmentsHaveTeams(createUserForm.departments)}
+                <div class="space-y-3">
+                    <div class="flex items-center justify-between gap-2">
+                        <span class="label-text font-medium">チーム</span>
                         <button
                             type="button"
-                            class="btn btn-ghost btn-sm"
-                            onclick={() => removeCreateTeamRow(i)}>削除</button>
+                            class="btn btn-outline btn-xs"
+                            onclick={addCreateTeamRow}>行を追加</button>
                     </div>
-                {/each}
-            </div>
+                    {#each createUserForm.teams as row, i (`new-user-team-${i}`)}
+                        <div class="flex items-center gap-2">
+                            <select
+                                class="select select-bordered select-sm flex-1"
+                                bind:value={row.teamId}>
+                                <option value={0} selected>チームを選択</option>
+                                {#each teamChoices(createUserForm.departments, createUserForm.teams, i) as t (`new-team-opt-${i}-${t.id}`)}
+                                    <option value={t.id}>{t.name}</option>
+                                {/each}
+                            </select>
+                            <select
+                                class="select select-bordered select-sm flex-1"
+                                bind:value={row.teamRole}>
+                                <option value="member">メンバー</option>
+                                <option value="leader">リーダー</option>
+                            </select>
+                            <button
+                                type="button"
+                                class="btn btn-ghost btn-sm"
+                                onclick={() => removeCreateTeamRow(i)}
+                                >削除</button>
+                        </div>
+                    {/each}
+                </div>
+            {/if}
             <label class="form-control"
                 ><span class="label-text font-medium"
                     >パスワード（任意・Basic認証用）</span
@@ -1817,7 +1861,7 @@
 </dialog>
 
 <dialog class="modal" class:modal-open={createDeptOpen}>
-    <div class="modal-box max-w-md max-h-[85vh] flex flex-col p-0">
+    <div class="modal-box max-w-md max-h-96 flex flex-col p-0">
         <div class="p-6 pb-2 border-b border-base-200 shrink-0">
             <h3 class="font-bold text-lg">部署を追加</h3>
         </div>
@@ -1836,6 +1880,18 @@
                         <option value={d.id}>{d.name}</option>
                     {/each}
                 </select>
+            </label>
+            <label class="form-control mt-4">
+                <span class="label-text font-medium">部長</span>
+                <SearchableSelect
+                    allowClear={true}
+                    pickRootId="create-dept-head"
+                    bind:value={createDeptForm.headUserId}
+                    labelOf={(u: ManagementUser) => {
+                        return `${u.name}`;
+                    }}
+                    items={users.filter((u) => u.authority !== "general")}
+                ></SearchableSelect>
             </label>
         </div>
         <div class="modal-action border-t border-base-200 p-4 shrink-0">
@@ -1884,6 +1940,23 @@
             <input
                 class="input input-bordered"
                 bind:value={createTeamForm.name} />
+        </label>
+        <label class="form-control mt-4">
+            <span class="label-text font-medium">チームリーダー</span>
+            <SearchableSelect
+                allowClear={true}
+                pickRootId="create-team-leader"
+                bind:value={createTeamForm.leaderId}
+                labelOf={(u: ManagementUser) => {
+                    return `${u.name}`;
+                }}
+                items={users.filter((u) => {
+                    const deptId = createTeamForm.departmentId;
+                    if (u.departmentId === deptId) return true;
+                    return (u.departments || []).some(
+                        (d) => d.departmentId === deptId,
+                    );
+                })}></SearchableSelect>
         </label>
         <div class="modal-action">
             <button

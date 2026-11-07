@@ -46,6 +46,15 @@ func (repo *UserDepartmentRepository) DeleteByUserID(userID uint) error {
 	return nil
 }
 
+func (repo *UserDepartmentRepository) DeleteByUserAndDepartment(userID, departmentID uint) error {
+	if err := repo.db.WithContext(repo.ctx).Unscoped().
+		Where("user_id = ? AND department_id = ?", userID, departmentID).
+		Delete(&entity.UserDepartment{}).Error; err != nil {
+		return fmt.Errorf("部署所属の削除に失敗しました: %w", err)
+	}
+	return nil
+}
+
 func (repo *UserDepartmentRepository) GetDepartmentIDsByUserID(userID uint) ([]uint, error) {
 	var rows []entity.UserDepartment
 	if err := repo.db.WithContext(repo.ctx).Where("user_id = ?", userID).Find(&rows).Error; err != nil {

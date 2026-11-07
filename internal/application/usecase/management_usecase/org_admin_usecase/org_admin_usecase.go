@@ -74,11 +74,15 @@ func (uc *OrgAdmin) ListTree() ([]outputmodel.OrgTreeNodeOutput, error) {
 		teamsByDept[t.DepartmentID] = append(teamsByDept[t.DepartmentID], t)
 	}
 	leaderByTeam := map[uint]string{}
+	leaderRoleByTeam := map[uint]string{}
 	membersByTeam := map[uint][]uint{}
 	for _, m := range members {
 		membersByTeam[m.TeamID] = append(membersByTeam[m.TeamID], m.MemberID)
 		if m.IsReader && m.Member != nil {
 			leaderByTeam[m.TeamID] = m.Member.Name
+			if m.Member.Role != nil {
+				leaderRoleByTeam[m.TeamID] = m.Member.Role.Name
+			}
 		}
 	}
 	allUsers, err := uc.userRepo.GetAll()
@@ -121,10 +125,11 @@ func (uc *OrgAdmin) ListTree() ([]outputmodel.OrgTreeNodeOutput, error) {
 	var walk func(deptID uint, depth int, isRoot bool)
 	walk = func(deptID uint, depth int, isRoot bool) {
 		d := deptByID[deptID]
-		headName := ""
+		headName, headRole := "", ""
 		if d.HeadUserID != 0 {
 			if u, ok := userByID[d.HeadUserID]; ok {
 				headName = u.Name
+				headRole = u.Role.Name
 			}
 		}
 		nodes = append(nodes, outputmodel.OrgTreeNodeOutput{
@@ -135,6 +140,7 @@ func (uc *OrgAdmin) ListTree() ([]outputmodel.OrgTreeNodeOutput, error) {
 			IsRoot:          isRoot,
 			MemberCount:     memberCountByDept[d.ID],
 			HeadUserName:    headName,
+			HeadUserRole:    headRole,
 			DepartmentID:    deptID,
 			DepartmentCount: len(childMap[d.ID]),
 			TeamCount:       len(teamsByDept[d.ID]),
@@ -148,6 +154,7 @@ func (uc *OrgAdmin) ListTree() ([]outputmodel.OrgTreeNodeOutput, error) {
 					Depth:           depth + 1,
 					DepartmentID:    deptID,
 					LeaderName:      leaderByTeam[team.ID],
+					LeaderRole:      leaderRoleByTeam[team.ID],
 					TeamMemberCount: len(membersByTeam[team.ID]),
 				})
 			}
@@ -472,6 +479,7 @@ func (uc *OrgAdmin) syncDepartmentMemberFlags(departmentID uint, userIDs []uint,
 type CreateTeamInput struct {
 	Name         string `json:"name"`
 	DepartmentID uint   `json:"departmentId"`
+	LeaderID     uint   `json:"leaderId"`
 }
 
 func (uc *OrgAdmin) CreateTeam(input CreateTeamInput) (*outputmodel.TeamOptionOutput, error) {
@@ -482,9 +490,19 @@ func (uc *OrgAdmin) CreateTeam(input CreateTeamInput) (*outputmodel.TeamOptionOu
 	if input.DepartmentID == 0 {
 		return nil, fmt.Errorf("部署を指定してください")
 	}
+	if input.LeaderID != 0 {
+		if _, err := uc.userRepo.GetByID(input.LeaderID); err != nil {
+			return nil, fmt.Errorf("チームリーダーが見つかりません")
+		}
+	}
 	team := &entity.Team{Name: name, DepartmentID: input.DepartmentID}
 	if err := uc.teamRepo.Create(team); err != nil {
 		return nil, err
+	}
+	if input.LeaderID != 0 {
+		if err := uc.applyTeamLeaderOnly(team.ID, input.LeaderID); err != nil {
+			return nil, err
+		}
 	}
 	return &outputmodel.TeamOptionOutput{ID: team.ID, Name: team.Name, DepartmentID: team.DepartmentID}, nil
 }
@@ -611,12 +629,18 @@ func (uc *OrgAdmin) DeleteTeam(id uint) error {
 type CreateDepartmentInput struct {
 	Name               string `json:"name"`
 	ParentDepartmentID uint   `json:"parentDepartmentId"`
+	HeadUserID         uint   `json:"headUserId"`
 }
 
 func (uc *OrgAdmin) CreateDepartment(input CreateDepartmentInput) (*outputmodel.DepartmentOptionOutput, error) {
 	name := strings.TrimSpace(input.Name)
 	if name == "" {
 		return nil, fmt.Errorf("部署名を入力してください")
+	}
+	if input.HeadUserID != 0 {
+		if _, err := uc.userRepo.GetByID(input.HeadUserID); err != nil {
+			return nil, fmt.Errorf("部長が見つかりません")
+		}
 	}
 	dept := &entity.Department{Name: name}
 	if err := uc.deptRepo.Create(dept); err != nil {
@@ -630,6 +654,11 @@ func (uc *OrgAdmin) CreateDepartment(input CreateDepartmentInput) (*outputmodel.
 			return nil, fmt.Errorf("自分自身を親部署に指定できません")
 		}
 		if err := uc.hierarchyRepo.Create(input.ParentDepartmentID, dept.ID); err != nil {
+			return nil, err
+		}
+	}
+	if input.HeadUserID != 0 {
+		if err := uc.applyDepartmentHeadOnly(dept.ID, input.HeadUserID); err != nil {
 			return nil, err
 		}
 	}

@@ -23,6 +23,7 @@ func (repo *DepartmentMemberRepository) preloadWhere(query string, args ...any) 
 		Order("id ASC").
 		Preload("User", nil).
 		Preload("Department", nil).
+		Preload("User.Role", nil).
 		Find(repo.ctx)
 	if err != nil {
 		return nil, fmt.Errorf("部署メンバー情報の取得に失敗しました: %w", err)
