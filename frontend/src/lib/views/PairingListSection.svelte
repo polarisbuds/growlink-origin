@@ -30,6 +30,9 @@
         | "menteeDept"
         | "menteeTeam";
     type ViewMode = "individual" | "department";
+    type DeptSortState = { sortKey: SortKey; sortDir: SortDir };
+
+    const DEFAULT_DEPT_SORT: DeptSortState = { sortKey: "mentor", sortDir: "asc" };
 
     let pairings = $state<PairingListItem[]>([]);
     let directoryUsers = $state<PlanningDirectoryUser[]>([]);
@@ -39,6 +42,7 @@
     let viewMode = $state<ViewMode>("individual");
     let sortKey = $state<SortKey>("mentor");
     let sortDir = $state<SortDir>("asc");
+    let deptSorts = $state<Record<string, DeptSortState>>({});
     let selected = $state<PairingListItem | null>(null);
     let deleteOpen = $state(false);
     let isSystemAdmin = $state(false);
@@ -57,13 +61,17 @@
         return `${u.name} (${u.email})`;
     }
 
-    function sortRows(rows: ReturnType<typeof expandUserPairings>) {
+    function sortRows(
+        rows: ReturnType<typeof expandUserPairings>,
+        key: SortKey,
+        dir: SortDir,
+    ) {
         const list = [...rows];
-        const dir = sortDir === "asc" ? 1 : -1;
+        const mult = dir === "asc" ? 1 : -1;
         list.sort((a, b) => {
             let av = "";
             let bv = "";
-            switch (sortKey) {
+            switch (key) {
                 case "mentor":
                     av = a.mentorName;
                     bv = b.mentorName;
@@ -85,12 +93,12 @@
                     bv = teamNameForUser(b.menteeUserId, teamMaps);
                     break;
             }
-            return dir * compareJa(av, bv);
+            return mult * compareJa(av, bv);
         });
         return list;
     }
 
-    let filteredRows = $derived.by(() => {
+    let filteredRowsUnsorted = $derived.by(() => {
         let rows = displayRows;
         if (isSystemAdmin) {
             if (filterMentorIds.length) {
@@ -102,12 +110,16 @@
                 rows = rows.filter((r) => set.has(r.menteeUserId));
             }
         }
-        return sortRows(rows);
+        return rows;
     });
+
+    let filteredRows = $derived(
+        sortRows(filteredRowsUnsorted, sortKey, sortDir),
+    );
 
     let departmentGroups = $derived.by(() => {
         const groups = new Map<string, ReturnType<typeof expandUserPairings>>();
-        for (const row of filteredRows) {
+        for (const row of filteredRowsUnsorted) {
             const label =
                 departmentNameForUser(row.menteeUserId, deptMaps) || "";
             if (!groups.has(label)) groups.set(label, []);
@@ -118,10 +130,19 @@
             if (!b) return -1;
             return compareJa(a, b);
         });
-        return keys.map((label) => ({
-            label,
-            rows: groups.get(label) || [],
-        }));
+        return keys.map((label) => {
+            const sort = deptSorts[label] ?? DEFAULT_DEPT_SORT;
+            return {
+                label,
+                sortKey: sort.sortKey,
+                sortDir: sort.sortDir,
+                rows: sortRows(
+                    groups.get(label) || [],
+                    sort.sortKey,
+                    sort.sortDir,
+                ),
+            };
+        });
     });
 
     onMount(async () => {
@@ -141,6 +162,12 @@
         const next = toggleSortKey(sortKey, sortDir, key);
         sortKey = next.sortKey;
         sortDir = next.sortDir;
+    }
+
+    function toggleDeptSort(deptLabel: string, key: SortKey) {
+        const current = deptSorts[deptLabel] ?? DEFAULT_DEPT_SORT;
+        const next = toggleSortKey(current.sortKey, current.sortDir, key);
+        deptSorts = { ...deptSorts, [deptLabel]: next };
     }
 
     function askDelete(p: PairingListItem) {
@@ -208,62 +235,66 @@
     </div>
 {/if}
 
-{#snippet tableHead()}
+{#snippet tableHead(
+    activeKey: SortKey,
+    activeDir: SortDir,
+    onToggle: (key: SortKey) => void,
+)}
     <thead>
         <tr class="text-base-content/70">
             <th>
                 <button
                     type="button"
                     class="font-semibold hover:text-primary"
-                    onclick={() => toggleSort("mentorDept")}
+                    onclick={() => onToggle("mentorDept")}
                     >部署{sortIndicator(
                         "mentorDept",
-                        sortKey,
-                        sortDir,
+                        activeKey,
+                        activeDir,
                     )}</button>
             </th>
             <th>
                 <button
                     type="button"
                     class="font-semibold hover:text-primary"
-                    onclick={() => toggleSort("mentor")}
+                    onclick={() => onToggle("mentor")}
                     >メンター{sortIndicator(
                         "mentor",
-                        sortKey,
-                        sortDir,
+                        activeKey,
+                        activeDir,
                     )}</button>
             </th>
             <th>
                 <button
                     type="button"
                     class="font-semibold hover:text-primary"
-                    onclick={() => toggleSort("menteeDept")}
+                    onclick={() => onToggle("menteeDept")}
                     >部署{sortIndicator(
                         "menteeDept",
-                        sortKey,
-                        sortDir,
+                        activeKey,
+                        activeDir,
                     )}</button>
             </th>
             <th>
                 <button
                     type="button"
                     class="font-semibold hover:text-primary"
-                    onclick={() => toggleSort("mentee")}
+                    onclick={() => onToggle("mentee")}
                     >メンティ{sortIndicator(
                         "mentee",
-                        sortKey,
-                        sortDir,
+                        activeKey,
+                        activeDir,
                     )}</button>
             </th>
             <th>
                 <button
                     type="button"
                     class="font-semibold hover:text-primary"
-                    onclick={() => toggleSort("menteeTeam")}
+                    onclick={() => onToggle("menteeTeam")}
                     >チーム{sortIndicator(
                         "menteeTeam",
-                        sortKey,
-                        sortDir,
+                        activeKey,
+                        activeDir,
                     )}</button>
             </th>
             <th></th>
@@ -322,7 +353,7 @@
     </tbody>
 {/snippet}
 
-{#if filteredRows.length === 0}
+{#if filteredRowsUnsorted.length === 0}
     <div
         class="mt-6 overflow-hidden rounded-3xl border border-base-300 bg-base-100 p-12 text-center text-sm text-base-content/50 shadow-sm">
         該当するペアがありません
@@ -331,7 +362,7 @@
     <div
         class="mt-6 overflow-hidden rounded-3xl border border-base-300 bg-base-100 shadow-sm">
         <table class="table">
-            {@render tableHead()}
+            {@render tableHead(sortKey, sortDir, toggleSort)}
             {@render tableBody(filteredRows)}
         </table>
     </div>
@@ -352,7 +383,11 @@
                     </div>
                 {/if}
                 <table class="table">
-                    {@render tableHead()}
+                    {@render tableHead(
+                        group.sortKey,
+                        group.sortDir,
+                        (key) => toggleDeptSort(group.label, key),
+                    )}
                     {@render tableBody(group.rows)}
                 </table>
             </section>
