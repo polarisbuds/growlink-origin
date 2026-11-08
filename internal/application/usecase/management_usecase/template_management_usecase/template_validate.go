@@ -7,7 +7,10 @@ import (
 	"strings"
 )
 
-var ErrInvalidTemplateInput = errors.New("invalid template input")
+var (
+	ErrInvalidTemplateInput = errors.New("invalid template input")
+	ErrTemplateLocked       = errors.New("ロックされているため編集・削除できません")
+)
 
 func validateTemplateInput(input inputmodel.TemplateInput) error {
 	if strings.TrimSpace(input.Title) == "" {

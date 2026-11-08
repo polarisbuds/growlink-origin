@@ -18,6 +18,13 @@ func NewTemplateDeleter(templateRepo repository_interface.TemplateRepository, to
 }
 
 func (uc *TemplateDeleter) DeleteTemplate(templateID uint) error {
+	tpl, err := uc.templateRepo.Get(templateID)
+	if err != nil {
+		return fmt.Errorf("テンプレートの取得に失敗しました: %w", err)
+	}
+	if tpl.IsLock {
+		return ErrTemplateLocked
+	}
 	if err := uc.templateRepo.Delete(templateID); err != nil {
 		return fmt.Errorf("テンプレートの削除処理に失敗しました: %w", err)
 	}

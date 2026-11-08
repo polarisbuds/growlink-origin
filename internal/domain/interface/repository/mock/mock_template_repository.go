@@ -348,3 +348,41 @@ func (c *MockTemplateRepositoryUpdateDisplayNoCall) DoAndReturn(f func(uint, int
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
+
+// UpdateIsLock mocks base method.
+func (m *MockTemplateRepository) UpdateIsLock(templateID uint, isLock bool) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateIsLock", templateID, isLock)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateIsLock indicates an expected call of UpdateIsLock.
+func (mr *MockTemplateRepositoryMockRecorder) UpdateIsLock(templateID, isLock any) *MockTemplateRepositoryUpdateIsLockCall {
+	mr.mock.ctrl.T.Helper()
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateIsLock", reflect.TypeOf((*MockTemplateRepository)(nil).UpdateIsLock), templateID, isLock)
+	return &MockTemplateRepositoryUpdateIsLockCall{Call: call}
+}
+
+// MockTemplateRepositoryUpdateIsLockCall wrap *gomock.Call
+type MockTemplateRepositoryUpdateIsLockCall struct {
+	*gomock.Call
+}
+
+// Return rewrite *gomock.Call.Return
+func (c *MockTemplateRepositoryUpdateIsLockCall) Return(arg0 error) *MockTemplateRepositoryUpdateIsLockCall {
+	c.Call = c.Call.Return(arg0)
+	return c
+}
+
+// Do rewrite *gomock.Call.Do
+func (c *MockTemplateRepositoryUpdateIsLockCall) Do(f func(uint, bool) error) *MockTemplateRepositoryUpdateIsLockCall {
+	c.Call = c.Call.Do(f)
+	return c
+}
+
+// DoAndReturn rewrite *gomock.Call.DoAndReturn
+func (c *MockTemplateRepositoryUpdateIsLockCall) DoAndReturn(f func(uint, bool) error) *MockTemplateRepositoryUpdateIsLockCall {
+	c.Call = c.Call.DoAndReturn(f)
+	return c
+}

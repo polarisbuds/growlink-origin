@@ -11,6 +11,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
+	"gorm.io/gorm"
 )
 
 type templateUpdaterCaptures struct {
@@ -48,11 +49,22 @@ func TestTemplateUpdater_UpdateTemplate(t *testing.T) {
 		assertFn    func(t *testing.T, cap *templateUpdaterCaptures)
 	}{
 		{
+			name:       "異常系_ロック中",
+			templateID: validTemplateID,
+			input:      input,
+			wantErr:    true,
+			errContains: "ロックされているため",
+			setup: func(repo *repomock.MockTemplateRepository, _ *templateUpdaterCaptures) {
+				repo.EXPECT().Get(validTemplateID).Return(&entity.Template{Model: gorm.Model{ID: validTemplateID}, IsLock: true}, nil)
+			},
+		},
+		{
 			name:       "通常系_更新",
 			templateID: validTemplateID,
 			input:      input,
 			wantErr:    false,
 			setup: func(repo *repomock.MockTemplateRepository, cap *templateUpdaterCaptures) {
+				repo.EXPECT().Get(validTemplateID).Return(&entity.Template{Model: gorm.Model{ID: validTemplateID}}, nil)
 				repo.EXPECT().Update(validTemplateID, gomock.Any()).DoAndReturn(func(id uint, template *entity.Template) error {
 					cap.templateID = id
 					cap.newTemplate = template
@@ -75,6 +87,7 @@ func TestTemplateUpdater_UpdateTemplate(t *testing.T) {
 			wantErr:     true,
 			errContains: "テンプレートの情報更新に失敗しました",
 			setup: func(repo *repomock.MockTemplateRepository, _ *templateUpdaterCaptures) {
+				repo.EXPECT().Get(validTemplateID).Return(&entity.Template{Model: gorm.Model{ID: validTemplateID}}, nil)
 				repo.EXPECT().Update(validTemplateID, gomock.Any()).Return(errUpdateTemplateFailed)
 			},
 		},
@@ -98,4 +111,11 @@ func TestTemplateUpdater_UpdateTemplate(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestTemplateUpdater_UpdateTemplateLock(t *testing.T) {
+	uc, repo := newTemplateUpdater(t)
+	repo.EXPECT().UpdateIsLock(validTemplateID, true).Return(nil)
+	gotErr := uc.UpdateTemplateLock(validTemplateID, true)
+	assertUsecaseErr(t, gotErr, false, "", "UpdateTemplateLock")
 }

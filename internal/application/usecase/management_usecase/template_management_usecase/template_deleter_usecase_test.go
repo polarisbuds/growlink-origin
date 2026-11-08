@@ -4,9 +4,11 @@ import (
 	"testing"
 
 	template_mng_usecase "growlink/internal/application/usecase/management_usecase/template_management_usecase"
+	"growlink/internal/domain/entity"
 	repomock "growlink/internal/domain/interface/repository/mock"
 
 	"go.uber.org/mock/gomock"
+	"gorm.io/gorm"
 )
 
 func newTemplateDeleter(t *testing.T) (
@@ -29,10 +31,20 @@ func TestTemplateDeleter_DeleteTemplate(t *testing.T) {
 		setup       func(repo *repomock.MockTemplateRepository)
 	}{
 		{
+			name:        "異常系_ロック中",
+			templateID:  validTemplateID,
+			wantErr:     true,
+			errContains: "ロックされているため",
+			setup: func(repo *repomock.MockTemplateRepository) {
+				repo.EXPECT().Get(validTemplateID).Return(&entity.Template{Model: gorm.Model{ID: validTemplateID}, IsLock: true}, nil)
+			},
+		},
+		{
 			name:       "通常系_削除",
 			templateID: validTemplateID,
 			wantErr:    false,
 			setup: func(repo *repomock.MockTemplateRepository) {
+				repo.EXPECT().Get(validTemplateID).Return(&entity.Template{Model: gorm.Model{ID: validTemplateID}}, nil)
 				repo.EXPECT().Delete(validTemplateID).Return(nil)
 			},
 		},
@@ -42,6 +54,7 @@ func TestTemplateDeleter_DeleteTemplate(t *testing.T) {
 			wantErr:     true,
 			errContains: "テンプレートの削除処理に失敗しました",
 			setup: func(repo *repomock.MockTemplateRepository) {
+				repo.EXPECT().Get(validTemplateID).Return(&entity.Template{Model: gorm.Model{ID: validTemplateID}}, nil)
 				repo.EXPECT().Delete(validTemplateID).Return(errDeleteTemplateFailed)
 			},
 		},

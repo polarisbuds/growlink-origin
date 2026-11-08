@@ -79,6 +79,13 @@ func (repo *TemplateRepository) UpdateDisplayNo(templateID uint, displayNo int) 
 	return nil
 }
 
+func (repo *TemplateRepository) UpdateIsLock(templateID uint, isLock bool) error {
+	if _, err := gorm.G[entity.Template](repo.db).Where("id = ?", templateID).Update(repo.ctx, "is_lock", isLock); err != nil {
+		return fmt.Errorf("テンプレートのロック状態更新に失敗しました: %w", err)
+	}
+	return nil
+}
+
 func (repo *TemplateRepository) Delete(templateID uint) error {
 	if _, err := gorm.G[entity.Template](repo.db).Where("id = ?", templateID).Delete(repo.ctx); err != nil {
 		return fmt.Errorf("テンプレートの削除に失敗しました: %w", err)

@@ -86,6 +86,9 @@ func (h *Handler) UpdateTemplate(c *echo.Context) error {
 		if errors.Is(err, template_mng_usecase.ErrInvalidTemplateInput) {
 			return c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
 		}
+		if errors.Is(err, template_mng_usecase.ErrTemplateLocked) {
+			return c.JSON(http.StatusForbidden, map[string]string{"error": err.Error()})
+		}
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
 	return c.JSON(http.StatusOK, map[string]string{"ok": "true"})
@@ -155,6 +158,37 @@ func (h *Handler) DeleteTemplate(c *echo.Context) error {
 		return c.JSON(http.StatusNotFound, map[string]string{"error": "not found"})
 	}
 	if err := h.deps.Management.TemplateDeleter.DeleteTemplate(templateID); err != nil {
+		if errors.Is(err, template_mng_usecase.ErrTemplateLocked) {
+			return c.JSON(http.StatusForbidden, map[string]string{"error": err.Error()})
+		}
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+	}
+	return c.JSON(http.StatusOK, map[string]string{"ok": "true"})
+}
+
+func (h *Handler) UpdateTemplateLock(c *echo.Context) error {
+	claims := authctx.Claims(c)
+	if claims == nil {
+		return c.JSON(http.StatusUnauthorized, map[string]string{"error": "unauthorized"})
+	}
+	templateID, err := h.resolveTemplateID(c.Param("uuid"))
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid id"})
+	}
+	tpl, err := h.deps.TemplateRepo.Get(templateID)
+	if err != nil {
+		return c.JSON(http.StatusNotFound, map[string]string{"error": "not found"})
+	}
+	if !authctx.CanModify(claims.UserID, claims.SystemRole, tpl.UserID) {
+		return c.JSON(http.StatusForbidden, map[string]string{"error": "permission denied"})
+	}
+	var req struct {
+		IsLock bool `json:"isLock"`
+	}
+	if err := c.Bind(&req); err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid request"})
+	}
+	if err := h.deps.Management.TemplateUpdater.UpdateTemplateLock(templateID, req.IsLock); err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
 	return c.JSON(http.StatusOK, map[string]string{"ok": "true"})

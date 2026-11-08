@@ -25,11 +25,13 @@ type ProgressFilter struct {
 }
 
 type ProgressViewer struct {
-	meetingRepo    repository_interface.MeetingRepository
-	userRepo       repository_interface.UserRepository
-	teamMemberRepo repository_interface.TeamMemberRepository
-	userDeptRepo   repository_interface.UserDepartmentRepository
-	pairingRepo    repository_interface.PairingRepository
+	meetingRepo      repository_interface.MeetingRepository
+	userRepo         repository_interface.UserRepository
+	teamMemberRepo   repository_interface.TeamMemberRepository
+	userDeptRepo     repository_interface.UserDepartmentRepository
+	deptRefRepo      repository_interface.UserReferenceDepartmentRepository
+	teamRefRepo      repository_interface.UserReferenceTeamRepository
+	relationshipRepo repository_interface.UserRelationshipRepository
 }
 
 func NewProgressViewer(
@@ -37,14 +39,18 @@ func NewProgressViewer(
 	userRepo repository_interface.UserRepository,
 	teamMemberRepo repository_interface.TeamMemberRepository,
 	userDeptRepo repository_interface.UserDepartmentRepository,
-	pairingRepo repository_interface.PairingRepository,
+	deptRefRepo repository_interface.UserReferenceDepartmentRepository,
+	teamRefRepo repository_interface.UserReferenceTeamRepository,
+	relationshipRepo repository_interface.UserRelationshipRepository,
 ) *ProgressViewer {
 	return &ProgressViewer{
-		meetingRepo:    meetingRepo,
-		userRepo:       userRepo,
-		teamMemberRepo: teamMemberRepo,
-		userDeptRepo:   userDeptRepo,
-		pairingRepo:    pairingRepo,
+		meetingRepo:      meetingRepo,
+		userRepo:         userRepo,
+		teamMemberRepo:   teamMemberRepo,
+		userDeptRepo:     userDeptRepo,
+		deptRefRepo:      deptRefRepo,
+		teamRefRepo:      teamRefRepo,
+		relationshipRepo: relationshipRepo,
 	}
 }
 
@@ -56,22 +62,39 @@ func (uc *ProgressViewer) visibleMenteeIDs(filter ProgressFilter) (map[uint]bool
 	if uc.fullAccess(filter.SystemRole) {
 		return nil, nil
 	}
-	visible := map[uint]bool{}
-	deptIDs := map[uint]bool{}
 	user, err := uc.userRepo.GetByID(filter.ViewerID)
-	if err == nil && user != nil {
-		if user.DepartmentID > 0 {
-			deptIDs[user.DepartmentID] = true
+	if err != nil {
+		return nil, err
+	}
+	if user == nil {
+		return map[uint]bool{}, nil
+	}
+	visible := map[uint]bool{}
+	switch user.OperationTarget {
+	case valueobject.OperationTargetDepartment:
+		return uc.visibleDepartmentMentees(filter.ViewerID, visible)
+	case valueobject.OperationTargetTeam:
+		return uc.visibleTeamMentees(filter.ViewerID, visible)
+	case valueobject.OperationTargetSubordinate:
+		return uc.visibleSubordinateMentees(filter.ViewerID, visible)
+	default:
+		return visible, nil
+	}
+}
+
+func (uc *ProgressViewer) visibleDepartmentMentees(viewerID uint, visible map[uint]bool) (map[uint]bool, error) {
+	refs, err := uc.deptRefRepo.GetByUserID(viewerID)
+	if err != nil {
+		return nil, err
+	}
+	deptIDs := map[uint]bool{}
+	for _, ref := range refs {
+		if ref.ReferableDepartmentID > 0 {
+			deptIDs[ref.ReferableDepartmentID] = true
 		}
 	}
-	if uc.userDeptRepo != nil {
-		extra, err := uc.userDeptRepo.GetDepartmentIDsByUserID(filter.ViewerID)
-		if err != nil {
-			return nil, err
-		}
-		for _, id := range extra {
-			deptIDs[id] = true
-		}
+	if len(deptIDs) == 0 {
+		return visible, nil
 	}
 	allUsers, err := uc.userRepo.GetAll()
 	if err != nil {
@@ -82,30 +105,50 @@ func (uc *ProgressViewer) visibleMenteeIDs(filter ProgressFilter) (map[uint]bool
 			visible[u.ID] = true
 		}
 	}
-	if uc.userDeptRepo != nil {
-		for deptID := range deptIDs {
-			ids, _ := uc.userDeptRepo.GetUserIDsByDepartmentID(deptID)
-			for _, id := range ids {
+	for deptID := range deptIDs {
+		ids, err := uc.userDeptRepo.GetUserIDsByDepartmentID(deptID)
+		if err != nil {
+			return nil, err
+		}
+		for _, id := range ids {
+			if id > 0 {
 				visible[id] = true
 			}
 		}
 	}
-	members, _ := uc.teamMemberRepo.GetAll()
-	viewerTeams := map[uint]bool{}
-	for _, m := range members {
-		if m.MemberID == filter.ViewerID {
-			viewerTeams[m.TeamID] = true
+	return visible, nil
+}
+
+func (uc *ProgressViewer) visibleTeamMentees(viewerID uint, visible map[uint]bool) (map[uint]bool, error) {
+	refs, err := uc.teamRefRepo.GetByUserID(viewerID)
+	if err != nil {
+		return nil, err
+	}
+	for _, ref := range refs {
+		if ref.ReferableTeamID == 0 {
+			continue
+		}
+		members, err := uc.teamMemberRepo.GetByTeamID(ref.ReferableTeamID)
+		if err != nil {
+			return nil, err
+		}
+		for _, member := range members {
+			if member.MemberID > 0 {
+				visible[member.MemberID] = true
+			}
 		}
 	}
-	for _, m := range members {
-		if viewerTeams[m.TeamID] {
-			visible[m.MemberID] = true
-		}
+	return visible, nil
+}
+
+func (uc *ProgressViewer) visibleSubordinateMentees(viewerID uint, visible map[uint]bool) (map[uint]bool, error) {
+	rels, err := uc.relationshipRepo.GetByBossID(viewerID)
+	if err != nil {
+		return nil, err
 	}
-	pairings, _ := uc.pairingRepo.GetAll()
-	for _, p := range pairings {
-		if p.MentorID == filter.ViewerID && p.MenteeID > 0 {
-			visible[p.MenteeID] = true
+	for _, rel := range rels {
+		if rel.SourceUserID > 0 {
+			visible[rel.SourceUserID] = true
 		}
 	}
 	return visible, nil

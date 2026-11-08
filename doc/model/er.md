@@ -140,6 +140,7 @@ templates {
     text description "not null, default 空文字"
     number display_no "not null, default 0。表示順序"
     boolean is_sample "not null, default false。サンプルテンプレート"
+    boolean is_lock "not null, default false。ロック中は編集・削除不可"
 
     bigint creator_id FK "作成者のユーザID（列名 creator_id）"
 }

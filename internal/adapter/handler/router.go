@@ -135,6 +135,7 @@ func RegisterRoutes(e *echo.Echo, deps Deps, auditLogger *slog.Logger) {
 	apiAuth.GET("/templates/:uuid", ah.GetTemplate, auditLogging(auditLogger, false))
 	apiAuth.POST("/templates", ah.CreateTemplate, auditLogging(auditLogger, false))
 	apiAuth.PUT("/templates/:uuid", ah.UpdateTemplate, auditLogging(auditLogger, false))
+	apiAuth.PUT("/templates/:uuid/lock", ah.UpdateTemplateLock, auditLogging(auditLogger, false))
 	apiAuth.DELETE("/templates/:uuid", ah.DeleteTemplate, auditLogging(auditLogger, false))
 	apiAuth.POST("/templates/:uuid/copy", ah.CopyTemplate, auditLogging(auditLogger, false))
 	apiAuth.PUT("/templates/reorder", ah.ReorderTemplates, auditLogging(auditLogger, false))

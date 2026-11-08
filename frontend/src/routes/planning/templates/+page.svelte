@@ -4,6 +4,7 @@
     import { showToast } from "$lib/toast";
     import PlanningTabs from "$lib/components/PlanningTabs.svelte";
     import { validateTemplateForm } from "$lib/template-validation";
+    import { ensureSession } from "$lib/session";
 
     type Topic = {
         id?: number;
@@ -19,11 +20,15 @@
         title?: string;
         description?: string;
         creatorName?: string;
+        creatorId?: number;
         isSample?: boolean;
+        isLock?: boolean;
         topics?: Topic[];
     };
 
     let templates = $state<Template[]>([]);
+    let currentUserId = $state<number | undefined>();
+    let isSystemAdmin = $state(false);
     let modalOpen = $state(false);
     let editMode = $state(false);
     let deleteOpen = $state(false);
@@ -43,11 +48,40 @@
         await api("PUT", "/api/v1/templates/reorder", { items });
     }
 
-    onMount(async () => {
+    async function reloadTemplates() {
         const list = await api<Template[]>("GET", "/api/v1/templates");
         templates = [...list].sort(
             (a, b) => (a.displayNo || 0) - (b.displayNo || 0),
         );
+        if (active) {
+            const next = templates.find((x) => x.id === active!.id);
+            if (next) active = next;
+        }
+    }
+
+    function canToggleLock(t: Template | null) {
+        if (!t) return false;
+        return (
+            isSystemAdmin ||
+            (currentUserId != null && t.creatorId === currentUserId)
+        );
+    }
+
+    function canEditDelete(t: Template | null) {
+        return !!t && !t.isLock;
+    }
+
+    onMount(async () => {
+        const [list, profile, avatar] = await Promise.all([
+            api<Template[]>("GET", "/api/v1/templates"),
+            api<{ id?: number }>("GET", "/api/v1/setting/profile"),
+            ensureSession(),
+        ]);
+        templates = [...list].sort(
+            (a, b) => (a.displayNo || 0) - (b.displayNo || 0),
+        );
+        currentUserId = profile.id;
+        isSystemAdmin = avatar?.isSystemAdmin ?? false;
     });
 
     function openView(t: Template) {
@@ -116,10 +150,7 @@
                 topics,
             });
             showToast("保存しました");
-            const list = await api<Template[]>("GET", "/api/v1/templates");
-            templates = [...list].sort(
-                (a, b) => (a.displayNo || 0) - (b.displayNo || 0),
-            );
+            await reloadTemplates();
             closeModal();
         } catch (e) {
             showToast(
@@ -135,23 +166,34 @@
                 "DELETE",
                 `/api/v1/templates/${active.uuid || active.id}`,
             );
-            const list = await api<Template[]>("GET", "/api/v1/templates");
-            templates = [...list].sort(
-                (a, b) => (a.displayNo || 0) - (b.displayNo || 0),
-            );
+            await reloadTemplates();
             closeModal();
         } catch {
             showToast("削除に失敗しました", "error");
+        }
+    }
+    async function setTemplateLock(isLock: boolean) {
+        if (!active) return;
+        try {
+            await api(
+                "PUT",
+                `/api/v1/templates/${active.uuid || active.id}/lock`,
+                { isLock },
+            );
+            showToast(isLock ? "ロックしました" : "ロックを解除しました");
+            await reloadTemplates();
+        } catch (e) {
+            showToast(
+                e instanceof Error ? e.message : "ロックの更新に失敗しました",
+                "error",
+            );
         }
     }
     async function copy(t: Template) {
         try {
             await api("POST", `/api/v1/templates/${t.uuid || t.id}/copy`, {});
             showToast("コピーしました");
-            const list = await api<Template[]>("GET", "/api/v1/templates");
-            templates = [...list].sort(
-                (a, b) => (a.displayNo || 0) - (b.displayNo || 0),
-            );
+            await reloadTemplates();
         } catch {
             showToast("コピーに失敗しました", "error");
         }
@@ -216,6 +258,10 @@
                             <span class="badge badge-outline shrink-0"
                                 >サンプル</span>
                         {/if}
+                        {#if t.isLock}
+                            <span class="badge badge-warning badge-outline shrink-0"
+                                >ロック</span>
+                        {/if}
                     </div>
                     <div
                         class="flex shrink-0 items-center gap-2"
@@ -264,16 +310,33 @@
                 {/if}
             </div>
             <div class="flex shrink-0 gap-1">
-                {#if !editMode}
+                {#if !editMode && canToggleLock(active)}
+                    {#if active?.isLock}
+                        <button
+                            type="button"
+                            class="btn btn-sm btn-warning btn-outline"
+                            onclick={() => setTemplateLock(false)}
+                            >ロック解除</button>
+                    {:else}
+                        <button
+                            type="button"
+                            class="btn btn-sm btn-warning btn-outline"
+                            onclick={() => setTemplateLock(true)}
+                            >ロック</button>
+                    {/if}
+                {/if}
+                {#if !editMode && canEditDelete(active)}
                     <button
                         type="button"
                         class="btn btn-sm btn-outline"
                         onclick={startEdit}>編集</button>
                 {/if}
-                <button
-                    type="button"
-                    class="btn btn-sm btn-error btn-outline"
-                    onclick={askDelete}>削除</button>
+                {#if canEditDelete(active)}
+                    <button
+                        type="button"
+                        class="btn btn-sm btn-error btn-outline"
+                        onclick={askDelete}>削除</button>
+                {/if}
                 <button
                     type="button"
                     class="btn btn-sm btn-circle btn-ghost"
