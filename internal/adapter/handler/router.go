@@ -31,7 +31,6 @@ type Deps struct {
 	TeamRepo       repository_interface.TeamRepository
 	TeamMemberRepo repository_interface.TeamMemberRepository
 	DepartmentRepo repository_interface.DepartmentRepository
-	TeamRefRepo    repository_interface.UserReferenceTeamRepository
 	RoleRepo       repository_interface.RoleRepository
 	Planning       *planning_usecase.PlanningAccessUsecase
 }
@@ -64,7 +63,6 @@ func RegisterRoutes(e *echo.Echo, deps Deps, auditLogger *slog.Logger) {
 		TeamRepo:       deps.TeamRepo,
 		TeamMemberRepo: deps.TeamMemberRepo,
 		DepartmentRepo: deps.DepartmentRepo,
-		TeamRefRepo:    deps.TeamRefRepo,
 		RoleRepo:       deps.RoleRepo,
 		Planning:       deps.Planning,
 	})

@@ -15,11 +15,9 @@ type ManagementUserOutput struct {
 	Name            string                           `json:"name"`
 	Email           string                           `json:"email"`
 	ImageURI        *string                          `json:"imageUri,omitempty"`
-	Authority       string                           `json:"authority"`
-	SystemRole      string                           `json:"systemRole"`
-	OperationTarget string                           `json:"operationTarget"`
-	TargetIDs       []uint                           `json:"targetIds"`
-	DepartmentID    uint                             `json:"departmentId"`
+	Authority    string `json:"authority"`
+	SystemRole   string `json:"systemRole"`
+	DepartmentID uint   `json:"departmentId"`
 	DepartmentName  string                           `json:"departmentName"`
 	RoleID          uint                             `json:"roleId"`
 	RoleName        string                           `json:"roleName"`

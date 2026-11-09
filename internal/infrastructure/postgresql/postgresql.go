@@ -29,6 +29,9 @@ func NewPostgresqlDB(dsn string) (*gorm.DB, error) {
 	if err := AutoMigrate(db); err != nil {
 		return nil, err
 	}
+	if err := dropLegacyOperationTargetTables(db); err != nil {
+		return nil, err
+	}
 
 	if config.IsDevelop() {
 		if err := genSeed(db); err != nil {
@@ -60,16 +63,27 @@ func AutoMigrate(db *gorm.DB) error {
 		&entity.Answer{},
 		&entity.MeetingComment{},
 		&entity.AnswerComment{},
-		&entity.UserRelationship{},
 		&entity.SystemSettings{},
 		&entity.DepartmentHierarchy{},
 		&entity.DepartmentRole{},
-		&entity.UserReferenceUser{},
-		&entity.UserReferenceTeam{},
-		&entity.UserReferenceDepartment{},
 		&entity.UserDepartment{},
 
 		// マスタテーブル
 		&entity.Role{},
 	)
+}
+
+func dropLegacyOperationTargetTables(db *gorm.DB) error {
+	tables := []string{
+		"user_reference_users",
+		"user_reference_teams",
+		"user_reference_departments",
+		"user_relationships",
+	}
+	for _, table := range tables {
+		if err := db.Exec("DROP TABLE IF EXISTS " + table + " CASCADE").Error; err != nil {
+			return err
+		}
+	}
+	return nil
 }

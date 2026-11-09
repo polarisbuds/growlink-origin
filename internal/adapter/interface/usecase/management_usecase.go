@@ -35,7 +35,6 @@ type (
 	}
 	MeetingViewer interface {
 		ListMeetingsByMentor(mentorID uint) ([]outputmodel.MeetingOutput, error)
-		ListMeetingsByBoss(bossID uint) ([]outputmodel.MeetingOutput, error)
 		ListMeetingsByTeam(teamID uint) ([]outputmodel.MeetingOutput, error)
 		ListMeetingsByDepartment(departmentID uint) ([]outputmodel.MeetingOutput, error)
 	}
@@ -89,7 +88,6 @@ type (
 		GetPairing(pairingID uint) (*outputmodel.PairingOutput, error)
 		ListPairingsByAll() ([]outputmodel.PairingOutput, error)
 		ListPairingsByMentor(mentorID uint) ([]outputmodel.PairingOutput, error)
-		ListPairingsByBoss(bossID uint) ([]outputmodel.PairingOutput, error)
 		ListPairingsByTeam(teamID uint) ([]outputmodel.PairingOutput, error)
 		ListPairingsByDepartment(departmentID uint) ([]outputmodel.PairingOutput, error)
 	}

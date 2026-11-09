@@ -10,20 +10,18 @@ import (
 func TestUserColumnChanges_Unchanged(t *testing.T) {
 	suspended := false
 	user := &entity.User{
-		Authority:       valueobject.AuthorityGeneral,
-		SystemRole:      valueobject.SystemRoleNone,
-		OperationTarget: valueobject.OperationTargetNone,
-		DepartmentID:    1,
-		RoleID:          2,
-		Suspended:       false,
+		Authority:    valueobject.AuthorityGeneral,
+		SystemRole:   valueobject.SystemRoleNone,
+		DepartmentID: 1,
+		RoleID:       2,
+		Suspended:    false,
 	}
 	departments := []DepartmentAssignmentInput{{DepartmentID: 1, RoleID: 2}}
 	columns, err := userColumnChanges(user, UpdateUserInput{
-		Authority:       "general",
-		SystemRole:      "none",
-		OperationTarget: "none",
-		Departments:     departments,
-		Suspended:       &suspended,
+		Authority:   "general",
+		SystemRole:  "none",
+		Departments: departments,
+		Suspended:   &suspended,
 	}, departments)
 	if err != nil {
 		t.Fatal(err)
@@ -36,19 +34,17 @@ func TestUserColumnChanges_Unchanged(t *testing.T) {
 func TestUserColumnChanges_OnlyChanged(t *testing.T) {
 	suspended := false
 	user := &entity.User{
-		Authority:       valueobject.AuthorityGeneral,
-		SystemRole:      valueobject.SystemRoleNone,
-		OperationTarget: valueobject.OperationTargetDepartment,
-		DepartmentID:    1,
-		RoleID:          2,
-		Suspended:       true,
+		Authority:    valueobject.AuthorityGeneral,
+		SystemRole:   valueobject.SystemRoleNone,
+		DepartmentID: 1,
+		RoleID:       2,
+		Suspended:    true,
 	}
 	departments := []DepartmentAssignmentInput{{DepartmentID: 4, RoleID: 2}}
 	columns, err := userColumnChanges(user, UpdateUserInput{
-		Authority:       "boss",
-		SystemRole:      "none",
-		OperationTarget: "department",
-		Suspended:       &suspended,
+		Authority:   "boss",
+		SystemRole:  "none",
+		Suspended:   &suspended,
 	}, departments)
 	if err != nil {
 		t.Fatal(err)
@@ -64,9 +60,6 @@ func TestUserColumnChanges_OnlyChanged(t *testing.T) {
 	}
 	if _, ok := columns["system_role"]; ok {
 		t.Fatal("unchanged system role was included")
-	}
-	if _, ok := columns["operation_target"]; ok {
-		t.Fatal("unchanged operation target was included")
 	}
 	if _, ok := columns["role_id"]; ok {
 		t.Fatal("unchanged role was included")

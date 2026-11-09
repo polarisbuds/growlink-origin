@@ -9,24 +9,23 @@ import (
 )
 
 type MeetingViewer struct {
-	userRepo             repository_interface.UserRepository
-	teamMemberRepo       repository_interface.TeamMemberRepository
-	meetingRepo          repository_interface.MeetingRepository
-	pairingRepo          repository_interface.PairingRepository
-	userRelationshipRepo repository_interface.UserRelationshipRepository
+	userRepo       repository_interface.UserRepository
+	teamMemberRepo repository_interface.TeamMemberRepository
+	meetingRepo    repository_interface.MeetingRepository
+	pairingRepo    repository_interface.PairingRepository
 }
 
 func NewMeetingViewer(
-
-	meetingRepo repository_interface.MeetingRepository, pairingRepo repository_interface.PairingRepository,
-	userRelationshipRepo repository_interface.UserRelationshipRepository,
-	userRepo repository_interface.UserRepository, teamMemberRepo repository_interface.TeamMemberRepository) *MeetingViewer {
+	meetingRepo repository_interface.MeetingRepository,
+	pairingRepo repository_interface.PairingRepository,
+	userRepo repository_interface.UserRepository,
+	teamMemberRepo repository_interface.TeamMemberRepository,
+) *MeetingViewer {
 	return &MeetingViewer{
-		meetingRepo:          meetingRepo,
-		pairingRepo:          pairingRepo,
-		userRepo:             userRepo,
-		teamMemberRepo:       teamMemberRepo,
-		userRelationshipRepo: userRelationshipRepo,
+		meetingRepo:    meetingRepo,
+		pairingRepo:    pairingRepo,
+		userRepo:       userRepo,
+		teamMemberRepo: teamMemberRepo,
 	}
 }
 
@@ -64,50 +63,6 @@ func (uc *MeetingViewer) ListMeetingsByMentor(mentorID uint) ([]outputmodel.Meet
 		}
 	}
 	return resultMeetings, nil
-}
-
-func (uc *MeetingViewer) ListMeetingsByBoss(bossID uint) ([]outputmodel.MeetingOutput, error) {
-	relationships, err := uc.userRelationshipRepo.GetByBossID(bossID)
-	if err != nil {
-		return nil, fmt.Errorf("上司ユーザID指定でのミーティングリスト作成のユーザリレーション情報取得に失敗しました: %w", err)
-	}
-	var (
-		result = []outputmodel.MeetingOutput{}
-		wg     = sync.WaitGroup{}
-		mux    = sync.Mutex{}
-	)
-	errCh := make(chan error, len(relationships))
-	for _, relationship := range relationships {
-		wg.Add(1)
-		relationship := relationship
-		go func(menteeID uint, ec chan<- error) {
-			defer wg.Done()
-			pairings, err := uc.pairingRepo.GetByMenteeID(menteeID)
-			if err != nil {
-				errCh <- fmt.Errorf("部下ユーザID（メンティーユーザID）でのペアリング情報取得に失敗しました: %w", err)
-				return
-			}
-			if pairings == nil {
-				return
-			}
-			meeting, err := uc.meetingRepo.GetByPairingID(pairings.ID)
-			if err != nil {
-				errCh <- fmt.Errorf("ペアリングユーザID指定でのミーティング情報取得に失敗しました: %w", err)
-				return
-			}
-			mux.Lock()
-			result = append(result, converter.MeetingEntitiesToOutputs(meeting)...)
-			mux.Unlock()
-		}(relationship.SourceUserID, errCh)
-	}
-	wg.Wait()
-	close(errCh)
-	for err := range errCh {
-		if err != nil {
-			return nil, err
-		}
-	}
-	return result, nil
 }
 
 func (uc *MeetingViewer) ListMeetingsByTeam(teamID uint) ([]outputmodel.MeetingOutput, error) {

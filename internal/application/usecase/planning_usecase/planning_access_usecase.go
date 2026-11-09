@@ -17,9 +17,8 @@ type PlanningAccessUsecase struct {
 	meetingRepo      repository_interface.MeetingRepository
 	deptMemberRepo   repository_interface.DepartmentMemberRepository
 	hierarchyRepo    repository_interface.DepartmentHierarchyRepository
-	teamRepo         repository_interface.TeamRepository
-	relationshipRepo repository_interface.UserRelationshipRepository
-	teamMemberRepo   repository_interface.TeamMemberRepository
+	teamRepo       repository_interface.TeamRepository
+	teamMemberRepo repository_interface.TeamMemberRepository
 	meetingViewer    *meeting_mng_usecase.MeetingViewer
 	meetingList      *meeting_usecase.MeetingListUsecase
 	pairingViewer    *pairing_mng_usecase.PairingViewer
@@ -31,7 +30,6 @@ func NewPlanningAccessUsecase(
 	deptMemberRepo repository_interface.DepartmentMemberRepository,
 	hierarchyRepo repository_interface.DepartmentHierarchyRepository,
 	teamRepo repository_interface.TeamRepository,
-	relationshipRepo repository_interface.UserRelationshipRepository,
 	teamMemberRepo repository_interface.TeamMemberRepository,
 	meetingViewer *meeting_mng_usecase.MeetingViewer,
 	meetingList *meeting_usecase.MeetingListUsecase,
@@ -42,9 +40,8 @@ func NewPlanningAccessUsecase(
 		meetingRepo:      meetingRepo,
 		deptMemberRepo:   deptMemberRepo,
 		hierarchyRepo:    hierarchyRepo,
-		teamRepo:         teamRepo,
-		relationshipRepo: relationshipRepo,
-		teamMemberRepo:   teamMemberRepo,
+		teamRepo:       teamRepo,
+		teamMemberRepo: teamMemberRepo,
 		meetingViewer:    meetingViewer,
 		meetingList:      meetingList,
 		pairingViewer:    pairingViewer,

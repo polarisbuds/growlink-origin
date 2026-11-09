@@ -133,35 +133,6 @@ func genSeed(db *gorm.DB) error {
 			return err
 		}
 
-		if err := tx.Create(&entity.UserRelationship{
-			RelationType: valueobject.RelationshipTypeBoss,
-			SourceUserID: mentor.ID,
-			TargetUserID: boss.ID,
-		}).Error; err != nil {
-			return err
-		}
-
-		if err := tx.Create(&entity.UserReferenceUser{
-			UserID:          boss.ID,
-			ReferableUserID: mentee.ID,
-		}).Error; err != nil {
-			return err
-		}
-
-		if err := tx.Create(&entity.UserReferenceTeam{
-			UserID:          boss.ID,
-			ReferableTeamID: team.ID,
-		}).Error; err != nil {
-			return err
-		}
-
-		if err := tx.Create(&entity.UserReferenceDepartment{
-			UserID:                owner.ID,
-			ReferableDepartmentID: deptDev.ID,
-		}).Error; err != nil {
-			return err
-		}
-
 		template := &entity.Template{
 			Title:       "1on1テンプレート",
 			Description: "メンターとメンティーの定例1on1で、成果と課題を共有するためのテンプレートです。",

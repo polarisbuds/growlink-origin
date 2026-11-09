@@ -24,9 +24,8 @@ type Deps struct {
 	UserRepo        repository_interface.UserRepository
 	TeamRepo        repository_interface.TeamRepository
 	TeamMemberRepo  repository_interface.TeamMemberRepository
-	DepartmentRepo  repository_interface.DepartmentRepository
-	TeamRefRepo     repository_interface.UserReferenceTeamRepository
-	RoleRepo        repository_interface.RoleRepository
+	DepartmentRepo repository_interface.DepartmentRepository
+	RoleRepo       repository_interface.RoleRepository
 	Planning        *planning_usecase.PlanningAccessUsecase
 }
 

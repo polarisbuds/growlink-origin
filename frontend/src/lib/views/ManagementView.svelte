@@ -23,12 +23,6 @@
         { value: "system_admin", label: "システム管理者" },
         { value: "analyst", label: "分析者" },
     ];
-    const OPERATION_OPTIONS = [
-        { value: "none", label: "なし" },
-        { value: "department", label: "部署" },
-        { value: "team", label: "チーム" },
-        { value: "subordinate", label: "部下" },
-    ];
     const WEEKDAYS = [
         { value: 1, label: "月曜日" },
         { value: 2, label: "火曜日" },
@@ -50,8 +44,6 @@
         email: string;
         authority: string;
         systemRole: string;
-        operationTarget: string;
-        targetIds?: number[];
         departmentId: number;
         roleId: number;
         departments?: DeptAssignment[];
@@ -98,8 +90,6 @@
         name: string;
         authority: string;
         systemRole: string;
-        operationTarget: string;
-        targetIds: number[];
         departments: DeptAssignment[];
         teams: TeamAssignment[];
         suspended: boolean;
@@ -161,7 +151,6 @@
         remindWeekday: 1,
         remindTime: "09:00",
     });
-    let targetSearch = $state("");
     let orgChildSearch = $state("");
     let orgTeamSearch = $state("");
     let userModalOpen = $state(false);
@@ -410,18 +399,6 @@
         return (u.name || "?").slice(0, 1);
     }
 
-    function filteredDepartments() {
-        return filterByQuery(options.departments || [], targetSearch);
-    }
-
-    function filteredTeams() {
-        return filterByQuery(options.teams || [], targetSearch);
-    }
-
-    function filteredUsersForTarget() {
-        return filterByQuery(users, targetSearch);
-    }
-
     function filteredOrgDepartments() {
         return filterByQuery(options.departments || [], orgChildSearch);
     }
@@ -510,11 +487,6 @@
         selectedUserIds = checked ? filteredUsers.map((u) => u.id) : [];
     }
 
-    function toggleUserTarget(id: number) {
-        if (!userForm) return;
-        userForm.targetIds = toggleInList(userForm.targetIds || [], id);
-    }
-
     function toggleOrgChild(id: number) {
         orgEdit.childIds = toggleInList(orgEdit.childIds || [], id);
     }
@@ -523,14 +495,7 @@
         orgEdit.teamIds = toggleInList(orgEdit.teamIds || [], id);
     }
 
-    function setOperationTarget(value: string) {
-        if (!userForm) return;
-        userForm.operationTarget = value;
-        userForm.targetIds = [];
-    }
-
     function openUserModal(u: ManagementUser) {
-        targetSearch = "";
         const departments = (
             u.departments && u.departments.length
                 ? u.departments
@@ -552,8 +517,6 @@
             name: u.name,
             authority: u.authority,
             systemRole: u.systemRole,
-            operationTarget: u.operationTarget,
-            targetIds: (u.targetIds || []).map(Number),
             departments,
             teams: pruneTeamRows(departments, teams),
             suspended: u.suspended,
@@ -688,8 +651,6 @@
         const body = {
             authority: userForm.authority,
             systemRole: userForm.systemRole,
-            operationTarget: userForm.operationTarget,
-            targetIds: (userForm.targetIds || []).map(Number),
             departments,
             teams,
             suspended: userForm.suspended,
@@ -1367,102 +1328,6 @@
                         </select>
                     </label>
                 </div>
-                <div>
-                    <span class="label-text font-medium">操作対象</span>
-                    <div class="flex flex-wrap gap-2 mt-2">
-                        {#each OPERATION_OPTIONS as opt (opt.value)}
-                            <button
-                                type="button"
-                                class="btn btn-sm"
-                                class:btn-primary={userForm.operationTarget ===
-                                    opt.value}
-                                class:btn-outline={userForm.operationTarget !==
-                                    opt.value}
-                                onclick={() => setOperationTarget(opt.value)}
-                                >{opt.label}</button>
-                        {/each}
-                    </div>
-                </div>
-                {#if userForm.operationTarget === "department"}
-                    <div class="space-y-2">
-                        <input
-                            class="input input-bordered input-sm w-full placeholder-current"
-                            placeholder="部署を検索"
-                            bind:value={targetSearch} />
-                        <div
-                            class="border border-base-300 rounded-2xl max-h-44 overflow-y-auto p-2 space-y-0.5">
-                            {#each filteredDepartments() as d (d.id)}
-                                <label
-                                    class="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-base-200 cursor-pointer">
-                                    <input
-                                        type="checkbox"
-                                        class="checkbox checkbox-sm"
-                                        checked={isInList(
-                                            userForm.targetIds,
-                                            d.id,
-                                        )}
-                                        onchange={() =>
-                                            toggleUserTarget(d.id)} />
-                                    <span>{d.name}</span>
-                                </label>
-                            {/each}
-                        </div>
-                    </div>
-                {/if}
-                {#if userForm.operationTarget === "team"}
-                    <div class="space-y-2">
-                        <input
-                            class="input input-bordered input-sm w-full placeholder-current"
-                            placeholder="チームを検索"
-                            bind:value={targetSearch} />
-                        <div
-                            class="border border-base-300 rounded-2xl max-h-44 overflow-y-auto p-2 space-y-0.5">
-                            {#each filteredTeams() as t (t.id)}
-                                <label
-                                    class="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-base-200 cursor-pointer">
-                                    <input
-                                        type="checkbox"
-                                        class="checkbox checkbox-sm"
-                                        checked={isInList(
-                                            userForm.targetIds,
-                                            t.id,
-                                        )}
-                                        onchange={() =>
-                                            toggleUserTarget(t.id)} />
-                                    <span>{t.name}</span>
-                                </label>
-                            {/each}
-                        </div>
-                    </div>
-                {/if}
-                {#if userForm.operationTarget === "subordinate"}
-                    <div class="space-y-2">
-                        <input
-                            class="input input-bordered input-sm w-full placeholder-current"
-                            placeholder="部下を検索"
-                            bind:value={targetSearch} />
-                        <div
-                            class="border border-base-300 rounded-2xl max-h-44 overflow-y-auto p-2 space-y-0.5">
-                            {#each filteredUsersForTarget() as u (`sub-${u.id}`)}
-                                {#if u.id !== userForm.id}
-                                    <label
-                                        class="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-base-200 cursor-pointer">
-                                        <input
-                                            type="checkbox"
-                                            class="checkbox checkbox-sm"
-                                            checked={isInList(
-                                                userForm.targetIds,
-                                                u.id,
-                                            )}
-                                            onchange={() =>
-                                                toggleUserTarget(u.id)} />
-                                        <span>{u.name}</span>
-                                    </label>
-                                {/if}
-                            {/each}
-                        </div>
-                    </div>
-                {/if}
                 <div class="space-y-3">
                     <div class="flex items-center justify-between gap-2">
                         <span class="label-text font-medium">部署</span>

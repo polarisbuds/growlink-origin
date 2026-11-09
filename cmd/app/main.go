@@ -84,7 +84,6 @@ func main() {
 	answerRepo := repository.NewAnswerRepository(ctx, db)
 	templateRepo := repository.NewTemplateRepository(ctx, db)
 	topicRepo := repository.NewTopicRepository(ctx, db)
-	relationshipRepo := repository.NewUserRelationshipRepository(ctx, db)
 	teamMemberRepo := repository.NewTeamMemberRepository(ctx, db)
 	answerCommentRepo := repository.NewAnswerCommentRepository(ctx, db)
 	meetingCommentRepo := repository.NewMeetingCommentRepository(ctx, db)
@@ -94,8 +93,6 @@ func main() {
 	deptHierarchyRepo := repository.NewDepartmentHierarchyRepository(ctx, db)
 	deptRoleRepo := repository.NewDepartmentRoleRepository(ctx, db)
 	deptMemberRepo := repository.NewDepartmentMemberRepository(ctx, db)
-	deptRefRepo := repository.NewUserReferenceDepartmentRepository(ctx, db)
-	teamRefRepo := repository.NewUserReferenceTeamRepository(ctx, db)
 	roleRepo := repository.NewRoleRepository(ctx, db)
 	userDeptRepo := repository.NewUserDepartmentRepository(ctx, db)
 	systemSettingsRepo := repository.NewSystemSettingsRepository(ctx, db)
@@ -121,11 +118,11 @@ func main() {
 	}
 
 	managementBundle := management_usecase.Bundle{
-		Meeting:         meeting_mng_usecase.NewMeetingViewer(meetingRepo, pairingRepo, relationshipRepo, userRepo, teamMemberRepo),
+		Meeting:         meeting_mng_usecase.NewMeetingViewer(meetingRepo, pairingRepo, userRepo, teamMemberRepo),
 		MeetingCreator:  meeting_mng_usecase.NewMeetingCreator(meetingRepo, pairingRepo),
 		MeetingUpdater:  meeting_mng_usecase.NewMeetingUpdater(meetingRepo),
 		MeetingDeleter:  meeting_mng_usecase.NewMeetingDeleter(meetingRepo),
-		Pairing:         pairing_mng_usecase.NewPairingViewer(userRepo, relationshipRepo, pairingRepo, teamMemberRepo, teamRepo, deptRepo),
+		Pairing:         pairing_mng_usecase.NewPairingViewer(userRepo, pairingRepo, teamMemberRepo, teamRepo, deptRepo),
 		PairingCreator:  pairing_mng_usecase.NewPairingCreator(pairingRepo),
 		PairingUpdater:  pairing_mng_usecase.NewPairingUpdater(pairingRepo),
 		PairingDeleter:  pairing_mng_usecase.NewPairingDeleter(pairingRepo),
@@ -136,9 +133,6 @@ func main() {
 		TemplateCopier:  template_mng_usecase.NewTemplateCopier(templateRepo, topicRepo),
 		UserAdmin: user_admin_usecase.NewUserAdmin(
 			userRepo,
-			deptRefRepo,
-			teamRefRepo,
-			relationshipRepo,
 			userDeptRepo,
 			deptRoleRepo,
 			deptMemberRepo,
@@ -156,7 +150,6 @@ func main() {
 		deptMemberRepo,
 		deptHierarchyRepo,
 		teamRepo,
-		relationshipRepo,
 		teamMemberRepo,
 		managementBundle.Meeting,
 		meetingBundle.List,
@@ -181,7 +174,6 @@ func main() {
 		TeamRepo:       teamRepo,
 		TeamMemberRepo: teamMemberRepo,
 		DepartmentRepo: deptRepo,
-		TeamRefRepo:    teamRefRepo,
 		RoleRepo:       roleRepo,
 		Planning:       planningAccess,
 	}

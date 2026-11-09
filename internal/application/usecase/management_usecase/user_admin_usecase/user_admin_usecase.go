@@ -15,24 +15,18 @@ import (
 )
 
 type UserAdmin struct {
-	userRepo         repository_interface.UserRepository
-	deptRefRepo      repository_interface.UserReferenceDepartmentRepository
-	teamRefRepo      repository_interface.UserReferenceTeamRepository
-	relationshipRepo repository_interface.UserRelationshipRepository
-	userDeptRepo     repository_interface.UserDepartmentRepository
-	deptRoleRepo     repository_interface.DepartmentRoleRepository
-	deptMemberRepo   repository_interface.DepartmentMemberRepository
-	teamMemberRepo   repository_interface.TeamMemberRepository
-	deptRepo         repository_interface.DepartmentRepository
-	teamRepo         repository_interface.TeamRepository
-	roleRepo         repository_interface.RoleRepository
+	userRepo       repository_interface.UserRepository
+	userDeptRepo   repository_interface.UserDepartmentRepository
+	deptRoleRepo   repository_interface.DepartmentRoleRepository
+	deptMemberRepo repository_interface.DepartmentMemberRepository
+	teamMemberRepo repository_interface.TeamMemberRepository
+	deptRepo       repository_interface.DepartmentRepository
+	teamRepo       repository_interface.TeamRepository
+	roleRepo       repository_interface.RoleRepository
 }
 
 func NewUserAdmin(
 	userRepo repository_interface.UserRepository,
-	deptRefRepo repository_interface.UserReferenceDepartmentRepository,
-	teamRefRepo repository_interface.UserReferenceTeamRepository,
-	relationshipRepo repository_interface.UserRelationshipRepository,
 	userDeptRepo repository_interface.UserDepartmentRepository,
 	deptRoleRepo repository_interface.DepartmentRoleRepository,
 	deptMemberRepo repository_interface.DepartmentMemberRepository,
@@ -42,17 +36,14 @@ func NewUserAdmin(
 	roleRepo repository_interface.RoleRepository,
 ) *UserAdmin {
 	return &UserAdmin{
-		userRepo:         userRepo,
-		deptRefRepo:      deptRefRepo,
-		teamRefRepo:      teamRefRepo,
-		relationshipRepo: relationshipRepo,
-		userDeptRepo:     userDeptRepo,
-		deptRoleRepo:     deptRoleRepo,
-		deptMemberRepo:   deptMemberRepo,
-		teamMemberRepo:   teamMemberRepo,
-		deptRepo:         deptRepo,
-		teamRepo:         teamRepo,
-		roleRepo:         roleRepo,
+		userRepo:       userRepo,
+		userDeptRepo:   userDeptRepo,
+		deptRoleRepo:   deptRoleRepo,
+		deptMemberRepo: deptMemberRepo,
+		teamMemberRepo: teamMemberRepo,
+		deptRepo:       deptRepo,
+		teamRepo:       teamRepo,
+		roleRepo:       roleRepo,
 	}
 }
 
@@ -71,10 +62,6 @@ func (uc *UserAdmin) ListUsers() ([]outputmodel.ManagementUserOutput, error) {
 	}
 	out := make([]outputmodel.ManagementUserOutput, 0, len(users))
 	for _, u := range users {
-		targetIDs, err := uc.loadTargetIDs(u.ID, u.OperationTarget)
-		if err != nil {
-			return nil, err
-		}
 		departments, err := uc.loadDepartmentAssignments(u, roleIDByName)
 		if err != nil {
 			return nil, err
@@ -96,11 +83,9 @@ func (uc *UserAdmin) ListUsers() ([]outputmodel.ManagementUserOutput, error) {
 			Name:            u.Name,
 			Email:           u.Email,
 			ImageURI:        u.ImageURI,
-			Authority:       u.Authority.String(),
-			SystemRole:      u.SystemRole.String(),
-			OperationTarget: u.OperationTarget.String(),
-			TargetIDs:       targetIDs,
-			DepartmentID:    u.DepartmentID,
+			Authority:    u.Authority.String(),
+			SystemRole:   u.SystemRole.String(),
+			DepartmentID: u.DepartmentID,
 			DepartmentName:  deptName,
 			RoleID:          u.RoleID,
 			RoleName:        roleName,
@@ -164,43 +149,6 @@ func (uc *UserAdmin) loadTeamAssignments(userID uint) ([]outputmodel.UserTeamAss
 	return out, nil
 }
 
-func (uc *UserAdmin) loadTargetIDs(userID uint, target valueobject.OperationTarget) ([]uint, error) {
-	switch target {
-	case valueobject.OperationTargetDepartment:
-		refs, err := uc.deptRefRepo.GetByUserID(userID)
-		if err != nil {
-			return nil, err
-		}
-		ids := make([]uint, 0, len(refs))
-		for _, r := range refs {
-			ids = append(ids, r.ReferableDepartmentID)
-		}
-		return ids, nil
-	case valueobject.OperationTargetTeam:
-		refs, err := uc.teamRefRepo.GetByUserID(userID)
-		if err != nil {
-			return nil, err
-		}
-		ids := make([]uint, 0, len(refs))
-		for _, r := range refs {
-			ids = append(ids, r.ReferableTeamID)
-		}
-		return ids, nil
-	case valueobject.OperationTargetSubordinate:
-		rels, err := uc.relationshipRepo.GetByBossID(userID)
-		if err != nil {
-			return nil, err
-		}
-		ids := make([]uint, 0, len(rels))
-		for _, r := range rels {
-			ids = append(ids, r.SourceUserID)
-		}
-		return ids, nil
-	default:
-		return []uint{}, nil
-	}
-}
-
 type DepartmentAssignmentInput struct {
 	DepartmentID uint `json:"departmentId"`
 	RoleID       uint `json:"roleId"`
@@ -252,10 +200,9 @@ func (uc *UserAdmin) CreateUser(input CreateUserInput) (*outputmodel.ManagementU
 		Email:           email,
 		DepartmentID:    departments[0].DepartmentID,
 		RoleID:          departments[0].RoleID,
-		Authority:       valueobject.AuthorityGeneral,
-		SystemRole:      valueobject.SystemRoleNone,
-		OperationTarget: valueobject.OperationTargetNone,
-		Suspended:       false,
+		Authority:  valueobject.AuthorityGeneral,
+		SystemRole: valueobject.SystemRoleNone,
+		Suspended:  false,
 	}
 	if strings.TrimSpace(input.Password) != "" {
 		hashed, err := crypto.HashPassword(strings.TrimSpace(input.Password), config.GetPepper())
@@ -285,11 +232,9 @@ func (uc *UserAdmin) CreateUser(input CreateUserInput) (*outputmodel.ManagementU
 		ID:              user.ID,
 		Name:            user.Name,
 		Email:           user.Email,
-		Authority:       user.Authority.String(),
-		SystemRole:      user.SystemRole.String(),
-		OperationTarget: user.OperationTarget.String(),
-		TargetIDs:       []uint{},
-		DepartmentID:    user.DepartmentID,
+		Authority:    user.Authority.String(),
+		SystemRole:   user.SystemRole.String(),
+		DepartmentID: user.DepartmentID,
 		RoleID:          user.RoleID,
 		Departments:     listed,
 		Teams:           teams,
@@ -298,11 +243,9 @@ func (uc *UserAdmin) CreateUser(input CreateUserInput) (*outputmodel.ManagementU
 }
 
 type UpdateUserInput struct {
-	Authority       string                      `json:"authority"`
-	SystemRole      string                      `json:"systemRole"`
-	OperationTarget string                      `json:"operationTarget"`
-	TargetIDs       []uint                      `json:"targetIds"`
-	DepartmentID    uint                        `json:"departmentId"`
+	Authority    string                      `json:"authority"`
+	SystemRole   string                      `json:"systemRole"`
+	DepartmentID uint                        `json:"departmentId"`
 	RoleID          uint                        `json:"roleId"`
 	Departments     []DepartmentAssignmentInput `json:"departments"`
 	Teams           []TeamAssignmentInput       `json:"teams"`
@@ -333,19 +276,7 @@ func (uc *UserAdmin) UpdateUser(userID uint, input UpdateUserInput) error {
 			return err
 		}
 	}
-	previousTarget := user.OperationTarget
-	target := previousTarget
-	if input.OperationTarget != "" {
-		parsed, err := valueobject.ParseOperationTarget(input.OperationTarget)
-		if err != nil {
-			return err
-		}
-		target = parsed
-	}
-	if err := uc.syncAffiliations(userID, departments, input.Teams); err != nil {
-		return err
-	}
-	return uc.syncOperationTargets(userID, previousTarget, target, input.TargetIDs)
+	return uc.syncAffiliations(userID, departments, input.Teams)
 }
 
 func userColumnChanges(user *entity.User, input UpdateUserInput, departments []DepartmentAssignmentInput) (map[string]any, error) {
@@ -366,15 +297,6 @@ func userColumnChanges(user *entity.User, input UpdateUserInput, departments []D
 		}
 		if user.SystemRole != role {
 			columns["system_role"] = role.Int()
-		}
-	}
-	if input.OperationTarget != "" {
-		target, err := valueobject.ParseOperationTarget(input.OperationTarget)
-		if err != nil {
-			return nil, err
-		}
-		if user.OperationTarget != target {
-			columns["operation_target"] = target.Int()
 		}
 	}
 	if len(departments) > 0 {
@@ -741,155 +663,6 @@ func teamLeaderSetMatches(members []entity.TeamMember, userID uint) bool {
 		}
 	}
 	return found
-}
-
-func (uc *UserAdmin) syncOperationTargets(userID uint, previous, target valueobject.OperationTarget, targetIDs []uint) error {
-	desired := targetIDs
-	if target == valueobject.OperationTargetSubordinate {
-		desired = make([]uint, 0, len(targetIDs))
-		for _, id := range targetIDs {
-			if id == userID {
-				continue
-			}
-			desired = append(desired, id)
-		}
-	}
-	if previous != target {
-		if err := uc.deptRefRepo.DeleteByUserID(userID); err != nil {
-			return err
-		}
-		if err := uc.teamRefRepo.DeleteByUserID(userID); err != nil {
-			return err
-		}
-		if err := uc.relationshipRepo.DeleteByBossUserID(userID); err != nil {
-			return err
-		}
-		return uc.createOperationTargets(userID, target, desired)
-	}
-	switch target {
-	case valueobject.OperationTargetDepartment:
-		refs, err := uc.deptRefRepo.GetByUserID(userID)
-		if err != nil {
-			return err
-		}
-		rowByID := map[uint]uint{}
-		existing := make([]uint, 0, len(refs))
-		for _, ref := range refs {
-			if _, dup := rowByID[ref.ReferableDepartmentID]; dup {
-				if err := uc.deptRefRepo.Delete(ref.ID); err != nil {
-					return err
-				}
-				continue
-			}
-			rowByID[ref.ReferableDepartmentID] = ref.ID
-			existing = append(existing, ref.ReferableDepartmentID)
-		}
-		remove, add := diffIDs(existing, desired)
-		for _, id := range remove {
-			if err := uc.deptRefRepo.Delete(rowByID[id]); err != nil {
-				return err
-			}
-		}
-		for _, id := range add {
-			if err := uc.deptRefRepo.Create(userID, id); err != nil {
-				return err
-			}
-		}
-	case valueobject.OperationTargetTeam:
-		refs, err := uc.teamRefRepo.GetByUserID(userID)
-		if err != nil {
-			return err
-		}
-		rowByID := map[uint]uint{}
-		existing := make([]uint, 0, len(refs))
-		for _, ref := range refs {
-			if _, dup := rowByID[ref.ReferableTeamID]; dup {
-				if err := uc.teamRefRepo.Delete(ref.ID); err != nil {
-					return err
-				}
-				continue
-			}
-			rowByID[ref.ReferableTeamID] = ref.ID
-			existing = append(existing, ref.ReferableTeamID)
-		}
-		remove, add := diffIDs(existing, desired)
-		for _, id := range remove {
-			if err := uc.teamRefRepo.Delete(rowByID[id]); err != nil {
-				return err
-			}
-		}
-		for _, id := range add {
-			if err := uc.teamRefRepo.Create(userID, id); err != nil {
-				return err
-			}
-		}
-	case valueobject.OperationTargetSubordinate:
-		rels, err := uc.relationshipRepo.GetByBossID(userID)
-		if err != nil {
-			return err
-		}
-		rowByID := map[uint]uint{}
-		existing := make([]uint, 0, len(rels))
-		for _, rel := range rels {
-			if _, dup := rowByID[rel.SourceUserID]; dup {
-				if err := uc.relationshipRepo.Delete(rel.ID); err != nil {
-					return err
-				}
-				continue
-			}
-			rowByID[rel.SourceUserID] = rel.ID
-			existing = append(existing, rel.SourceUserID)
-		}
-		remove, add := diffIDs(existing, desired)
-		for _, id := range remove {
-			if err := uc.relationshipRepo.Delete(rowByID[id]); err != nil {
-				return err
-			}
-		}
-		for _, id := range add {
-			if err := uc.relationshipRepo.Create(id, userID, valueobject.RelationshipTypeBoss); err != nil {
-				return err
-			}
-		}
-	}
-	return nil
-}
-
-func (uc *UserAdmin) createOperationTargets(userID uint, target valueobject.OperationTarget, targetIDs []uint) error {
-	seen := map[uint]struct{}{}
-	switch target {
-	case valueobject.OperationTargetDepartment:
-		for _, id := range targetIDs {
-			if _, ok := seen[id]; ok {
-				continue
-			}
-			seen[id] = struct{}{}
-			if err := uc.deptRefRepo.Create(userID, id); err != nil {
-				return err
-			}
-		}
-	case valueobject.OperationTargetTeam:
-		for _, id := range targetIDs {
-			if _, ok := seen[id]; ok {
-				continue
-			}
-			seen[id] = struct{}{}
-			if err := uc.teamRefRepo.Create(userID, id); err != nil {
-				return err
-			}
-		}
-	case valueobject.OperationTargetSubordinate:
-		for _, subID := range targetIDs {
-			if _, ok := seen[subID]; ok {
-				continue
-			}
-			seen[subID] = struct{}{}
-			if err := uc.relationshipRepo.Create(subID, userID, valueobject.RelationshipTypeBoss); err != nil {
-				return err
-			}
-		}
-	}
-	return nil
 }
 
 func (uc *UserAdmin) SetUsersSuspended(ids []uint, suspended bool) error {

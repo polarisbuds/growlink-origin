@@ -11,28 +11,25 @@ import (
 )
 
 type pairingViewerMocks struct {
-	pairing          *repomock.MockPairingRepository
-	relationshipRepo *repomock.MockUserRelationshipRepository
-	teamMember       *repomock.MockTeamMemberRepository
-	team             *repomock.MockTeamRepository
-	dept             *repomock.MockDepartmentRepository
-	user             *repomock.MockUserRepository
+	pairing    *repomock.MockPairingRepository
+	teamMember *repomock.MockTeamMemberRepository
+	team       *repomock.MockTeamRepository
+	dept       *repomock.MockDepartmentRepository
+	user       *repomock.MockUserRepository
 }
 
 func newPairingViewer(t *testing.T) (*pairing_mng_usecase.PairingViewer, *pairingViewerMocks) {
 	t.Helper()
 	ctrl := gomock.NewController(t)
 	mocks := &pairingViewerMocks{
-		pairing:          repomock.NewMockPairingRepository(ctrl),
-		relationshipRepo: repomock.NewMockUserRelationshipRepository(ctrl),
-		teamMember:       repomock.NewMockTeamMemberRepository(ctrl),
-		team:             repomock.NewMockTeamRepository(ctrl),
-		dept:             repomock.NewMockDepartmentRepository(ctrl),
-		user:             repomock.NewMockUserRepository(ctrl),
+		pairing:    repomock.NewMockPairingRepository(ctrl),
+		teamMember: repomock.NewMockTeamMemberRepository(ctrl),
+		team:       repomock.NewMockTeamRepository(ctrl),
+		dept:       repomock.NewMockDepartmentRepository(ctrl),
+		user:       repomock.NewMockUserRepository(ctrl),
 	}
 	uc := pairing_mng_usecase.NewPairingViewer(
 		mocks.user,
-		mocks.relationshipRepo,
 		mocks.pairing,
 		mocks.teamMember,
 		mocks.team,
@@ -41,20 +38,15 @@ func newPairingViewer(t *testing.T) (*pairing_mng_usecase.PairingViewer, *pairin
 	return uc, mocks
 }
 
-func TestPairingViewer_ListPairingsByBoss_SkipsNilPairing(t *testing.T) {
-	uc, mocks := newPairingViewer(t)
-	mocks.relationshipRepo.EXPECT().GetByBossID(validBossID).Return([]entity.UserRelationship{
-		newTestUserRelationship(1, validMenteeID, validBossID),
-	}, nil)
-	mocks.pairing.EXPECT().GetByMenteeID(validMenteeID).Return(nil, nil)
-
-	got, err := uc.ListPairingsByBoss(validBossID)
-	assertUsecaseErr(t, err, false, "", "ListPairingsByBoss")
-	assertPairingOutputIDSet(t, nil, got)
+func expectPairingEnrichRepos(m *pairingViewerMocks) {
+	m.user.EXPECT().GetAll().Return(nil, nil).AnyTimes()
+	m.team.EXPECT().GetAll().Return(nil, nil).AnyTimes()
+	m.dept.EXPECT().GetAll().Return(nil, nil).AnyTimes()
 }
 
 func TestPairingViewer_ListPairingsByTeam_SkipsNilPairing(t *testing.T) {
 	uc, mocks := newPairingViewer(t)
+	expectPairingEnrichRepos(mocks)
 	mocks.teamMember.EXPECT().GetByTeamID(validTeamID).Return([]entity.TeamMember{
 		newTestTeamMember(1, validTeamID, validMemberID),
 	}, nil)
@@ -67,6 +59,7 @@ func TestPairingViewer_ListPairingsByTeam_SkipsNilPairing(t *testing.T) {
 
 func TestPairingViewer_ListPairingsByDepartment_SkipsNilPairing(t *testing.T) {
 	uc, mocks := newPairingViewer(t)
+	expectPairingEnrichRepos(mocks)
 	mocks.user.EXPECT().GetByDepartmentID(validDepartmentID).Return([]entity.User{
 		*newTestUser(validMenteeID, "dept-user"),
 	}, nil)

@@ -12,27 +12,24 @@ import (
 )
 
 type meetingViewerMocks struct {
-	meeting          *repomock.MockMeetingRepository
-	pairing          *repomock.MockPairingRepository
-	userRelationship *repomock.MockUserRelationshipRepository
-	user             *repomock.MockUserRepository
-	teamMember       *repomock.MockTeamMemberRepository
+	meeting    *repomock.MockMeetingRepository
+	pairing    *repomock.MockPairingRepository
+	user       *repomock.MockUserRepository
+	teamMember *repomock.MockTeamMemberRepository
 }
 
 func newMeetingViewer(t *testing.T) (*meeting_mng_usecase.MeetingViewer, *meetingViewerMocks) {
 	t.Helper()
 	ctrl := gomock.NewController(t)
 	mocks := &meetingViewerMocks{
-		meeting:          repomock.NewMockMeetingRepository(ctrl),
-		pairing:          repomock.NewMockPairingRepository(ctrl),
-		userRelationship: repomock.NewMockUserRelationshipRepository(ctrl),
-		user:             repomock.NewMockUserRepository(ctrl),
-		teamMember:       repomock.NewMockTeamMemberRepository(ctrl),
+		meeting:    repomock.NewMockMeetingRepository(ctrl),
+		pairing:    repomock.NewMockPairingRepository(ctrl),
+		user:       repomock.NewMockUserRepository(ctrl),
+		teamMember: repomock.NewMockTeamMemberRepository(ctrl),
 	}
 	uc := meeting_mng_usecase.NewMeetingViewer(
 		mocks.meeting,
 		mocks.pairing,
-		mocks.userRelationship,
 		mocks.user,
 		mocks.teamMember,
 	)
@@ -107,110 +104,6 @@ func TestMeetingViewer_ListMeetingsByMentor(t *testing.T) {
 
 			got, gotErr := uc.ListMeetingsByMentor(tt.mentorID)
 			assertUsecaseErr(t, gotErr, tt.wantErr, tt.errContains, "ListMeetingsByMentor")
-			if t.Failed() {
-				return
-			}
-			if tt.assertFn != nil {
-				tt.assertFn(t, got)
-			}
-		})
-	}
-}
-
-func TestMeetingViewer_ListMeetingsByBoss(t *testing.T) {
-	tests := []struct {
-		name        string
-		bossID      uint
-		wantErr     bool
-		errContains string
-		setup       func(m *meetingViewerMocks)
-		assertFn    func(t *testing.T, got []outputmodel.MeetingOutput)
-	}{
-		{
-			name:   "通常系_部下のミーティングを取得",
-			bossID: validBossID,
-			wantErr: false,
-			setup: func(m *meetingViewerMocks) {
-				m.userRelationship.EXPECT().GetByBossID(validBossID).Return([]entity.UserRelationship{
-					newTestUserRelationship(1, validMenteeID, validBossID),
-				}, nil)
-				m.pairing.EXPECT().GetByMenteeID(validMenteeID).Return(newTestPairing(pairingID1, validMenteeID, validMentorID), nil)
-				m.meeting.EXPECT().GetByPairingID(pairingID1).Return([]entity.Meeting{newTestMeeting(meetingID1, pairingID1)}, nil)
-			},
-			assertFn: func(t *testing.T, got []outputmodel.MeetingOutput) {
-				assertMeetingOutputIDSet(t, []uint{meetingID1}, got)
-			},
-		},
-		{
-			name:   "通常系_リレーションが空",
-			bossID: validBossID,
-			wantErr: false,
-			setup: func(m *meetingViewerMocks) {
-				m.userRelationship.EXPECT().GetByBossID(validBossID).Return([]entity.UserRelationship{}, nil)
-			},
-			assertFn: func(t *testing.T, got []outputmodel.MeetingOutput) {
-				assertMeetingOutputIDSet(t, nil, got)
-			},
-		},
-		{
-			name:    "通常系_部下にペアリングなし",
-			bossID:  validBossID,
-			wantErr: false,
-			setup: func(m *meetingViewerMocks) {
-				m.userRelationship.EXPECT().GetByBossID(validBossID).Return([]entity.UserRelationship{
-					newTestUserRelationship(1, validMenteeID, validBossID),
-				}, nil)
-				m.pairing.EXPECT().GetByMenteeID(validMenteeID).Return(nil, nil)
-			},
-			assertFn: func(t *testing.T, got []outputmodel.MeetingOutput) {
-				assertMeetingOutputIDSet(t, nil, got)
-			},
-		},
-		{
-			name:        "異常系_GetByBossID失敗",
-			bossID:      validBossID,
-			wantErr:     true,
-			errContains: "上司ユーザID指定でのミーティングリスト作成のユーザリレーション情報取得に失敗しました",
-			setup: func(m *meetingViewerMocks) {
-				m.userRelationship.EXPECT().GetByBossID(validBossID).Return(nil, errGetRelationshipsFailed)
-			},
-		},
-		{
-			name:        "異常系_GetByMenteeID失敗",
-			bossID:      validBossID,
-			wantErr:     true,
-			errContains: "部下ユーザID（メンティーユーザID）でのペアリング情報取得に失敗しました",
-			setup: func(m *meetingViewerMocks) {
-				m.userRelationship.EXPECT().GetByBossID(validBossID).Return([]entity.UserRelationship{
-					newTestUserRelationship(1, validMenteeID, validBossID),
-				}, nil)
-				m.pairing.EXPECT().GetByMenteeID(validMenteeID).Return(nil, errGetPairingsFailed)
-			},
-		},
-		{
-			name:        "異常系_GetByPairingID失敗",
-			bossID:      validBossID,
-			wantErr:     true,
-			errContains: "ペアリングユーザID指定でのミーティング情報取得に失敗しました",
-			setup: func(m *meetingViewerMocks) {
-				m.userRelationship.EXPECT().GetByBossID(validBossID).Return([]entity.UserRelationship{
-					newTestUserRelationship(1, validMenteeID, validBossID),
-				}, nil)
-				m.pairing.EXPECT().GetByMenteeID(validMenteeID).Return(newTestPairing(pairingID1, validMenteeID, validMentorID), nil)
-				m.meeting.EXPECT().GetByPairingID(pairingID1).Return(nil, errGetMeetingsFailed)
-			},
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			uc, mocks := newMeetingViewer(t)
-			if tt.setup != nil {
-				tt.setup(mocks)
-			}
-
-			got, gotErr := uc.ListMeetingsByBoss(tt.bossID)
-			assertUsecaseErr(t, gotErr, tt.wantErr, tt.errContains, "ListMeetingsByBoss")
 			if t.Failed() {
 				return
 			}
