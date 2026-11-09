@@ -31,7 +31,7 @@ func (h *Handler) ListPairings(c *echo.Context) error {
 	if claims == nil {
 		return c.JSON(http.StatusUnauthorized, map[string]string{"error": "unauthorized"})
 	}
-	list, err := h.deps.Planning.ListPairingsForManagement(claims.UserID, authctx.IsSystemAdmin(c))
+	list, err := h.deps.Planning.ListPairingsForManagement(claims.UserID, authctx.SystemRole(c))
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
@@ -43,7 +43,7 @@ func (h *Handler) ListPairingsForMeeting(c *echo.Context) error {
 	if claims == nil {
 		return c.JSON(http.StatusUnauthorized, map[string]string{"error": "unauthorized"})
 	}
-	list, err := h.deps.Planning.ListPairingsForMeeting(claims.UserID, authctx.IsSystemAdmin(c))
+	list, err := h.deps.Planning.ListPairingsForMeeting(claims.UserID, authctx.SystemRole(c))
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}

@@ -149,7 +149,6 @@ func main() {
 		),
 		OrgAdmin:       org_admin_usecase.NewOrgAdmin(deptRepo, teamRepo, deptHierarchyRepo, deptRoleRepo, deptMemberRepo, teamMemberRepo, userRepo, userDeptRepo),
 		RemindSettings: remind_settings_usecase.NewRemindSettings(systemSettingsRepo),
-		Progress:       progress_mng_usecase.NewProgressViewer(meetingRepo, userRepo, teamMemberRepo, userDeptRepo, deptRefRepo, teamRefRepo, relationshipRepo),
 	}
 
 	planningAccess := planning_usecase.NewPlanningAccessUsecase(
@@ -164,6 +163,8 @@ func main() {
 		managementBundle.Pairing,
 		pairingRepo,
 	)
+
+	managementBundle.Progress = progress_mng_usecase.NewProgressViewer(meetingRepo, planningAccess)
 
 	deps := handler.Deps{
 		Auth:           authUC,

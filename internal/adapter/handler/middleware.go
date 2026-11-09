@@ -125,7 +125,7 @@ func PlanningPairManagementPage(planning *planning_usecase.PlanningAccessUsecase
 			if claims == nil {
 				return c.Redirect(http.StatusFound, "/login")
 			}
-			ok, err := planning.HasPairManagementAccess(claims.UserID, authctx.IsSystemAdmin(c))
+			ok, err := planning.HasPairManagementAccess(claims.UserID, claims.SystemRole)
 			if err != nil || !ok {
 				return c.Redirect(http.StatusFound, "/planning/meetings")
 			}
@@ -141,7 +141,7 @@ func PlanningPairManagementAPI(planning *planning_usecase.PlanningAccessUsecase)
 			if claims == nil {
 				return c.JSON(http.StatusUnauthorized, map[string]string{"error": "unauthorized"})
 			}
-			ok, err := planning.HasPairManagementAccess(claims.UserID, authctx.IsSystemAdmin(c))
+			ok, err := planning.HasPairManagementAccess(claims.UserID, claims.SystemRole)
 			if err != nil {
 				return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 			}

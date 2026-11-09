@@ -23,7 +23,7 @@ func (h *Handler) GetMeeting(c *echo.Context) error {
 		return c.JSON(http.StatusNotFound, map[string]string{"error": "not found"})
 	}
 	if claims := authctx.Claims(c); claims != nil {
-		ok, err := h.deps.Planning.CanViewPlanningMeeting(claims.UserID, authctx.IsSystemAdmin(c), meeting.ID)
+		ok, err := h.deps.Planning.CanViewPlanningMeeting(claims.UserID, authctx.SystemRole(c), meeting.ID)
 		if err != nil {
 			return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 		}
@@ -278,7 +278,7 @@ func (h *Handler) ListMeetingsAll(c *echo.Context) error {
 	if claims == nil {
 		return c.JSON(http.StatusUnauthorized, map[string]string{"error": "unauthorized"})
 	}
-	list, err := h.deps.Planning.ListPlanningMeetings(claims.UserID, authctx.IsSystemAdmin(c))
+	list, err := h.deps.Planning.ListPlanningMeetings(claims.UserID, authctx.SystemRole(c))
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}

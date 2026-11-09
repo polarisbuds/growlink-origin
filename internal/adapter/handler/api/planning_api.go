@@ -4,12 +4,10 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/labstack/echo/v5"
 	"growlink/internal/adapter/handler/authctx"
 	"growlink/internal/application/converter"
 	outputmodel "growlink/internal/application/model/output_model"
-	"growlink/internal/domain/valueobject"
-
-	"github.com/labstack/echo/v5"
 )
 
 func stringsJoinUnique(items []string) string {
@@ -68,6 +66,16 @@ func teamMembersToOutputs(h *Handler, teamID uint) ([]outputmodel.UserOutput, er
 }
 
 func (h *Handler) ListPlanningDirectory(c *echo.Context) error {
+	claims := authctx.Claims(c)
+	var referable map[uint]bool
+	if claims != nil && h.deps.Planning != nil {
+		var err error
+		referable, err = h.deps.Planning.ReferableUserIDs(claims.UserID, claims.SystemRole)
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		}
+	}
+
 	users, err := h.deps.UserRepo.GetAll()
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
@@ -75,6 +83,9 @@ func (h *Handler) ListPlanningDirectory(c *echo.Context) error {
 	userOuts := make([]planningDirectoryUser, 0, len(users))
 	for _, u := range users {
 		if u.Suspended {
+			continue
+		}
+		if referable != nil && !referable[u.ID] {
 			continue
 		}
 		roleName := ""
@@ -126,30 +137,26 @@ func (h *Handler) ListPlanningDirectory(c *echo.Context) error {
 	}
 
 	managedTeams := []planningTeamOutput{}
-	claims := authctx.Claims(c)
-	if claims != nil && h.deps.TeamRefRepo != nil {
-		user, err := h.deps.UserRepo.GetByID(claims.UserID)
-		if err == nil && user.OperationTarget == valueobject.OperationTargetTeam {
-			refs, err := h.deps.TeamRefRepo.GetByUserID(claims.UserID)
+	if claims != nil && h.deps.Planning != nil {
+		leaderTeamIDs, err := h.deps.Planning.LeaderTeamIDs(claims.UserID)
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		}
+		for _, teamID := range leaderTeamIDs {
+			team, err := h.deps.TeamRepo.GetByID(teamID)
+			if err != nil {
+				continue
+			}
+			memberOuts, err := teamMembersToOutputs(h, team.ID)
 			if err != nil {
 				return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 			}
-			for _, ref := range refs {
-				team, err := h.deps.TeamRepo.GetByID(ref.ReferableTeamID)
-				if err != nil {
-					continue
-				}
-				memberOuts, err := teamMembersToOutputs(h, team.ID)
-				if err != nil {
-					return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
-				}
-				managedTeams = append(managedTeams, planningTeamOutput{
-					ID:           team.ID,
-					Name:         team.Name,
-					DepartmentID: team.DepartmentID,
-					Members:      memberOuts,
-				})
-			}
+			managedTeams = append(managedTeams, planningTeamOutput{
+				ID:           team.ID,
+				Name:         team.Name,
+				DepartmentID: team.DepartmentID,
+				Members:      memberOuts,
+			})
 		}
 	}
 

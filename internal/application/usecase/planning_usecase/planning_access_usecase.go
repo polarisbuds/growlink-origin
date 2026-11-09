@@ -84,8 +84,8 @@ func dedupePairings(pairings []outputmodel.PairingOutput) []outputmodel.PairingO
 	return out
 }
 
-func (uc *PlanningAccessUsecase) ListPlanningMeetings(userID uint, isSystemAdmin bool) ([]outputmodel.MeetingOutput, error) {
-	if isSystemAdmin {
+func (uc *PlanningAccessUsecase) ListPlanningMeetings(userID uint, systemRole valueobject.SystemRole) ([]outputmodel.MeetingOutput, error) {
+	if fullPlanningAccess(systemRole) {
 		meetings, err := uc.meetingRepo.GetAll()
 		if err != nil {
 			return []outputmodel.MeetingOutput{}, fmt.Errorf("ミーティング一覧の取得に失敗しました: %w", err)
@@ -94,28 +94,26 @@ func (uc *PlanningAccessUsecase) ListPlanningMeetings(userID uint, isSystemAdmin
 	}
 	merged := []outputmodel.MeetingOutput{}
 
-	// メンティー分
 	involved, err := uc.meetingList.ListInvolvedMeetings(userID)
 	if err != nil {
 		return []outputmodel.MeetingOutput{}, err
 	}
 	merged = append(merged, involved...)
 
-	// 上司分
-	bossMeetings, err := uc.meetingViewer.ListMeetingsByBoss(userID)
+	referable, err := uc.ReferableUserIDs(userID, systemRole)
 	if err != nil {
 		return []outputmodel.MeetingOutput{}, err
 	}
-	merged = append(merged, bossMeetings...)
-
-	// 部署役職とチームリーダー分
-	teamMeetings, err := uc.listMeetingsForOrgFlags(userID)
+	menteeIDs := make([]uint, 0, len(referable))
+	for id := range referable {
+		menteeIDs = append(menteeIDs, id)
+	}
+	scopedMeetings, err := uc.listMeetingsByMenteeIDs(menteeIDs)
 	if err != nil {
 		return []outputmodel.MeetingOutput{}, err
 	}
-	merged = append(merged, teamMeetings...)
+	merged = append(merged, scopedMeetings...)
 
-	// 共有された分
 	shared, err := uc.meetingList.ListSharedMeetings(userID)
 	if err != nil {
 		return []outputmodel.MeetingOutput{}, err
@@ -125,11 +123,11 @@ func (uc *PlanningAccessUsecase) ListPlanningMeetings(userID uint, isSystemAdmin
 	return dedupeMeetings(merged), nil
 }
 
-func (uc *PlanningAccessUsecase) CanViewPlanningMeeting(userID uint, isSystemAdmin bool, meetingID uint) (bool, error) {
-	if isSystemAdmin {
+func (uc *PlanningAccessUsecase) CanViewPlanningMeeting(userID uint, systemRole valueobject.SystemRole, meetingID uint) (bool, error) {
+	if fullPlanningAccess(systemRole) {
 		return true, nil
 	}
-	list, err := uc.ListPlanningMeetings(userID, false)
+	list, err := uc.ListPlanningMeetings(userID, systemRole)
 	if err != nil {
 		return false, err
 	}
@@ -141,72 +139,26 @@ func (uc *PlanningAccessUsecase) CanViewPlanningMeeting(userID uint, isSystemAdm
 	return false, nil
 }
 
-func (uc *PlanningAccessUsecase) listMeetingsForOrgFlags(userID uint) ([]outputmodel.MeetingOutput, error) {
-	var merged []outputmodel.MeetingOutput
-	menteeIDs, err := uc.departmentScopeUserIDs(userID)
-	if err != nil {
-		return nil, err
-	}
-	deptMeetings, err := uc.listMeetingsByMenteeIDs(menteeIDs)
-	if err != nil {
-		return nil, err
-	}
-	merged = append(merged, deptMeetings...)
-
-	teamIDs, err := uc.readerTeamIDs(userID)
-	if err != nil {
-		return nil, err
-	}
-	for _, teamID := range teamIDs {
-		teamMeetings, err := uc.meetingViewer.ListMeetingsByTeam(teamID)
-		if err != nil {
-			return nil, err
-		}
-		merged = append(merged, teamMeetings...)
-	}
-	return merged, nil
-}
-
-func (uc *PlanningAccessUsecase) HasPairManagementAccess(userID uint, isSystemAdmin bool) (bool, error) {
-	if isSystemAdmin {
+func (uc *PlanningAccessUsecase) HasPairManagementAccess(userID uint, systemRole valueobject.SystemRole) (bool, error) {
+	if fullPlanningAccess(systemRole) {
 		return true, nil
 	}
-	rels, err := uc.relationshipRepo.GetByBossID(userID)
+	referable, err := uc.ReferableUserIDs(userID, systemRole)
 	if err != nil {
 		return false, err
 	}
-	if len(rels) > 0 {
-		return true, nil
-	}
-	teamIDs, err := uc.readerTeamIDs(userID)
-	if err != nil {
-		return false, err
-	}
-	for _, teamID := range teamIDs {
-		members, err := uc.teamMemberRepo.GetByTeamID(teamID)
-		if err != nil {
-			return false, err
-		}
-		if len(members) > 0 {
-			return true, nil
-		}
-	}
-	scoped, err := uc.departmentScopeUserIDs(userID)
-	if err != nil {
-		return false, err
-	}
-	return len(scoped) > 0, nil
+	return len(referable) > 0, nil
 }
 
-func (uc *PlanningAccessUsecase) ListPairingsForManagement(userID uint, isSystemAdmin bool) ([]outputmodel.PairingOutput, error) {
-	if isSystemAdmin {
+func (uc *PlanningAccessUsecase) ListPairingsForManagement(userID uint, systemRole valueobject.SystemRole) ([]outputmodel.PairingOutput, error) {
+	if fullPlanningAccess(systemRole) {
 		return uc.pairingViewer.ListPairingsByAll()
 	}
-	return uc.listSubordinateScopedPairings(userID)
+	return uc.listReferableScopedPairings(userID, systemRole)
 }
 
-func (uc *PlanningAccessUsecase) ListPairingsForMeeting(userID uint, isSystemAdmin bool) ([]outputmodel.PairingOutput, error) {
-	if isSystemAdmin {
+func (uc *PlanningAccessUsecase) ListPairingsForMeeting(userID uint, systemRole valueobject.SystemRole) ([]outputmodel.PairingOutput, error) {
+	if fullPlanningAccess(systemRole) {
 		return uc.pairingViewer.ListPairingsByAll()
 	}
 
@@ -224,44 +176,24 @@ func (uc *PlanningAccessUsecase) ListPairingsForMeeting(userID uint, isSystemAdm
 		}
 	}
 
-	subordinate, err := uc.listSubordinateScopedPairings(userID)
+	scoped, err := uc.listReferableScopedPairings(userID, systemRole)
 	if err != nil {
 		return nil, err
 	}
-	merged = append(merged, subordinate...)
+	merged = append(merged, scoped...)
 	return dedupePairings(merged), nil
 }
 
-func (uc *PlanningAccessUsecase) listSubordinateScopedPairings(userID uint) ([]outputmodel.PairingOutput, error) {
-	var merged []outputmodel.PairingOutput
-	bossPairs, err := uc.pairingViewer.ListPairingsByBoss(userID)
+func (uc *PlanningAccessUsecase) listReferableScopedPairings(userID uint, systemRole valueobject.SystemRole) ([]outputmodel.PairingOutput, error) {
+	referable, err := uc.ReferableUserIDs(userID, systemRole)
 	if err != nil {
 		return nil, err
 	}
-	merged = append(merged, bossPairs...)
-
-	menteeIDs, err := uc.departmentScopeUserIDs(userID)
-	if err != nil {
-		return nil, err
+	menteeIDs := make([]uint, 0, len(referable))
+	for id := range referable {
+		menteeIDs = append(menteeIDs, id)
 	}
-	deptPairs, err := uc.listPairingsByMenteeIDs(menteeIDs)
-	if err != nil {
-		return nil, err
-	}
-	merged = append(merged, deptPairs...)
-
-	teamIDs, err := uc.readerTeamIDs(userID)
-	if err != nil {
-		return nil, err
-	}
-	for _, teamID := range teamIDs {
-		teamPairs, err := uc.pairingViewer.ListPairingsByTeam(teamID)
-		if err != nil {
-			return nil, err
-		}
-		merged = append(merged, teamPairs...)
-	}
-	return dedupePairings(merged), nil
+	return uc.listPairingsByMenteeIDs(menteeIDs)
 }
 
 func (uc *PlanningAccessUsecase) readerTeamIDs(userID uint) ([]uint, error) {
@@ -402,16 +334,13 @@ func (uc *PlanningAccessUsecase) listPairingsByMenteeIDs(ids []uint) ([]outputmo
 	return merged, nil
 }
 
-func (uc *PlanningAccessUsecase) CanSpecifyPairMeeting(userID uint, systemRole valueobject.SystemRole, authority valueobject.Authority) (bool, error) {
-	if systemRole == valueobject.SystemRoleAdmin {
+func (uc *PlanningAccessUsecase) CanSpecifyPairMeeting(userID uint, systemRole valueobject.SystemRole, _ valueobject.Authority) (bool, error) {
+	if fullPlanningAccess(systemRole) {
 		return true, nil
 	}
-	if int(authority) >= int(valueobject.AuthorityBoss) {
-		return true, nil
-	}
-	pairs, err := uc.pairingViewer.ListPairingsByMentor(userID)
+	referable, err := uc.ReferableUserIDs(userID, systemRole)
 	if err != nil {
 		return false, err
 	}
-	return len(pairs) > 0, nil
+	return len(referable) > 0, nil
 }
