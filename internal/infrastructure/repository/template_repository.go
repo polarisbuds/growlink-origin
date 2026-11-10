@@ -71,6 +71,28 @@ func (repo *TemplateRepository) UpdateIsLock(templateID uint, isLock bool) error
 	return nil
 }
 
+func (repo *TemplateRepository) UpdateIsDefault(templateID uint, isDefault bool) error {
+	return repo.db.WithContext(repo.ctx).Transaction(func(tx *gorm.DB) error {
+		if isDefault {
+			if err := tx.Model(&entity.Template{}).
+				Where("is_default = ? AND deleted_at IS NULL", true).
+				Update("is_default", false).Error; err != nil {
+				return fmt.Errorf("既存の初期テンプレートフラグの解除に失敗しました: %w", err)
+			}
+		}
+		res := tx.Model(&entity.Template{}).
+			Where("id = ? AND deleted_at IS NULL", templateID).
+			Update("is_default", isDefault)
+		if res.Error != nil {
+			return fmt.Errorf("テンプレートの初期フラグ更新に失敗しました: %w", res.Error)
+		}
+		if res.RowsAffected == 0 {
+			return gorm.ErrRecordNotFound
+		}
+		return nil
+	})
+}
+
 func (repo *TemplateRepository) Delete(templateID uint) error {
 	if _, err := gorm.G[entity.Template](repo.db).Where("id = ?", templateID).Delete(repo.ctx); err != nil {
 		return fmt.Errorf("テンプレートの削除に失敗しました: %w", err)

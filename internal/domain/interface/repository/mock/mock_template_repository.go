@@ -272,6 +272,44 @@ func (c *MockTemplateRepositoryUpdateCall) DoAndReturn(f func(uint, *entity.Temp
 	return c
 }
 
+// UpdateIsDefault mocks base method.
+func (m *MockTemplateRepository) UpdateIsDefault(templateID uint, isDefault bool) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateIsDefault", templateID, isDefault)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateIsDefault indicates an expected call of UpdateIsDefault.
+func (mr *MockTemplateRepositoryMockRecorder) UpdateIsDefault(templateID, isDefault any) *MockTemplateRepositoryUpdateIsDefaultCall {
+	mr.mock.ctrl.T.Helper()
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateIsDefault", reflect.TypeOf((*MockTemplateRepository)(nil).UpdateIsDefault), templateID, isDefault)
+	return &MockTemplateRepositoryUpdateIsDefaultCall{Call: call}
+}
+
+// MockTemplateRepositoryUpdateIsDefaultCall wrap *gomock.Call
+type MockTemplateRepositoryUpdateIsDefaultCall struct {
+	*gomock.Call
+}
+
+// Return rewrite *gomock.Call.Return
+func (c *MockTemplateRepositoryUpdateIsDefaultCall) Return(arg0 error) *MockTemplateRepositoryUpdateIsDefaultCall {
+	c.Call = c.Call.Return(arg0)
+	return c
+}
+
+// Do rewrite *gomock.Call.Do
+func (c *MockTemplateRepositoryUpdateIsDefaultCall) Do(f func(uint, bool) error) *MockTemplateRepositoryUpdateIsDefaultCall {
+	c.Call = c.Call.Do(f)
+	return c
+}
+
+// DoAndReturn rewrite *gomock.Call.DoAndReturn
+func (c *MockTemplateRepositoryUpdateIsDefaultCall) DoAndReturn(f func(uint, bool) error) *MockTemplateRepositoryUpdateIsDefaultCall {
+	c.Call = c.Call.DoAndReturn(f)
+	return c
+}
+
 // UpdateIsLock mocks base method.
 func (m *MockTemplateRepository) UpdateIsLock(templateID uint, isLock bool) error {
 	m.ctrl.T.Helper()

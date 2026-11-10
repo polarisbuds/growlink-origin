@@ -29,9 +29,9 @@ func genSeed(db *gorm.DB) error {
 	password := &hashed
 
 	return db.Transaction(func(tx *gorm.DB) error {
-		roleGeneral := &entity.Role{Name: "一般", Rank: 10}
-		roleBoss := &entity.Role{Name: "部長", Rank: 100}
-		roleOwner := &entity.Role{Name: "オーナー", Rank: 200}
+		roleGeneral := &entity.Role{Name: "一般"}
+		roleBoss := &entity.Role{Name: "部長"}
+		roleOwner := &entity.Role{Name: "オーナー"}
 		if err := tx.Create([]*entity.Role{roleGeneral, roleBoss, roleOwner}).Error; err != nil {
 			return err
 		}
@@ -137,6 +137,7 @@ func genSeed(db *gorm.DB) error {
 			Title:       "1on1テンプレート",
 			Description: "メンターとメンティーの定例1on1で、成果と課題を共有するためのテンプレートです。",
 			IsSample:    true,
+			IsDefault:   true,
 			UserID:      owner.ID,
 		}
 		if err := tx.Create(template).Error; err != nil {

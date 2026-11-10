@@ -18,7 +18,7 @@
     const multiPickInputClass =
         "input input-bordered w-full text-left font-normal placeholder-current";
 
-    type Template = { uuid: string; title?: string };
+    type Template = { uuid: string; title?: string; isDefault?: boolean };
     type User = {
         uuid: string;
         name: string;
@@ -174,7 +174,9 @@
         currentUserUuid =
             users.find((u) => u.email === profile.email)?.uuid || "";
         canSpecifyPair = getAvatar()?.canSpecifyPair ?? false;
-        form.templateUuid = templates[0]?.uuid || "";
+        const defaultTpl =
+            templates.find((x) => x.isDefault) ?? templates[0];
+        form.templateUuid = defaultTpl?.uuid || "";
     });
 
     function togglePair(uuid: string) {

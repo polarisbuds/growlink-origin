@@ -3,7 +3,6 @@ package page
 import (
 	"net/http"
 
-	"github.com/google/uuid"
 	"github.com/labstack/echo/v5"
 )
 
@@ -29,21 +28,4 @@ func (h *Handler) PairingNewPage(c *echo.Context) error {
 	data["PlanningTab"] = "pairs"
 	data["Breadcrumb"] = "ペア作成"
 	return c.Render(http.StatusOK, "pairing_new.html", data)
-}
-
-func (h *Handler) PairingEditPage(c *echo.Context) error {
-	data := h.baseData(c, "planning-pairs-edit")
-	pairUUID, err := uuid.Parse(c.Param("uuid"))
-	if err != nil {
-		return c.Redirect(http.StatusFound, "/planning/pairs")
-	}
-	pair, err := h.deps.Management.Pairing.GetPairingByUUID(pairUUID)
-	if err != nil {
-		return c.Redirect(http.StatusFound, "/planning/pairs")
-	}
-	data["Pairing"] = pair
-	data["PairingJSON"] = mustJSON(pair)
-	data["PlanningTab"] = "pairs"
-	data["Breadcrumb"] = "ペア編集"
-	return c.Render(http.StatusOK, "pairing_edit.html", data)
 }

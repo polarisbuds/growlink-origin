@@ -109,7 +109,10 @@ func (repo *PairingRepository) GetByMenteeID(menteeID uint) (*entity.Pairing, er
 		Where("mentee_id = ? AND is_temporary = ?", menteeID, false).
 		Order("id ASC").
 		First(repo.ctx)
-	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, nil
+	}
+	if err != nil {
 		return nil, fmt.Errorf("メンティーID指定でのペアリング取得に失敗しました: %w", err)
 	}
 	return &pairing, nil

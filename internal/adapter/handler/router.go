@@ -86,7 +86,6 @@ func RegisterRoutes(e *echo.Echo, deps Deps, auditLogger *slog.Logger) {
 	pairPage := PlanningPairManagementPage(deps.Planning)
 	auth.GET("/planning/pairs", spa, pairPage, auditLogging(auditLogger, false))
 	auth.GET("/planning/pairs/new", spa, pairPage, auditLogging(auditLogger, false))
-	auth.GET("/planning/pairs/:uuid/edit", spa, pairPage, auditLogging(auditLogger, false))
 	auth.GET("/planning/templates", spa, auditLogging(auditLogger, false))
 	auth.GET("/planning/templates/new", spa, auditLogging(auditLogger, false))
 	auth.GET("/planning/templates/:uuid", spa, auditLogging(auditLogger, false))
@@ -128,7 +127,6 @@ func RegisterRoutes(e *echo.Echo, deps Deps, auditLogger *slog.Logger) {
 	apiAuth.GET("/pairings", ah.ListPairings, pairAPI, auditLogging(auditLogger, false))
 	apiAuth.GET("/pairings/:uuid", ah.GetPairing, pairAPI, auditLogging(auditLogger, false))
 	apiAuth.POST("/pairings", ah.CreatePairing, pairAPI, auditLogging(auditLogger, false))
-	apiAuth.PUT("/pairings/:uuid", ah.UpdatePairing, pairAPI, auditLogging(auditLogger, false))
 	apiAuth.DELETE("/pairings/:uuid", ah.DeletePairing, pairAPI, auditLogging(auditLogger, false))
 
 	apiAuth.GET("/templates", ah.ListTemplates, auditLogging(auditLogger, false))
@@ -136,6 +134,7 @@ func RegisterRoutes(e *echo.Echo, deps Deps, auditLogger *slog.Logger) {
 	apiAuth.POST("/templates", ah.CreateTemplate, auditLogging(auditLogger, false))
 	apiAuth.PUT("/templates/:uuid", ah.UpdateTemplate, auditLogging(auditLogger, false))
 	apiAuth.PUT("/templates/:uuid/lock", ah.UpdateTemplateLock, auditLogging(auditLogger, false))
+	apiAuth.PUT("/templates/:uuid/default", ah.UpdateTemplateDefault, SystemAdminAPI(), auditLogging(auditLogger, false))
 	apiAuth.DELETE("/templates/:uuid", ah.DeleteTemplate, auditLogging(auditLogger, false))
 	apiAuth.POST("/templates/:uuid/copy", ah.CopyTemplate, auditLogging(auditLogger, false))
 

@@ -12,8 +12,9 @@ type Template struct {
 	Title       string    `gorm:"type:text;not null"`
 	Description string    `gorm:"type:text;not null;default:''"`
 
-	IsSample bool `gorm:"not null;default:false"`
-	IsLock   bool `gorm:"not null;default:false"`
+	IsSample    bool `gorm:"not null;default:false"`
+	IsLock      bool `gorm:"not null;default:false"`
+	IsDefault   bool `gorm:"not null;default:false;column:is_default"`
 
 	UserID uint `gorm:"not null;index;column:creator_id"`
 

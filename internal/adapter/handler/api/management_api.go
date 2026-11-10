@@ -225,7 +225,6 @@ func (h *Handler) CreateTeam(c *echo.Context) error {
 func (h *Handler) CreateRole(c *echo.Context) error {
 	var req struct {
 		Name string `json:"name"`
-		Rank int    `json:"rank"`
 	}
 	if err := c.Bind(&req); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid request"})
@@ -234,11 +233,11 @@ func (h *Handler) CreateRole(c *echo.Context) error {
 	if name == "" {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "役職名を入力してください"})
 	}
-	role := &entity.Role{Name: name, Rank: req.Rank}
+	role := &entity.Role{Name: name}
 	if err := h.deps.RoleRepo.Create(role); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
 	}
-	return c.JSON(http.StatusCreated, map[string]interface{}{"uuid": role.UUID.String(), "name": role.Name, "rank": role.Rank})
+	return c.JSON(http.StatusCreated, map[string]interface{}{"uuid": role.UUID.String(), "name": role.Name})
 }
 
 func (h *Handler) DeleteTeam(c *echo.Context) error {
@@ -287,7 +286,7 @@ func (h *Handler) ListManagementOptions(c *echo.Context) error {
 	}
 	roleOpts := make([]map[string]interface{}, 0, len(roles))
 	for _, r := range roles {
-		roleOpts = append(roleOpts, map[string]interface{}{"uuid": r.UUID.String(), "name": r.Name, "rank": r.Rank})
+		roleOpts = append(roleOpts, map[string]interface{}{"uuid": r.UUID.String(), "name": r.Name})
 	}
 	return c.JSON(http.StatusOK, map[string]interface{}{
 		"departments": depts,

@@ -76,36 +76,16 @@ func (h *Handler) CreatePairing(c *echo.Context) error {
 	if err := h.resolvePairingInput(c, &req); err != nil {
 		return err
 	}
+	for _, t := range req.ResolvedTargets() {
+		ok, err := h.deps.Planning.CanManagePairingMentee(claims.UserID, claims.SystemRole, t.TargetID)
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		}
+		if !ok {
+			return c.JSON(http.StatusForbidden, map[string]string{"error": "forbidden"})
+		}
+	}
 	if err := h.deps.Management.PairingCreator.CreatePairingFromInput(req, claims.UserID); err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
-	}
-	return c.JSON(http.StatusOK, map[string]string{"ok": "true"})
-}
-
-func (h *Handler) UpdatePairing(c *echo.Context) error {
-	claims := authctx.Claims(c)
-	if claims == nil {
-		return c.JSON(http.StatusUnauthorized, map[string]string{"error": "unauthorized"})
-	}
-	var req inputmodel.PairingInput
-	if err := c.Bind(&req); err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid request"})
-	}
-	if err := h.resolvePairingInput(c, &req); err != nil {
-		return err
-	}
-	pairingID, err := h.resolvePairingID(c.Param("uuid"))
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid pairing id"})
-	}
-	pair, err := h.deps.PairingRepo.Get(pairingID)
-	if err != nil {
-		return c.JSON(http.StatusNotFound, map[string]string{"error": "not found"})
-	}
-	if !authctx.CanModify(claims.UserID, claims.SystemRole, pair.CreatedByUserID) {
-		return c.JSON(http.StatusForbidden, map[string]string{"error": "forbidden"})
-	}
-	if err := h.deps.Management.PairingUpdater.UpdatePairing(pairingID, req); err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
 	return c.JSON(http.StatusOK, map[string]string{"ok": "true"})
@@ -124,7 +104,11 @@ func (h *Handler) DeletePairing(c *echo.Context) error {
 	if err != nil {
 		return c.JSON(http.StatusNotFound, map[string]string{"error": "not found"})
 	}
-	if !authctx.CanModify(claims.UserID, claims.SystemRole, pair.CreatedByUserID) {
+	ok, err := h.deps.Planning.CanBreakPairing(claims.UserID, claims.SystemRole, pair.CreatedByUserID, pair.MenteeID)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+	}
+	if !ok {
 		return c.JSON(http.StatusForbidden, map[string]string{"error": "forbidden"})
 	}
 	if err := h.deps.Management.PairingDeleter.BreakPairing(pairingID); err != nil {

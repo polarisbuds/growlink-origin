@@ -44,3 +44,10 @@ func (uc *TemplateUpdater) UpdateTemplateLock(templateID uint, isLock bool) erro
 	}
 	return nil
 }
+
+func (uc *TemplateUpdater) UpdateTemplateDefault(templateID uint, isDefault bool) error {
+	if err := uc.templateRepo.UpdateIsDefault(templateID, isDefault); err != nil {
+		return fmt.Errorf("テンプレートの初期フラグの更新に失敗しました: %w", err)
+	}
+	return nil
+}

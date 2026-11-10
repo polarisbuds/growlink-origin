@@ -21,6 +21,7 @@
         creatorName?: string;
         isSample?: boolean;
         isLock?: boolean;
+        isDefault?: boolean;
         topics?: Topic[];
     };
 
@@ -193,6 +194,33 @@
             );
         }
     }
+    async function setTemplateDefault(isDefault: boolean) {
+        if (!active) return;
+        try {
+            await api(
+                "PUT",
+                `/api/v1/templates/${active.uuid}/default`,
+                { isDefault },
+            );
+            showToast(
+                isDefault
+                    ? "ミーティング作成時の初期テンプレートに設定しました"
+                    : "初期テンプレートを解除しました",
+            );
+            await reloadTemplates();
+            if (active) {
+                const next = templates.find((x) => x.uuid === active!.uuid);
+                if (next) active = next;
+            }
+        } catch (e) {
+            showToast(
+                e instanceof Error
+                    ? e.message
+                    : "初期テンプレートの更新に失敗しました",
+                "error",
+            );
+        }
+    }
     async function copy(t: Template) {
         try {
             await api("POST", `/api/v1/templates/${t.uuid}/copy`, {});
@@ -245,6 +273,11 @@
                         {#if t.isSample}
                             <span class="badge badge-outline shrink-0"
                                 >サンプル</span>
+                        {/if}
+                        {#if t.isDefault}
+                            <span
+                                class="badge badge-info badge-outline shrink-0"
+                                >初期</span>
                         {/if}
                         {#if t.isLock}
                             <span
@@ -356,6 +389,21 @@
             </div>
         {:else}
             <div class="flex-1 space-y-3 overflow-y-auto px-6 py-4">
+                {#if isSystemAdmin}
+                    <label class="label flex cursor-pointer justify-between gap-2 rounded-2xl border border-base-300 px-3 py-2">
+                        <span class="label-text font-medium"
+                            >ミーティング作成時の初期テンプレート</span>
+                        <input
+                            type="checkbox"
+                            class="toggle toggle-primary"
+                            checked={active?.isDefault ?? false}
+                            onchange={(e) =>
+                                setTemplateDefault(
+                                    (e.currentTarget as HTMLInputElement)
+                                        .checked,
+                                )} />
+                    </label>
+                {/if}
                 <label class="form-control">
                     <span class="label-text font-medium">タイトル</span>
                     <input

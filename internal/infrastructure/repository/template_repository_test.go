@@ -141,6 +141,39 @@ func TestTemplateRepository_Update(t *testing.T) {
 	assert.Equal(t, updatedTitle, got.Title)
 }
 
+func TestTemplateRepository_UpdateIsDefault(t *testing.T) {
+	tx := testutils.Begin(t)
+	repo := newTemplateRepo(t, tx)
+
+	first := fixtures.Template(t, tx)
+	second := fixtures.Template(t, tx)
+
+	err := repo.UpdateIsDefault(first.ID, true)
+	assertions.NoError(t, err)
+
+	gotFirst, err := repo.Get(first.ID)
+	assertions.NoError(t, err)
+	assert.True(t, gotFirst.IsDefault)
+
+	err = repo.UpdateIsDefault(second.ID, true)
+	assertions.NoError(t, err)
+
+	gotFirst, err = repo.Get(first.ID)
+	assertions.NoError(t, err)
+	assert.False(t, gotFirst.IsDefault)
+
+	gotSecond, err := repo.Get(second.ID)
+	assertions.NoError(t, err)
+	assert.True(t, gotSecond.IsDefault)
+
+	err = repo.UpdateIsDefault(second.ID, false)
+	assertions.NoError(t, err)
+
+	gotSecond, err = repo.Get(second.ID)
+	assertions.NoError(t, err)
+	assert.False(t, gotSecond.IsDefault)
+}
+
 func TestTemplateRepository_Delete(t *testing.T) {
 	tx := testutils.Begin(t)
 	repo := newTemplateRepo(t, tx)

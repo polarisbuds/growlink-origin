@@ -3,7 +3,6 @@
     import { goto } from "$app/navigation";
     import { api } from "$lib/api";
     import { showToast } from "$lib/toast";
-    import UserChipSearchField from "$lib/components/UserChipSearchField.svelte";
     import SearchableSelect from "$lib/components/SearchableSelect.svelte";
     import Icon from "$lib/components/Icon.svelte";
 
@@ -22,24 +21,7 @@
         name: string;
         departmentUuid: string;
     };
-    type Target = { kind: string; targetUuid: string; label: string };
-    type PairingInitial = {
-        uuid?: string;
-        mentor?: { uuid?: string };
-        mentee?: { uuid?: string; name?: string };
-    };
-
-    let {
-        mode,
-        initialPairing = null,
-    }: {
-        mode: "create" | "edit";
-        initialPairing?: PairingInitial | null;
-    } = $props();
-
     let mentorUuid = $state("");
-    let targets = $state<Target[]>([]);
-    let pairingUUID = $state("");
     let users = $state<DirectoryUser[]>([]);
     let departments = $state<{ uuid: string; name: string }[]>([]);
     let teams = $state<DirectoryTeam[]>([]);
@@ -51,24 +33,9 @@
     let sortDir = $state<"asc" | "desc">("asc");
     let selectedMenteeUuids = $state<Set<string>>(new Set());
 
-    let userTargets = $derived(targets.filter((t) => t.kind === "user"));
-    let menteeChips = $derived(
-        userTargets.map((t) => ({
-            uuid: t.targetUuid,
-            name: displayNameForTarget(t),
-        })),
-    );
-
     function avatarURL(user: DirectoryUser) {
         if (!user.imageUri) return "";
         return `/uploads/${user.imageUri}`;
-    }
-    function displayNameForTarget(t: Target) {
-        const u = users.find((x) => x.uuid === t.targetUuid);
-        if (u) return u.name;
-        const idx = t.label.indexOf(" (");
-        if (idx > 0) return t.label.slice(0, idx);
-        return t.label || t.targetUuid;
     }
     function userLabel(uuid: string) {
         const u = users.find((x) => x.uuid === uuid);
@@ -77,23 +44,6 @@
     function userLabelOf(item: DirectoryUser) {
         return `${item.name} ${item.email}`;
     }
-    function targetKey(kind: string, targetUuid: string) {
-        return `${kind}:${targetUuid}`;
-    }
-    function addUserTarget(u: DirectoryUser) {
-        const key = targetKey("user", u.uuid);
-        if (targets.some((t) => targetKey(t.kind, t.targetUuid) === key))
-            return;
-        targets = [
-            ...targets,
-            {
-                kind: "user",
-                targetUuid: u.uuid,
-                label: `${u.name} (${u.email})`,
-            },
-        ];
-    }
-
     let teamOptions = $derived.by(() => {
         if (!filterDeptUuid) return teams;
         return teams.filter((t) => t.departmentUuid === filterDeptUuid);
@@ -184,21 +134,6 @@
         return sortDir === "asc" ? " ↑" : " ↓";
     }
 
-    $effect(() => {
-        if (!initialPairing) return;
-        pairingUUID = initialPairing.uuid || "";
-        mentorUuid = initialPairing.mentor?.uuid || "";
-        const loaded: Target[] = [];
-        if (initialPairing.mentee?.uuid) {
-            loaded.push({
-                kind: "user",
-                targetUuid: initialPairing.mentee.uuid,
-                label: initialPairing.mentee.name || "",
-            });
-        }
-        targets = loaded;
-    });
-
     onMount(async () => {
         const data = await api<{
             users?: DirectoryUser[];
@@ -214,27 +149,11 @@
         }));
     });
 
-    function pickUserTarget(u: DirectoryUser) {
-        addUserTarget(u);
-    }
-    function removeUserTarget(targetUuid: string) {
-        targets = targets.filter(
-            (t) => !(t.kind === "user" && t.targetUuid === targetUuid),
-        );
-    }
-
     async function requestSave() {
-        let userOnly: { kind: string; targetUuid: string }[];
-        if (mode === "create") {
-            userOnly = [...selectedMenteeUuids].map((uuid) => ({
-                kind: "user",
-                targetUuid: uuid,
-            }));
-        } else {
-            userOnly = targets
-                .filter((t) => t.kind === "user")
-                .map((t) => ({ kind: "user", targetUuid: t.targetUuid }));
-        }
+        const userOnly = [...selectedMenteeUuids].map((uuid) => ({
+            kind: "user",
+            targetUuid: uuid,
+        }));
         if (!mentorUuid || !userOnly.length) {
             showToast("メンターとメンティを選択してください", "error");
             return;
@@ -244,12 +163,8 @@
             targets: userOnly,
         };
         try {
-            if (mode === "create") {
-                await api("POST", "/api/v1/pairings", body);
-            } else {
-                await api("PUT", `/api/v1/pairings/${pairingUUID}`, body);
-            }
-            showToast("保存しました");
+            await api("POST", "/api/v1/pairings", body);
+            showToast("作成しました");
             await goto("/planning/pairs");
         } catch {
             showToast("保存に失敗しました", "error");
@@ -258,15 +173,13 @@
 </script>
 
 <svelte:head>
-    <title>{mode === "create" ? "ペア作成" : "ペア編集"} - Growlink</title>
+    <title>ペア作成 - Growlink</title>
 </svelte:head>
 
 <main class="mx-auto w-full max-w-5xl min-w-0 p-4 md:p-8">
-    <h1 class="font-display text-2xl font-semibold">
-        {mode === "create" ? "ペア新規作成" : "ペア編集"}
-    </h1>
+    <h1 class="font-display text-2xl font-semibold">ペア新規作成</h1>
     <p class="mt-1 text-sm text-base-content/60">
-        メンターとメンティを{mode === "create" ? "登録" : "変更"}します
+        メンターとメンティを登録します
     </p>
     <div
         class="mt-6 space-y-4 rounded-3xl border border-base-300 bg-base-100 p-6 shadow-sm">
@@ -281,7 +194,6 @@
                 placeholder="名前で検索" />
         </div>
 
-        {#if mode === "create"}
             <div class="flex flex-wrap justify-between gap-3 items-end">
                 <span class="label-text font-medium w-1/2 min-w-48"
                     >メンティー
@@ -387,24 +299,9 @@
             <p class="text-xs text-base-content/60">
                 選択中: {selectedMenteeUuids.size} 人
             </p>
-        {:else}
-            <div class="form-control">
-                <span class="label-text font-medium">メンティ</span>
-                <UserChipSearchField
-                    pickRootId="pairing-form-mentee"
-                    chips={menteeChips}
-                    items={users}
-                    labelOf={userLabelOf}
-                    placeholder={menteeChips.length
-                        ? "追加で検索"
-                        : "名前で検索して追加"}
-                    onPick={pickUserTarget}
-                    onRemove={removeUserTarget} />
-            </div>
-        {/if}
         <div class="flex flex-wrap gap-2 pt-2 justify-end">
             <button type="button" class="btn btn-primary" onclick={requestSave}
-                >{mode === "create" ? "作成" : "保存"}</button>
+                >作成</button>
             <a href="/planning/pairs" class="btn btn-ghost">戻る</a>
         </div>
     </div>

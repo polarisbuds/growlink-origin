@@ -119,3 +119,10 @@ func TestTemplateUpdater_UpdateTemplateLock(t *testing.T) {
 	gotErr := uc.UpdateTemplateLock(validTemplateID, true)
 	assertUsecaseErr(t, gotErr, false, "", "UpdateTemplateLock")
 }
+
+func TestTemplateUpdater_UpdateTemplateDefault(t *testing.T) {
+	uc, repo := newTemplateUpdater(t)
+	repo.EXPECT().UpdateIsDefault(validTemplateID, true).Return(nil)
+	gotErr := uc.UpdateTemplateDefault(validTemplateID, true)
+	assertUsecaseErr(t, gotErr, false, "", "UpdateTemplateDefault")
+}

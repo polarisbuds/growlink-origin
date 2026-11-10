@@ -74,7 +74,6 @@ type RemindSettingsOutput struct {
 type RoleOptionOutput struct {
 	UUID string `json:"uuid"`
 	Name string `json:"name"`
-	Rank int    `json:"rank"`
 }
 
 type DepartmentOptionOutput struct {

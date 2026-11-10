@@ -16,4 +16,5 @@ type TemplateRepository interface {
 	Update(templateID uint, newTemplate *entity.Template) error
 	Delete(templateID uint) error
 	UpdateIsLock(templateID uint, isLock bool) error
+	UpdateIsDefault(templateID uint, isDefault bool) error
 }

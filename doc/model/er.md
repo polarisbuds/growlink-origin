@@ -69,7 +69,6 @@ departments {
 
 roles {
     text name "not null"
-    number rank "not null, default 0。表示・並び順"
 }
 
 teams {
@@ -123,6 +122,7 @@ templates {
     text title UK
     text description "not null, default 空文字"
     boolean is_sample "not null, default false。サンプルテンプレート"
+    boolean is_default "not null, default false。ミーティング作成時の初期テンプレート（同時にtrueは1件）"
 
     bigint creator_id FK "作成者のユーザID（列名 creator_id）"
 }

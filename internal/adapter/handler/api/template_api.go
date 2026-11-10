@@ -180,3 +180,23 @@ func (h *Handler) UpdateTemplateLock(c *echo.Context) error {
 	}
 	return c.JSON(http.StatusOK, map[string]string{"ok": "true"})
 }
+
+func (h *Handler) UpdateTemplateDefault(c *echo.Context) error {
+	templateID, err := h.resolveTemplateID(c.Param("uuid"))
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid id"})
+	}
+	if _, err := h.deps.TemplateRepo.Get(templateID); err != nil {
+		return c.JSON(http.StatusNotFound, map[string]string{"error": "not found"})
+	}
+	var req struct {
+		IsDefault bool `json:"isDefault"`
+	}
+	if err := c.Bind(&req); err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid request"})
+	}
+	if err := h.deps.Management.TemplateUpdater.UpdateTemplateDefault(templateID, req.IsDefault); err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+	}
+	return c.JSON(http.StatusOK, map[string]string{"ok": "true"})
+}

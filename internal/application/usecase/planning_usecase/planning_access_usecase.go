@@ -140,18 +140,30 @@ func (uc *PlanningAccessUsecase) HasPairManagementAccess(userID uint, systemRole
 	if fullPlanningAccess(systemRole) {
 		return true, nil
 	}
-	referable, err := uc.ReferableUserIDs(userID, systemRole)
+	scope, err := uc.PairManagementScopeUserIDs(userID, systemRole)
 	if err != nil {
 		return false, err
 	}
-	return len(referable) > 0, nil
+	return len(scope) > 0, nil
 }
 
 func (uc *PlanningAccessUsecase) ListPairingsForManagement(userID uint, systemRole valueobject.SystemRole) ([]outputmodel.PairingOutput, error) {
 	if fullPlanningAccess(systemRole) {
 		return uc.pairingViewer.ListPairingsByAll()
 	}
-	return uc.listReferableScopedPairings(userID, systemRole)
+	return uc.listPairManagementScopedPairings(userID, systemRole)
+}
+
+func (uc *PlanningAccessUsecase) listPairManagementScopedPairings(userID uint, systemRole valueobject.SystemRole) ([]outputmodel.PairingOutput, error) {
+	scope, err := uc.PairManagementScopeUserIDs(userID, systemRole)
+	if err != nil {
+		return nil, err
+	}
+	menteeIDs := make([]uint, 0, len(scope))
+	for id := range scope {
+		menteeIDs = append(menteeIDs, id)
+	}
+	return uc.listPairingsByMenteeIDs(menteeIDs)
 }
 
 func (uc *PlanningAccessUsecase) ListPairingsForMeeting(userID uint, systemRole valueobject.SystemRole) ([]outputmodel.PairingOutput, error) {

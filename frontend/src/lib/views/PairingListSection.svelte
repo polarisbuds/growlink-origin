@@ -340,9 +340,6 @@
                     {menteeUser?.teamNames || ""}
                 </td>
                 <td class="space-x-1 whitespace-nowrap text-right">
-                    <a
-                        href="/planning/pairs/{row.pairing.uuid}/edit"
-                        class="btn btn-xs btn-outline">編集</a>
                     <button
                         type="button"
                         class="btn btn-xs btn-error btn-outline"

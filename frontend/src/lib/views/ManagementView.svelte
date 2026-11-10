@@ -100,7 +100,7 @@
     type Options = {
         departments: { uuid: string; name: string; isRoot: boolean }[];
         teams: { uuid: string; name: string; departmentUuid: string }[];
-        roles: { uuid: string; name: string; rank?: number }[];
+        roles: { uuid: string; name: string }[];
     };
 
     function toggleInList(list: string[], id: string): string[] {
@@ -178,7 +178,7 @@
         leaderUuid: "",
     });
     let createRoleOpen = $state(false);
-    let createRoleForm = $state({ name: "", rank: 50 });
+    let createRoleForm = $state({ name: "" });
     let expandedAllDept = $state(false);
     let expandedDeptUuids = $state<Set<string>>(new Set());
     let orgModalOpen = $state(false);
@@ -1900,13 +1900,6 @@
             <input
                 class="input input-bordered"
                 bind:value={createRoleForm.name} />
-        </label>
-        <label class="form-control mt-3">
-            <span class="label-text font-medium">順位（大きいほど上位）</span>
-            <input
-                type="number"
-                class="input input-bordered"
-                bind:value={createRoleForm.rank} />
         </label>
         <div class="modal-action">
             <button

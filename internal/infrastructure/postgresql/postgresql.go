@@ -38,6 +38,15 @@ func NewPostgresqlDB(dsn string) (*gorm.DB, error) {
 	if err := dropTemplateDisplayNo(db); err != nil {
 		return nil, err
 	}
+	if err := dropRoleRank(db); err != nil {
+		return nil, err
+	}
+	if err := ensureTemplateDefaultIndex(db); err != nil {
+		return nil, err
+	}
+	if err := backfillTemplateIsDefault(db); err != nil {
+		return nil, err
+	}
 
 	if config.IsDevelop() {
 		if err := genSeed(db); err != nil {
@@ -79,6 +88,42 @@ func AutoMigrate(db *gorm.DB) error {
 
 func dropTemplateDisplayNo(db *gorm.DB) error {
 	return db.Exec("ALTER TABLE templates DROP COLUMN IF EXISTS display_no").Error
+}
+
+func dropRoleRank(db *gorm.DB) error {
+	return db.Exec("ALTER TABLE roles DROP COLUMN IF EXISTS rank").Error
+}
+
+func ensureTemplateDefaultIndex(db *gorm.DB) error {
+	return db.Exec(`
+CREATE UNIQUE INDEX IF NOT EXISTS idx_templates_one_default
+ON templates ((true))
+WHERE is_default AND deleted_at IS NULL
+`).Error
+}
+
+// backfillTemplateIsDefault sets is_default on system_settings.default_template_id when no template is marked default yet.
+func backfillTemplateIsDefault(db *gorm.DB) error {
+	var defaultCount int64
+	if err := db.Model(&entity.Template{}).Where("is_default = ? AND deleted_at IS NULL", true).Count(&defaultCount).Error; err != nil {
+		return err
+	}
+	if defaultCount > 0 {
+		return nil
+	}
+	var settings entity.SystemSettings
+	if err := db.First(&settings).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil
+		}
+		return err
+	}
+	if settings.DefaultTemplateID == 0 {
+		return nil
+	}
+	return db.Model(&entity.Template{}).
+		Where("id = ? AND deleted_at IS NULL", settings.DefaultTemplateID).
+		Update("is_default", true).Error
 }
 
 func dropLegacyOperationTargetTables(db *gorm.DB) error {

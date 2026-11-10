@@ -7,6 +7,7 @@ type TemplateOutput struct {
 	Description string        `json:"description"`
 	IsSample    bool          `json:"isSample"`
 	IsLock      bool          `json:"isLock"`
+	IsDefault   bool          `json:"isDefault"`
 	CreatorID   uint          `json:"-"`
 	CreatorName string        `json:"creatorName"`
 	CreatedAt   string        `json:"createdAt"`

@@ -35,6 +35,7 @@ func TemplateEntityToOutput(e entity.Template) outputmodel.TemplateOutput {
 		Description: e.Description,
 		IsSample:    e.IsSample,
 		IsLock:      e.IsLock,
+		IsDefault:   e.IsDefault,
 		CreatorID:   e.UserID,
 		CreatorName: creatorName,
 		CreatedAt:   createdAt,
