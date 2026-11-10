@@ -61,6 +61,7 @@ type OrgDetailOutput struct {
 	MemberUUIDs           []string          `json:"memberUuids"`
 	LeaderUUID            string            `json:"leaderUuid"`
 	HeadUserUUID          string            `json:"headUserUuid"`
+	ManagerUserUUIDs      []string          `json:"managerUserUuids"`
 }
 
 type RemindSettingsOutput struct {

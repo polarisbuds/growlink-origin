@@ -5,6 +5,7 @@ import (
 	outputmodel "growlink/internal/application/model/output_model"
 	"growlink/internal/domain/entity"
 	repository_interface "growlink/internal/domain/interface/repository"
+	"growlink/internal/domain/valueobject"
 	"strings"
 )
 
@@ -214,8 +215,12 @@ func (uc *OrgAdmin) GetDepartmentDetail(id uint) (*outputmodel.OrgDetailOutput, 
 		teamUUIDs = append(teamUUIDs, t.UUID.String())
 	}
 	userUUIDs := make([]string, 0, len(deptMembers))
+	managerUUIDs := make([]string, 0)
 	for _, row := range deptMembers {
 		userUUIDs = append(userUUIDs, uc.userUUIDByID(row.UserID))
+		if row.IsManager && !row.IsHead {
+			managerUUIDs = append(managerUUIDs, uc.userUUIDByID(row.UserID))
+		}
 	}
 	childUUIDs := make([]string, 0, len(childIDs))
 	for _, childID := range childIDs {
@@ -232,6 +237,7 @@ func (uc *OrgAdmin) GetDepartmentDetail(id uint) (*outputmodel.OrgDetailOutput, 
 		TeamUUIDs:            teamUUIDs,
 		UserUUIDs:            userUUIDs,
 		HeadUserUUID:         uc.userUUIDByID(dept.HeadUserID),
+		ManagerUserUUIDs:     managerUUIDs,
 	}, nil
 }
 
@@ -322,6 +328,7 @@ type UpdateDepartmentInput struct {
 	TeamUUIDs            []string `json:"teamUuids"`
 	UserUUIDs            []string `json:"userUuids"`
 	HeadUserUUID         string   `json:"headUserUuid"`
+	ManagerUserUUIDs     []string `json:"managerUserUuids"`
 }
 
 func (uc *OrgAdmin) UpdateDepartment(id uint, input UpdateDepartmentInput) error {
@@ -420,20 +427,91 @@ func (uc *OrgAdmin) UpdateDepartment(id uint, input UpdateDepartmentInput) error
 	if err != nil {
 		return err
 	}
+	managerUserIDs, err := uc.resolveUserUUIDs(input.ManagerUserUUIDs)
+	if err != nil {
+		return err
+	}
+	if err := uc.validateDepartmentLeaderCandidate(headUserID); err != nil {
+		return err
+	}
+	for _, managerID := range managerUserIDs {
+		if managerID == headUserID {
+			continue
+		}
+		if err := uc.validateDepartmentLeaderCandidate(managerID); err != nil {
+			return err
+		}
+	}
 	if userIDs != nil {
 		if err := uc.userDeptRepo.SyncDepartmentMembers(id, userIDs); err != nil {
 			return err
 		}
-		return uc.syncDepartmentMemberFlags(id, userIDs, headUserID)
+		return uc.syncDepartmentMemberFlags(id, userIDs, headUserID, managerUserIDs)
 	}
-	return uc.applyDepartmentHeadOnly(id, headUserID)
+	return uc.applyDepartmentHeadOnly(id, headUserID, managerUserIDs)
 }
 
-func (uc *OrgAdmin) applyDepartmentHeadOnly(departmentID uint, headUserID uint) error {
+func (uc *OrgAdmin) validateDepartmentLeaderCandidate(userID uint) error {
+	if userID == 0 {
+		return nil
+	}
+	user, err := uc.userRepo.GetByID(userID)
+	if err != nil {
+		return fmt.Errorf("ユーザが見つかりません")
+	}
+	if int(user.Authority) >= int(valueobject.AuthorityBoss) {
+		return nil
+	}
+	memberships, err := uc.teamMemberRepo.GetByMemberID(userID)
+	if err != nil {
+		return err
+	}
+	for _, m := range memberships {
+		if m.IsReader {
+			return nil
+		}
+	}
+	return fmt.Errorf("部長・管理職にはボス以上またはチームリーダーのユーザーを指定してください")
+}
+
+func departmentMemberIsManager(
+	userID, headUserID uint,
+	managerUserIDs []uint,
+	explicitManagers map[uint]bool,
+	prevManager, prevHead map[uint]bool,
+) bool {
+	if headUserID != 0 && userID == headUserID {
+		return true
+	}
+	if managerUserIDs == nil {
+		return prevManager[userID] && !prevHead[userID]
+	}
+	return explicitManagers[userID]
+}
+
+func (uc *OrgAdmin) applyDepartmentHeadOnly(departmentID uint, headUserID uint, managerUserIDs []uint) error {
 	existing, err := uc.deptMemberRepo.GetByDepartmentID(departmentID)
 	if err != nil {
 		return err
 	}
+	return uc.replaceDepartmentMemberFlags(departmentID, headUserID, managerUserIDs, existing, nil)
+}
+
+func (uc *OrgAdmin) syncDepartmentMemberFlags(departmentID uint, userIDs []uint, headUserID uint, managerUserIDs []uint) error {
+	existing, err := uc.deptMemberRepo.GetByDepartmentID(departmentID)
+	if err != nil {
+		return err
+	}
+	return uc.replaceDepartmentMemberFlags(departmentID, headUserID, managerUserIDs, existing, userIDs)
+}
+
+func (uc *OrgAdmin) replaceDepartmentMemberFlags(
+	departmentID uint,
+	headUserID uint,
+	managerUserIDs []uint,
+	existing []entity.DepartmentMember,
+	syncUserIDs []uint,
+) error {
 	prevManager := map[uint]bool{}
 	prevHead := map[uint]bool{}
 	userIDsInDept := map[uint]struct{}{}
@@ -442,55 +520,37 @@ func (uc *OrgAdmin) applyDepartmentHeadOnly(departmentID uint, headUserID uint) 
 		prevHead[member.UserID] = member.IsHead
 		userIDsInDept[member.UserID] = struct{}{}
 	}
+	if syncUserIDs != nil {
+		userIDsInDept = map[uint]struct{}{}
+		for _, userID := range syncUserIDs {
+			if userID != 0 {
+				userIDsInDept[userID] = struct{}{}
+			}
+		}
+	}
 	if headUserID != 0 {
 		userIDsInDept[headUserID] = struct{}{}
+	}
+	explicitManagers := map[uint]bool{}
+	if managerUserIDs != nil {
+		for _, managerID := range managerUserIDs {
+			if managerID == 0 || managerID == headUserID {
+				continue
+			}
+			explicitManagers[managerID] = true
+			userIDsInDept[managerID] = struct{}{}
+		}
 	}
 	rows := make([]entity.DepartmentMember, 0, len(userIDsInDept))
 	for userID := range userIDsInDept {
 		isHead := headUserID != 0 && userID == headUserID
-		keptManager := prevManager[userID] && !prevHead[userID]
 		rows = append(rows, entity.DepartmentMember{
 			DepartmentID: departmentID,
 			UserID:       userID,
 			IsHead:       isHead,
-			IsManager:    isHead || keptManager,
-		})
-	}
-	if err := uc.deptMemberRepo.ReplaceByDepartment(departmentID, rows); err != nil {
-		return err
-	}
-	return uc.deptRepo.UpdateHeadUserID(departmentID, headUserID)
-}
-
-func (uc *OrgAdmin) syncDepartmentMemberFlags(departmentID uint, userIDs []uint, headUserID uint) error {
-	existing, err := uc.deptMemberRepo.GetByDepartmentID(departmentID)
-	if err != nil {
-		return err
-	}
-	prevManager := map[uint]bool{}
-	prevHead := map[uint]bool{}
-	for _, member := range existing {
-		prevManager[member.UserID] = member.IsManager
-		prevHead[member.UserID] = member.IsHead
-	}
-	want := map[uint]struct{}{}
-	for _, userID := range userIDs {
-		if userID != 0 {
-			want[userID] = struct{}{}
-		}
-	}
-	if headUserID != 0 {
-		want[headUserID] = struct{}{}
-	}
-	rows := make([]entity.DepartmentMember, 0, len(want))
-	for userID := range want {
-		isHead := headUserID != 0 && userID == headUserID
-		keptManager := prevManager[userID] && !prevHead[userID]
-		rows = append(rows, entity.DepartmentMember{
-			DepartmentID: departmentID,
-			UserID:       userID,
-			IsHead:       isHead,
-			IsManager:    isHead || keptManager,
+			IsManager: departmentMemberIsManager(
+				userID, headUserID, managerUserIDs, explicitManagers, prevManager, prevHead,
+			),
 		})
 	}
 	if err := uc.deptMemberRepo.ReplaceByDepartment(departmentID, rows); err != nil {
@@ -682,8 +742,8 @@ func (uc *OrgAdmin) CreateDepartment(input CreateDepartmentInput) (*outputmodel.
 		return nil, err
 	}
 	if headUserID != 0 {
-		if _, err := uc.userRepo.GetByID(headUserID); err != nil {
-			return nil, fmt.Errorf("部長が見つかりません")
+		if err := uc.validateDepartmentLeaderCandidate(headUserID); err != nil {
+			return nil, err
 		}
 	}
 	parentDepartmentID, err := uc.resolveDepartmentUUIDOptional(input.ParentDepartmentUUID)
@@ -706,7 +766,7 @@ func (uc *OrgAdmin) CreateDepartment(input CreateDepartmentInput) (*outputmodel.
 		}
 	}
 	if headUserID != 0 {
-		if err := uc.applyDepartmentHeadOnly(dept.ID, headUserID); err != nil {
+		if err := uc.applyDepartmentHeadOnly(dept.ID, headUserID, nil); err != nil {
 			return nil, err
 		}
 	}

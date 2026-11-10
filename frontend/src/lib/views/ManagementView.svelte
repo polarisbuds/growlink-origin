@@ -11,6 +11,7 @@
     import ChevronRight from "lucide-svelte/icons/chevron-right";
     import Info from "lucide-svelte/icons/info";
     import SearchableSelect from "$lib/components/SearchableSelect.svelte";
+    import MultiCheckSelect from "$lib/components/MultiCheckSelect.svelte";
     import { fade } from "svelte/transition";
     import Icon from "$lib/components/Icon.svelte";
     import Trash2 from "lucide-svelte/icons/trash-2";
@@ -84,6 +85,7 @@
         memberUuids?: string[];
         leaderUuid?: string;
         headUserUuid?: string;
+        managerUserUuids?: string[];
     };
 
     type UserForm = {
@@ -190,9 +192,17 @@
         teamUuids: [] as string[],
         leaderUuid: "",
         headUserUuid: "",
+        managerUserUuids: [] as string[],
     });
 
-    let headUserCandidates = $derived(users);
+    function isDepartmentLeaderCandidate(u: ManagementUser): boolean {
+        if (u.authority !== "general") return true;
+        return (u.teams || []).some((t) => t.isLeader || t.teamRole === "leader");
+    }
+
+    let departmentLeaderCandidates = $derived(
+        users.filter(isDepartmentLeaderCandidate),
+    );
     let teamLeaderCandidates = $derived(users);
 
     let visibleOrgNodes = $derived.by(() => {
@@ -250,6 +260,12 @@
     function userName(uuid: string) {
         const u = users.find((x) => x.uuid === uuid);
         return u ? u.name : "";
+    }
+
+    function managerNames(uuids: string[] | undefined): string {
+        const ids = uuids || [];
+        if (ids.length === 0) return "未設定";
+        return ids.map((id) => userName(id)).filter(Boolean).join("、");
     }
 
     function selectedDepartmentUuids(rows: DeptAssignment[]) {
@@ -789,6 +805,7 @@
             teamUuids: detail.teamUuids || [],
             leaderUuid: detail.leaderUuid || "",
             headUserUuid: detail.headUserUuid || "",
+            managerUserUuids: [...(detail.managerUserUuids || [])],
         };
         orgModalOpen = true;
     }
@@ -835,6 +852,10 @@
                     leaderUuid: orgEdit.leaderUuid,
                 });
             } else {
+                const headUuid = orgEdit.headUserUuid;
+                const managerUserUuids = orgEdit.managerUserUuids.filter(
+                    (id) => id && id !== headUuid,
+                );
                 await api(
                     "PUT",
                     `/api/v1/management/departments/${orgDetail.uuid}`,
@@ -842,7 +863,8 @@
                         name: orgEdit.name,
                         childDepartmentUuids: orgEdit.childDepartmentUuids,
                         teamUuids: orgEdit.teamUuids,
-                        headUserUuid: orgEdit.headUserUuid,
+                        headUserUuid: headUuid,
+                        managerUserUuids,
                     },
                 );
             }
@@ -1522,6 +1544,12 @@
                                 ? userName(orgDetail.headUserUuid)
                                 : "未設定"}</span>
                     </div>
+                    <div
+                        class="rounded-xl border border-base-300 bg-base-200/30 px-3 py-2 text-sm">
+                        <span class="text-base-content/60">管理職</span>
+                        <span class="ml-2 font-medium"
+                            >{managerNames(orgDetail.managerUserUuids)}</span>
+                    </div>
                 {/if}
                 {#if orgDetail?.kind === "team"}
                     <div
@@ -1574,14 +1602,25 @@
                     <div class="space-y-4">
                         <label class="form-control">
                             <span class="label-text font-medium">部長</span>
-                            <select
-                                class="select select-bordered"
-                                bind:value={orgEdit.headUserUuid}>
-                                <option value="" hidden>未設定</option>
-                                {#each headUserCandidates.filter((u) => u.authority !== "general") as u (`head-${u.uuid}`)}
-                                    <option value={u.uuid}>{u.name}</option>
-                                {/each}
-                            </select>
+                            <SearchableSelect
+                                allowClear={true}
+                                pickRootId="edit-dept-head"
+                                bind:value={orgEdit.headUserUuid}
+                                labelOf={(u: ManagementUser) => u.name}
+                                items={departmentLeaderCandidates}
+                            ></SearchableSelect>
+                        </label>
+                        <label class="form-control">
+                            <span class="label-text font-medium">管理職</span>
+                            <MultiCheckSelect
+                                pickRootId="edit-dept-managers"
+                                bind:selectedUuids={orgEdit.managerUserUuids}
+                                placeholder="未設定"
+                                labelOf={(u: ManagementUser) => u.name}
+                                items={departmentLeaderCandidates.filter(
+                                    (u) => u.uuid !== orgEdit.headUserUuid,
+                                )}
+                            ></MultiCheckSelect>
                         </label>
                         <div class="space-y-2">
                             <span class="label-text font-medium">チーム</span>
@@ -1807,7 +1846,7 @@
                     labelOf={(u: ManagementUser) => {
                         return `${u.name}`;
                     }}
-                    items={users.filter((u) => u.authority !== "general")}
+                    items={departmentLeaderCandidates}
                 ></SearchableSelect>
             </label>
         </div>
