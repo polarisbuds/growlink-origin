@@ -1,5 +1,5 @@
 export type ProgressBreakdownRow = {
-	id: number;
+	uuid: string;
 	name: string;
 	departmentName?: string;
 	pending: number;

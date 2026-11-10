@@ -30,11 +30,8 @@ func (h *Handler) CreateMeeting(c *echo.Context) error {
 	if err := c.Bind(&req); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid request"})
 	}
-	if req.MentorID == 0 || req.TemplateID == 0 {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": "mentorId and templateId are required"})
-	}
-	if len(req.MenteeIDs) == 0 {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": "menteeIds are required"})
+	if err := h.resolveCreateMeetingInput(c, &req); err != nil {
+		return err
 	}
 	implementDate, ok := parseDateOnly(req.ImplementedAt)
 	if !ok {
@@ -70,8 +67,8 @@ func (h *Handler) CreateMeetingByAll(c *echo.Context) error {
 	if err := c.Bind(&req); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid request"})
 	}
-	if req.TemplateID == 0 {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": "templateId is required"})
+	if err := h.resolveCreateMeetingByAllInput(c, &req); err != nil {
+		return err
 	}
 	implementDate, ok := parseDateOnly(req.ImplementedAt)
 	if !ok {
@@ -93,11 +90,8 @@ func (h *Handler) CreateMeetingMonthly(c *echo.Context) error {
 	if err := c.Bind(&req); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid request"})
 	}
-	if req.MentorID == 0 || req.TemplateID == 0 {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": "mentorId and templateId are required"})
-	}
-	if len(req.MenteeIDs) == 0 {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": "menteeIds are required"})
+	if err := h.resolveCreateMeetingMonthlyInput(c, &req); err != nil {
+		return err
 	}
 	if req.Week < 1 || req.Week > 5 {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "week must be between 1 and 5"})

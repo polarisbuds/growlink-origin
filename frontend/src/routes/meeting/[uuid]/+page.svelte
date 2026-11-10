@@ -26,7 +26,7 @@
     let uuid = $derived(page.params.uuid);
 
     function rowKey(row: DualTopicRow) {
-        return row.topic?.id ?? row.displayNo;
+        return row.topic?.uuid ?? String(row.displayNo);
     }
 
     async function loadPayload() {
@@ -155,7 +155,7 @@
             <h2 class="font-semibold">ミーティングコメント</h2>
             {#if (payload.meetingComments || []).length > 0}
                 <ul class="mt-4 space-y-3">
-                    {#each payload.meetingComments || [] as c (c.id)}
+                    {#each payload.meetingComments || [] as c (c.uuid)}
                         <li
                             class="rounded-2xl border border-base-300 bg-base-200/30 p-4">
                             <div

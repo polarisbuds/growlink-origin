@@ -29,7 +29,13 @@ func NewPostgresqlDB(dsn string) (*gorm.DB, error) {
 	if err := AutoMigrate(db); err != nil {
 		return nil, err
 	}
+	if err := migrateAndDropPairingTargets(db); err != nil {
+		return nil, err
+	}
 	if err := dropLegacyOperationTargetTables(db); err != nil {
+		return nil, err
+	}
+	if err := dropTemplateDisplayNo(db); err != nil {
 		return nil, err
 	}
 
@@ -53,8 +59,6 @@ func AutoMigrate(db *gorm.DB) error {
 		&entity.TeamMember{},
 		&entity.DepartmentMember{},
 		&entity.Pairing{},
-		&entity.PairingMentee{},
-		&entity.PairingTarget{},
 		&entity.PairingSharer{},
 		&entity.Meeting{},
 		&entity.MeetingSharer{},
@@ -71,6 +75,10 @@ func AutoMigrate(db *gorm.DB) error {
 		// マスタテーブル
 		&entity.Role{},
 	)
+}
+
+func dropTemplateDisplayNo(db *gorm.DB) error {
+	return db.Exec("ALTER TABLE templates DROP COLUMN IF EXISTS display_no").Error
 }
 
 func dropLegacyOperationTargetTables(db *gorm.DB) error {

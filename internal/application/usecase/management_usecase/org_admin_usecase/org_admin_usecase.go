@@ -134,14 +134,13 @@ func (uc *OrgAdmin) ListTree() ([]outputmodel.OrgTreeNodeOutput, error) {
 		}
 		nodes = append(nodes, outputmodel.OrgTreeNodeOutput{
 			Kind:            "department",
-			ID:              d.ID,
+			UUID:            d.UUID.String(),
 			Name:            d.Name,
 			Depth:           depth,
 			IsRoot:          isRoot,
 			MemberCount:     memberCountByDept[d.ID],
 			HeadUserName:    headName,
 			HeadUserRole:    headRole,
-			DepartmentID:    deptID,
 			DepartmentCount: len(childMap[d.ID]),
 			TeamCount:       len(teamsByDept[d.ID]),
 		})
@@ -149,10 +148,9 @@ func (uc *OrgAdmin) ListTree() ([]outputmodel.OrgTreeNodeOutput, error) {
 			for _, team := range teams {
 				nodes = append(nodes, outputmodel.OrgTreeNodeOutput{
 					Kind:            "team",
-					ID:              team.ID,
+					UUID:            team.UUID.String(),
 					Name:            team.Name,
 					Depth:           depth + 1,
-					DepartmentID:    deptID,
 					LeaderName:      leaderByTeam[team.ID],
 					LeaderRole:      leaderRoleByTeam[team.ID],
 					TeamMemberCount: len(membersByTeam[team.ID]),
@@ -205,30 +203,35 @@ func (uc *OrgAdmin) GetDepartmentDetail(id uint) (*outputmodel.OrgDetailOutput, 
 			title = "メンバー"
 		}
 		members = append(members, outputmodel.OrgMemberOutput{
-			UserID:   row.UserID,
+			UserUUID: uc.userUUIDByID(row.UserID),
 			UserName: name,
 			Title:    title,
 		})
 	}
 	teams, _ := uc.teamRepo.GetByDepartmentID(id)
-	teamIDs := make([]uint, 0, len(teams))
+	teamUUIDs := make([]string, 0, len(teams))
 	for _, t := range teams {
-		teamIDs = append(teamIDs, t.ID)
+		teamUUIDs = append(teamUUIDs, t.UUID.String())
 	}
-	userIDs := make([]uint, 0, len(deptMembers))
+	userUUIDs := make([]string, 0, len(deptMembers))
 	for _, row := range deptMembers {
-		userIDs = append(userIDs, row.UserID)
+		userUUIDs = append(userUUIDs, uc.userUUIDByID(row.UserID))
+	}
+	childUUIDs := make([]string, 0, len(childIDs))
+	for _, childID := range childIDs {
+		childUUIDs = append(childUUIDs, uc.departmentUUIDByID(childID))
 	}
 	return &outputmodel.OrgDetailOutput{
-		Kind:       "department",
-		ID:         dept.ID,
-		Name:       dept.Name,
-		IsRoot:     isRoot,
-		Members:    members,
-		ChildIDs:   childIDs,
-		TeamIDs:    teamIDs,
-		UserIDs:    userIDs,
-		HeadUserID: dept.HeadUserID,
+		Kind:                 "department",
+		UUID:                 dept.UUID.String(),
+		Name:                 dept.Name,
+		IsRoot:               isRoot,
+		DepartmentUUID:       dept.UUID.String(),
+		Members:              members,
+		ChildDepartmentUUIDs: childUUIDs,
+		TeamUUIDs:            teamUUIDs,
+		UserUUIDs:            userUUIDs,
+		HeadUserUUID:         uc.userUUIDByID(dept.HeadUserID),
 	}, nil
 }
 
@@ -293,28 +296,32 @@ func (uc *OrgAdmin) GetTeamDetail(id uint) (*outputmodel.OrgDetailOutput, error)
 		}
 		memberIDs = append(memberIDs, m.MemberID)
 		outMembers = append(outMembers, outputmodel.OrgMemberOutput{
-			UserID:   m.MemberID,
+			UserUUID: uc.userUUIDByID(m.MemberID),
 			UserName: name,
 			Title:    title,
 		})
 	}
+	memberUUIDs := make([]string, 0, len(memberIDs))
+	for _, memberID := range memberIDs {
+		memberUUIDs = append(memberUUIDs, uc.userUUIDByID(memberID))
+	}
 	return &outputmodel.OrgDetailOutput{
-		Kind:         "team",
-		ID:           team.ID,
-		Name:         team.Name,
-		DepartmentID: team.DepartmentID,
-		Members:      outMembers,
-		MemberIDs:    memberIDs,
-		LeaderID:     leaderID,
+		Kind:           "team",
+		UUID:           team.UUID.String(),
+		Name:           team.Name,
+		DepartmentUUID: uc.departmentUUIDByID(team.DepartmentID),
+		Members:        outMembers,
+		MemberUUIDs:    memberUUIDs,
+		LeaderUUID:     uc.userUUIDByID(leaderID),
 	}, nil
 }
 
 type UpdateDepartmentInput struct {
-	Name               string `json:"name"`
-	ChildDepartmentIDs []uint `json:"childDepartmentIds"`
-	TeamIDs            []uint `json:"teamIds"`
-	UserIDs            []uint `json:"userIds"`
-	HeadUserID         uint   `json:"headUserId"`
+	Name                 string   `json:"name"`
+	ChildDepartmentUUIDs []string `json:"childDepartmentUuids"`
+	TeamUUIDs            []string `json:"teamUuids"`
+	UserUUIDs            []string `json:"userUuids"`
+	HeadUserUUID         string   `json:"headUserUuid"`
 }
 
 func (uc *OrgAdmin) UpdateDepartment(id uint, input UpdateDepartmentInput) error {
@@ -328,7 +335,11 @@ func (uc *OrgAdmin) UpdateDepartment(id uint, input UpdateDepartmentInput) error
 			return err
 		}
 	}
-	if input.ChildDepartmentIDs != nil {
+	childDepartmentIDs, err := uc.resolveDepartmentUUIDs(input.ChildDepartmentUUIDs)
+	if err != nil {
+		return err
+	}
+	if childDepartmentIDs != nil {
 		hierarchies, err := uc.hierarchyRepo.GetAll()
 		if err != nil {
 			return err
@@ -340,7 +351,7 @@ func (uc *OrgAdmin) UpdateDepartment(id uint, input UpdateDepartmentInput) error
 			parentOf[h.ChildDepartmentID] = h.ParentDepartmentID
 		}
 		want := map[uint]bool{}
-		for _, childID := range input.ChildDepartmentIDs {
+		for _, childID := range childDepartmentIDs {
 			if childID == id {
 				return fmt.Errorf("自分自身を子部署に指定できません")
 			}
@@ -385,8 +396,12 @@ func (uc *OrgAdmin) UpdateDepartment(id uint, input UpdateDepartmentInput) error
 			}
 		}
 	}
-	if input.TeamIDs != nil {
-		for _, teamID := range input.TeamIDs {
+	teamIDs, err := uc.resolveTeamUUIDs(input.TeamUUIDs)
+	if err != nil {
+		return err
+	}
+	if teamIDs != nil {
+		for _, teamID := range teamIDs {
 			team, err := uc.teamRepo.GetByID(teamID)
 			if err != nil {
 				return err
@@ -397,13 +412,21 @@ func (uc *OrgAdmin) UpdateDepartment(id uint, input UpdateDepartmentInput) error
 			}
 		}
 	}
-	if input.UserIDs != nil {
-		if err := uc.userDeptRepo.SyncDepartmentMembers(id, input.UserIDs); err != nil {
+	userIDs, err := uc.resolveUserUUIDs(input.UserUUIDs)
+	if err != nil {
+		return err
+	}
+	headUserID, err := uc.resolveUserUUIDOptional(input.HeadUserUUID)
+	if err != nil {
+		return err
+	}
+	if userIDs != nil {
+		if err := uc.userDeptRepo.SyncDepartmentMembers(id, userIDs); err != nil {
 			return err
 		}
-		return uc.syncDepartmentMemberFlags(id, input.UserIDs, input.HeadUserID)
+		return uc.syncDepartmentMemberFlags(id, userIDs, headUserID)
 	}
-	return uc.applyDepartmentHeadOnly(id, input.HeadUserID)
+	return uc.applyDepartmentHeadOnly(id, headUserID)
 }
 
 func (uc *OrgAdmin) applyDepartmentHeadOnly(departmentID uint, headUserID uint) error {
@@ -477,9 +500,9 @@ func (uc *OrgAdmin) syncDepartmentMemberFlags(departmentID uint, userIDs []uint,
 }
 
 type CreateTeamInput struct {
-	Name         string `json:"name"`
-	DepartmentID uint   `json:"departmentId"`
-	LeaderID     uint   `json:"leaderId"`
+	Name           string `json:"name"`
+	DepartmentUUID string `json:"departmentUuid"`
+	LeaderUUID     string `json:"leaderUuid"`
 }
 
 func (uc *OrgAdmin) CreateTeam(input CreateTeamInput) (*outputmodel.TeamOptionOutput, error) {
@@ -487,30 +510,39 @@ func (uc *OrgAdmin) CreateTeam(input CreateTeamInput) (*outputmodel.TeamOptionOu
 	if name == "" {
 		return nil, fmt.Errorf("チーム名を入力してください")
 	}
-	if input.DepartmentID == 0 {
+	departmentID, err := uc.resolveDepartmentUUIDOptional(input.DepartmentUUID)
+	if err != nil {
+		return nil, err
+	}
+	if departmentID == 0 {
 		return nil, fmt.Errorf("部署を指定してください")
 	}
-	if input.LeaderID != 0 {
-		if _, err := uc.userRepo.GetByID(input.LeaderID); err != nil {
+	leaderID, err := uc.resolveUserUUIDOptional(input.LeaderUUID)
+	if err != nil {
+		return nil, err
+	}
+	if leaderID != 0 {
+		if _, err := uc.userRepo.GetByID(leaderID); err != nil {
 			return nil, fmt.Errorf("チームリーダーが見つかりません")
 		}
 	}
-	team := &entity.Team{Name: name, DepartmentID: input.DepartmentID}
+	team := &entity.Team{Name: name, DepartmentID: departmentID}
 	if err := uc.teamRepo.Create(team); err != nil {
 		return nil, err
 	}
-	if input.LeaderID != 0 {
-		if err := uc.applyTeamLeaderOnly(team.ID, input.LeaderID); err != nil {
+	if leaderID != 0 {
+		if err := uc.applyTeamLeaderOnly(team.ID, leaderID); err != nil {
 			return nil, err
 		}
 	}
-	return &outputmodel.TeamOptionOutput{ID: team.ID, Name: team.Name, DepartmentID: team.DepartmentID}, nil
+	deptUUID := uc.departmentUUIDByID(team.DepartmentID)
+	return &outputmodel.TeamOptionOutput{UUID: team.UUID.String(), Name: team.Name, DepartmentUUID: deptUUID}, nil
 }
 
 type UpdateTeamInput struct {
-	Name      string `json:"name"`
-	MemberIDs []uint `json:"memberIds"`
-	LeaderID  uint   `json:"leaderId"`
+	Name        string   `json:"name"`
+	MemberUUIDs []string `json:"memberUuids"`
+	LeaderUUID  string   `json:"leaderUuid"`
 }
 
 func (uc *OrgAdmin) UpdateTeam(id uint, input UpdateTeamInput) error {
@@ -524,7 +556,15 @@ func (uc *OrgAdmin) UpdateTeam(id uint, input UpdateTeamInput) error {
 			return err
 		}
 	}
-	if input.MemberIDs != nil {
+	memberIDs, err := uc.resolveUserUUIDs(input.MemberUUIDs)
+	if err != nil {
+		return err
+	}
+	leaderID, err := uc.resolveUserUUIDOptional(input.LeaderUUID)
+	if err != nil {
+		return err
+	}
+	if memberIDs != nil {
 		existing, err := uc.teamMemberRepo.GetByTeamID(id)
 		if err != nil {
 			return err
@@ -534,15 +574,15 @@ func (uc *OrgAdmin) UpdateTeam(id uint, input UpdateTeamInput) error {
 				return err
 			}
 		}
-		for _, memberID := range input.MemberIDs {
-			isReader := memberID == input.LeaderID
+		for _, memberID := range memberIDs {
+			isReader := memberID == leaderID
 			if err := uc.teamMemberRepo.Create(id, memberID, isReader); err != nil {
 				return err
 			}
 		}
 		return nil
 	}
-	return uc.applyTeamLeaderOnly(id, input.LeaderID)
+	return uc.applyTeamLeaderOnly(id, leaderID)
 }
 
 func (uc *OrgAdmin) applyTeamLeaderOnly(teamID uint, leaderID uint) error {
@@ -627,9 +667,9 @@ func (uc *OrgAdmin) DeleteTeam(id uint) error {
 }
 
 type CreateDepartmentInput struct {
-	Name               string `json:"name"`
-	ParentDepartmentID uint   `json:"parentDepartmentId"`
-	HeadUserID         uint   `json:"headUserId"`
+	Name                 string `json:"name"`
+	ParentDepartmentUUID string `json:"parentDepartmentUuid"`
+	HeadUserUUID         string `json:"headUserUuid"`
 }
 
 func (uc *OrgAdmin) CreateDepartment(input CreateDepartmentInput) (*outputmodel.DepartmentOptionOutput, error) {
@@ -637,32 +677,40 @@ func (uc *OrgAdmin) CreateDepartment(input CreateDepartmentInput) (*outputmodel.
 	if name == "" {
 		return nil, fmt.Errorf("部署名を入力してください")
 	}
-	if input.HeadUserID != 0 {
-		if _, err := uc.userRepo.GetByID(input.HeadUserID); err != nil {
+	headUserID, err := uc.resolveUserUUIDOptional(input.HeadUserUUID)
+	if err != nil {
+		return nil, err
+	}
+	if headUserID != 0 {
+		if _, err := uc.userRepo.GetByID(headUserID); err != nil {
 			return nil, fmt.Errorf("部長が見つかりません")
 		}
+	}
+	parentDepartmentID, err := uc.resolveDepartmentUUIDOptional(input.ParentDepartmentUUID)
+	if err != nil {
+		return nil, err
 	}
 	dept := &entity.Department{Name: name}
 	if err := uc.deptRepo.Create(dept); err != nil {
 		return nil, err
 	}
-	if input.ParentDepartmentID > 0 {
-		if _, err := uc.deptRepo.GetByID(input.ParentDepartmentID); err != nil {
+	if parentDepartmentID > 0 {
+		if _, err := uc.deptRepo.GetByID(parentDepartmentID); err != nil {
 			return nil, fmt.Errorf("親部署が見つかりません")
 		}
-		if input.ParentDepartmentID == dept.ID {
+		if parentDepartmentID == dept.ID {
 			return nil, fmt.Errorf("自分自身を親部署に指定できません")
 		}
-		if err := uc.hierarchyRepo.Create(input.ParentDepartmentID, dept.ID); err != nil {
+		if err := uc.hierarchyRepo.Create(parentDepartmentID, dept.ID); err != nil {
 			return nil, err
 		}
 	}
-	if input.HeadUserID != 0 {
-		if err := uc.applyDepartmentHeadOnly(dept.ID, input.HeadUserID); err != nil {
+	if headUserID != 0 {
+		if err := uc.applyDepartmentHeadOnly(dept.ID, headUserID); err != nil {
 			return nil, err
 		}
 	}
-	return &outputmodel.DepartmentOptionOutput{ID: dept.ID, Name: dept.Name}, nil
+	return &outputmodel.DepartmentOptionOutput{UUID: dept.UUID.String(), Name: dept.Name}, nil
 }
 
 func (uc *OrgAdmin) ListDepartmentOptions() ([]outputmodel.DepartmentOptionOutput, error) {
@@ -681,7 +729,7 @@ func (uc *OrgAdmin) ListDepartmentOptions() ([]outputmodel.DepartmentOptionOutpu
 	out := make([]outputmodel.DepartmentOptionOutput, 0, len(depts))
 	for _, d := range depts {
 		out = append(out, outputmodel.DepartmentOptionOutput{
-			ID:     d.ID,
+			UUID:   d.UUID.String(),
 			Name:   d.Name,
 			IsRoot: !childSet[d.ID],
 		})
@@ -696,7 +744,11 @@ func (uc *OrgAdmin) ListTeamOptions() ([]outputmodel.TeamOptionOutput, error) {
 	}
 	out := make([]outputmodel.TeamOptionOutput, 0, len(teams))
 	for _, t := range teams {
-		out = append(out, outputmodel.TeamOptionOutput{ID: t.ID, Name: t.Name, DepartmentID: t.DepartmentID})
+		out = append(out, outputmodel.TeamOptionOutput{
+			UUID:           t.UUID.String(),
+			Name:           t.Name,
+			DepartmentUUID: uc.departmentUUIDByID(t.DepartmentID),
+		})
 	}
 	return out, nil
 }

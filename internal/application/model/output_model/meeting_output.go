@@ -6,7 +6,7 @@ import (
 )
 
 type MeetingOutput struct {
-	ID            uint                      `json:"id"`
+	ID            uint                      `json:"-"`
 	UUID          string                    `json:"uuid"`
 	ImplementedAt time.Time                 `json:"implementedAt"`
 	Status        valueobject.MeetingStatus `json:"status"`

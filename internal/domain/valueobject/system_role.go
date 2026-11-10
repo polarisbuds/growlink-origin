@@ -23,6 +23,14 @@ func (r SystemRole) String() string {
 	}
 }
 
+func (r SystemRole) IsAdmin() bool {
+	return r.Int() == 2
+}
+
+func (r SystemRole) IsAnalyst() bool {
+	return r.Int() == 3
+}
+
 func (r SystemRole) Int() int {
 	return int(r)
 }

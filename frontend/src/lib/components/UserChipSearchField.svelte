@@ -1,14 +1,14 @@
-<script lang="ts" generics="T extends { id: number }">
+<script lang="ts" generics="T extends { uuid: string }">
     import { onMount } from "svelte";
     import { filterItems } from "$lib/searchable-select";
     import PickOptionList from "$lib/components/PickOptionList.svelte";
 
-    type Chip = { id: number; name: string };
+    type Chip = { uuid: string; name: string };
 
     let {
         chips,
         items,
-        excludeIds = [],
+        excludeUuids = [],
         placeholder = "名前で検索して追加",
         query = $bindable(""),
         className,
@@ -19,14 +19,14 @@
     }: {
         chips: Chip[];
         items: T[];
-        excludeIds?: number[];
+        excludeUuids?: string[];
         placeholder?: string;
         query?: string;
         className?: string;
         labelOf?: (item: T) => string;
         pickRootId?: string;
         onPick: (item: T) => void;
-        onRemove: (id: number) => void;
+        onRemove: (uuid: string) => void;
     } = $props();
 
     let open = $state(false);
@@ -38,9 +38,9 @@
     }
 
     let excluded = $derived(
-        new Set([...excludeIds, ...chips.map((c) => c.id)]),
+        new Set([...excludeUuids, ...chips.map((c) => c.uuid)]),
     );
-    let availableItems = $derived(items.filter((i) => !excluded.has(i.id)));
+    let availableItems = $derived(items.filter((i) => !excluded.has(i.uuid)));
     let filtered = $derived(filterItems(availableItems, query, itemLabel));
 
     function pick(item: T) {
@@ -70,7 +70,7 @@
 <div class="relative" data-pick-root={pickRootId}>
     <div
         class="flex min-h-11 w-full flex-wrap items-center gap-1.5 rounded-lg border border-base-300 bg-base-100 px-3 py-2 focus-within:border-primary {className}">
-        {#each chips as chip (chip.id)}
+        {#each chips as chip (chip.uuid)}
             <span
                 class="inline-flex max-w-full shrink-0 items-center gap-0.5 rounded-full bg-base-200 pl-2.5 pr-0.5 py-0.5 text-sm text-base-content">
                 <span class="max-w-[11rem] truncate" title={chip.name}
@@ -79,7 +79,7 @@
                     type="button"
                     class="btn btn-ghost btn-xs btn-circle h-5 min-h-5 w-5 shrink-0 opacity-70 hover:opacity-100"
                     aria-label="{chip.name}を削除"
-                    onclick={() => onRemove(chip.id)}>×</button>
+                    onclick={() => onRemove(chip.uuid)}>×</button>
             </span>
         {/each}
         <input

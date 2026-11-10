@@ -24,15 +24,13 @@ func stringsJoinUnique(items []string) string {
 }
 
 type planningDirectoryUser struct {
-	ID              uint    `json:"id"`
+	UUID            string  `json:"uuid"`
 	Name            string  `json:"name"`
 	Email           string  `json:"email"`
 	ImageURI        *string `json:"imageUri,omitempty"`
 	RoleName        string  `json:"roleName"`
 	DepartmentNames string  `json:"departmentNames"`
 	TeamNames       string  `json:"teamNames"`
-	DepartmentID    uint    `json:"departmentId"`
-	RoleID          uint    `json:"roleId"`
 }
 
 type planningDirectoryResponse struct {
@@ -43,10 +41,10 @@ type planningDirectoryResponse struct {
 }
 
 type planningTeamOutput struct {
-	ID           uint                     `json:"id"`
-	Name         string                   `json:"name"`
-	DepartmentID uint                     `json:"departmentId"`
-	Members      []outputmodel.UserOutput `json:"members"`
+	UUID           string                   `json:"uuid"`
+	Name           string                   `json:"name"`
+	DepartmentUuid string                   `json:"departmentUuid"`
+	Members        []outputmodel.UserOutput `json:"members"`
 }
 
 func teamMembersToOutputs(h *Handler, teamID uint) ([]outputmodel.UserOutput, error) {
@@ -60,21 +58,13 @@ func teamMembersToOutputs(h *Handler, teamID uint) ([]outputmodel.UserOutput, er
 		if err != nil || user.Suspended {
 			continue
 		}
-		memberOuts = append(memberOuts, outputmodel.UserOutput{ID: user.ID, Name: user.Name, Email: user.Email, ImageURI: user.ImageURI})
+		memberOuts = append(memberOuts, converter.UserEntityToOutput(*user))
 	}
 	return memberOuts, nil
 }
 
 func (h *Handler) ListPlanningDirectory(c *echo.Context) error {
 	claims := authctx.Claims(c)
-	var referable map[uint]bool
-	if claims != nil && h.deps.Planning != nil {
-		var err error
-		referable, err = h.deps.Planning.ReferableUserIDs(claims.UserID, claims.SystemRole)
-		if err != nil {
-			return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
-		}
-	}
 
 	users, err := h.deps.UserRepo.GetAll()
 	if err != nil {
@@ -85,17 +75,21 @@ func (h *Handler) ListPlanningDirectory(c *echo.Context) error {
 		if u.Suspended {
 			continue
 		}
-		if referable != nil && !referable[u.ID] {
-			continue
-		}
 		roleName := ""
 		if u.Role != nil {
 			roleName = u.Role.Name
 		}
-		deptName := ""
-		if u.Department != nil {
-			deptName = u.Department.Name
+		deptNames := make([]string, 0, 1+len(u.UserDepartments))
+		if u.Department != nil && u.Department.Name != "" {
+			deptNames = append(deptNames, u.Department.Name)
 		}
+		for _, link := range u.UserDepartments {
+			if link.Department == nil || link.Department.Name == "" {
+				continue
+			}
+			deptNames = append(deptNames, link.Department.Name)
+		}
+		deptName := stringsJoinUnique(deptNames)
 		teamNames := make([]string, 0, len(u.TeamMembers))
 		for _, tm := range u.TeamMembers {
 			if tm.Team != nil && tm.Team.Name != "" {
@@ -103,15 +97,13 @@ func (h *Handler) ListPlanningDirectory(c *echo.Context) error {
 			}
 		}
 		userOuts = append(userOuts, planningDirectoryUser{
-			ID:              u.ID,
+			UUID:            u.UUID.String(),
 			Name:            u.Name,
 			Email:           u.Email,
 			ImageURI:        u.ImageURI,
 			RoleName:        roleName,
 			DepartmentNames: deptName,
 			TeamNames:       stringsJoinUnique(teamNames),
-			DepartmentID:    u.DepartmentID,
-			RoleID:          u.RoleID,
 		})
 	}
 	teams, err := h.deps.TeamRepo.GetAll()
@@ -124,11 +116,20 @@ func (h *Handler) ListPlanningDirectory(c *echo.Context) error {
 		if err != nil {
 			return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 		}
+		deptUUID := ""
+		if team.Department != nil {
+			deptUUID = team.Department.UUID.String()
+		} else if team.DepartmentID > 0 {
+			dept, err := h.deps.DepartmentRepo.GetByID(team.DepartmentID)
+			if err == nil {
+				deptUUID = dept.UUID.String()
+			}
+		}
 		teamOuts = append(teamOuts, planningTeamOutput{
-			ID:           team.ID,
-			Name:         team.Name,
-			DepartmentID: team.DepartmentID,
-			Members:      memberOuts,
+			UUID:           team.UUID.String(),
+			Name:           team.Name,
+			DepartmentUuid: deptUUID,
+			Members:        memberOuts,
 		})
 	}
 	depts, err := h.deps.DepartmentRepo.GetAll()
@@ -151,11 +152,20 @@ func (h *Handler) ListPlanningDirectory(c *echo.Context) error {
 			if err != nil {
 				return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 			}
+			deptUUID := ""
+			if team.Department != nil {
+				deptUUID = team.Department.UUID.String()
+			} else if team.DepartmentID > 0 {
+				dept, err := h.deps.DepartmentRepo.GetByID(team.DepartmentID)
+				if err == nil {
+					deptUUID = dept.UUID.String()
+				}
+			}
 			managedTeams = append(managedTeams, planningTeamOutput{
-				ID:           team.ID,
-				Name:         team.Name,
-				DepartmentID: team.DepartmentID,
-				Members:      memberOuts,
+				UUID:           team.UUID.String(),
+				Name:           team.Name,
+				DepartmentUuid: deptUUID,
+				Members:        memberOuts,
 			})
 		}
 	}

@@ -1,37 +1,36 @@
 package outputmodel
 
 type UserDepartmentAssignmentOutput struct {
-	DepartmentID uint `json:"departmentId"`
-	RoleID       uint `json:"roleId"`
+	DepartmentUUID string `json:"departmentUuid"`
+	RoleUUID       string `json:"roleUuid"`
 }
 
 type UserTeamAssignmentOutput struct {
-	TeamID   uint `json:"teamId"`
-	IsLeader bool `json:"isLeader"`
+	TeamUUID string `json:"teamUuid"`
+	IsLeader bool   `json:"isLeader"`
 }
 
 type ManagementUserOutput struct {
-	ID              uint                             `json:"id"`
-	Name            string                           `json:"name"`
-	Email           string                           `json:"email"`
-	ImageURI        *string                          `json:"imageUri,omitempty"`
-	Authority    string `json:"authority"`
-	SystemRole   string `json:"systemRole"`
-	DepartmentID uint   `json:"departmentId"`
-	DepartmentName  string                           `json:"departmentName"`
-	RoleID          uint                             `json:"roleId"`
-	RoleName        string                           `json:"roleName"`
-	Departments     []UserDepartmentAssignmentOutput `json:"departments"`
-	Teams           []UserTeamAssignmentOutput       `json:"teams"`
-	Suspended       bool                             `json:"suspended"`
+	UUID           string                           `json:"uuid"`
+	Name           string                           `json:"name"`
+	Email          string                           `json:"email"`
+	ImageURI       *string                          `json:"imageUri,omitempty"`
+	Authority      string                           `json:"authority"`
+	SystemRole     string                           `json:"systemRole"`
+	DepartmentUUID string                           `json:"departmentUuid"`
+	DepartmentName string                           `json:"departmentName"`
+	RoleUUID       string                           `json:"roleUuid"`
+	RoleName       string                           `json:"roleName"`
+	Departments    []UserDepartmentAssignmentOutput `json:"departments"`
+	Teams          []UserTeamAssignmentOutput       `json:"teams"`
+	Suspended      bool                             `json:"suspended"`
 }
 
 type OrgTreeNodeOutput struct {
 	Kind            string `json:"kind"`
-	ID              uint   `json:"id"`
+	UUID            string `json:"uuid"`
 	Name            string `json:"name"`
 	Depth           int    `json:"depth"`
-	DepartmentID    uint   `json:"departmentId,omitempty"`
 	LeaderName      string `json:"leaderName,omitempty"`
 	LeaderRole      string `json:"leaderRole,omitempty"`
 	HeadUserName    string `json:"headUserName,omitempty"`
@@ -44,24 +43,24 @@ type OrgTreeNodeOutput struct {
 }
 
 type OrgMemberOutput struct {
-	UserID   uint   `json:"userId"`
+	UserUUID string `json:"userUuid"`
 	UserName string `json:"userName"`
 	Title    string `json:"title"`
 }
 
 type OrgDetailOutput struct {
-	Kind         string            `json:"kind"`
-	ID           uint              `json:"id"`
-	Name         string            `json:"name"`
-	IsRoot       bool              `json:"isRoot"`
-	DepartmentID uint              `json:"departmentId,omitempty"`
-	Members      []OrgMemberOutput `json:"members"`
-	ChildIDs     []uint            `json:"childIds"`
-	TeamIDs      []uint            `json:"teamIds"`
-	UserIDs      []uint            `json:"userIds"`
-	MemberIDs    []uint            `json:"memberIds"`
-	LeaderID     uint              `json:"leaderId"`
-	HeadUserID   uint              `json:"headUserId"`
+	Kind                  string            `json:"kind"`
+	UUID                  string            `json:"uuid"`
+	Name                  string            `json:"name"`
+	IsRoot                bool              `json:"isRoot"`
+	DepartmentUUID        string            `json:"departmentUuid,omitempty"`
+	Members               []OrgMemberOutput `json:"members"`
+	ChildDepartmentUUIDs  []string          `json:"childDepartmentUuids"`
+	TeamUUIDs             []string          `json:"teamUuids"`
+	UserUUIDs             []string          `json:"userUuids"`
+	MemberUUIDs           []string          `json:"memberUuids"`
+	LeaderUUID            string            `json:"leaderUuid"`
+	HeadUserUUID          string            `json:"headUserUuid"`
 }
 
 type RemindSettingsOutput struct {
@@ -73,19 +72,19 @@ type RemindSettingsOutput struct {
 }
 
 type RoleOptionOutput struct {
-	ID   uint   `json:"id"`
+	UUID string `json:"uuid"`
 	Name string `json:"name"`
 	Rank int    `json:"rank"`
 }
 
 type DepartmentOptionOutput struct {
-	ID     uint   `json:"id"`
+	UUID   string `json:"uuid"`
 	Name   string `json:"name"`
 	IsRoot bool   `json:"isRoot"`
 }
 
 type TeamOptionOutput struct {
-	ID           uint   `json:"id"`
-	Name         string `json:"name"`
-	DepartmentID uint   `json:"departmentId"`
+	UUID           string `json:"uuid"`
+	Name           string `json:"name"`
+	DepartmentUUID string `json:"departmentUuid"`
 }

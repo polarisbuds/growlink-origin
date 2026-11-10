@@ -7,27 +7,25 @@
     import { ensureSession } from "$lib/session";
 
     type Topic = {
-        id?: number;
+        uuid?: string;
         displayNo?: number;
         question?: string;
         description?: string;
         isRequire?: boolean;
     };
     type Template = {
-        id: number;
-        uuid?: string;
-        displayNo?: number;
+        uuid: string;
+        createdAt?: string;
         title?: string;
         description?: string;
         creatorName?: string;
-        creatorId?: number;
         isSample?: boolean;
         isLock?: boolean;
         topics?: Topic[];
     };
 
     let templates = $state<Template[]>([]);
-    let currentUserId = $state<number | undefined>();
+    let currentUserName = $state("");
     let isSystemAdmin = $state(false);
     let modalOpen = $state(false);
     let editMode = $state(false);
@@ -43,18 +41,20 @@
         topics: [],
     });
 
-    async function persistOrder(list: Template[]) {
-        const items = list.map((t, i) => ({ id: t.id, displayNo: i + 1 }));
-        await api("PUT", "/api/v1/templates/reorder", { items });
+    function sortByCreatedAt(list: Template[]) {
+        return [...list].sort((a, b) => {
+            const aTime = a.createdAt ? Date.parse(a.createdAt) : 0;
+            const bTime = b.createdAt ? Date.parse(b.createdAt) : 0;
+            if (aTime !== bTime) return aTime - bTime;
+            return a.uuid.localeCompare(b.uuid);
+        });
     }
 
     async function reloadTemplates() {
         const list = await api<Template[]>("GET", "/api/v1/templates");
-        templates = [...list].sort(
-            (a, b) => (a.displayNo || 0) - (b.displayNo || 0),
-        );
+        templates = sortByCreatedAt(list);
         if (active) {
-            const next = templates.find((x) => x.id === active!.id);
+            const next = templates.find((x) => x.uuid === active!.uuid);
             if (next) active = next;
         }
     }
@@ -63,24 +63,28 @@
         if (!t) return false;
         return (
             isSystemAdmin ||
-            (currentUserId != null && t.creatorId === currentUserId)
+            (!!currentUserName && t.creatorName === currentUserName)
         );
     }
 
     function canEditDelete(t: Template | null) {
-        return !!t && !t.isLock;
+        return (
+            (!!t &&
+                !t.isLock &&
+                !!currentUserName &&
+                t.creatorName === currentUserName) ||
+            isSystemAdmin
+        );
     }
 
     onMount(async () => {
         const [list, profile, avatar] = await Promise.all([
             api<Template[]>("GET", "/api/v1/templates"),
-            api<{ id?: number }>("GET", "/api/v1/setting/profile"),
+            api<{ name?: string }>("GET", "/api/v1/setting/profile"),
             ensureSession(),
         ]);
-        templates = [...list].sort(
-            (a, b) => (a.displayNo || 0) - (b.displayNo || 0),
-        );
-        currentUserId = profile.id;
+        templates = sortByCreatedAt(list);
+        currentUserName = profile.name || "";
         isSystemAdmin = avatar?.isSystemAdmin ?? false;
     });
 
@@ -144,7 +148,7 @@
             displayNo: i + 1,
         }));
         try {
-            await api("PUT", `/api/v1/templates/${active.uuid || active.id}`, {
+            await api("PUT", `/api/v1/templates/${active.uuid}`, {
                 title: editForm.title,
                 description: editForm.description,
                 topics,
@@ -164,7 +168,7 @@
         try {
             await api(
                 "DELETE",
-                `/api/v1/templates/${active.uuid || active.id}`,
+                `/api/v1/templates/${active.uuid}`,
             );
             await reloadTemplates();
             closeModal();
@@ -177,7 +181,7 @@
         try {
             await api(
                 "PUT",
-                `/api/v1/templates/${active.uuid || active.id}/lock`,
+                `/api/v1/templates/${active.uuid}/lock`,
                 { isLock },
             );
             showToast(isLock ? "ロックしました" : "ロックを解除しました");
@@ -191,28 +195,12 @@
     }
     async function copy(t: Template) {
         try {
-            await api("POST", `/api/v1/templates/${t.uuid || t.id}/copy`, {});
+            await api("POST", `/api/v1/templates/${t.uuid}/copy`, {});
             showToast("コピーしました");
             await reloadTemplates();
         } catch {
             showToast("コピーに失敗しました", "error");
         }
-    }
-    async function moveUp(t: Template) {
-        const i = templates.findIndex((x: Template) => x.id === t.id);
-        if (i <= 0) return;
-        const next = [...templates];
-        [next[i - 1], next[i]] = [next[i], next[i - 1]];
-        templates = next;
-        await persistOrder(next);
-    }
-    async function moveDown(t: Template) {
-        const i = templates.findIndex((x: Template) => x.id === t.id);
-        if (i < 0 || i >= templates.length - 1) return;
-        const next = [...templates];
-        [next[i], next[i + 1]] = [next[i + 1], next[i]];
-        templates = next;
-        await persistOrder(next);
     }
 </script>
 
@@ -243,7 +231,7 @@
             テンプレートがありません
         </div>
     {:else}
-        {#each templates.entries() as [idx, t] (t.id)}
+        {#each templates.entries() as [idx, t] (t.uuid)}
             <div
                 role="button"
                 tabindex="0"
@@ -259,7 +247,8 @@
                                 >サンプル</span>
                         {/if}
                         {#if t.isLock}
-                            <span class="badge badge-warning badge-outline shrink-0"
+                            <span
+                                class="badge badge-warning badge-outline shrink-0"
                                 >ロック</span>
                         {/if}
                     </div>
@@ -273,14 +262,6 @@
                             type="button"
                             class="btn btn-xs btn-outline"
                             onclick={() => copy(t)}>コピー</button>
-                        <button
-                            type="button"
-                            class="btn btn-xs btn-ghost"
-                            onclick={() => moveUp(t)}>↑</button>
-                        <button
-                            type="button"
-                            class="btn btn-xs btn-ghost"
-                            onclick={() => moveDown(t)}>↓</button>
                     </div>
                 </div>
                 <p
@@ -346,7 +327,7 @@
         </div>
         {#if !editMode}
             <div class="flex-1 overflow-y-auto px-6 py-4">
-                {#each active?.topics || [] as topic (topic.id || topic.displayNo)}
+                {#each active?.topics || [] as topic (topic.uuid || topic.displayNo)}
                     <div
                         class="mb-3 rounded-2xl border border-base-300 bg-base-200/30 p-4">
                         <div class="flex items-start gap-2">

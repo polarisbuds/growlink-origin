@@ -41,45 +41,6 @@ func (m *MockTemplateRepository) EXPECT() *MockTemplateRepositoryMockRecorder {
 	return m.recorder
 }
 
-// Count mocks base method.
-func (m *MockTemplateRepository) Count() (int64, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Count")
-	ret0, _ := ret[0].(int64)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// Count indicates an expected call of Count.
-func (mr *MockTemplateRepositoryMockRecorder) Count() *MockTemplateRepositoryCountCall {
-	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Count", reflect.TypeOf((*MockTemplateRepository)(nil).Count))
-	return &MockTemplateRepositoryCountCall{Call: call}
-}
-
-// MockTemplateRepositoryCountCall wrap *gomock.Call
-type MockTemplateRepositoryCountCall struct {
-	*gomock.Call
-}
-
-// Return rewrite *gomock.Call.Return
-func (c *MockTemplateRepositoryCountCall) Return(arg0 int64, arg1 error) *MockTemplateRepositoryCountCall {
-	c.Call = c.Call.Return(arg0, arg1)
-	return c
-}
-
-// Do rewrite *gomock.Call.Do
-func (c *MockTemplateRepositoryCountCall) Do(f func() (int64, error)) *MockTemplateRepositoryCountCall {
-	c.Call = c.Call.Do(f)
-	return c
-}
-
-// DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockTemplateRepositoryCountCall) DoAndReturn(f func() (int64, error)) *MockTemplateRepositoryCountCall {
-	c.Call = c.Call.DoAndReturn(f)
-	return c
-}
-
 // Create mocks base method.
 func (m *MockTemplateRepository) Create(input *entity.Template) error {
 	m.ctrl.T.Helper()
@@ -307,44 +268,6 @@ func (c *MockTemplateRepositoryUpdateCall) Do(f func(uint, *entity.Template) err
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
 func (c *MockTemplateRepositoryUpdateCall) DoAndReturn(f func(uint, *entity.Template) error) *MockTemplateRepositoryUpdateCall {
-	c.Call = c.Call.DoAndReturn(f)
-	return c
-}
-
-// UpdateDisplayNo mocks base method.
-func (m *MockTemplateRepository) UpdateDisplayNo(templateID uint, displayNo int) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateDisplayNo", templateID, displayNo)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// UpdateDisplayNo indicates an expected call of UpdateDisplayNo.
-func (mr *MockTemplateRepositoryMockRecorder) UpdateDisplayNo(templateID, displayNo any) *MockTemplateRepositoryUpdateDisplayNoCall {
-	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateDisplayNo", reflect.TypeOf((*MockTemplateRepository)(nil).UpdateDisplayNo), templateID, displayNo)
-	return &MockTemplateRepositoryUpdateDisplayNoCall{Call: call}
-}
-
-// MockTemplateRepositoryUpdateDisplayNoCall wrap *gomock.Call
-type MockTemplateRepositoryUpdateDisplayNoCall struct {
-	*gomock.Call
-}
-
-// Return rewrite *gomock.Call.Return
-func (c *MockTemplateRepositoryUpdateDisplayNoCall) Return(arg0 error) *MockTemplateRepositoryUpdateDisplayNoCall {
-	c.Call = c.Call.Return(arg0)
-	return c
-}
-
-// Do rewrite *gomock.Call.Do
-func (c *MockTemplateRepositoryUpdateDisplayNoCall) Do(f func(uint, int) error) *MockTemplateRepositoryUpdateDisplayNoCall {
-	c.Call = c.Call.Do(f)
-	return c
-}
-
-// DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockTemplateRepositoryUpdateDisplayNoCall) DoAndReturn(f func(uint, int) error) *MockTemplateRepositoryUpdateDisplayNoCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }

@@ -234,7 +234,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {#each breakdownRows as row (row.id + row.name)}
+                    {#each breakdownRows as row (row.uuid + row.name)}
                         <tr>
                             <td>{row.name}</td>
                             <td>{row.pending}</td>

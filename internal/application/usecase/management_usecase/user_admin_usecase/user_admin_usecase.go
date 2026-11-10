@@ -11,6 +11,7 @@ import (
 	"growlink/internal/shared/crypto"
 	"strings"
 
+	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
@@ -56,13 +57,24 @@ func (uc *UserAdmin) ListUsers() ([]outputmodel.ManagementUserOutput, error) {
 	if err != nil {
 		return nil, err
 	}
-	roleIDByName := map[string]uint{}
+	roleIDToUUID := map[uint]string{}
+	roleNameToUUID := map[string]string{}
 	for _, role := range roles {
-		roleIDByName[role.Name] = role.ID
+		s := role.UUID.String()
+		roleIDToUUID[role.ID] = s
+		roleNameToUUID[role.Name] = s
+	}
+	depts, err := uc.deptRepo.GetAll()
+	if err != nil {
+		return nil, err
+	}
+	deptIDToUUID := map[uint]string{}
+	for _, dept := range depts {
+		deptIDToUUID[dept.ID] = dept.UUID.String()
 	}
 	out := make([]outputmodel.ManagementUserOutput, 0, len(users))
 	for _, u := range users {
-		departments, err := uc.loadDepartmentAssignments(u, roleIDByName)
+		departments, err := uc.loadDepartmentAssignments(u, roleNameToUUID, roleIDToUUID, deptIDToUUID)
 		if err != nil {
 			return nil, err
 		}
@@ -71,40 +83,44 @@ func (uc *UserAdmin) ListUsers() ([]outputmodel.ManagementUserOutput, error) {
 			return nil, err
 		}
 		deptName := ""
+		deptUUID := deptIDToUUID[u.DepartmentID]
 		if u.Department != nil {
 			deptName = u.Department.Name
+			deptUUID = u.Department.UUID.String()
 		}
 		roleName := ""
+		roleUUID := roleIDToUUID[u.RoleID]
 		if u.Role != nil {
 			roleName = u.Role.Name
+			roleUUID = u.Role.UUID.String()
 		}
 		out = append(out, outputmodel.ManagementUserOutput{
-			ID:              u.ID,
-			Name:            u.Name,
-			Email:           u.Email,
-			ImageURI:        u.ImageURI,
-			Authority:    u.Authority.String(),
-			SystemRole:   u.SystemRole.String(),
-			DepartmentID: u.DepartmentID,
-			DepartmentName:  deptName,
-			RoleID:          u.RoleID,
-			RoleName:        roleName,
-			Departments:     departments,
-			Teams:           teams,
-			Suspended:       u.Suspended,
+			UUID:           u.UUID.String(),
+			Name:           u.Name,
+			Email:          u.Email,
+			ImageURI:       u.ImageURI,
+			Authority:      u.Authority.String(),
+			SystemRole:     u.SystemRole.String(),
+			DepartmentUUID: deptUUID,
+			DepartmentName: deptName,
+			RoleUUID:       roleUUID,
+			RoleName:       roleName,
+			Departments:    departments,
+			Teams:          teams,
+			Suspended:      u.Suspended,
 		})
 	}
 	return out, nil
 }
 
-func (uc *UserAdmin) loadDepartmentAssignments(user entity.User, roleIDByName map[string]uint) ([]outputmodel.UserDepartmentAssignmentOutput, error) {
-	roles, err := uc.deptRoleRepo.GetByUserID(user.ID)
+func (uc *UserAdmin) loadDepartmentAssignments(user entity.User, roleNameToUUID map[string]string, roleIDToUUID map[uint]string, deptIDToUUID map[uint]string) ([]outputmodel.UserDepartmentAssignmentOutput, error) {
+	deptRoles, err := uc.deptRoleRepo.GetByUserID(user.ID)
 	if err != nil {
 		return nil, err
 	}
-	out := make([]outputmodel.UserDepartmentAssignmentOutput, 0, len(roles))
+	out := make([]outputmodel.UserDepartmentAssignmentOutput, 0, len(deptRoles))
 	seen := map[uint]struct{}{}
-	for _, role := range roles {
+	for _, role := range deptRoles {
 		if role.DepartmentID == 0 {
 			continue
 		}
@@ -113,14 +129,18 @@ func (uc *UserAdmin) loadDepartmentAssignments(user entity.User, roleIDByName ma
 		}
 		seen[role.DepartmentID] = struct{}{}
 		out = append(out, outputmodel.UserDepartmentAssignmentOutput{
-			DepartmentID: role.DepartmentID,
-			RoleID:       roleIDByName[role.Name],
+			DepartmentUUID: deptIDToUUID[role.DepartmentID],
+			RoleUUID:       roleNameToUUID[role.Name],
 		})
 	}
 	if len(out) == 0 && user.DepartmentID != 0 {
+		roleUUID := roleIDToUUID[user.RoleID]
+		if user.Role != nil {
+			roleUUID = user.Role.UUID.String()
+		}
 		out = append(out, outputmodel.UserDepartmentAssignmentOutput{
-			DepartmentID: user.DepartmentID,
-			RoleID:       user.RoleID,
+			DepartmentUUID: deptIDToUUID[user.DepartmentID],
+			RoleUUID:       roleUUID,
 		})
 	}
 	return out, nil
@@ -130,6 +150,14 @@ func (uc *UserAdmin) loadTeamAssignments(userID uint) ([]outputmodel.UserTeamAss
 	members, err := uc.teamMemberRepo.GetByMemberID(userID)
 	if err != nil {
 		return nil, err
+	}
+	teams, err := uc.teamRepo.GetAll()
+	if err != nil {
+		return nil, err
+	}
+	teamIDToUUID := map[uint]string{}
+	for _, team := range teams {
+		teamIDToUUID[team.ID] = team.UUID.String()
 	}
 	out := make([]outputmodel.UserTeamAssignmentOutput, 0)
 	seen := map[uint]struct{}{}
@@ -142,7 +170,7 @@ func (uc *UserAdmin) loadTeamAssignments(userID uint) ([]outputmodel.UserTeamAss
 		}
 		seen[member.TeamID] = struct{}{}
 		out = append(out, outputmodel.UserTeamAssignmentOutput{
-			TeamID:   member.TeamID,
+			TeamUUID: teamIDToUUID[member.TeamID],
 			IsLeader: member.IsReader,
 		})
 	}
@@ -150,23 +178,21 @@ func (uc *UserAdmin) loadTeamAssignments(userID uint) ([]outputmodel.UserTeamAss
 }
 
 type DepartmentAssignmentInput struct {
-	DepartmentID uint `json:"departmentId"`
-	RoleID       uint `json:"roleId"`
+	DepartmentUuid string `json:"departmentUuid"`
+	RoleUuid       string `json:"roleUuid"`
 }
 
 type TeamAssignmentInput struct {
-	TeamID   uint `json:"teamId"`
-	IsLeader bool `json:"isLeader"`
+	TeamUuid string `json:"teamUuid"`
+	IsLeader bool   `json:"isLeader"`
 }
 
 type CreateUserInput struct {
-	Name         string                      `json:"name"`
-	Email        string                      `json:"email"`
-	DepartmentID uint                        `json:"departmentId"`
-	RoleID       uint                        `json:"roleId"`
-	Departments  []DepartmentAssignmentInput `json:"departments"`
-	Teams        []TeamAssignmentInput       `json:"teams"`
-	Password     string                      `json:"password"`
+	Name        string                      `json:"name"`
+	Email       string                      `json:"email"`
+	Departments []DepartmentAssignmentInput `json:"departments"`
+	Teams       []TeamAssignmentInput       `json:"teams"`
+	Password    string                      `json:"password"`
 }
 
 func (uc *UserAdmin) CreateUser(input CreateUserInput) (*outputmodel.ManagementUserOutput, error) {
@@ -178,15 +204,16 @@ func (uc *UserAdmin) CreateUser(input CreateUserInput) (*outputmodel.ManagementU
 	if email == "" {
 		return nil, fmt.Errorf("メールを入力してください")
 	}
-	departments := input.Departments
-	if len(departments) == 0 && input.DepartmentID != 0 && input.RoleID != 0 {
-		departments = []DepartmentAssignmentInput{{
-			DepartmentID: input.DepartmentID,
-			RoleID:       input.RoleID,
-		}}
-	}
-	if len(departments) == 0 {
+	if len(input.Departments) == 0 {
 		return nil, fmt.Errorf("所属部署を選択してください")
+	}
+	departments, err := uc.resolveDepartmentAssignments(input.Departments)
+	if err != nil {
+		return nil, err
+	}
+	teamsResolved, err := uc.resolveTeamAssignments(input.Teams)
+	if err != nil {
+		return nil, err
 	}
 	existing, err := uc.userRepo.GetByEmail(email)
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
@@ -196,10 +223,10 @@ func (uc *UserAdmin) CreateUser(input CreateUserInput) (*outputmodel.ManagementU
 		return nil, fmt.Errorf("このメールアドレスは既に登録されています")
 	}
 	user := &entity.User{
-		Name:            name,
-		Email:           email,
-		DepartmentID:    departments[0].DepartmentID,
-		RoleID:          departments[0].RoleID,
+		Name:         name,
+		Email:        email,
+		DepartmentID: departments[0].DepartmentID,
+		RoleID:       departments[0].RoleID,
 		Authority:  valueobject.AuthorityGeneral,
 		SystemRole: valueobject.SystemRoleNone,
 		Suspended:  false,
@@ -214,42 +241,38 @@ func (uc *UserAdmin) CreateUser(input CreateUserInput) (*outputmodel.ManagementU
 	if err := uc.userRepo.Create(user); err != nil {
 		return nil, err
 	}
-	if err := uc.syncAffiliations(user.ID, departments, input.Teams); err != nil {
+	if err := uc.syncAffiliations(user.ID, departments, teamsResolved); err != nil {
 		return nil, err
 	}
 	teams, err := uc.loadTeamAssignments(user.ID)
 	if err != nil {
 		return nil, err
 	}
-	listed := make([]outputmodel.UserDepartmentAssignmentOutput, 0, len(departments))
-	for _, row := range departments {
-		listed = append(listed, outputmodel.UserDepartmentAssignmentOutput{
-			DepartmentID: row.DepartmentID,
-			RoleID:       row.RoleID,
-		})
+	listed, err := uc.departmentAssignmentsOutput(departments)
+	if err != nil {
+		return nil, err
 	}
+	deptUUID, roleUUID := listed[0].DepartmentUUID, listed[0].RoleUUID
 	return &outputmodel.ManagementUserOutput{
-		ID:              user.ID,
-		Name:            user.Name,
-		Email:           user.Email,
-		Authority:    user.Authority.String(),
-		SystemRole:   user.SystemRole.String(),
-		DepartmentID: user.DepartmentID,
-		RoleID:          user.RoleID,
-		Departments:     listed,
-		Teams:           teams,
-		Suspended:       user.Suspended,
+		UUID:           user.UUID.String(),
+		Name:           user.Name,
+		Email:          user.Email,
+		Authority:      user.Authority.String(),
+		SystemRole:     user.SystemRole.String(),
+		DepartmentUUID: deptUUID,
+		RoleUUID:       roleUUID,
+		Departments:    listed,
+		Teams:          teams,
+		Suspended:      user.Suspended,
 	}, nil
 }
 
 type UpdateUserInput struct {
-	Authority    string                      `json:"authority"`
-	SystemRole   string                      `json:"systemRole"`
-	DepartmentID uint                        `json:"departmentId"`
-	RoleID          uint                        `json:"roleId"`
-	Departments     []DepartmentAssignmentInput `json:"departments"`
-	Teams           []TeamAssignmentInput       `json:"teams"`
-	Suspended       *bool                       `json:"suspended"`
+	Authority   string                      `json:"authority"`
+	SystemRole  string                      `json:"systemRole"`
+	Departments []DepartmentAssignmentInput `json:"departments"`
+	Teams       []TeamAssignmentInput       `json:"teams"`
+	Suspended   *bool                       `json:"suspended"`
 }
 
 func (uc *UserAdmin) UpdateUser(userID uint, input UpdateUserInput) error {
@@ -257,15 +280,16 @@ func (uc *UserAdmin) UpdateUser(userID uint, input UpdateUserInput) error {
 	if err != nil {
 		return err
 	}
-	departments := input.Departments
-	if len(departments) == 0 && input.DepartmentID != 0 && input.RoleID != 0 {
-		departments = []DepartmentAssignmentInput{{
-			DepartmentID: input.DepartmentID,
-			RoleID:       input.RoleID,
-		}}
-	}
-	if len(departments) == 0 {
+	if len(input.Departments) == 0 {
 		return fmt.Errorf("所属部署を選択してください")
+	}
+	departments, err := uc.resolveDepartmentAssignments(input.Departments)
+	if err != nil {
+		return err
+	}
+	teamsResolved, err := uc.resolveTeamAssignments(input.Teams)
+	if err != nil {
+		return err
 	}
 	columns, err := userColumnChanges(user, input, departments)
 	if err != nil {
@@ -276,10 +300,10 @@ func (uc *UserAdmin) UpdateUser(userID uint, input UpdateUserInput) error {
 			return err
 		}
 	}
-	return uc.syncAffiliations(userID, departments, input.Teams)
+	return uc.syncAffiliations(userID, departments, teamsResolved)
 }
 
-func userColumnChanges(user *entity.User, input UpdateUserInput, departments []DepartmentAssignmentInput) (map[string]any, error) {
+func userColumnChanges(user *entity.User, input UpdateUserInput, departments []deptAssignmentResolved) (map[string]any, error) {
 	columns := map[string]any{}
 	if input.Authority != "" {
 		auth, err := valueobject.ParseAuthority(input.Authority)
@@ -335,7 +359,7 @@ func diffIDs(existing, desired []uint) (remove, add []uint) {
 	return remove, add
 }
 
-func (uc *UserAdmin) syncAffiliations(userID uint, departments []DepartmentAssignmentInput, teams []TeamAssignmentInput) error {
+func (uc *UserAdmin) syncAffiliations(userID uint, departments []deptAssignmentResolved, teams []teamAssignmentResolved) error {
 	allowed, err := uc.syncDepartmentAssignments(userID, departments)
 	if err != nil {
 		return err
@@ -343,7 +367,7 @@ func (uc *UserAdmin) syncAffiliations(userID uint, departments []DepartmentAssig
 	return uc.syncTeamLeaders(userID, teams, allowed)
 }
 
-func (uc *UserAdmin) syncDepartmentAssignments(userID uint, rows []DepartmentAssignmentInput) (map[uint]struct{}, error) {
+func (uc *UserAdmin) syncDepartmentAssignments(userID uint, rows []deptAssignmentResolved) (map[uint]struct{}, error) {
 	roles, err := uc.roleRepo.GetAll()
 	if err != nil {
 		return nil, err
@@ -366,7 +390,7 @@ func (uc *UserAdmin) syncDepartmentAssignments(userID uint, rows []DepartmentAss
 			return nil, fmt.Errorf("同じ部署を重複して登録できません")
 		}
 		roleName, ok := roleNameByID[row.RoleID]
-		if !ok || row.RoleID == 0 {
+		if !ok {
 			return nil, fmt.Errorf("役職を選択してください")
 		}
 		allowed[row.DepartmentID] = struct{}{}
@@ -564,7 +588,7 @@ func memberKey(member entity.DepartmentMember) [3]uint {
 	return [3]uint{member.UserID, head, manager}
 }
 
-func (uc *UserAdmin) syncTeamLeaders(userID uint, teams []TeamAssignmentInput, allowedDepartments map[uint]struct{}) error {
+func (uc *UserAdmin) syncTeamLeaders(userID uint, teams []teamAssignmentResolved, allowedDepartments map[uint]struct{}) error {
 	want := map[uint]bool{}
 	for _, row := range teams {
 		if row.TeamID == 0 {
@@ -665,9 +689,21 @@ func teamLeaderSetMatches(members []entity.TeamMember, userID uint) bool {
 	return found
 }
 
-func (uc *UserAdmin) SetUsersSuspended(ids []uint, suspended bool) error {
-	if len(ids) == 0 {
+func (uc *UserAdmin) SetUsersSuspended(uuids []string, suspended bool) error {
+	if len(uuids) == 0 {
 		return fmt.Errorf("対象のユーザが選択されていません")
+	}
+	ids := make([]uint, 0, len(uuids))
+	for _, s := range uuids {
+		parsed, err := uuid.Parse(s)
+		if err != nil {
+			return fmt.Errorf("invalid user uuid")
+		}
+		user, err := uc.userRepo.GetByUUID(parsed)
+		if err != nil {
+			return err
+		}
+		ids = append(ids, user.ID)
 	}
 	return uc.userRepo.SetSuspendedByIDs(ids, suspended)
 }

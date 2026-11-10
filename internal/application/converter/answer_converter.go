@@ -20,6 +20,7 @@ func AnswerInputToEntity(in inputmodel.AnswerInput) *entity.Answer {
 func answerEntityToOutputShallow(e entity.Answer) outputmodel.AnswerOutput {
 	out := outputmodel.AnswerOutput{
 		ID:        e.ID,
+		UUID:      e.UUID.String(),
 		Content:   e.Content,
 		MeetingID: e.MeetingID,
 		TopicID:   e.TopicID,

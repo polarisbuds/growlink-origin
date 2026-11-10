@@ -41,9 +41,8 @@ func (uc *IconRemoverUsecase) RemoveIcon(userID uint) error {
 		}
 	}
 
-	user.ImageURI = nil
-	if err := uc.userRepository.UpdateByID(user); err != nil {
-		return fmt.Errorf("ユーザデータの更新（ユーザアイコン）に失敗しました: %w", err)
+	if err := uc.userRepository.UpdateColumns(userID, map[string]any{"image_uri": nil}); err != nil {
+		return fmt.Errorf("ユーザアイコンの削除に失敗しました: %w", err)
 	}
 
 	return nil

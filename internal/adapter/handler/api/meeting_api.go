@@ -174,12 +174,16 @@ func (h *Handler) UpdateMeetingSharers(c *echo.Context) error {
 		return c.JSON(http.StatusForbidden, map[string]string{"error": "forbidden"})
 	}
 	var req struct {
-		SharerUserIDs []uint `json:"sharerUserIds"`
+		SharerUserUuids []string `json:"sharerUserUuids"`
 	}
 	if err := c.Bind(&req); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid request"})
 	}
-	if err := h.deps.MeetingRepo.ReplaceSharers(meeting.ID, req.SharerUserIDs); err != nil {
+	sharerIDs, err := h.resolveUserIDsFromUUIDs(req.SharerUserUuids)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
+	}
+	if err := h.deps.MeetingRepo.ReplaceSharers(meeting.ID, sharerIDs); err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
 	updated, err := h.deps.MeetingRepo.GetByUUID(id)
@@ -213,7 +217,7 @@ func (h *Handler) ListMeetingSharerCandidates(c *echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
 	type candidate struct {
-		ID    uint   `json:"id"`
+		UUID  string `json:"uuid"`
 		Name  string `json:"name"`
 		Email string `json:"email"`
 	}
@@ -225,7 +229,7 @@ func (h *Handler) ListMeetingSharerCandidates(c *echo.Context) error {
 		if !userMatchesSharerQuery(u, q) {
 			continue
 		}
-		out = append(out, candidate{ID: u.ID, Name: u.Name, Email: u.Email})
+		out = append(out, candidate{UUID: u.UUID.String(), Name: u.Name, Email: u.Email})
 		if len(out) >= 50 {
 			break
 		}
@@ -261,13 +265,24 @@ func (h *Handler) PostMeetingComment(c *echo.Context) error {
 
 func (h *Handler) PostAnswerComment(c *echo.Context) error {
 	var req struct {
-		AnswerID uint   `json:"answerId"`
-		Content  string `json:"content"`
+		AnswerUuid string `json:"answerUuid"`
+		Content    string `json:"content"`
 	}
 	if err := c.Bind(&req); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid request"})
 	}
-	if err := h.deps.Meeting.AnswerCommenter.PostComment(req.AnswerID, req.Content); err != nil {
+	if req.AnswerUuid == "" {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "answerUuid is required"})
+	}
+	answerUUID, err := uuid.Parse(req.AnswerUuid)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid uuid"})
+	}
+	answer, err := h.deps.AnswerRepo.GetByUUID(answerUUID)
+	if respErr := apiUUIDResolveError(c, err); respErr != nil {
+		return respErr
+	}
+	if err := h.deps.Meeting.AnswerCommenter.PostComment(answer.ID, req.Content); err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
 	return c.JSON(http.StatusOK, map[string]string{"ok": "true"})

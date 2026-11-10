@@ -1,79 +1,79 @@
 export type PlanningDirectoryUser = {
-	id: number;
+	uuid: string;
 	name: string;
 	email: string;
 	imageUri?: string;
-	teamId?: number;
+	teamUuid?: string;
 	teamNames?: string;
-	departmentId?: number;
+	departmentUuid?: string;
 	departmentNames?: string;
 };
 
 export type PlanningDirectory = {
 	users?: PlanningDirectoryUser[];
-	departments?: { id: number; name: string }[];
+	departments?: { uuid: string; name: string }[];
 };
 
 export type UserTeamMaps = {
-	teamIdByUserId: Map<number, number>;
-	teamNameByUserId: Map<number, string>;
+	teamUuidByUserUuid: Map<string, string>;
+	teamNameByUserUuid: Map<string, string>;
 };
 
 export type UserDepartmentMaps = {
-	departmentIdByUserId: Map<number, number>;
-	departmentNameByUserId: Map<number, string>;
+	departmentUuidByUserUuid: Map<string, string>;
+	departmentNameByUserUuid: Map<string, string>;
 };
 
 export function buildUserTeamMaps(users: PlanningDirectoryUser[]): UserTeamMaps {
-	const teamIdByUserId = new Map<number, number>();
-	const teamNameByUserId = new Map<number, string>();
+	const teamUuidByUserUuid = new Map<string, string>();
+	const teamNameByUserUuid = new Map<string, string>();
 	for (const u of users) {
-		if (u.teamId) teamIdByUserId.set(u.id, u.teamId);
+		if (u.teamUuid) teamUuidByUserUuid.set(u.uuid, u.teamUuid);
 		const name = (u.teamNames || '').trim();
-		if (name) teamNameByUserId.set(u.id, name);
+		if (name) teamNameByUserUuid.set(u.uuid, name);
 	}
-	return { teamIdByUserId: teamIdByUserId, teamNameByUserId: teamNameByUserId };
+	return { teamUuidByUserUuid, teamNameByUserUuid };
 }
 
 export function buildUserDepartmentMaps(users: PlanningDirectoryUser[]): UserDepartmentMaps {
-	const departmentIdByUserId = new Map<number, number>();
-	const departmentNameByUserId = new Map<number, string>();
+	const departmentUuidByUserUuid = new Map<string, string>();
+	const departmentNameByUserUuid = new Map<string, string>();
 	for (const u of users) {
-		if (u.departmentId) departmentIdByUserId.set(u.id, u.departmentId);
+		if (u.departmentUuid) departmentUuidByUserUuid.set(u.uuid, u.departmentUuid);
 		const name = (u.departmentNames || '').trim();
-		if (name) departmentNameByUserId.set(u.id, name);
+		if (name) departmentNameByUserUuid.set(u.uuid, name);
 	}
-	return { departmentIdByUserId, departmentNameByUserId };
+	return { departmentUuidByUserUuid, departmentNameByUserUuid };
 }
 
 export function teamNameForUser(
-	userId: number | undefined,
+	userUuid: string | undefined,
 	maps: UserTeamMaps
 ): string {
-	if (!userId) return '';
-	return maps.teamNameByUserId.get(userId) || '';
+	if (!userUuid) return '';
+	return maps.teamNameByUserUuid.get(userUuid) || '';
 }
 
-export function teamIdForUser(
-	userId: number | undefined,
+export function teamUuidForUser(
+	userUuid: string | undefined,
 	maps: UserTeamMaps
-): number {
-	if (!userId) return 0;
-	return maps.teamIdByUserId.get(userId) || 0;
+): string {
+	if (!userUuid) return '';
+	return maps.teamUuidByUserUuid.get(userUuid) || '';
 }
 
 export function departmentNameForUser(
-	userId: number | undefined,
+	userUuid: string | undefined,
 	maps: UserDepartmentMaps
 ): string {
-	if (!userId) return '';
-	return maps.departmentNameByUserId.get(userId) || '';
+	if (!userUuid) return '';
+	return maps.departmentNameByUserUuid.get(userUuid) || '';
 }
 
-export function departmentIdForUser(
-	userId: number | undefined,
+export function departmentUuidForUser(
+	userUuid: string | undefined,
 	maps: UserDepartmentMaps
-): number {
-	if (!userId) return 0;
-	return maps.departmentIdByUserId.get(userId) || 0;
+): string {
+	if (!userUuid) return '';
+	return maps.departmentUuidByUserUuid.get(userUuid) || '';
 }

@@ -21,7 +21,7 @@ func NewTemplateCopier(templateRepo repository_interface.TemplateRepository, top
 	}
 }
 
-func (uc *TemplateCopier) CopyTemplate(sourceID uint, newTitle string) error {
+func (uc *TemplateCopier) CopyTemplate(sourceID uint, newTitle string, newCreatorID uint) error {
 	src, err := uc.templateRepo.Get(sourceID)
 	if err != nil {
 		return fmt.Errorf("テンプレートの取得に失敗しました: %w", err)
@@ -38,5 +38,5 @@ func (uc *TemplateCopier) CopyTemplate(sourceID uint, newTitle string) error {
 			IsRequire:   t.IsRequire,
 		})
 	}
-	return uc.creator.CreateTemplate(in, src.UserID)
+	return uc.creator.CreateTemplate(in, newCreatorID)
 }

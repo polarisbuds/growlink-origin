@@ -27,16 +27,10 @@ func (uc *TemplateCreator) CreateTemplate(input inputmodel.TemplateInput, userID
 		return err
 	}
 
-	recordCount, err := uc.templateRepo.Count()
-	if err != nil {
-		return fmt.Errorf("テンプレート数のカウントに失敗しました: %w", err)
-	}
-
 	template := &entity.Template{
 		Title:       input.Title,
 		Description: input.Description,
 		UserID:      userID,
-		DisplayNo:   int(recordCount + 1),
 	}
 	if err := uc.templateRepo.Create(template); err != nil {
 		return fmt.Errorf("テンプレートの新規作成に失敗しました: %w", err)

@@ -15,13 +15,8 @@ type Pairing struct {
 	CreatedByUserID uint `gorm:"not null;default:0;index"`
 	IsTemporary     bool `gorm:"not null;default:false;index"`
 
-	RecurWeek    *int `gorm:"type:int"`
-	RecurWeekday *int `gorm:"type:int"`
-
-	Mentor  *User           `gorm:"foreignKey:MentorID"`
-	Mentee  *User           `gorm:"foreignKey:MenteeID"`
-	Mentees []PairingMentee `gorm:"foreignKey:PairingID"`
-	Targets []PairingTarget `gorm:"foreignKey:PairingID"`
+	Mentor *User `gorm:"foreignKey:MentorID"`
+	Mentee *User `gorm:"foreignKey:MenteeID"`
 
 	Meetings []Meeting       `gorm:"foreignKey:PairingID"`
 	Sharers  []PairingSharer `gorm:"foreignKey:PairingID"`

@@ -112,6 +112,7 @@ func (uc *ProgressViewer) Summary(filter ProgressFilter) (*outputmodel.ProgressS
 
 type progressBucket struct {
 	id             uint
+	uuid           string
 	name           string
 	departmentName string
 	pending        int
@@ -143,10 +144,10 @@ func (uc *ProgressViewer) Breakdown(group string, filter ProgressFilter) ([]outp
 	}
 
 	buckets := map[uint]*progressBucket{}
-	addCount := func(id uint, name, deptName string, status valueobject.MeetingStatus, userName string) {
+	addCount := func(id uint, rowUUID, name, deptName string, status valueobject.MeetingStatus, userName string) {
 		b, ok := buckets[id]
 		if !ok {
-			b = &progressBucket{id: id, name: name, departmentName: deptName}
+			b = &progressBucket{id: id, uuid: rowUUID, name: name, departmentName: deptName}
 			buckets[id] = b
 		}
 		switch status {
@@ -176,32 +177,34 @@ func (uc *ProgressViewer) Breakdown(group string, filter ProgressFilter) ([]outp
 		uname := menteeName(&m)
 		if group == progressGroupDepartment {
 			if mentee == nil {
-				addCount(0, unassignedProgressName, "", m.Status, uname)
+				addCount(0, "", unassignedProgressName, "", m.Status, uname)
 				continue
 			}
 			if mentee.Department != nil && mentee.Department.Name != "" {
-				addCount(mentee.Department.ID, mentee.Department.Name, "", m.Status, uname)
+				addCount(mentee.Department.ID, mentee.Department.UUID.String(), mentee.Department.Name, "", m.Status, uname)
 				continue
 			}
 			if mentee.DepartmentID > 0 {
-				addCount(mentee.DepartmentID, fmt.Sprintf("部署 #%d", mentee.DepartmentID), "", m.Status, uname)
+				addCount(mentee.DepartmentID, "", fmt.Sprintf("部署 #%d", mentee.DepartmentID), "", m.Status, uname)
 				continue
 			}
-			addCount(0, unassignedProgressName, "", m.Status, uname)
+			addCount(0, "", unassignedProgressName, "", m.Status, uname)
 			continue
 		}
 
 		if mentee == nil || len(mentee.TeamMembers) == 0 {
-			addCount(0, unassignedProgressName, "", m.Status, uname)
+			addCount(0, "", unassignedProgressName, "", m.Status, uname)
 			continue
 		}
 		seenTeam := map[uint]bool{}
 		for _, tm := range mentee.TeamMembers {
 			var teamID uint
+			var teamUUID string
 			var teamName string
 			var deptName string
 			if tm.Team != nil {
 				teamID = tm.Team.ID
+				teamUUID = tm.Team.UUID.String()
 				teamName = tm.Team.Name
 				if tm.Team.Department != nil {
 					deptName = tm.Team.Department.Name
@@ -220,10 +223,10 @@ func (uc *ProgressViewer) Breakdown(group string, filter ProgressFilter) ([]outp
 			if deptName != "" {
 				display = deptName + " / " + teamName
 			}
-			addCount(teamID, display, deptName, m.Status, uname)
+			addCount(teamID, teamUUID, display, deptName, m.Status, uname)
 		}
 		if len(seenTeam) == 0 {
-			addCount(0, unassignedProgressName, "", m.Status, uname)
+			addCount(0, "", unassignedProgressName, "", m.Status, uname)
 		}
 	}
 
@@ -236,6 +239,7 @@ func (uc *ProgressViewer) Breakdown(group string, filter ProgressFilter) ([]outp
 		}
 		out = append(out, outputmodel.ProgressBreakdownRowOutput{
 			ID:             b.id,
+			UUID:           b.uuid,
 			Name:           b.name,
 			DepartmentName: b.departmentName,
 			Pending:        b.pending,

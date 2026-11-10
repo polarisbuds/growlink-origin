@@ -18,15 +18,15 @@
     const multiPickInputClass =
         "input input-bordered w-full text-left font-normal placeholder-current";
 
-    type Template = { id: number; title?: string };
+    type Template = { uuid: string; title?: string };
     type User = {
-        id: number;
+        uuid: string;
         name: string;
         email: string;
         departmentNames?: string;
         imageUri?: string;
     };
-    type ManagedTeam = { id: number; name: string; members?: User[] };
+    type ManagedTeam = { uuid: string; name: string; members?: User[] };
     type CreateMode = "planned" | "pair" | "monthly";
 
     function todayISO() {
@@ -41,27 +41,27 @@
     let pairings = $state<MeetingPairingItem[]>([]);
     let pairingsLoaded = $state(false);
     let pairingsLoading = $state(false);
-    let selectedPairingIds = $state<number[]>([]);
+    let selectedPairingUuids = $state<string[]>([]);
     let pairSearch = $state("");
     let templates = $state<Template[]>([]);
     let users = $state<User[]>([]);
-    let currentUserId = $state<number | undefined>();
+    let currentUserUuid = $state("");
     let canSpecifyPair = $state(false);
     let managedTeams = $state<ManagedTeam[]>([]);
     let mode = $state<CreateMode>("planned");
-    let mentorId = $state(0);
-    let menteeIds = $state<number[]>([]);
-    let sharerUserIds = $state<number[]>([]);
+    let mentorUuid = $state("");
+    let menteeUuids = $state<string[]>([]);
+    let sharerUserUuids = $state<string[]>([]);
     let pickableUsers = $derived(
-        currentUserId != null
-            ? users.filter((u) => u.id !== currentUserId)
+        currentUserUuid
+            ? users.filter((u) => u.uuid !== currentUserUuid)
             : users,
     );
     let submitting = $state(false);
     let error = $state("");
 
     let form = $state({
-        templateId: 0,
+        templateUuid: "",
         implementedAt: todayISO(),
         fromMonth: currentMonthISO(),
         toMonth: currentMonthISO(),
@@ -69,7 +69,7 @@
         weekday: 3,
     });
 
-    let managedTeamPickValue = $state(0);
+    let managedTeamPickValue = $state("");
 
     let deptMaps = $derived(buildUserDepartmentMaps(users));
     let teamMaps = $derived(buildUserTeamMaps(users));
@@ -78,7 +78,7 @@
         const q = pairSearch.trim().toLowerCase();
         if (!q) return pairTableRows;
         return pairTableRows.filter((row) => {
-            const dept = departmentNameForUser(row.menteeUserId, deptMaps);
+            const dept = departmentNameForUser(row.menteeUserUuid, deptMaps);
             return (
                 row.mentorName.toLowerCase().includes(q) ||
                 row.menteeName.toLowerCase().includes(q) ||
@@ -86,51 +86,46 @@
             );
         });
     });
-    let displayedPairingIds = $derived([
-        ...new Set(filteredPairTableRows.map((r) => r.pairing.id)),
+    let displayedPairingUuids = $derived([
+        ...new Set(filteredPairTableRows.map((r) => r.pairing.uuid)),
     ]);
     let allPairRowsSelected = $derived(
-        displayedPairingIds.length > 0 &&
-            displayedPairingIds.every((id) => selectedPairingIds.includes(id)),
+        displayedPairingUuids.length > 0 &&
+            displayedPairingUuids.every((id) =>
+                selectedPairingUuids.includes(id),
+            ),
     );
-
-    type SelectItem = { id: number };
 
     function avatarURL(user: User | undefined) {
         if (!user?.imageUri) return "";
         return `/uploads/${user.imageUri}`;
     }
 
-    function userLabel(id: number) {
-        const u = users.find((x) => x.id === id);
-        return u ? u.name : `#${id}`;
+    function userLabel(uuid: string) {
+        const u = users.find((x) => x.uuid === uuid);
+        return u ? u.name : uuid;
     }
 
-    function userLabelOf(item: SelectItem) {
-        const u = users.find((x) => x.id === item.id);
-        return u ? `${u.name} (${u.email})` : `#${item.id}`;
+    function userLabelOf(item: User) {
+        return `${item.name} (${item.email})`;
     }
-    function templateLabelOf(item: SelectItem) {
-        const t = templates.find((x) => x.id === item.id);
-        return t?.title || "";
+    function templateLabelOf(item: Template) {
+        return item.title || "";
     }
-    function managedTeamLabelOf(item: SelectItem) {
-        const team = managedTeams.find((x) => x.id === item.id);
-        if (!team) return `#${item.id}`;
-        return `${team.name}（${team.members?.length ?? 0}人）`;
+    function managedTeamLabelOf(item: ManagedTeam) {
+        return `${item.name}（${item.members?.length ?? 0}人）`;
     }
-    function pickManagedTeamFromSelect(item: SelectItem) {
-        const team = managedTeams.find((t) => t.id === item.id);
-        if (team) pickManagedTeam(team);
+    function pickManagedTeamFromSelect(item: ManagedTeam) {
+        pickManagedTeam(item);
     }
     function pickManagedTeam(team: ManagedTeam) {
-        const next = new Set(menteeIds);
+        const next = new Set(menteeUuids);
         for (const m of team.members || []) {
-            if (!m?.id) continue;
-            if (currentUserId != null && m.id === currentUserId) continue;
-            next.add(m.id);
+            if (!m?.uuid) continue;
+            if (currentUserUuid && m.uuid === currentUserUuid) continue;
+            next.add(m.uuid);
         }
-        menteeIds = [...next];
+        menteeUuids = [...next];
     }
     function submitLabel() {
         if (submitting) return "作成中…";
@@ -139,9 +134,7 @@
         return "定期作成";
     }
     function toggleAllPairRows(checked: boolean) {
-        console.log(displayedPairingIds);
-        selectedPairingIds = checked ? displayedPairingIds : [];
-        console.log(selectedPairingIds);
+        selectedPairingUuids = checked ? [...displayedPairingUuids] : [];
     }
 
     async function loadPairingsIfNeeded() {
@@ -161,7 +154,7 @@
     async function onModeChange(next: CreateMode) {
         mode = next;
         if (next === "pair") {
-            selectedPairingIds = [];
+            selectedPairingUuids = [];
             await loadPairingsIfNeeded();
         }
     }
@@ -173,40 +166,45 @@
                 "GET",
                 "/api/v1/planning/directory",
             ),
-            api<{ id?: number }>("GET", "/api/v1/setting/profile"),
+            api<{ email?: string }>("GET", "/api/v1/setting/profile"),
         ]);
         templates = t;
         users = dir.users || [];
         managedTeams = dir.managedTeams || [];
-        currentUserId = profile.id;
+        currentUserUuid =
+            users.find((u) => u.email === profile.email)?.uuid || "";
         canSpecifyPair = getAvatar()?.canSpecifyPair ?? false;
-        form.templateId = templates[0]?.id || 0;
+        form.templateUuid = templates[0]?.uuid || "";
     });
 
-    function togglePair(id: number) {
-        let index = selectedPairingIds.indexOf(id);
-        if (index !== -1) selectedPairingIds.push(id);
-        else selectedPairingIds.filter((p) => p !== id);
+    function togglePair(uuid: string) {
+        if (selectedPairingUuids.includes(uuid)) {
+            selectedPairingUuids = selectedPairingUuids.filter(
+                (p) => p !== uuid,
+            );
+        } else {
+            selectedPairingUuids = [...selectedPairingUuids, uuid];
+        }
     }
 
     async function submit() {
         error = "";
-        if (!form.templateId) {
+        if (!form.templateUuid) {
             error = "テンプレートを選択してください。";
             return;
         }
         submitting = true;
         try {
-            const sharerPayload = sharerUserIds.length
-                ? sharerUserIds
+            const sharerPayload = sharerUserUuids.length
+                ? sharerUserUuids
                 : undefined;
 
             if (mode === "planned") {
-                if (!mentorId) {
+                if (!mentorUuid) {
                     error = "メンターを選択してください。";
                     return;
                 }
-                if (!menteeIds.length) {
+                if (!menteeUuids.length) {
                     error = "メンティを選択してください。";
                     return;
                 }
@@ -214,16 +212,16 @@
                     error = "実施日を入力してください。";
                     return;
                 }
-                if (menteeIds.some((id) => id === mentorId)) {
+                if (menteeUuids.some((id) => id === mentorUuid)) {
                     error = "メンターと同じユーザをメンティに指定できません。";
                     return;
                 }
                 await api("POST", "/api/v1/meetings", {
-                    mentorId,
-                    menteeIds,
-                    templateId: form.templateId,
+                    mentorUuid,
+                    menteeUuids,
+                    templateUuid: form.templateUuid,
                     implementedAt: form.implementedAt,
-                    sharerUserIds: sharerPayload,
+                    sharerUserUuids: sharerPayload,
                 });
             } else if (mode === "pair") {
                 await loadPairingsIfNeeded();
@@ -231,7 +229,7 @@
                     error = "ペアがありません。";
                     return;
                 }
-                if (!selectedPairingIds.length) {
+                if (!selectedPairingUuids.length) {
                     error = "ペアを選択してください。";
                     return;
                 }
@@ -239,23 +237,23 @@
                     error = "実施日を入力してください。";
                     return;
                 }
-                const pairingIds = [...new Set(selectedPairingIds)];
+                const pairingUuids = [...new Set(selectedPairingUuids)];
                 await api("POST", "/api/v1/meetings/all", {
-                    templateId: form.templateId,
+                    templateUuid: form.templateUuid,
                     implementedAt: form.implementedAt,
-                    sharerUserIds: sharerPayload,
-                    pairingIds,
+                    sharerUserUuids: sharerPayload,
+                    pairingUuids,
                 });
             } else {
-                if (!mentorId) {
+                if (!mentorUuid) {
                     error = "メンターを選択してください。";
                     return;
                 }
-                if (!menteeIds.length) {
+                if (!menteeUuids.length) {
                     error = "メンティを選択してください。";
                     return;
                 }
-                if (menteeIds.some((id) => id === mentorId)) {
+                if (menteeUuids.some((id) => id === mentorUuid)) {
                     error = "メンターと同じユーザをメンティに指定できません。";
                     return;
                 }
@@ -272,14 +270,14 @@
                     return;
                 }
                 await api("POST", "/api/v1/meetings/monthly", {
-                    mentorId,
-                    menteeIds,
-                    templateId: form.templateId,
+                    mentorUuid,
+                    menteeUuids,
+                    templateUuid: form.templateUuid,
                     from: `${form.fromMonth}-01`,
                     to: `${form.toMonth}-01`,
                     week: form.week,
                     weekday: form.weekday,
-                    sharerUserIds: sharerPayload,
+                    sharerUserUuids: sharerPayload,
                 });
             }
             await goto("/planning/meetings");
@@ -331,7 +329,7 @@
                 <SearchableSelect
                     pickRootId="meeting-new-template"
                     items={templates}
-                    bind:value={form.templateId}
+                    bind:value={form.templateUuid}
                     labelOf={templateLabelOf}
                     placeholder="名前で検索して選択"
                     allowClear={true} />
@@ -390,23 +388,57 @@
                                 <tbody>
                                     {#each filteredPairTableRows as row (row.rowKey)}
                                         {@const mentorUser = users.find(
-                                            (u) => u.id === row.mentorUserId,
+                                            (u) =>
+                                                u.uuid === row.mentorUserUuid,
                                         )}
                                         {@const menteeUser = users.find(
-                                            (u) => u.id === row.menteeUserId,
+                                            (u) =>
+                                                u.uuid === row.menteeUserUuid,
                                         )}
                                         <tr
                                             class="hover:bg-base-200/50 cursor-pointer"
                                             onclick={() => {
-                                                togglePair(row.pairing.id);
+                                                togglePair(row.pairing.uuid);
                                             }}>
-                                            <td>
+                                            <td
+                                                onclick={(e) =>
+                                                    e.stopPropagation()}>
                                                 <input
                                                     type="checkbox"
                                                     class="checkbox checkbox-sm"
-                                                    bind:value={
-                                                        row.pairing.id
-                                                    } />
+                                                    checked={selectedPairingUuids.includes(
+                                                        row.pairing.uuid,
+                                                    )}
+                                                    onchange={(e) => {
+                                                        const checked = (
+                                                            e.currentTarget as HTMLInputElement
+                                                        ).checked;
+                                                        if (checked) {
+                                                            if (
+                                                                !selectedPairingUuids.includes(
+                                                                    row.pairing
+                                                                        .uuid,
+                                                                )
+                                                            ) {
+                                                                selectedPairingUuids =
+                                                                    [
+                                                                        ...selectedPairingUuids,
+                                                                        row
+                                                                            .pairing
+                                                                            .uuid,
+                                                                    ];
+                                                            }
+                                                        } else {
+                                                            selectedPairingUuids =
+                                                                selectedPairingUuids.filter(
+                                                                    (x) =>
+                                                                        x !==
+                                                                        row
+                                                                            .pairing
+                                                                            .uuid,
+                                                                );
+                                                        }
+                                                    }} />
                                             </td>
                                             <td>
                                                 <span
@@ -436,12 +468,12 @@
                                             </td>
                                             <td
                                                 >{departmentNameForUser(
-                                                    row.menteeUserId,
+                                                    row.menteeUserUuid,
                                                     deptMaps,
                                                 ) || "—"}</td>
                                             <td
                                                 >{teamNameForUser(
-                                                    row.menteeUserId,
+                                                    row.menteeUserUuid,
                                                     teamMaps,
                                                 )}</td>
                                         </tr>
@@ -459,7 +491,7 @@
                     <SearchableSelect
                         pickRootId="meeting-new-mentor"
                         items={users}
-                        bind:value={mentorId}
+                        bind:value={mentorUuid}
                         labelOf={userLabelOf}
                         selectedLabel={userLabel}
                         placeholder="名前で検索" />
@@ -470,7 +502,7 @@
                         <MultiCheckSelect
                             pickRootId="meeting-new-mentee"
                             items={pickableUsers}
-                            bind:selectedIds={menteeIds}
+                            bind:selectedUuids={menteeUuids}
                             labelOf={userLabelOf}
                             placeholder="選択してください"
                             inputClass={multiPickInputClass} />
@@ -499,7 +531,7 @@
             <MultiCheckSelect
                 pickRootId="meeting-new-sharer"
                 items={pickableUsers}
-                bind:selectedIds={sharerUserIds}
+                bind:selectedUuids={sharerUserUuids}
                 labelOf={userLabelOf}
                 placeholder="選択してください"
                 inputClass={multiPickInputClass} />

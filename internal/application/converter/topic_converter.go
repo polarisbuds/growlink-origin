@@ -18,6 +18,7 @@ func TopicInputToEntity(in inputmodel.TopicInput) *entity.Topic {
 func TopicEntityToOutput(e entity.Topic) outputmodel.TopicOutput {
 	return outputmodel.TopicOutput{
 		ID:          e.ID,
+		UUID:        e.UUID.String(),
 		DisplayNo:   e.DisplayNo,
 		Question:    e.Question,
 		Description: e.Description,

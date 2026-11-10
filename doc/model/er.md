@@ -85,20 +85,12 @@ pairings {
     number recur_weekday "nullable。定期実施：曜日（0=日曜）"
 
     bigint mentor_id FK
-    bigint mentee_id FK "代表メンティ"
+    bigint mentee_id FK "メンティ"
     bigint created_by_user_id FK "not null, default 0。作成者"
 }
-%% pairings: 1on1 の mentor–mentee。ミーティング作成・メンター閲覧の基準
-%% 複数メンティは pairing_mentees。共有先は pairing_sharers / pairing_targets
+%% pairings: 1on1 の mentor–mentee（1行1ペア）。ミーティング作成・メンター閲覧の基準
 users ||--o{ pairings: "Mentor"
 users ||--o{ pairings: "Mentee"
-
-pairing_mentees {
-    bigint pairing_id FK
-    bigint user_id FK
-}
-pairings ||--o{ pairing_mentees: ""
-users ||--o{ pairing_mentees: "メンティ"
 
 pairing_sharers {
     bigint pairing_id FK
@@ -106,14 +98,6 @@ pairing_sharers {
 }
 pairings ||--o{ pairing_sharers: ""
 users ||--o{ pairing_sharers: "共有先ユーザ"
-
-pairing_targets {
-    text kind "not null, user|team|department"
-    bigint target_id "not null。kind に応じた対象ID（多相。単一FKではない）"
-
-    bigint pairing_id FK
-}
-pairings ||--o{ pairing_targets: "共有対象"
 
 %% ミーティング系
 %% status が done 以外では他ユーザから見られないようにする
@@ -138,9 +122,7 @@ users ||--o{ meeting_sharers: "共有先ユーザ"
 templates {
     text title UK
     text description "not null, default 空文字"
-    number display_no "not null, default 0。表示順序"
     boolean is_sample "not null, default false。サンプルテンプレート"
-    boolean is_lock "not null, default false。ロック中は編集・削除不可"
 
     bigint creator_id FK "作成者のユーザID（列名 creator_id）"
 }

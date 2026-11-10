@@ -18,7 +18,6 @@ type Department struct {
 
 	ParentHierarchies        []DepartmentHierarchy     `gorm:"foreignKey:ParentDepartmentID;references:ID"`
 	ChildHierarchies         []DepartmentHierarchy     `gorm:"foreignKey:ChildDepartmentID;references:ID"`
-	DepartmentRoles          []DepartmentRole          `gorm:"foreignKey:DepartmentID;references:ID"`
-	DepartmentMembers        []DepartmentMember        `gorm:"foreignKey:DepartmentID;references:ID"`
-	UserReferenceDepartments []UserReferenceDepartment `gorm:"foreignKey:ReferableDepartmentID;references:ID"`
+	DepartmentRoles   []DepartmentRole   `gorm:"foreignKey:DepartmentID;references:ID"`
+	DepartmentMembers []DepartmentMember `gorm:"foreignKey:DepartmentID;references:ID"`
 }

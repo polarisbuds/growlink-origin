@@ -52,11 +52,6 @@ func meetingViewerRole(meeting *entity.Meeting, viewerID uint) string {
 	if meeting.Pairing.MenteeID == viewerID {
 		return "mentee"
 	}
-	for _, m := range meeting.Pairing.Mentees {
-		if m.UserID == viewerID {
-			return "mentee"
-		}
-	}
 	return "viewer"
 }
 

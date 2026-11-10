@@ -9,7 +9,8 @@ type ProgressSummaryOutput struct {
 }
 
 type ProgressBreakdownRowOutput struct {
-	ID             uint     `json:"id"`
+	ID             uint     `json:"-"`
+	UUID           string   `json:"uuid"`
 	Name           string   `json:"name"`
 	DepartmentName string   `json:"departmentName,omitempty"`
 	Pending        int      `json:"pending"`

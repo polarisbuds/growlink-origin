@@ -11,7 +11,7 @@ func DepartmentInputToEntity(in inputmodel.DepartmentInput) *entity.Department {
 }
 
 func DepartmentEntityToOutput(e entity.Department) outputmodel.DepartmentOutput {
-	return outputmodel.DepartmentOutput{ID: e.ID, Name: e.Name}
+	return outputmodel.DepartmentOutput{ID: e.ID, UUID: e.UUID.String(), Name: e.Name}
 }
 
 func DepartmentEntitiesToOutputs(es []entity.Department) []outputmodel.DepartmentOutput {

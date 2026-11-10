@@ -6,14 +6,13 @@ export function formatDate(iso?: string): string {
 }
 
 export type MeetingPairingRef = {
-	mentor?: { id?: number; name?: string };
-	mentee?: { id?: number; name?: string };
+	mentor?: { uuid?: string; name?: string };
+	mentee?: { uuid?: string; name?: string };
 	mentees?: { name?: string }[];
 };
 
 export type MeetingListItem = {
-	id?: number;
-	uuid?: string;
+	uuid: string;
 	implementedAt?: string;
 	status?: number;
 	template?: { title?: string; description?: string };
@@ -21,29 +20,27 @@ export type MeetingListItem = {
 };
 
 export type MeetingTopicRef = {
-	id?: number;
+	uuid?: string;
 	displayNo?: number;
 	question?: string;
 	description?: string;
 };
 
 export type MeetingAnswerRef = {
-	id?: number;
+	uuid?: string;
 	content?: string;
-	topicId?: number;
-	meetingId?: number;
-	userId?: number;
 	topic?: MeetingTopicRef;
+	user?: { uuid?: string; name?: string; email?: string };
 };
 
 export type MeetingUserRef = {
-	id?: number;
+	uuid?: string;
 	name?: string;
 	email?: string;
 };
 
 export type MeetingCommentRef = {
-	id?: number;
+	uuid?: string;
 	content?: string;
 	isLimited?: boolean;
 	createdAt?: string;
@@ -78,14 +75,14 @@ export function menteeTargetLabel(pairing?: MeetingPairingRef): string {
 
 export function canUserAnswerMeeting(
 	item: { pairing?: MeetingPairingRef; status?: number },
-	userId: number | undefined
+	userUuid: string | undefined
 ): boolean {
-	if (!userId || !item.pairing) return false;
+	if (!userUuid || !item.pairing) return false;
 	const done = isMeetingDone(item.status);
-	if (isUserMentorOfMeeting(item, userId)) {
+	if (isUserMentorOfMeeting(item, userUuid)) {
 		return done;
 	}
-	if (isUserMenteeOfMeeting(item, userId)) {
+	if (isUserMenteeOfMeeting(item, userUuid)) {
 		return !done;
 	}
 	return false;
@@ -94,14 +91,14 @@ export function canUserAnswerMeeting(
 /** 一覧の「閲覧」。記入と同時には true にならない */
 export function canUserViewMeeting(
 	item: { pairing?: MeetingPairingRef; status?: number },
-	userId: number | undefined
+	userUuid: string | undefined
 ): boolean {
 	if (!item.pairing) return false;
 	const done = isMeetingDone(item.status);
-	if (userId != null && isUserMenteeOfMeeting(item, userId)) {
+	if (userUuid && isUserMenteeOfMeeting(item, userUuid)) {
 		return done;
 	}
-	if (userId != null && isUserMentorOfMeeting(item, userId)) {
+	if (userUuid && isUserMentorOfMeeting(item, userUuid)) {
 		return !done;
 	}
 	return true;
@@ -183,18 +180,18 @@ export function splitByMeetingPeriod<T extends { implementedAt?: string }>(
 
 export function isUserMentorOfMeeting(
 	item: { pairing?: MeetingPairingRef },
-	userId: number | undefined
+	userUuid: string | undefined
 ): boolean {
-	if (!userId || !item.pairing) return false;
-	return item.pairing.mentor?.id === userId;
+	if (!userUuid || !item.pairing) return false;
+	return item.pairing.mentor?.uuid === userUuid;
 }
 
 export function isUserMenteeOfMeeting(
 	item: { pairing?: MeetingPairingRef },
-	userId: number | undefined
+	userUuid: string | undefined
 ): boolean {
-	if (!userId || !item.pairing) return false;
-	return item.pairing.mentee?.id === userId;
+	if (!userUuid || !item.pairing) return false;
+	return item.pairing.mentee?.uuid === userUuid;
 }
 
 export const BADGE_YOU_ARE_MENTEE = 'あなたがメンティーの面談';
@@ -202,14 +199,14 @@ export const BADGE_YOU_ARE_MENTOR = 'あなたがメンターの面談';
 
 export function meetingRoleBadgeLabel(
 	item: { pairing?: MeetingPairingRef },
-	userId: number | undefined,
+	userUuid: string | undefined,
 	mode: 'mentee-only' | 'mentor-always' | 'none'
 ): string | null {
-	if (mode === 'none' || !userId) return null;
-	if (mode === 'mentor-always' || isUserMentorOfMeeting(item, userId)) {
-		if (isUserMentorOfMeeting(item, userId)) return BADGE_YOU_ARE_MENTOR;
+	if (mode === 'none' || !userUuid) return null;
+	if (mode === 'mentor-always' || isUserMentorOfMeeting(item, userUuid)) {
+		if (isUserMentorOfMeeting(item, userUuid)) return BADGE_YOU_ARE_MENTOR;
 	}
-	if (mode === 'mentee-only' && isUserMenteeOfMeeting(item, userId)) {
+	if (mode === 'mentee-only' && isUserMenteeOfMeeting(item, userUuid)) {
 		return BADGE_YOU_ARE_MENTEE;
 	}
 	return null;
@@ -226,18 +223,23 @@ export function canShowMeetingSetting(implementedAt?: string): boolean {
 
 export function splitInvolvedMeetingsForWorkspace(
 	meetings: MeetingListItem[],
-	userId: number | undefined
+	userUuid: string | undefined
 ): { own: MeetingListItem[]; asMentor: MeetingListItem[]; showMentorTab: boolean } {
 	const asMentor: MeetingListItem[] = [];
 	const own: MeetingListItem[] = [];
 	for (const m of meetings) {
-		if (isUserMentorOfMeeting(m, userId)) {
+		if (isUserMentorOfMeeting(m, userUuid)) {
 			asMentor.push(m);
 		} else {
 			own.push(m);
 		}
 	}
 	return { own, asMentor, showMentorTab: asMentor.length > 0 };
+}
+
+function topicKey(topic?: MeetingTopicRef): string | undefined {
+	if (!topic) return undefined;
+	return topic.uuid || (topic.displayNo != null ? `display-${topic.displayNo}` : undefined);
 }
 
 export function mentorTabPairLabel(item: { pairing?: MeetingPairingRef }): string {
@@ -261,15 +263,16 @@ export type MeetingPayload = {
 };
 
 export function displayTopics(payload: MeetingPayload): DisplayTopicRow[] {
-	const answersByTopic = new Map<number, MeetingAnswerRef>();
+	const answersByTopic = new Map<string, MeetingAnswerRef>();
 	for (const a of payload.answers || []) {
-		const tid = a.topic?.id ?? a.topicId;
-		if (tid) answersByTopic.set(tid, a);
+		const key = topicKey(a.topic);
+		if (key) answersByTopic.set(key, a);
 	}
 	const topics = payload.topics || [];
 	if (topics.length) {
 		return topics.map((topic, i) => {
-			const answer = topic.id != null ? answersByTopic.get(topic.id) : undefined;
+			const key = topicKey(topic);
+			const answer = key ? answersByTopic.get(key) : undefined;
 			return { topic, answer, displayNo: topic.displayNo || i + 1 };
 		});
 	}
@@ -280,29 +283,29 @@ export function displayTopics(payload: MeetingPayload): DisplayTopicRow[] {
 	}));
 }
 
-function pairingUserIds(payload: MeetingPayload): { mentorId?: number; menteeId?: number } {
+function pairingUserUuids(payload: MeetingPayload): { mentorUuid?: string; menteeUuid?: string } {
 	const p = payload.meeting?.pairing;
-	return { mentorId: p?.mentor?.id, menteeId: p?.mentee?.id };
+	return { mentorUuid: p?.mentor?.uuid, menteeUuid: p?.mentee?.uuid };
 }
 
 export function dualTopicRows(payload: MeetingPayload): DualTopicRow[] {
-	const { mentorId, menteeId } = pairingUserIds(payload);
+	const { mentorUuid, menteeUuid } = pairingUserUuids(payload);
 	const slots = new Map<
-		number,
+		string,
 		{ menteeAnswer?: MeetingAnswerRef; mentorAnswer?: MeetingAnswerRef }
 	>();
 	for (const a of payload.answers || []) {
-		const tid = a.topic?.id ?? a.topicId;
-		if (tid == null) continue;
-		let slot = slots.get(tid);
+		const key = topicKey(a.topic);
+		if (!key) continue;
+		let slot = slots.get(key);
 		if (!slot) {
 			slot = {};
-			slots.set(tid, slot);
+			slots.set(key, slot);
 		}
-		const uid = a.userId;
-		if (uid != null && uid === mentorId) {
+		const uid = a.user?.uuid;
+		if (uid && uid === mentorUuid) {
 			slot.mentorAnswer = a;
-		} else if (uid != null && uid === menteeId) {
+		} else if (uid && uid === menteeUuid) {
 			slot.menteeAnswer = a;
 		} else if (!slot.menteeAnswer) {
 			slot.menteeAnswer = a;
@@ -313,7 +316,8 @@ export function dualTopicRows(payload: MeetingPayload): DualTopicRow[] {
 	const topics = payload.topics || [];
 	if (topics.length) {
 		return topics.map((topic, i) => {
-			const slot = topic.id != null ? slots.get(topic.id) : undefined;
+			const key = topicKey(topic);
+			const slot = key ? slots.get(key) : undefined;
 			return {
 				topic,
 				displayNo: topic.displayNo || i + 1,
@@ -322,9 +326,9 @@ export function dualTopicRows(payload: MeetingPayload): DualTopicRow[] {
 			};
 		});
 	}
-	return [...slots.entries()].map(([topicId, slot], i) => ({
+	return [...slots.entries()].map(([key, slot], i) => ({
 		displayNo: i + 1,
-		topic: slot.menteeAnswer?.topic ?? slot.mentorAnswer?.topic ?? { id: topicId },
+		topic: slot.menteeAnswer?.topic ?? slot.mentorAnswer?.topic ?? { uuid: key },
 		menteeAnswer: slot.menteeAnswer,
 		mentorAnswer: slot.mentorAnswer
 	}));
@@ -333,19 +337,19 @@ export function dualTopicRows(payload: MeetingPayload): DualTopicRow[] {
 export function ownAnswerDrafts(
 	payload: MeetingPayload,
 	viewerRole: 'mentee' | 'mentor' | 'viewer' | undefined
-): Record<number, string> {
+): Record<string, string> {
 	const rows = dualTopicRows(payload);
-	const next: Record<number, string> = {};
+	const next: Record<string, string> = {};
 	for (const row of rows) {
-		const tid = row.topic?.id;
-		if (tid == null) continue;
+		const key = topicKey(row.topic);
+		if (!key) continue;
 		const answer =
 			viewerRole === 'mentor'
 				? row.mentorAnswer
 				: viewerRole === 'mentee'
 					? row.menteeAnswer
 					: undefined;
-		next[tid] = answer?.content || '';
+		next[key] = answer?.content || '';
 	}
 	return next;
 }

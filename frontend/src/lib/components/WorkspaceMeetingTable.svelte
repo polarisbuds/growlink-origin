@@ -13,13 +13,13 @@
 
     let {
         items,
-        currentUserId,
+        currentUserUuid,
         roleBadgeMode = "none",
         labelForItem = pairLabel,
         emptyMessage = "面談はありません",
     }: {
         items: MeetingListItem[];
-        currentUserId?: number;
+        currentUserUuid?: string;
         roleBadgeMode?: RoleBadgeMode;
         labelForItem?: (item: MeetingListItem) => string;
         emptyMessage?: string;
@@ -47,7 +47,7 @@
             {#each items as item (item.uuid)}
                 {@const roleBadge = meetingRoleBadgeLabel(
                     item,
-                    currentUserId,
+                    currentUserUuid,
                     roleBadgeMode,
                 )}
                 <tr class="hover:bg-base-200/40">
@@ -74,11 +74,11 @@
                         >{formatDate(item.implementedAt)}</td>
                     <td class="text-right">
                         <div class="flex flex-wrap justify-end gap-1">
-                            {#if canUserAnswerMeeting(item, currentUserId)}
+                            {#if canUserAnswerMeeting(item, currentUserUuid)}
                                 <a
                                     href="/meeting/{item.uuid}/answer"
                                     class="btn btn-xs btn-primary">記入</a>
-                            {:else if canUserViewMeeting(item, currentUserId)}
+                            {:else if canUserViewMeeting(item, currentUserUuid)}
                                 <a
                                     href="/meeting/{item.uuid}"
                                     class="btn btn-xs btn-ghost">閲覧</a>

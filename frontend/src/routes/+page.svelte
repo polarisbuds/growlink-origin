@@ -16,16 +16,21 @@
     let mentorMeetings = $state<MeetingListItem[]>([]);
     let showMentorTab = $state(false);
     let sharedMeetings = $state<MeetingListItem[]>([]);
-    let currentUserId = $state<number | undefined>();
+    let currentUserUuid = $state("");
 
     onMount(async () => {
         const [own, shared, profile] = await Promise.all([
             api<MeetingListItem[]>("GET", "/api/v1/meetings/involved"),
             api<MeetingListItem[]>("GET", "/api/v1/meetings/shared"),
-            api<{ id?: number }>("GET", "/api/v1/setting/profile"),
+            api<{ email?: string }>("GET", "/api/v1/setting/profile"),
         ]);
-        currentUserId = profile.id;
-        const split = splitInvolvedMeetingsForWorkspace(own, profile.id);
+        const directory = await api<{ users?: { uuid: string; email: string }[] }>(
+            "GET",
+            "/api/v1/planning/directory",
+        );
+        currentUserUuid =
+            directory.users?.find((u) => u.email === profile.email)?.uuid || "";
+        const split = splitInvolvedMeetingsForWorkspace(own, currentUserUuid);
         ownMeetings = split.own;
         mentorMeetings = split.asMentor;
         showMentorTab = split.showMentorTab;
@@ -100,19 +105,19 @@
     <WorkspaceMeetingPeriodViews
         meetings={ownMeetings}
         {viewMode}
-        {currentUserId}
+        {currentUserUuid}
         roleBadgeMode="mentee-only" />
 {:else if tab === "mentor"}
     <WorkspaceMeetingPeriodViews
         meetings={mentorMeetings}
         {viewMode}
-        {currentUserId}
+        {currentUserUuid}
         roleBadgeMode="mentor-always"
         labelForItem={mentorTabPairLabel} />
 {:else}
     <WorkspaceMeetingPeriodViews
         meetings={sharedMeetings}
         {viewMode}
-        {currentUserId}
+        {currentUserUuid}
         roleBadgeMode="none" />
 {/if}

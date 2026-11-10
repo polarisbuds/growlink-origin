@@ -7,24 +7,26 @@
     import SearchableSelect from "$lib/components/SearchableSelect.svelte";
     import Icon from "$lib/components/Icon.svelte";
 
-    type SelectItem = { id: number };
-    type Target = { kind: string; targetId: number; label: string };
     type DirectoryUser = {
-        id: number;
+        uuid: string;
         name: string;
         email: string;
         roleName?: string;
         departmentNames?: string;
         teamNames?: string;
-        departmentId?: number;
+        departmentUuid?: string;
         imageUri?: string;
     };
-    type DirectoryTeam = { id: number; name: string; departmentId: number };
+    type DirectoryTeam = {
+        uuid: string;
+        name: string;
+        departmentUuid: string;
+    };
+    type Target = { kind: string; targetUuid: string; label: string };
     type PairingInitial = {
         uuid?: string;
-        mentor?: { id?: number };
-        mentee?: { id?: number; name?: string };
-        targets?: { kind: string; targetId: number; label?: string }[];
+        mentor?: { uuid?: string };
+        mentee?: { uuid?: string; name?: string };
     };
 
     let {
@@ -35,24 +37,24 @@
         initialPairing?: PairingInitial | null;
     } = $props();
 
-    let mentorId = $state(0);
+    let mentorUuid = $state("");
     let targets = $state<Target[]>([]);
     let pairingUUID = $state("");
     let users = $state<DirectoryUser[]>([]);
-    let departments = $state<{ id: number; name: string }[]>([]);
+    let departments = $state<{ uuid: string; name: string }[]>([]);
     let teams = $state<DirectoryTeam[]>([]);
 
     let nameSearch = $state("");
-    let filterDeptId = $state(0);
-    let filterTeamId = $state(0);
+    let filterDeptUuid = $state("");
+    let filterTeamUuid = $state("");
     let sortKey = $state<"role" | "name" | "department" | "team">("name");
     let sortDir = $state<"asc" | "desc">("asc");
-    let selectedMenteeIds = $state<Set<number>>(new Set());
+    let selectedMenteeUuids = $state<Set<string>>(new Set());
 
     let userTargets = $derived(targets.filter((t) => t.kind === "user"));
     let menteeChips = $derived(
         userTargets.map((t) => ({
-            id: t.targetId,
+            uuid: t.targetUuid,
             name: displayNameForTarget(t),
         })),
     );
@@ -62,52 +64,62 @@
         return `/uploads/${user.imageUri}`;
     }
     function displayNameForTarget(t: Target) {
-        const u = users.find((x) => x.id === t.targetId);
+        const u = users.find((x) => x.uuid === t.targetUuid);
         if (u) return u.name;
         const idx = t.label.indexOf(" (");
         if (idx > 0) return t.label.slice(0, idx);
-        return t.label || `#${t.targetId}`;
+        return t.label || t.targetUuid;
     }
-    function userLabel(id: number) {
-        const u = users.find((x) => x.id === id);
-        return u ? u.name : `#${id}`;
+    function userLabel(uuid: string) {
+        const u = users.find((x) => x.uuid === uuid);
+        return u ? u.name : uuid;
     }
-    function userLabelOf(item: SelectItem) {
-        const u = users.find((x) => x.id === item.id);
-        return u ? `${u.name} ${u.email}` : `#${item.id}`;
+    function userLabelOf(item: DirectoryUser) {
+        return `${item.name} ${item.email}`;
     }
-    function targetKey(kind: string, targetId: number) {
-        return `${kind}:${targetId}`;
+    function targetKey(kind: string, targetUuid: string) {
+        return `${kind}:${targetUuid}`;
     }
     function addUserTarget(u: DirectoryUser) {
-        const key = targetKey("user", u.id);
-        if (targets.some((t) => targetKey(t.kind, t.targetId) === key)) return;
+        const key = targetKey("user", u.uuid);
+        if (targets.some((t) => targetKey(t.kind, t.targetUuid) === key))
+            return;
         targets = [
             ...targets,
-            { kind: "user", targetId: u.id, label: `${u.name} (${u.email})` },
+            {
+                kind: "user",
+                targetUuid: u.uuid,
+                label: `${u.name} (${u.email})`,
+            },
         ];
     }
 
     let teamOptions = $derived.by(() => {
-        if (!filterDeptId) return teams;
-        return teams.filter((t) => t.departmentId === filterDeptId);
+        if (!filterDeptUuid) return teams;
+        return teams.filter((t) => t.departmentUuid === filterDeptUuid);
     });
 
     $effect(() => {
-        if (!filterTeamId) return;
-        const ok = teamOptions.some((t) => t.id === filterTeamId);
-        if (!ok) filterTeamId = 0;
+        if (!filterTeamUuid) return;
+        const ok = teamOptions.some((t) => t.uuid === filterTeamUuid);
+        if (!ok) filterTeamUuid = "";
     });
 
     let tableRows = $derived.by(() => {
-        let list = users.filter((u) => u.id !== mentorId);
+        let list = users.filter((u) => u.uuid !== mentorUuid);
+
         const q = nameSearch.trim().toLowerCase();
         if (q) list = list.filter((u) => u.name.toLowerCase().includes(q));
-        if (filterDeptId) {
-            list = list.filter((u) => u.departmentId === filterDeptId);
+
+        if (filterDeptUuid) {
+            const department = departments.find(
+                (d) => d.uuid === filterDeptUuid,
+            );
+            const departmentName = department?.name || "";
+            list = list.filter((u) => u.departmentNames === departmentName);
         }
-        if (filterTeamId) {
-            const team = teams.find((t) => t.id === filterTeamId);
+        if (filterTeamUuid) {
+            const team = teams.find((t) => t.uuid === filterTeamUuid);
             const teamName = team?.name || "";
             list = list.filter((u) => (u.teamNames || "").includes(teamName));
         }
@@ -137,18 +149,18 @@
         return list;
     });
 
-    function toggleMentee(id: number) {
-        const next = new Set(selectedMenteeIds);
-        if (next.has(id)) next.delete(id);
-        else next.add(id);
-        selectedMenteeIds = next;
+    function toggleMentee(uuid: string) {
+        const next = new Set(selectedMenteeUuids);
+        if (next.has(uuid)) next.delete(uuid);
+        else next.add(uuid);
+        selectedMenteeUuids = next;
     }
 
-    function switchMentee(id: number, flag: boolean) {
-        const next = new Set(selectedMenteeIds);
-        if (!flag) next.delete(id);
-        else next.add(id);
-        selectedMenteeIds = next;
+    function switchMentee(uuid: string, flag: boolean) {
+        const next = new Set(selectedMenteeUuids);
+        if (!flag) next.delete(uuid);
+        else next.add(uuid);
+        selectedMenteeUuids = next;
     }
 
     function toggleSort(key: "role" | "name" | "department" | "team") {
@@ -163,7 +175,7 @@
         let target = ev.currentTarget;
         if (!(target instanceof HTMLInputElement)) return;
         tableRows.forEach((t) => {
-            switchMentee(t.id, target.checked);
+            switchMentee(t.uuid, target.checked);
         });
     }
 
@@ -175,21 +187,12 @@
     $effect(() => {
         if (!initialPairing) return;
         pairingUUID = initialPairing.uuid || "";
-        mentorId = initialPairing.mentor?.id || 0;
-        const loaded = (initialPairing.targets || [])
-            .filter((t) => t.kind === "user")
-            .map((t) => ({
-                kind: "user",
-                targetId: t.targetId,
-                label: t.label || "",
-            }));
-        if (
-            initialPairing.mentee?.id &&
-            !loaded.some((t) => t.targetId === initialPairing.mentee?.id)
-        ) {
+        mentorUuid = initialPairing.mentor?.uuid || "";
+        const loaded: Target[] = [];
+        if (initialPairing.mentee?.uuid) {
             loaded.push({
                 kind: "user",
-                targetId: initialPairing.mentee.id,
+                targetUuid: initialPairing.mentee.uuid,
                 label: initialPairing.mentee.name || "",
             });
         }
@@ -199,44 +202,47 @@
     onMount(async () => {
         const data = await api<{
             users?: DirectoryUser[];
-            departments?: { id: number; name: string }[];
+            departments?: { uuid: string; name: string }[];
             teams?: DirectoryTeam[];
         }>("GET", "/api/v1/planning/directory");
         users = data.users || [];
         departments = data.departments || [];
         teams = (data.teams || []).map((t) => ({
-            id: t.id,
+            uuid: t.uuid,
             name: t.name,
-            departmentId: t.departmentId,
+            departmentUuid: t.departmentUuid,
         }));
     });
 
     function pickUserTarget(u: DirectoryUser) {
         addUserTarget(u);
     }
-    function removeUserTarget(targetId: number) {
+    function removeUserTarget(targetUuid: string) {
         targets = targets.filter(
-            (t) => !(t.kind === "user" && t.targetId === targetId),
+            (t) => !(t.kind === "user" && t.targetUuid === targetUuid),
         );
     }
 
     async function requestSave() {
-        let userOnly: { kind: string; targetId: number }[];
+        let userOnly: { kind: string; targetUuid: string }[];
         if (mode === "create") {
-            userOnly = [...selectedMenteeIds].map((id) => ({
+            userOnly = [...selectedMenteeUuids].map((uuid) => ({
                 kind: "user",
-                targetId: id,
+                targetUuid: uuid,
             }));
         } else {
             userOnly = targets
                 .filter((t) => t.kind === "user")
-                .map((t) => ({ kind: "user", targetId: t.targetId }));
+                .map((t) => ({ kind: "user", targetUuid: t.targetUuid }));
         }
-        if (!mentorId || !userOnly.length) {
+        if (!mentorUuid || !userOnly.length) {
             showToast("メンターとメンティを選択してください", "error");
             return;
         }
-        const body = { mentorId, targets: userOnly };
+        const body = {
+            mentorUuid,
+            targets: userOnly,
+        };
         try {
             if (mode === "create") {
                 await api("POST", "/api/v1/pairings", body);
@@ -269,7 +275,7 @@
             <SearchableSelect
                 pickRootId="pairing-form-mentor"
                 items={users}
-                bind:value={mentorId}
+                bind:value={mentorUuid}
                 labelOf={userLabelOf}
                 selectedLabel={userLabel}
                 placeholder="名前で検索" />
@@ -291,18 +297,18 @@
                 <div class="flex gap-2 justify-end">
                     <select
                         class="select select-bordered w-full"
-                        bind:value={filterDeptId}>
-                        <option value={0}>部署: すべて</option>
-                        {#each departments as d (d.id)}
-                            <option value={d.id}>{d.name}</option>
+                        bind:value={filterDeptUuid}>
+                        <option value="">部署: すべて</option>
+                        {#each departments as d (d.uuid)}
+                            <option value={d.uuid}>{d.name}</option>
                         {/each}
                     </select>
                     <select
                         class="select select-bordered w-full"
-                        bind:value={filterTeamId}>
-                        <option value={0}>チーム: すべて</option>
-                        {#each teamOptions as t (t.id)}
-                            <option value={t.id}>{t.name}</option>
+                        bind:value={filterTeamUuid}>
+                        <option value="">チーム: すべて</option>
+                        {#each teamOptions as t (t.uuid)}
+                            <option value={t.uuid}>{t.name}</option>
                         {/each}
                     </select>
                 </div>
@@ -348,15 +354,17 @@
                         </tr>
                     </thead>
                     <tbody>
-                        {#each tableRows as u (u.id)}
+                        {#each tableRows as u (u.uuid)}
                             <tr
                                 class="hover:bg-base-200/40 cursor-pointer"
-                                onclick={() => toggleMentee(u.id)}>
+                                onclick={() => toggleMentee(u.uuid)}>
                                 <td>
                                     <input
                                         type="checkbox"
                                         class="checkbox checkbox-sm"
-                                        checked={selectedMenteeIds.has(u.id)} />
+                                        checked={selectedMenteeUuids.has(
+                                            u.uuid,
+                                        )} />
                                 </td>
                                 <td>{u.departmentNames || "所属無し"}</td>
                                 <td>{u.roleName || ""}</td>
@@ -377,7 +385,7 @@
                 </table>
             </div>
             <p class="text-xs text-base-content/60">
-                選択中: {selectedMenteeIds.size} 人
+                選択中: {selectedMenteeUuids.size} 人
             </p>
         {:else}
             <div class="form-control">
@@ -386,6 +394,7 @@
                     pickRootId="pairing-form-mentee"
                     chips={menteeChips}
                     items={users}
+                    labelOf={userLabelOf}
                     placeholder={menteeChips.length
                         ? "追加で検索"
                         : "名前で検索して追加"}

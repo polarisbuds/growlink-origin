@@ -136,7 +136,6 @@ func genSeed(db *gorm.DB) error {
 		template := &entity.Template{
 			Title:       "1on1テンプレート",
 			Description: "メンターとメンティーの定例1on1で、成果と課題を共有するためのテンプレートです。",
-			DisplayNo:   1,
 			IsSample:    true,
 			UserID:      owner.ID,
 		}
@@ -163,7 +162,6 @@ func genSeed(db *gorm.DB) error {
 		templateCheckin := &entity.Template{
 			Title:       "週次チェックイン",
 			Description: "週の目標とブロッカーを短時間で確認するためのテンプレートです。",
-			DisplayNo:   2,
 			IsSample:    false,
 			UserID:      boss.ID,
 		}
@@ -199,31 +197,12 @@ func genSeed(db *gorm.DB) error {
 			return err
 		}
 
-		recurWeek := 1
-		recurWeekday := 1
 		pairing := &entity.Pairing{
 			MentorID:        mentor.ID,
 			MenteeID:        mentee.ID,
 			CreatedByUserID: mentor.ID,
-			RecurWeek:       &recurWeek,
-			RecurWeekday:    &recurWeekday,
 		}
 		if err := tx.Create(pairing).Error; err != nil {
-			return err
-		}
-		if err := tx.Create([]*entity.PairingTarget{
-			{
-				PairingID: pairing.ID,
-				Kind:      entity.PairingTargetKindUser,
-				TargetID:  mentee.ID,
-			},
-		}).Error; err != nil {
-			return err
-		}
-		if err := tx.Create(&entity.PairingMentee{
-			PairingID: pairing.ID,
-			UserID:    mentee.ID,
-		}).Error; err != nil {
 			return err
 		}
 		if err := tx.Create(&entity.PairingSharer{
@@ -239,19 +218,6 @@ func genSeed(db *gorm.DB) error {
 			CreatedByUserID: boss.ID,
 		}
 		if err := tx.Create(pairingBoss).Error; err != nil {
-			return err
-		}
-		if err := tx.Create(&entity.PairingTarget{
-			PairingID: pairingBoss.ID,
-			Kind:      entity.PairingTargetKindUser,
-			TargetID:  mentee2.ID,
-		}).Error; err != nil {
-			return err
-		}
-		if err := tx.Create(&entity.PairingMentee{
-			PairingID: pairingBoss.ID,
-			UserID:    mentee2.ID,
-		}).Error; err != nil {
 			return err
 		}
 

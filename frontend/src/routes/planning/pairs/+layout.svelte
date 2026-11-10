@@ -12,6 +12,11 @@
     let showListHeader = $derived(
         allowed && /^\/planning\/pairs?\/?$/.test(page.url.pathname),
     );
+    let showTabs = $derived(
+        allowed &&
+            !/^\/planning\/pairs\/new\/?$/.test(page.url.pathname) &&
+            !/^\/planning\/pairs\/[^/]+\/edit\/?$/.test(page.url.pathname),
+    );
 
     onMount(async () => {
         const me = getAvatar() ?? (await ensureSession());
@@ -38,6 +43,8 @@
             </dir>
         </div>
     {/if}
-    <PlanningTabs active="pairs" />
+    {#if showTabs}
+        <PlanningTabs active="pairs" />
+    {/if}
     {@render children()}
 {/if}

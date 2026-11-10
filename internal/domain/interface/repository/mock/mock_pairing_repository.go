@@ -11,7 +11,6 @@ package mock
 
 import (
 	entity "growlink/internal/domain/entity"
-	repository_interface "growlink/internal/domain/interface/repository"
 	reflect "reflect"
 
 	uuid "github.com/google/uuid"
@@ -40,44 +39,6 @@ func NewMockPairingRepository(ctrl *gomock.Controller) *MockPairingRepository {
 // EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockPairingRepository) EXPECT() *MockPairingRepositoryMockRecorder {
 	return m.recorder
-}
-
-// ApplyPairingOptions mocks base method.
-func (m *MockPairingRepository) ApplyPairingOptions(pairingID, mentorID uint, targets []repository_interface.PairingTargetOption) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ApplyPairingOptions", pairingID, mentorID, targets)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// ApplyPairingOptions indicates an expected call of ApplyPairingOptions.
-func (mr *MockPairingRepositoryMockRecorder) ApplyPairingOptions(pairingID, mentorID, targets any) *MockPairingRepositoryApplyPairingOptionsCall {
-	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ApplyPairingOptions", reflect.TypeOf((*MockPairingRepository)(nil).ApplyPairingOptions), pairingID, mentorID, targets)
-	return &MockPairingRepositoryApplyPairingOptionsCall{Call: call}
-}
-
-// MockPairingRepositoryApplyPairingOptionsCall wrap *gomock.Call
-type MockPairingRepositoryApplyPairingOptionsCall struct {
-	*gomock.Call
-}
-
-// Return rewrite *gomock.Call.Return
-func (c *MockPairingRepositoryApplyPairingOptionsCall) Return(arg0 error) *MockPairingRepositoryApplyPairingOptionsCall {
-	c.Call = c.Call.Return(arg0)
-	return c
-}
-
-// Do rewrite *gomock.Call.Do
-func (c *MockPairingRepositoryApplyPairingOptionsCall) Do(f func(uint, uint, []repository_interface.PairingTargetOption) error) *MockPairingRepositoryApplyPairingOptionsCall {
-	c.Call = c.Call.Do(f)
-	return c
-}
-
-// DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockPairingRepositoryApplyPairingOptionsCall) DoAndReturn(f func(uint, uint, []repository_interface.PairingTargetOption) error) *MockPairingRepositoryApplyPairingOptionsCall {
-	c.Call = c.Call.DoAndReturn(f)
-	return c
 }
 
 // BreakAllMenteePairing mocks base method.
@@ -511,17 +472,17 @@ func (c *MockPairingRepositoryGetPairingIDsBySharerUserIDCall) DoAndReturn(f fun
 }
 
 // UpdatePairing mocks base method.
-func (m *MockPairingRepository) UpdatePairing(pairingID, mentorID uint) error {
+func (m *MockPairingRepository) UpdatePairing(pairingID, mentorID, menteeID uint) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdatePairing", pairingID, mentorID)
+	ret := m.ctrl.Call(m, "UpdatePairing", pairingID, mentorID, menteeID)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // UpdatePairing indicates an expected call of UpdatePairing.
-func (mr *MockPairingRepositoryMockRecorder) UpdatePairing(pairingID, mentorID any) *MockPairingRepositoryUpdatePairingCall {
+func (mr *MockPairingRepositoryMockRecorder) UpdatePairing(pairingID, mentorID, menteeID any) *MockPairingRepositoryUpdatePairingCall {
 	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdatePairing", reflect.TypeOf((*MockPairingRepository)(nil).UpdatePairing), pairingID, mentorID)
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdatePairing", reflect.TypeOf((*MockPairingRepository)(nil).UpdatePairing), pairingID, mentorID, menteeID)
 	return &MockPairingRepositoryUpdatePairingCall{Call: call}
 }
 
@@ -537,13 +498,13 @@ func (c *MockPairingRepositoryUpdatePairingCall) Return(arg0 error) *MockPairing
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockPairingRepositoryUpdatePairingCall) Do(f func(uint, uint) error) *MockPairingRepositoryUpdatePairingCall {
+func (c *MockPairingRepositoryUpdatePairingCall) Do(f func(uint, uint, uint) error) *MockPairingRepositoryUpdatePairingCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockPairingRepositoryUpdatePairingCall) DoAndReturn(f func(uint, uint) error) *MockPairingRepositoryUpdatePairingCall {
+func (c *MockPairingRepositoryUpdatePairingCall) DoAndReturn(f func(uint, uint, uint) error) *MockPairingRepositoryUpdatePairingCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }

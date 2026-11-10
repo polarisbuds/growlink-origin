@@ -1,16 +1,14 @@
 export type PairingListItem = {
-	id: number;
 	uuid: string;
-	mentor?: { id?: number; name?: string; imageUri?: string };
-	mentee?: { id?: number; name?: string; imageUri?: string };
-	targets?: { kind: string; targetId: number; label?: string }[];
+	mentor?: { uuid?: string; name?: string; imageUri?: string };
+	mentee?: { uuid?: string; name?: string; imageUri?: string };
 };
 
 export type PairingDisplayRow = {
 	pairing: PairingListItem;
 	rowKey: string;
-	mentorUserId: number;
-	menteeUserId: number;
+	mentorUserUuid: string;
+	menteeUserUuid: string;
 	mentorName: string;
 	menteeName: string;
 };
@@ -18,30 +16,19 @@ export type PairingDisplayRow = {
 export function expandUserPairings(pairings: PairingListItem[]): PairingDisplayRow[] {
 	const rows: PairingDisplayRow[] = [];
 	for (const p of pairings) {
-		const mentorUserId = p.mentor?.id || 0;
+		const mentorUserUuid = p.mentor?.uuid || '';
 		const mentorName = p.mentor?.name || '—';
-		const userTargets = (p.targets || []).filter((t) => t.kind === 'user');
-		if (userTargets.length) {
-			for (const t of userTargets) {
-				rows.push({
-					pairing: p,
-					rowKey: `${p.id}-user-${t.targetId}`,
-					mentorUserId,
-					menteeUserId: t.targetId,
-					mentorName,
-					menteeName: t.label || '—'
-				});
-			}
-		} else if (p.mentee?.id) {
-			rows.push({
-				pairing: p,
-				rowKey: `${p.id}-mentee-${p.mentee.id}`,
-				mentorUserId,
-				menteeUserId: p.mentee.id,
-				mentorName,
-				menteeName: p.mentee.name || '—'
-			});
+		if (!p.mentee?.uuid) {
+			continue;
 		}
+		rows.push({
+			pairing: p,
+			rowKey: `${p.uuid}-mentee-${p.mentee.uuid}`,
+			mentorUserUuid,
+			menteeUserUuid: p.mentee.uuid,
+			mentorName,
+			menteeName: p.mentee.name || '—'
+		});
 	}
 	return rows;
 }

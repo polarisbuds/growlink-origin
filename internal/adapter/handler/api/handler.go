@@ -19,6 +19,7 @@ type Deps struct {
 	Setting    *setting_usecase.IconRegisterUsecase
 	SettingRm  *setting_usecase.IconRemoverUsecase
 	MeetingRepo     repository_interface.MeetingRepository
+	AnswerRepo      repository_interface.AnswerRepository
 	PairingRepo     repository_interface.PairingRepository
 	TemplateRepo    repository_interface.TemplateRepository
 	UserRepo        repository_interface.UserRepository

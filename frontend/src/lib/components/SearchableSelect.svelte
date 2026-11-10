@@ -1,11 +1,11 @@
-<script lang="ts" generics="T extends { id: number }">
+<script lang="ts" generics="T extends { uuid: string }">
     import { onMount } from "svelte";
     import { filterItems } from "$lib/searchable-select";
     import PickOptionList from "$lib/components/PickOptionList.svelte";
 
     let {
         items,
-        value = $bindable(0),
+        value = $bindable(""),
         labelOf,
         selectedLabel: selectedLabelFn,
         placeholder = "名前で検索",
@@ -17,9 +17,9 @@
         inputSize = "",
     }: {
         items: T[];
-        value?: number;
+        value?: string;
         labelOf: (item: T) => string;
-        selectedLabel?: (id: number) => string;
+        selectedLabel?: (uuid: string) => string;
         placeholder?: string;
         allowClear?: boolean;
         clearOnSelect?: boolean;
@@ -37,12 +37,12 @@
     function displaySelected(): string {
         if (clearOnSelect || !value) return "";
         if (selectedLabelFn) return selectedLabelFn(value);
-        const item = items.find((i) => i.id === value);
+        const item = items.find((i) => i.uuid === value);
         return item ? labelOf(item) : "";
     }
 
     function clear() {
-        value = 0;
+        value = "";
         query = "";
         open = false;
     }
@@ -53,7 +53,7 @@
             query = "";
             open = false;
         } else {
-            value = item.id;
+            value = item.uuid;
             query = "";
             open = false;
         }

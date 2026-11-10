@@ -20,6 +20,7 @@ func UserInputToEntity(in inputmodel.UserInput) *entity.User {
 func UserEntityToOutput(e entity.User) outputmodel.UserOutput {
 	return outputmodel.UserOutput{
 		ID:       e.ID,
+		UUID:     e.UUID.String(),
 		Name:     e.Name,
 		Email:    e.Email,
 		ImageURI: e.ImageURI,

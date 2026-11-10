@@ -168,6 +168,7 @@ func main() {
 		Setting:        setting_usecase.NewIconRegisterUsecase(uploadRepo, userRepo),
 		SettingRm:      setting_usecase.NewIconRemoverUsecase(uploadRepo, userRepo),
 		MeetingRepo:    meetingRepo,
+		AnswerRepo:     answerRepo,
 		PairingRepo:    pairingRepo,
 		TemplateRepo:   templateRepo,
 		UserRepo:       userRepo,

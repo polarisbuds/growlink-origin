@@ -16,11 +16,11 @@ func TestUserColumnChanges_Unchanged(t *testing.T) {
 		RoleID:       2,
 		Suspended:    false,
 	}
-	departments := []DepartmentAssignmentInput{{DepartmentID: 1, RoleID: 2}}
+	departments := []deptAssignmentResolved{{DepartmentID: 1, RoleID: 2}}
 	columns, err := userColumnChanges(user, UpdateUserInput{
 		Authority:   "general",
 		SystemRole:  "none",
-		Departments: departments,
+		Departments: []DepartmentAssignmentInput{{DepartmentUuid: "d1", RoleUuid: "r1"}},
 		Suspended:   &suspended,
 	}, departments)
 	if err != nil {
@@ -40,7 +40,7 @@ func TestUserColumnChanges_OnlyChanged(t *testing.T) {
 		RoleID:       2,
 		Suspended:    true,
 	}
-	departments := []DepartmentAssignmentInput{{DepartmentID: 4, RoleID: 2}}
+	departments := []deptAssignmentResolved{{DepartmentID: 4, RoleID: 2}}
 	columns, err := userColumnChanges(user, UpdateUserInput{
 		Authority:   "boss",
 		SystemRole:  "none",

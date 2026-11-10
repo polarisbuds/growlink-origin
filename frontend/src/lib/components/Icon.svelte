@@ -49,6 +49,5 @@
         class="grid place-items-center rounded-full bg-primary text-xs font-semibold text-primary-content"
         style:width={widthCss}
         style:height={heightCss}
-        aria-hidden="true">{initial}</span
-    >
+        aria-hidden="true">{initial}</span>
 {/if}

@@ -9,11 +9,10 @@ type Template struct {
 	gorm.Model
 
 	UUID        uuid.UUID `gorm:"type:uuid;not null;uniqueIndex;default:gen_random_uuid()"`
-	Title       string    `gorm:"type:text;not null;uniqueIndex"`
+	Title       string    `gorm:"type:text;not null"`
 	Description string    `gorm:"type:text;not null;default:''"`
 
-	DisplayNo int  `gorm:"not null;default:0;index"`
-	IsSample  bool `gorm:"not null;default:false"`
+	IsSample bool `gorm:"not null;default:false"`
 	IsLock   bool `gorm:"not null;default:false"`
 
 	UserID uint `gorm:"not null;index;column:creator_id"`

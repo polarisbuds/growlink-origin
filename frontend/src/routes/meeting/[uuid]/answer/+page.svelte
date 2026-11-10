@@ -17,7 +17,7 @@
     } from "$lib/meeting-helpers";
 
     let payload = $state<MeetingPayload | null>(null);
-    let drafts = $state<Record<number, string>>({});
+    let drafts = $state<Record<string, string>>({});
     let panelOpen = $state(true);
     let sharers = $state<MeetingUserRef[]>([]);
 
@@ -50,7 +50,7 @@
     );
 
     function rowKey(row: DualTopicRow) {
-        return row.topic?.id ?? row.displayNo;
+        return row.topic?.uuid ?? String(row.displayNo);
     }
 
     async function load() {
@@ -72,20 +72,18 @@
 
     function answerPayload() {
         if (!payload) return [];
-        const meetingId = payload.meeting.id ?? 0;
         return rows
             .map((row) => {
-                const topicId = row.topic?.id;
-                if (!topicId) return null;
+                const topicUuid = row.topic?.uuid;
+                if (!topicUuid) return null;
                 const existing =
                     viewerRole === "mentor"
                         ? row.mentorAnswer
                         : row.menteeAnswer;
                 return {
-                    id: existing?.id ?? 0,
-                    meetingId,
-                    topicId,
-                    content: drafts[topicId] ?? "",
+                    uuid: existing?.uuid ?? "",
+                    content: drafts[topicUuid] ?? "",
+                    topic: { uuid: topicUuid },
                 };
             })
             .filter(Boolean);
@@ -186,7 +184,7 @@
                 </div>
             {:else}
                 {#each rows as row, i (rowKey(row))}
-                    {@const topicId = row.topic?.id}
+                    {@const topicUuid = row.topic?.uuid}
                     <div
                         class="rounded-3xl border border-base-300 bg-base-100 p-5 shadow-sm">
                         <div class="flex items-start gap-2">
@@ -262,7 +260,7 @@
                                         </p>
                                     {/if}
                                 </div>
-                                {#if topicId != null}
+                                {#if topicUuid}
                                     <div>
                                         <p
                                             class="text-xs font-semibold text-base-content/60">
@@ -271,9 +269,9 @@
                                         <textarea
                                             class="textarea textarea-bordered mt-1 w-full"
                                             rows="3"
-                                            value={drafts[topicId] ?? ""}
+                                            value={drafts[topicUuid] ?? ""}
                                             oninput={(e) => {
-                                                drafts[topicId] =
+                                                drafts[topicUuid] =
                                                     e.currentTarget.value;
                                             }}></textarea>
                                     </div>
@@ -283,13 +281,13 @@
                             <p class="mt-3 text-sm text-base-content/50">
                                 メンティーの提出後に記入できます
                             </p>
-                        {:else if topicId != null && canWrite && viewerRole === "mentee"}
+                        {:else if topicUuid && canWrite && viewerRole === "mentee"}
                             <textarea
                                 class="textarea textarea-bordered mt-3 w-full"
                                 rows="3"
-                                value={drafts[topicId] ?? ""}
+                                value={drafts[topicUuid] ?? ""}
                                 oninput={(e) => {
-                                    drafts[topicId] = e.currentTarget.value;
+                                    drafts[topicUuid] = e.currentTarget.value;
                                 }}></textarea>
                         {:else if !canWrite}
                             <p class="mt-3 text-sm text-base-content/50">

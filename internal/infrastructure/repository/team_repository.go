@@ -2,9 +2,11 @@ package repository
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"growlink/internal/domain/entity"
 
+	"github.com/google/uuid"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
@@ -22,6 +24,17 @@ func (repo *TeamRepository) GetByID(id uint) (*entity.Team, error) {
 	team, err := gorm.G[entity.Team](repo.db).Where("id = ?", id).Order("id ASC").First(repo.ctx)
 	if err != nil {
 		return nil, fmt.Errorf("チームの取得に失敗しました: %w", err)
+	}
+	return &team, nil
+}
+
+func (repo *TeamRepository) GetByUUID(teamUUID uuid.UUID) (*entity.Team, error) {
+	team, err := gorm.G[entity.Team](repo.db).Where("uuid = ?", teamUUID.String()).Order("id ASC").First(repo.ctx)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, gorm.ErrRecordNotFound
+		}
+		return nil, fmt.Errorf("指定されたチームUUIDは存在しませんでした: %w", err)
 	}
 	return &team, nil
 }

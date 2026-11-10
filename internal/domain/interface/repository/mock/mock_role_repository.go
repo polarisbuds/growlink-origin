@@ -13,6 +13,7 @@ import (
 	entity "growlink/internal/domain/entity"
 	reflect "reflect"
 
+	uuid "github.com/google/uuid"
 	gomock "go.uber.org/mock/gomock"
 )
 
@@ -113,6 +114,45 @@ func (c *MockRoleRepositoryGetAllCall) Do(f func() ([]entity.Role, error)) *Mock
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
 func (c *MockRoleRepositoryGetAllCall) DoAndReturn(f func() ([]entity.Role, error)) *MockRoleRepositoryGetAllCall {
+	c.Call = c.Call.DoAndReturn(f)
+	return c
+}
+
+// GetByUUID mocks base method.
+func (m *MockRoleRepository) GetByUUID(roleUUID uuid.UUID) (*entity.Role, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetByUUID", roleUUID)
+	ret0, _ := ret[0].(*entity.Role)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetByUUID indicates an expected call of GetByUUID.
+func (mr *MockRoleRepositoryMockRecorder) GetByUUID(roleUUID any) *MockRoleRepositoryGetByUUIDCall {
+	mr.mock.ctrl.T.Helper()
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByUUID", reflect.TypeOf((*MockRoleRepository)(nil).GetByUUID), roleUUID)
+	return &MockRoleRepositoryGetByUUIDCall{Call: call}
+}
+
+// MockRoleRepositoryGetByUUIDCall wrap *gomock.Call
+type MockRoleRepositoryGetByUUIDCall struct {
+	*gomock.Call
+}
+
+// Return rewrite *gomock.Call.Return
+func (c *MockRoleRepositoryGetByUUIDCall) Return(arg0 *entity.Role, arg1 error) *MockRoleRepositoryGetByUUIDCall {
+	c.Call = c.Call.Return(arg0, arg1)
+	return c
+}
+
+// Do rewrite *gomock.Call.Do
+func (c *MockRoleRepositoryGetByUUIDCall) Do(f func(uuid.UUID) (*entity.Role, error)) *MockRoleRepositoryGetByUUIDCall {
+	c.Call = c.Call.Do(f)
+	return c
+}
+
+// DoAndReturn rewrite *gomock.Call.DoAndReturn
+func (c *MockRoleRepositoryGetByUUIDCall) DoAndReturn(f func(uuid.UUID) (*entity.Role, error)) *MockRoleRepositoryGetByUUIDCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }

@@ -21,13 +21,13 @@
     let {
         meetings,
         viewMode,
-        currentUserId,
+        currentUserUuid,
         roleBadgeMode = "none",
         labelForItem = pairLabel,
     }: {
         meetings: MeetingListItem[];
         viewMode: "card" | "table";
-        currentUserId?: number;
+        currentUserUuid?: string;
         roleBadgeMode?: RoleBadgeMode;
         labelForItem?: (item: MeetingListItem) => string;
     } = $props();
@@ -98,7 +98,7 @@
         {#each items as item (item.uuid)}
             {@const roleBadge = meetingRoleBadgeLabel(
                 item,
-                currentUserId,
+                currentUserUuid,
                 roleBadgeMode,
             )}
             <div
@@ -125,11 +125,11 @@
                     実施予定日: {formatDate(item.implementedAt)}
                 </p>
                 <div class="mt-4 flex flex-wrap gap-2 items-center justify-end">
-                    {#if canUserAnswerMeeting(item, currentUserId)}
+                    {#if canUserAnswerMeeting(item, currentUserUuid)}
                         <a
                             href="/meeting/{item.uuid}/answer"
                             class="btn btn-sm btn-primary">記入</a>
-                    {:else if canUserViewMeeting(item, currentUserId)}
+                    {:else if canUserViewMeeting(item, currentUserUuid)}
                         <a
                             href="/meeting/{item.uuid}"
                             class="btn btn-sm btn-ghost btn-outline">閲覧</a>
@@ -157,7 +157,7 @@
                 <div class="mt-4">
                     <WorkspaceMeetingTable
                         {items}
-                        {currentUserId}
+                        {currentUserUuid}
                         {roleBadgeMode}
                         {labelForItem}
                         emptyMessage={section.empty} />
@@ -171,7 +171,7 @@
     <div class="mt-4">
         <WorkspaceMeetingTable
             items={singleItems}
-            {currentUserId}
+            {currentUserUuid}
             {roleBadgeMode}
             {labelForItem}
             emptyMessage={activeSection?.empty ?? "面談はありません"} />

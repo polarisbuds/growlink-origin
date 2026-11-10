@@ -3,7 +3,6 @@ package pairing_mng_usecase
 import (
 	"fmt"
 
-	"growlink/internal/application/converter"
 	inputmodel "growlink/internal/application/model/input_model"
 	"growlink/internal/domain/entity"
 	repository_interface "growlink/internal/domain/interface/repository"
@@ -31,20 +30,13 @@ func (uc PairingCreator) CreatePairingFromInput(input inputmodel.PairingInput, c
 	if len(targets) == 0 {
 		return fmt.Errorf("対象が指定されていません")
 	}
-	opts := converter.PairingTargetInputsToOptions(targets)
-	primaryMentee := opts[0].TargetID
-	for _, o := range opts {
-		if o.Kind == entity.PairingTargetKindUser {
-			primaryMentee = o.TargetID
-			break
+	for _, t := range targets {
+		if t.Kind != entity.PairingTargetKindUser {
+			return fmt.Errorf("ユーザ以外の対象はサポートされていません")
 		}
-	}
-	pair, err := uc.pairingRepo.CreatePairing(primaryMentee, input.MentorID, createdByUserID)
-	if err != nil {
-		return fmt.Errorf("ペアリングの作成に失敗しました: %w", err)
-	}
-	if err := uc.pairingRepo.ApplyPairingOptions(pair.ID, input.MentorID, opts); err != nil {
-		return err
+		if _, err := uc.pairingRepo.CreatePairing(t.TargetID, input.MentorID, createdByUserID); err != nil {
+			return fmt.Errorf("ペアリングの作成に失敗しました: %w", err)
+		}
 	}
 	return nil
 }

@@ -32,13 +32,16 @@
     type ViewMode = "individual" | "department";
     type DeptSortState = { sortKey: SortKey; sortDir: SortDir };
 
-    const DEFAULT_DEPT_SORT: DeptSortState = { sortKey: "mentor", sortDir: "asc" };
+    const DEFAULT_DEPT_SORT: DeptSortState = {
+        sortKey: "mentor",
+        sortDir: "asc",
+    };
 
     let pairings = $state<PairingListItem[]>([]);
     let directoryUsers = $state<PlanningDirectoryUser[]>([]);
 
-    let filterMentorIds = $state<number[]>([]);
-    let filterMenteeIds = $state<number[]>([]);
+    let filterMentorUuids = $state<string[]>([]);
+    let filterMenteeUuids = $state<string[]>([]);
     let viewMode = $state<ViewMode>("individual");
     let sortKey = $state<SortKey>("mentor");
     let sortDir = $state<SortDir>("asc");
@@ -77,20 +80,20 @@
                     bv = b.mentorName;
                     break;
                 case "mentorDept":
-                    av = departmentNameForUser(a.mentorUserId, deptMaps);
-                    bv = departmentNameForUser(b.mentorUserId, deptMaps);
+                    av = departmentNameForUser(a.mentorUserUuid, deptMaps);
+                    bv = departmentNameForUser(b.mentorUserUuid, deptMaps);
                     break;
                 case "mentee":
                     av = a.menteeName;
                     bv = b.menteeName;
                     break;
                 case "menteeDept":
-                    av = departmentNameForUser(a.menteeUserId, deptMaps);
-                    bv = departmentNameForUser(b.menteeUserId, deptMaps);
+                    av = departmentNameForUser(a.menteeUserUuid, deptMaps);
+                    bv = departmentNameForUser(b.menteeUserUuid, deptMaps);
                     break;
                 case "menteeTeam":
-                    av = teamNameForUser(a.menteeUserId, teamMaps);
-                    bv = teamNameForUser(b.menteeUserId, teamMaps);
+                    av = teamNameForUser(a.menteeUserUuid, teamMaps);
+                    bv = teamNameForUser(b.menteeUserUuid, teamMaps);
                     break;
             }
             return mult * compareJa(av, bv);
@@ -101,13 +104,13 @@
     let filteredRowsUnsorted = $derived.by(() => {
         let rows = displayRows;
         if (isSystemAdmin) {
-            if (filterMentorIds.length) {
-                const set = new Set(filterMentorIds);
-                rows = rows.filter((r) => set.has(r.mentorUserId));
+            if (filterMentorUuids.length) {
+                const set = new Set(filterMentorUuids);
+                rows = rows.filter((r) => set.has(r.mentorUserUuid));
             }
-            if (filterMenteeIds.length) {
-                const set = new Set(filterMenteeIds);
-                rows = rows.filter((r) => set.has(r.menteeUserId));
+            if (filterMenteeUuids.length) {
+                const set = new Set(filterMenteeUuids);
+                rows = rows.filter((r) => set.has(r.menteeUserUuid));
             }
         }
         return rows;
@@ -121,7 +124,7 @@
         const groups = new Map<string, ReturnType<typeof expandUserPairings>>();
         for (const row of filteredRowsUnsorted) {
             const label =
-                departmentNameForUser(row.menteeUserId, deptMaps) || "";
+                departmentNameForUser(row.menteeUserUuid, deptMaps) || "";
             if (!groups.has(label)) groups.set(label, []);
             groups.get(label)!.push(row);
         }
@@ -177,10 +180,7 @@
     async function confirmDelete() {
         if (!selected) return;
         try {
-            await api(
-                "DELETE",
-                `/api/v1/pairings/${selected.uuid || selected.id}`,
-            );
+            await api("DELETE", `/api/v1/pairings/${selected.uuid}`);
             deleteOpen = false;
             showToast("ペアを削除しました");
             pairings = await api<PairingListItem[]>("GET", "/api/v1/pairings");
@@ -219,7 +219,7 @@
             <MultiCheckSelect
                 pickRootId="pair-list-mentor"
                 items={directoryUsers}
-                bind:selectedIds={filterMentorIds}
+                bind:selectedUuids={filterMentorUuids}
                 labelOf={userOptionLabel}
                 placeholder="すべて" />
         </label>
@@ -228,7 +228,7 @@
             <MultiCheckSelect
                 pickRootId="pair-list-mentee"
                 items={directoryUsers}
-                bind:selectedIds={filterMenteeIds}
+                bind:selectedUuids={filterMenteeUuids}
                 labelOf={userOptionLabel}
                 placeholder="すべて" />
         </label>
@@ -306,14 +306,14 @@
     <tbody>
         {#each rows as row (row.rowKey)}
             {@const mentorUser = directoryUsers.find(
-                (u) => u.id === row.mentorUserId,
+                (u) => u.uuid === row.mentorUserUuid,
             )}
             {@const menteeUser = directoryUsers.find(
-                (u) => u.id === row.menteeUserId,
+                (u) => u.uuid === row.menteeUserUuid,
             )}
             <tr class="hover:bg-base-200/40">
                 <td class="text-sm"
-                    >{departmentNameForUser(row.mentorUserId, deptMaps)}</td>
+                    >{departmentNameForUser(row.mentorUserUuid, deptMaps)}</td>
                 <td>
                     <span class="flex gap-2 items-center">
                         <Icon
@@ -325,7 +325,7 @@
                     </span>
                 </td>
                 <td class="text-sm"
-                    >{departmentNameForUser(row.menteeUserId, deptMaps)}</td>
+                    >{departmentNameForUser(row.menteeUserUuid, deptMaps)}</td>
                 <td>
                     <span class="flex gap-2 items-center">
                         <Icon
@@ -383,10 +383,8 @@
                     </div>
                 {/if}
                 <table class="table">
-                    {@render tableHead(
-                        group.sortKey,
-                        group.sortDir,
-                        (key) => toggleDeptSort(group.label, key),
+                    {@render tableHead(group.sortKey, group.sortDir, (key) =>
+                        toggleDeptSort(group.label, key),
                     )}
                     {@render tableBody(group.rows)}
                 </table>

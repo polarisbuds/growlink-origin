@@ -2,9 +2,11 @@ package repository
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"growlink/internal/domain/entity"
 
+	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
@@ -15,6 +17,17 @@ type RoleRepository struct {
 
 func NewRoleRepository(ctx context.Context, dp *gorm.DB) *RoleRepository {
 	return &RoleRepository{ctx: ctx, db: dp}
+}
+
+func (repo *RoleRepository) GetByUUID(roleUUID uuid.UUID) (*entity.Role, error) {
+	role, err := gorm.G[entity.Role](repo.db).Where("uuid = ?", roleUUID).First(repo.ctx)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("UUID指定での役職取得に失敗しました: %w", err)
+	}
+	return &role, nil
 }
 
 func (repo *RoleRepository) GetAll() ([]entity.Role, error) {

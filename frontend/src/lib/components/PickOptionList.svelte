@@ -1,4 +1,4 @@
-<script lang="ts" generics="T extends { id: number }">
+<script lang="ts" generics="T extends { uuid: string }">
     let {
         items,
         labelOf,
@@ -12,7 +12,7 @@
 
 <ul
     class="absolute left-0 top-full z-20 mt-1 max-h-48 w-full overflow-y-auto rounded-2xl border border-base-300 bg-base-100 py-1 shadow-lg">
-    {#each items as item (item.id)}
+    {#each items as item (item.uuid)}
         <li>
             <button
                 type="button"

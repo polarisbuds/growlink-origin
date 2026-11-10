@@ -114,6 +114,8 @@ func (repo *UserRepository) GetByDepartmentID(departmentID uint) ([]entity.User,
 func (repo *UserRepository) GetAll() ([]entity.User, error) {
 	users, err := gorm.G[entity.User](repo.db).Order("id ASC").
 		Preload("Department", nil).
+		Preload("UserDepartments", nil).
+		Preload("UserDepartments.Department", nil).
 		Preload("Role", nil).
 		Preload("TeamMembers", nil).
 		Preload("TeamMembers.Team", nil).

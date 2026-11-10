@@ -7,6 +7,7 @@ import (
 	"growlink/internal/domain/entity"
 	"log/slog"
 
+	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
@@ -17,6 +18,17 @@ type AnswerRepository struct {
 
 func NewAnswerRepository(ctx context.Context, dp *gorm.DB) *AnswerRepository {
 	return &AnswerRepository{ctx: ctx, db: dp}
+}
+
+func (repo *AnswerRepository) GetByUUID(answerUUID uuid.UUID) (*entity.Answer, error) {
+	answer, err := gorm.G[entity.Answer](repo.db).Where("uuid = ?", answerUUID).Order("id ASC").First(repo.ctx)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("UUID指定での回答取得に失敗しました: %w", err)
+	}
+	return &answer, nil
 }
 
 func (repo *AnswerRepository) GetByID(id uint) (*entity.Answer, error) {

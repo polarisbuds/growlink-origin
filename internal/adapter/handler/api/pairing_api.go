@@ -1,6 +1,7 @@
 package api
 
 import (
+	"log/slog"
 	"net/http"
 	"strconv"
 
@@ -32,6 +33,7 @@ func (h *Handler) ListPairings(c *echo.Context) error {
 		return c.JSON(http.StatusUnauthorized, map[string]string{"error": "unauthorized"})
 	}
 	list, err := h.deps.Planning.ListPairingsForManagement(claims.UserID, authctx.SystemRole(c))
+	slog.Debug("ListPairings", slog.Any("list", list), slog.Int("id", int(claims.UserID)))
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
@@ -71,6 +73,9 @@ func (h *Handler) CreatePairing(c *echo.Context) error {
 	if err := c.Bind(&req); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid request"})
 	}
+	if err := h.resolvePairingInput(c, &req); err != nil {
+		return err
+	}
 	if err := h.deps.Management.PairingCreator.CreatePairingFromInput(req, claims.UserID); err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
@@ -85,6 +90,9 @@ func (h *Handler) UpdatePairing(c *echo.Context) error {
 	var req inputmodel.PairingInput
 	if err := c.Bind(&req); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid request"})
+	}
+	if err := h.resolvePairingInput(c, &req); err != nil {
+		return err
 	}
 	pairingID, err := h.resolvePairingID(c.Param("uuid"))
 	if err != nil {

@@ -30,5 +30,7 @@ type User struct {
 
 	TeamMembers []TeamMember `gorm:"foreignKey:MemberID;references:ID"`
 
+	UserDepartments []UserDepartment `gorm:"foreignKey:UserID;references:ID"`
+
 	DepartmentRoles []DepartmentRole `gorm:"foreignKey:UserID;references:ID"`
 }

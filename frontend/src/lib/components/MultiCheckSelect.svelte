@@ -1,17 +1,17 @@
-<script lang="ts" generics="T extends { id: number }">
+<script lang="ts" generics="T extends { uuid: string }">
     import { onMount } from "svelte";
     import { filterItems } from "$lib/searchable-select";
 
     let {
         items,
-        selectedIds = $bindable([] as number[]),
+        selectedUuids = $bindable([] as string[]),
         labelOf,
         placeholder = "すべて",
         pickRootId = "multi-check-select",
         inputClass = "input input-bordered input-sm w-full text-left font-normal placeholder-current",
     }: {
         items: T[];
-        selectedIds?: number[];
+        selectedUuids?: string[];
         labelOf: (item: T) => string;
         placeholder?: string;
         pickRootId?: string;
@@ -22,23 +22,23 @@
     let query = $state("");
 
     let filtered = $derived(filterItems(items, query, labelOf));
-    let selectedSet = $derived(new Set(selectedIds));
+    let selectedSet = $derived(new Set(selectedUuids));
 
     let summaryLabel = $derived.by(() => {
-        if (selectedIds.length === 0) return placeholder;
-        if (selectedIds.length === 1) {
-            const item = items.find((i) => i.id === selectedIds[0]);
+        if (selectedUuids.length === 0) return placeholder;
+        if (selectedUuids.length === 1) {
+            const item = items.find((i) => i.uuid === selectedUuids[0]);
             return item ? labelOf(item) : placeholder;
         }
-        return `${selectedIds.length}件選択`;
+        return `${selectedUuids.length}件選択`;
     });
 
     let allFilteredSelected = $derived(
         filtered.length > 0 &&
-            filtered.every((item) => selectedSet.has(item.id)),
+            filtered.every((item) => selectedSet.has(item.uuid)),
     );
     let someFilteredSelected = $derived(
-        filtered.some((item) => selectedSet.has(item.id)) &&
+        filtered.some((item) => selectedSet.has(item.uuid)) &&
             !allFilteredSelected,
     );
 
@@ -49,24 +49,24 @@
         }
     });
 
-    function toggleItem(id: number, checked: boolean) {
+    function toggleItem(uuid: string, checked: boolean) {
         if (checked) {
-            if (selectedSet.has(id)) return;
-            selectedIds = [...selectedIds, id];
+            if (selectedSet.has(uuid)) return;
+            selectedUuids = [...selectedUuids, uuid];
         } else {
-            selectedIds = selectedIds.filter((x) => x !== id);
+            selectedUuids = selectedUuids.filter((x) => x !== uuid);
         }
     }
 
     function toggleAllFiltered(checked: boolean) {
-        const filteredIds = filtered.map((i) => i.id);
+        const filteredUuids = filtered.map((i) => i.uuid);
         if (checked) {
-            const next = new Set(selectedIds);
-            for (const id of filteredIds) next.add(id);
-            selectedIds = [...next];
+            const next = new Set(selectedUuids);
+            for (const id of filteredUuids) next.add(id);
+            selectedUuids = [...next];
         } else {
-            const remove = new Set(filteredIds);
-            selectedIds = selectedIds.filter((id) => !remove.has(id));
+            const remove = new Set(filteredUuids);
+            selectedUuids = selectedUuids.filter((id) => !remove.has(id));
         }
     }
 
@@ -95,7 +95,7 @@
         aria-haspopup="listbox"
         aria-expanded={open}
         onclick={() => (open = !open)}>
-        <span class="truncate {selectedIds.length === 0 ? 'text-base-content/50' : ''}"
+        <span class="truncate {selectedUuids.length === 0 ? 'text-base-content/50' : ''}"
             >{summaryLabel}</span>
         <span class="text-base-content/40" aria-hidden="true">▾</span>
     </button>
@@ -129,17 +129,17 @@
                 class="max-h-48 overflow-y-auto py-1"
                 role="listbox"
                 aria-multiselectable="true">
-                {#each filtered as item (item.id)}
+                {#each filtered as item (item.uuid)}
                     <li>
                         <label
                             class="flex cursor-pointer items-center gap-2 px-3 py-2 text-sm hover:bg-base-200/50">
                             <input
                                 type="checkbox"
                                 class="checkbox checkbox-sm"
-                                checked={selectedSet.has(item.id)}
+                                checked={selectedSet.has(item.uuid)}
                                 onchange={(e) =>
                                     toggleItem(
-                                        item.id,
+                                        item.uuid,
                                         (e.currentTarget as HTMLInputElement)
                                             .checked,
                                     )} />

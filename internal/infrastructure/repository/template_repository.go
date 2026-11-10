@@ -21,7 +21,7 @@ func NewTemplateRepository(ctx context.Context, dp *gorm.DB) *TemplateRepository
 
 func templateChain(db *gorm.DB) gorm.ChainInterface[entity.Template] {
 	return gorm.G[entity.Template](db).
-		Order("display_no ASC, id ASC").
+		Order("created_at ASC, id ASC").
 		Preload("Topics", nil).
 		Preload("User", nil)
 }
@@ -42,14 +42,6 @@ func (repo *TemplateRepository) GetByUUID(templateUUID uuid.UUID) (*entity.Templ
 	return &template, nil
 }
 
-func (repo *TemplateRepository) Count() (int64, error) {
-	result, err := templateChain(repo.db).Count(repo.ctx, "id")
-	if err != nil {
-		return 0, fmt.Errorf("テンプレート数の取得に失敗しました: %w", err)
-	}
-	return result, nil
-}
-
 func (repo *TemplateRepository) Get(templateID uint) (*entity.Template, error) {
 	template, err := templateChain(repo.db).Where("id = ?", templateID).First(repo.ctx)
 	if err != nil {
@@ -68,13 +60,6 @@ func (repo *TemplateRepository) Create(input *entity.Template) error {
 func (repo *TemplateRepository) Update(templateID uint, newTemplate *entity.Template) error {
 	if _, err := gorm.G[entity.Template](repo.db).Where("id = ?", templateID).Omit(clause.Associations).Updates(repo.ctx, *newTemplate); err != nil {
 		return fmt.Errorf("テンプレートの更新に失敗しました: %w", err)
-	}
-	return nil
-}
-
-func (repo *TemplateRepository) UpdateDisplayNo(templateID uint, displayNo int) error {
-	if _, err := gorm.G[entity.Template](repo.db).Where("id = ?", templateID).Update(repo.ctx, "display_no", displayNo); err != nil {
-		return fmt.Errorf("テンプレートの並び順更新に失敗しました: %w", err)
 	}
 	return nil
 }

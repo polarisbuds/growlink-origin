@@ -8,7 +8,7 @@
     import { statusBadge, statusLabel } from "$lib/status";
     import {
         buildUserDepartmentMaps,
-        departmentIdForUser,
+        departmentUuidForUser,
         departmentNameForUser,
         type PlanningDirectoryUser,
     } from "$lib/planning-directory";
@@ -27,8 +27,8 @@
         implementedAt?: string;
         template?: { title?: string };
         pairing?: {
-            mentor?: { id?: number; name?: string };
-            mentee?: { id?: number; name?: string };
+            mentor?: { uuid?: string; name?: string };
+            mentee?: { uuid?: string; name?: string };
         };
     };
 
@@ -43,11 +43,11 @@
 
     let meetings = $state<Meeting[]>([]);
     let directoryUsers = $state<PlanningDirectoryUser[]>([]);
-    let departments = $state<{ id: number; name: string }[]>([]);
+    let departments = $state<{ uuid: string; name: string }[]>([]);
 
-    let filterMentorIds = $state<number[]>([]);
-    let filterMenteeIds = $state<number[]>([]);
-    let filterDeptIds = $state<number[]>([]);
+    let filterMentorUuids = $state<string[]>([]);
+    let filterMenteeUuids = $state<string[]>([]);
+    let filterDeptUuids = $state<string[]>([]);
     let filterStatus = $state("");
     let filterDateFrom = $state("");
     let filterDateTo = $state("");
@@ -65,7 +65,7 @@
         return `${u.name} (${u.email})`;
     }
 
-    function departmentOptionLabel(d: { id: number; name: string }) {
+    function departmentOptionLabel(d: { uuid: string; name: string }) {
         return d.name;
     }
 
@@ -74,7 +74,7 @@
             api<Meeting[]>("GET", "/api/v1/meetings/all"),
             api<{
                 users?: PlanningDirectoryUser[];
-                departments?: { id: number; name: string }[];
+                departments?: { uuid: string; name: string }[];
             }>("GET", "/api/v1/planning/directory"),
         ]);
         meetings = meetingList;
@@ -84,34 +84,34 @@
 
     let displayedMeetings = $derived.by(() => {
         let list = [...meetings];
-        if (filterMentorIds.length) {
-            const set = new Set(filterMentorIds);
+        if (filterMentorUuids.length) {
+            const set = new Set(filterMentorUuids);
             list = list.filter((m) => {
-                const id = m.pairing?.mentor?.id;
-                return id != null && set.has(id);
+                const uuid = m.pairing?.mentor?.uuid;
+                return uuid != null && set.has(uuid);
             });
         }
-        if (filterMenteeIds.length) {
-            const set = new Set(filterMenteeIds);
+        if (filterMenteeUuids.length) {
+            const set = new Set(filterMenteeUuids);
             list = list.filter((m) => {
-                const id = m.pairing?.mentee?.id;
-                return id != null && set.has(id);
+                const uuid = m.pairing?.mentee?.uuid;
+                return uuid != null && set.has(uuid);
             });
         }
-        if (filterDeptIds.length) {
-            const set = new Set(filterDeptIds);
+        if (filterDeptUuids.length) {
+            const set = new Set(filterDeptUuids);
             list = list.filter((m) => {
-                const mentorDept = departmentIdForUser(
-                    m.pairing?.mentor?.id,
+                const mentorDept = departmentUuidForUser(
+                    m.pairing?.mentor?.uuid,
                     deptMaps,
                 );
-                const menteeDept = departmentIdForUser(
-                    m.pairing?.mentee?.id,
+                const menteeDept = departmentUuidForUser(
+                    m.pairing?.mentee?.uuid,
                     deptMaps,
                 );
                 return (
-                    (mentorDept != null && set.has(mentorDept)) ||
-                    (menteeDept != null && set.has(menteeDept))
+                    (mentorDept && set.has(mentorDept)) ||
+                    (menteeDept && set.has(menteeDept))
                 );
             });
         }
@@ -150,11 +150,11 @@
                         dir *
                         compareJa(
                             departmentNameForUser(
-                                a.pairing?.mentor?.id,
+                                a.pairing?.mentor?.uuid,
                                 deptMaps,
                             ),
                             departmentNameForUser(
-                                b.pairing?.mentor?.id,
+                                b.pairing?.mentor?.uuid,
                                 deptMaps,
                             ),
                         )
@@ -172,11 +172,11 @@
                         dir *
                         compareJa(
                             departmentNameForUser(
-                                a.pairing?.mentee?.id,
+                                a.pairing?.mentee?.uuid,
                                 deptMaps,
                             ),
                             departmentNameForUser(
-                                b.pairing?.mentee?.id,
+                                b.pairing?.mentee?.uuid,
                                 deptMaps,
                             ),
                         )
@@ -231,7 +231,7 @@
         <MultiCheckSelect
             pickRootId="meeting-list-mentor"
             items={directoryUsers}
-            bind:selectedIds={filterMentorIds}
+            bind:selectedUuids={filterMentorUuids}
             labelOf={userOptionLabel}
             placeholder="すべて" />
     </label>
@@ -240,7 +240,7 @@
         <MultiCheckSelect
             pickRootId="meeting-list-mentee"
             items={directoryUsers}
-            bind:selectedIds={filterMenteeIds}
+            bind:selectedUuids={filterMenteeUuids}
             labelOf={userOptionLabel}
             placeholder="すべて" />
     </label>
@@ -249,7 +249,7 @@
         <MultiCheckSelect
             pickRootId="meeting-list-dept"
             items={departments}
-            bind:selectedIds={filterDeptIds}
+            bind:selectedUuids={filterDeptUuids}
             labelOf={departmentOptionLabel}
             placeholder="すべて" />
     </label>
@@ -375,17 +375,17 @@
             <tbody>
                 {#each displayedMeetings as m (m.uuid)}
                     {@const mentorUser = directoryUsers.find(
-                        (u) => u.id === m.pairing?.mentor?.id,
+                        (u) => u.uuid === m.pairing?.mentor?.uuid,
                     )}
                     {@const menteeUser = directoryUsers.find(
-                        (u) => u.id === m.pairing?.mentee?.id,
+                        (u) => u.uuid === m.pairing?.mentee?.uuid,
                     )}
                     <tr
                         class="hover:bg-base-200/40 cursor-pointer"
                         onclick={() => goto("/meeting/" + m.uuid)}>
                         <td class="text-sm"
                             >{departmentNameForUser(
-                                m.pairing?.mentor?.id,
+                                m.pairing?.mentor?.uuid,
                                 deptMaps,
                             )}
                         </td>
@@ -401,7 +401,7 @@
                         </td>
                         <td class="text-sm"
                             >{departmentNameForUser(
-                                m.pairing?.mentee?.id,
+                                m.pairing?.mentee?.uuid,
                                 deptMaps,
                             )}
                         </td>

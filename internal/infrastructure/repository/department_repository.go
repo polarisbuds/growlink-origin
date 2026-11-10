@@ -2,9 +2,11 @@ package repository
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"growlink/internal/domain/entity"
 
+	"github.com/google/uuid"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
@@ -22,6 +24,17 @@ func (repo *DepartmentRepository) GetByID(id uint) (*entity.Department, error) {
 	dept, err := gorm.G[entity.Department](repo.db).Where("id = ?", id).Order("id ASC").First(repo.ctx)
 	if err != nil {
 		return nil, fmt.Errorf("部署の取得に失敗しました: %w", err)
+	}
+	return &dept, nil
+}
+
+func (repo *DepartmentRepository) GetByUUID(deptUUID uuid.UUID) (*entity.Department, error) {
+	dept, err := gorm.G[entity.Department](repo.db).Where("uuid = ?", deptUUID.String()).Order("id ASC").First(repo.ctx)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, gorm.ErrRecordNotFound
+		}
+		return nil, fmt.Errorf("指定された部署UUIDは存在しませんでした: %w", err)
 	}
 	return &dept, nil
 }

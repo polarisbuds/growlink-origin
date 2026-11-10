@@ -37,49 +37,6 @@ func NewPairingViewer(
 }
 
 func (uc *PairingViewer) enrichOutputs(outs []outputmodel.PairingOutput) ([]outputmodel.PairingOutput, error) {
-	users, err := uc.userRepo.GetAll()
-	if err != nil {
-		return nil, err
-	}
-	userNames := make(map[uint]string, len(users))
-	for _, u := range users {
-		userNames[u.ID] = u.Name
-	}
-	teams, err := uc.teamRepo.GetAll()
-	if err != nil {
-		return nil, err
-	}
-	teamNames := make(map[uint]string, len(teams))
-	for _, t := range teams {
-		teamNames[t.ID] = t.Name
-	}
-	depts, err := uc.deptRepo.GetAll()
-	if err != nil {
-		return nil, err
-	}
-	deptNames := make(map[uint]string, len(depts))
-	for _, d := range depts {
-		deptNames[d.ID] = d.Name
-	}
-	for i := range outs {
-		for j := range outs[i].Targets {
-			t := &outs[i].Targets[j]
-			if t.Label != "" {
-				continue
-			}
-			switch t.Kind {
-			case entity.PairingTargetKindUser:
-				t.Label = userNames[t.TargetID]
-			case entity.PairingTargetKindTeam:
-				t.Label = teamNames[t.TargetID]
-			case entity.PairingTargetKindDepartment:
-				t.Label = deptNames[t.TargetID]
-			}
-			if t.Label == "" {
-				t.Label = fmt.Sprintf("#%d", t.TargetID)
-			}
-		}
-	}
 	return outs, nil
 }
 

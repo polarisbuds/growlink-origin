@@ -33,7 +33,6 @@ func TemplateEntityToOutput(e entity.Template) outputmodel.TemplateOutput {
 		UUID:        e.UUID.String(),
 		Title:       e.Title,
 		Description: e.Description,
-		DisplayNo:   e.DisplayNo,
 		IsSample:    e.IsSample,
 		IsLock:      e.IsLock,
 		CreatorID:   e.UserID,

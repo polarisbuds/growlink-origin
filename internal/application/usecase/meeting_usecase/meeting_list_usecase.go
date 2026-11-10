@@ -47,11 +47,6 @@ func userIsMentorOrMenteeInPairing(userID uint, pairing entity.Pairing) bool {
 	if pairing.MenteeID == userID {
 		return true
 	}
-	for _, m := range pairing.Mentees {
-		if m.UserID == userID {
-			return true
-		}
-	}
 	return false
 }
 
@@ -76,6 +71,7 @@ func (uc *MeetingListUsecase) ListInvolvedMeetings(userID uint) ([]outputmodel.M
 		return nil, fmt.Errorf("ペアリング一覧の取得に失敗しました: %w", err)
 	}
 
+	// TODO; ループでの取得は非効率。pairingRepo.GetMentorID(),pairingRepo.GetMenteeID()を取得し結果をマージする
 	all := []outputmodel.MeetingOutput{}
 	for _, p := range pairings {
 		if !userIsMentorOrMenteeInPairing(userID, p) {

@@ -12,6 +12,8 @@
     import Info from "lucide-svelte/icons/info";
     import SearchableSelect from "$lib/components/SearchableSelect.svelte";
     import { fade } from "svelte/transition";
+    import Icon from "$lib/components/Icon.svelte";
+    import Trash2 from "lucide-svelte/icons/trash-2";
 
     const AUTHORITY_OPTIONS = [
         { value: "general", label: "メンバー" },
@@ -31,21 +33,21 @@
         { value: 5, label: "金曜日" },
     ];
 
-    type DeptAssignment = { departmentId: number; roleId: number };
+    type DeptAssignment = { departmentUuid: string; roleUuid: string };
     type TeamAssignment = {
-        teamId: number;
+        teamUuid: string;
         teamRole: string;
         isLeader: boolean;
     };
 
     type ManagementUser = {
-        id: number;
+        uuid: string;
         name: string;
         email: string;
         authority: string;
         systemRole: string;
-        departmentId: number;
-        roleId: number;
+        departmentUuid: string;
+        roleUuid: string;
         departments?: DeptAssignment[];
         teams?: TeamAssignment[];
         suspended: boolean;
@@ -54,10 +56,9 @@
 
     type OrgTreeNode = {
         kind: "team" | "department";
-        id: number;
+        uuid: string;
         name: string;
         depth: number;
-        departmentId?: number;
         memberCount?: number;
         teamMemberCount?: number;
         leaderName?: string;
@@ -68,45 +69,44 @@
         departmentCount?: number;
     };
 
-    type OrgMember = { userId: number; userName: string; title: string };
+    type OrgMember = { userUuid: string; userName: string; title: string };
 
     type OrgDetail = {
-        id: number;
-        departmentId: number;
+        uuid: string;
+        departmentUuid?: string;
         name: string;
         kind: "team" | "department";
         isRoot?: boolean;
         members?: OrgMember[];
-        childIds?: number[];
-        teamIds?: number[];
-        userIds?: number[];
-        memberIds?: number[];
-        leaderId?: number;
-        headUserId?: number;
+        childDepartmentUuids?: string[];
+        teamUuids?: string[];
+        userUuids?: string[];
+        memberUuids?: string[];
+        leaderUuid?: string;
+        headUserUuid?: string;
     };
 
     type UserForm = {
-        id: number;
+        uuid: string;
         name: string;
         authority: string;
         systemRole: string;
+        imageUri: string | undefined;
         departments: DeptAssignment[];
         teams: TeamAssignment[];
         suspended: boolean;
     };
 
     type Options = {
-        departments: { id: number; name: string; isRoot: boolean }[];
-        teams: { id: number; name: string; departmentId: number }[];
-        roles: { id: number; name: string; rank?: number }[];
+        departments: { uuid: string; name: string; isRoot: boolean }[];
+        teams: { uuid: string; name: string; departmentUuid: string }[];
+        roles: { uuid: string; name: string; rank?: number }[];
     };
 
-    function toggleInList(list: number[], id: number | string): number[] {
-        const n = Number(id);
-        const i = list.indexOf(n);
-        if (i >= 0) list.splice(i, 1);
-        else list.push(n);
-        return [...list];
+    function toggleInList(list: string[], id: string): string[] {
+        const i = list.indexOf(id);
+        if (i >= 0) return list.filter((_, idx) => idx !== i);
+        return [...list, id];
     }
 
     function filterByQuery<T extends Record<string, unknown>>(
@@ -140,7 +140,7 @@
     let users = $state<ManagementUser[]>([]);
     let orgTree = $state<OrgTreeNode[]>([]);
     let options = $state<Options>({ departments: [], teams: [], roles: [] });
-    let selectedUserIds = $state<number[]>([]);
+    let selectedUserUuids = $state<string[]>([]);
     let userSearch = $state("");
     let usersLoading = $state(true);
     let orgLoading = $state(true);
@@ -168,24 +168,28 @@
     let createDeptOpen = $state(false);
     let createDeptForm = $state({
         name: "",
-        parentDepartmentId: 0,
-        headUserId: 0,
+        parentDepartmentUuid: "",
+        headUserUuid: "",
     });
     let createTeamOpen = $state(false);
-    let createTeamForm = $state({ name: "", departmentId: 0, leaderId: 0 });
+    let createTeamForm = $state({
+        name: "",
+        departmentUuid: "",
+        leaderUuid: "",
+    });
     let createRoleOpen = $state(false);
     let createRoleForm = $state({ name: "", rank: 50 });
     let expandedAllDept = $state(false);
-    let expandedDeptIds = $state<Set<number>>(new Set());
+    let expandedDeptUuids = $state<Set<string>>(new Set());
     let orgModalOpen = $state(false);
     let orgDetail = $state<OrgDetail | null>(null);
     let orgEditMode = $state(false);
     let orgEdit = $state({
         name: "",
-        childIds: [] as number[],
-        teamIds: [] as number[],
-        leaderId: 0,
-        headUserId: 0,
+        childDepartmentUuids: [] as string[],
+        teamUuids: [] as string[],
+        leaderUuid: "",
+        headUserUuid: "",
     });
 
     let headUserCandidates = $derived(users);
@@ -200,18 +204,18 @@
             hiddenBelow = null;
 
             visibleNode.push(n);
-            if (n.kind === "department" && !expandedDeptIds.has(n.id)) {
+            if (n.kind === "department" && !expandedDeptUuids.has(n.uuid)) {
                 hiddenBelow = n.depth;
             }
         }
         return visibleNode;
     });
 
-    function toggleDeptExpand(id: number) {
-        const next = new Set(expandedDeptIds);
-        if (next.has(id)) next.delete(id);
-        else next.add(id);
-        expandedDeptIds = next;
+    function toggleDeptExpand(uuid: string) {
+        const next = new Set(expandedDeptUuids);
+        if (next.has(uuid)) next.delete(uuid);
+        else next.add(uuid);
+        expandedDeptUuids = next;
     }
     let confirmOpen = $state(false);
     let confirmTitle = $state("");
@@ -232,7 +236,7 @@
 
     let allUsersSelected = $derived(
         filteredUsers.length > 0 &&
-            filteredUsers.every((u) => selectedUserIds.includes(u.id)),
+            filteredUsers.every((u) => selectedUserUuids.includes(u.uuid)),
     );
 
     function authorityLabel(v: string) {
@@ -243,31 +247,29 @@
         return SYSTEM_ROLE_OPTIONS.find((o) => o.value === v)?.label || v;
     }
 
-    function userName(id: number | string) {
-        const u = users.find((x) => x.id === Number(id));
+    function userName(uuid: string) {
+        const u = users.find((x) => x.uuid === uuid);
         return u ? u.name : "";
     }
 
-    function selectedDepartmentIds(rows: DeptAssignment[]) {
-        return rows
-            .map((row) => Number(row.departmentId))
-            .filter((id) => id > 0);
+    function selectedDepartmentUuids(rows: DeptAssignment[]) {
+        return rows.map((row) => row.departmentUuid).filter((id) => id !== "");
     }
 
     function departmentsHaveTeams(departments: DeptAssignment[]) {
-        const deptIds = new Set(selectedDepartmentIds(departments));
-        return options.teams.some((team) => deptIds.has(team.departmentId));
+        const deptIds = new Set(selectedDepartmentUuids(departments));
+        return options.teams.some((team) => deptIds.has(team.departmentUuid));
     }
 
     function departmentChoices(rows: DeptAssignment[], index: number) {
         const taken = new Set(
             rows
-                .map((row, i) => (i === index ? 0 : Number(row.departmentId)))
-                .filter((id) => id > 0),
+                .map((row, i) => (i === index ? "" : row.departmentUuid))
+                .filter((id) => id !== ""),
         );
-        const current = Number(rows[index]?.departmentId);
+        const current = rows[index]?.departmentUuid || "";
         return options.departments.filter(
-            (dept) => !taken.has(dept.id) || dept.id === current,
+            (dept) => !taken.has(dept.uuid) || dept.uuid === current,
         );
     }
 
@@ -276,17 +278,17 @@
         teams: TeamAssignment[],
         index: number,
     ) {
-        const deptIds = new Set(selectedDepartmentIds(departments));
+        const deptIds = new Set(selectedDepartmentUuids(departments));
         const taken = new Set(
             teams
-                .map((row, i) => (i === index ? 0 : Number(row.teamId)))
-                .filter((id) => id > 0),
+                .map((row, i) => (i === index ? "" : row.teamUuid))
+                .filter((id) => id !== ""),
         );
-        const current = Number(teams[index]?.teamId);
+        const current = teams[index]?.teamUuid || "";
         return options.teams.filter(
             (team) =>
-                deptIds.has(team.departmentId) &&
-                (!taken.has(team.id) || team.id === current),
+                deptIds.has(team.departmentUuid) &&
+                (!taken.has(team.uuid) || team.uuid === current),
         );
     }
 
@@ -294,20 +296,23 @@
         departments: DeptAssignment[],
         teams: TeamAssignment[],
     ) {
-        const deptIds = new Set(selectedDepartmentIds(departments));
+        const deptIds = new Set(selectedDepartmentUuids(departments));
         return teams.filter((row) => {
             const team = options.teams.find(
-                (item) => item.id === Number(row.teamId),
+                (item) => item.uuid === row.teamUuid,
             );
-            return !!team && deptIds.has(team.departmentId);
+            return !!team && deptIds.has(team.departmentUuid);
         });
     }
 
     function nextDepartmentRow(rows: DeptAssignment[]): DeptAssignment | null {
-        const taken = new Set(rows.map((row) => Number(row.departmentId)));
-        const dept = options.departments.find((item) => !taken.has(item.id));
+        const taken = new Set(rows.map((row) => row.departmentUuid));
+        const dept = options.departments.find((item) => !taken.has(item.uuid));
         if (!dept) return null;
-        return { departmentId: dept.id, roleId: options.roles[0]?.id || 0 };
+        return {
+            departmentUuid: "",
+            roleUuid: options.roles[0]?.uuid || "",
+        };
     }
 
     function nextTeamRow(
@@ -316,12 +321,12 @@
     ): TeamAssignment | null {
         const choices = teamChoices(
             departments,
-            [...teams, { teamId: 0, isLeader: false, teamRole: "member" }],
+            [...teams, { teamUuid: "", isLeader: false, teamRole: "member" }],
             teams.length,
         );
         const team = choices[0];
         if (!team) return null;
-        return { teamId: team.id, isLeader: false, teamRole: "member" };
+        return { teamUuid: team.uuid, isLeader: false, teamRole: "member" };
     }
 
     function onUserDepartmentChange() {
@@ -395,6 +400,10 @@
         return u.imageUri ? `/uploads/${u.imageUri}` : null;
     }
 
+    function userAvatarByUri(uri: string | undefined) {
+        return uri ? `/uploads/${uri}` : undefined;
+    }
+
     function userInitial(u: ManagementUser) {
         return (u.name || "?").slice(0, 1);
     }
@@ -407,21 +416,21 @@
         return filterByQuery(options.teams || [], orgTeamSearch);
     }
 
-    function isInList(list: number[] | undefined, id: number | string) {
-        return (list || []).map(Number).includes(Number(id));
+    function isInList(list: string[] | undefined, id: string) {
+        return (list || []).includes(id);
     }
 
     function initExpandDept() {
-        expandedDeptIds = new Set(
+        expandedDeptUuids = new Set(
             orgTree
                 .filter((n) => n.kind === "department" && n.depth < 1)
-                .map((n) => n.id),
+                .map((n) => n.uuid),
         );
     }
 
     function toggleExpandAllDept() {
         if (expandedAllDept) initExpandDept();
-        else expandedDeptIds = new Set(orgTree.map((n) => n.id));
+        else expandedDeptUuids = new Set(orgTree.map((n) => n.uuid));
         expandedAllDept = !expandedAllDept;
     }
 
@@ -484,39 +493,48 @@
     }
 
     function toggleAllUsers(checked: boolean) {
-        selectedUserIds = checked ? filteredUsers.map((u) => u.id) : [];
+        selectedUserUuids = checked ? filteredUsers.map((u) => u.uuid) : [];
     }
 
-    function toggleOrgChild(id: number) {
-        orgEdit.childIds = toggleInList(orgEdit.childIds || [], id);
+    function toggleOrgChild(uuid: string) {
+        orgEdit.childDepartmentUuids = toggleInList(
+            orgEdit.childDepartmentUuids || [],
+            uuid,
+        );
     }
 
-    function toggleOrgTeam(id: number) {
-        orgEdit.teamIds = toggleInList(orgEdit.teamIds || [], id);
+    function toggleOrgTeam(uuid: string) {
+        orgEdit.teamUuids = toggleInList(orgEdit.teamUuids || [], uuid);
     }
 
     function openUserModal(u: ManagementUser) {
         const departments = (
             u.departments && u.departments.length
                 ? u.departments
-                : [{ departmentId: u.departmentId, roleId: u.roleId }]
+                : [
+                      {
+                          departmentUuid: u.departmentUuid || "",
+                          roleUuid: u.roleUuid || "",
+                      },
+                  ]
         ).map((row) => ({
-            departmentId: Number(row.departmentId),
-            roleId: Number(row.roleId),
+            departmentUuid: row.departmentUuid,
+            roleUuid: row.roleUuid,
         }));
         const teams = (u.teams || []).map((row) => {
             const isLeader = !!row.isLeader || row.teamRole === "leader";
             return {
-                teamId: Number(row.teamId),
+                teamUuid: row.teamUuid,
                 teamRole: isLeader ? "leader" : "member",
                 isLeader,
             };
         });
         userForm = {
-            id: u.id,
+            uuid: u.uuid,
             name: u.name,
             authority: u.authority,
             systemRole: u.systemRole,
+            imageUri: u.imageUri,
             departments,
             teams: pruneTeamRows(departments, teams),
             suspended: u.suspended,
@@ -574,21 +592,21 @@
 
     async function submitCreateUser() {
         const departments = createUserForm.departments.map((row) => ({
-            departmentId: Number(row.departmentId),
-            roleId: Number(row.roleId),
+            departmentUuid: row.departmentUuid,
+            roleUuid: row.roleUuid,
         }));
         if (
             departments.length === 0 ||
-            departments.some((row) => !row.departmentId || !row.roleId)
+            departments.some((row) => !row.departmentUuid || !row.roleUuid)
         ) {
             showToast("所属部署と役職を選択してください", "error");
             return;
         }
         const teams = createUserForm.teams.map((row) => ({
-            teamId: Number(row.teamId),
+            teamUuid: row.teamUuid,
             isLeader: row.teamRole === "leader",
         }));
-        if (teams.some((row) => !row.teamId)) {
+        if (teams.some((row) => !row.teamUuid)) {
             showToast("チームを選択してください", "error");
             return;
         }
@@ -610,13 +628,22 @@
     }
 
     function openCreateDeptModal() {
-        createDeptForm = { name: "", parentDepartmentId: 0, headUserId: 0 };
+        createDeptForm = {
+            name: "",
+            parentDepartmentUuid: "",
+            headUserUuid: "",
+        };
         createDeptOpen = true;
     }
 
     async function submitCreateDept() {
         try {
-            await api("POST", "/api/v1/management/departments", createDeptForm);
+            await api("POST", "/api/v1/management/departments", {
+                name: createDeptForm.name,
+                parentDepartmentUuid:
+                    createDeptForm.parentDepartmentUuid || undefined,
+                headUserUuid: createDeptForm.headUserUuid || undefined,
+            });
         } catch (e) {
             showToast(apiErrorMessage(e, "作成に失敗しました"), "error");
             return;
@@ -630,21 +657,21 @@
     async function saveUser() {
         if (!userForm) return;
         const departments = userForm.departments.map((row) => ({
-            departmentId: Number(row.departmentId),
-            roleId: Number(row.roleId),
+            departmentUuid: row.departmentUuid,
+            roleUuid: row.roleUuid,
         }));
         if (
             departments.length === 0 ||
-            departments.some((row) => !row.departmentId || !row.roleId)
+            departments.some((row) => !row.departmentUuid || !row.roleUuid)
         ) {
             showToast("所属部署と役職を選択してください", "error");
             return;
         }
         const teams = userForm.teams.map((row) => ({
-            teamId: Number(row.teamId),
+            teamUuid: row.teamUuid,
             isLeader: row.teamRole === "leader",
         }));
-        if (teams.some((row) => !row.teamId)) {
+        if (teams.some((row) => !row.teamUuid)) {
             showToast("チームを選択してください", "error");
             return;
         }
@@ -656,7 +683,7 @@
             suspended: userForm.suspended,
         };
         try {
-            await api("PUT", `/api/v1/management/users/${userForm.id}`, body);
+            await api("PUT", `/api/v1/management/users/${userForm.uuid}`, body);
         } catch (e) {
             showToast(apiErrorMessage(e, "保存に失敗しました"), "error");
             return;
@@ -669,7 +696,10 @@
     async function deleteUserIcon() {
         if (!userForm) return;
         try {
-            await api("DELETE", `/api/v1/management/users/${userForm.id}/icon`);
+            await api(
+                "DELETE",
+                `/api/v1/management/users/${userForm.uuid}/icon`,
+            );
         } catch {
             showToast("アイコンの削除に失敗しました", "error");
             return;
@@ -678,10 +708,10 @@
         showToast("アイコンを削除しました");
     }
 
-    async function setSuspendedForUsers(ids: number[], suspended: boolean) {
+    async function setSuspendedForUsers(uuids: string[], suspended: boolean) {
         try {
             await api("POST", "/api/v1/management/users/suspend", {
-                ids,
+                uuids,
                 suspended,
             });
         } catch {
@@ -696,7 +726,7 @@
 
     async function toggleSuspendInModal(unsuspend: boolean) {
         if (!userForm) return;
-        const ok = await setSuspendedForUsers([userForm.id], !unsuspend);
+        const ok = await setSuspendedForUsers([userForm.uuid], !unsuspend);
         if (!ok) return;
         userForm.suspended = !unsuspend;
         await loadUsers();
@@ -711,11 +741,11 @@
         confirmDanger = true;
         confirmOnCancel = null;
         confirmTitle = "アカウント停止";
-        confirmMessage = `選択した ${selectedUserIds.length} 件のアカウントを停止しますか？`;
+        confirmMessage = `選択した ${selectedUserUuids.length} 件のアカウントを停止しますか？`;
         confirmAction = async () => {
-            const ok = await setSuspendedForUsers(selectedUserIds, true);
+            const ok = await setSuspendedForUsers(selectedUserUuids, true);
             if (!ok) return;
-            selectedUserIds = [];
+            selectedUserUuids = [];
             await loadUsers();
             showToast("アカウントを停止しました");
         };
@@ -726,11 +756,11 @@
         confirmDanger = false;
         confirmOnCancel = null;
         confirmTitle = "停止解除";
-        confirmMessage = `選択した ${selectedUserIds.length} 件のアカウントの停止を解除しますか？`;
+        confirmMessage = `選択した ${selectedUserUuids.length} 件のアカウントの停止を解除しますか？`;
         confirmAction = async () => {
-            const ok = await setSuspendedForUsers(selectedUserIds, false);
+            const ok = await setSuspendedForUsers(selectedUserUuids, false);
             if (!ok) return;
-            selectedUserIds = [];
+            selectedUserUuids = [];
             await loadUsers();
             showToast("アカウントの停止を解除しました");
         };
@@ -743,8 +773,8 @@
         orgTeamSearch = "";
         const url =
             n.kind === "team"
-                ? `/api/v1/management/teams/${n.id}`
-                : `/api/v1/management/departments/${n.id}`;
+                ? `/api/v1/management/teams/${n.uuid}`
+                : `/api/v1/management/departments/${n.uuid}`;
         let detail: OrgDetail;
         try {
             detail = await api<OrgDetail>("GET", url);
@@ -755,10 +785,10 @@
         orgDetail = detail;
         orgEdit = {
             name: detail.name,
-            childIds: (detail.childIds || []).map(Number),
-            teamIds: (detail.teamIds || []).map(Number),
-            leaderId: detail.leaderId || 0,
-            headUserId: detail.headUserId || 0,
+            childDepartmentUuids: detail.childDepartmentUuids || [],
+            teamUuids: detail.teamUuids || [],
+            leaderUuid: detail.leaderUuid || "",
+            headUserUuid: detail.headUserUuid || "",
         };
         orgModalOpen = true;
     }
@@ -791,8 +821,8 @@
         showToast("役職を登録しました");
     }
 
-    function openCreateTeamModal(departmentId: number) {
-        createTeamForm = { name: "", departmentId, leaderId: 0 };
+    function openCreateTeamModal(departmentUuid: string) {
+        createTeamForm = { name: "", departmentUuid, leaderUuid: "" };
         createTeamOpen = true;
     }
 
@@ -800,19 +830,19 @@
         if (!orgDetail) return;
         try {
             if (orgDetail.kind === "team") {
-                await api("PUT", `/api/v1/management/teams/${orgDetail.id}`, {
+                await api("PUT", `/api/v1/management/teams/${orgDetail.uuid}`, {
                     name: orgEdit.name,
-                    leaderId: orgEdit.leaderId,
+                    leaderUuid: orgEdit.leaderUuid,
                 });
             } else {
                 await api(
                     "PUT",
-                    `/api/v1/management/departments/${orgDetail.id}`,
+                    `/api/v1/management/departments/${orgDetail.uuid}`,
                     {
                         name: orgEdit.name,
-                        childDepartmentIds: orgEdit.childIds.map(Number),
-                        teamIds: orgEdit.teamIds.map(Number),
-                        headUserId: orgEdit.headUserId,
+                        childDepartmentUuids: orgEdit.childDepartmentUuids,
+                        teamUuids: orgEdit.teamUuids,
+                        headUserUuid: orgEdit.headUserUuid,
                     },
                 );
             }
@@ -835,8 +865,8 @@
             if (!orgDetail) return;
             const url =
                 orgDetail.kind === "team"
-                    ? `/api/v1/management/teams/${orgDetail.id}`
-                    : `/api/v1/management/departments/${orgDetail.id}`;
+                    ? `/api/v1/management/teams/${orgDetail.uuid}`
+                    : `/api/v1/management/departments/${orgDetail.uuid}`;
             try {
                 await api("DELETE", url);
             } catch (e) {
@@ -953,17 +983,17 @@
                     bind:value={userSearch} />
             </label>
             <div class="flex justify-end gap-3">
-                {#if selectedUserIds.length > 0}
+                {#if selectedUserUuids.length > 0}
                     <div class="flex items-center gap-2" transition:fade>
                         <span class="text-sm text-base-content/60"
-                            >{selectedUserIds.length} 件選択中</span>
-                        {#if users.some((u) => selectedUserIds.indexOf(u.id) !== -1 && !u.suspended)}
+                            >{selectedUserUuids.length} 件選択中</span>
+                        {#if users.some((u) => selectedUserUuids.indexOf(u.uuid) !== -1 && !u.suspended)}
                             <button
                                 type="button"
                                 class="btn btn-error btn-sm"
                                 onclick={askSuspend}>アカウント停止</button>
                         {/if}
-                        {#if users.some((u) => selectedUserIds.indexOf(u.id) !== -1 && u.suspended)}
+                        {#if users.some((u) => selectedUserUuids.indexOf(u.uuid) !== -1 && u.suspended)}
                             <button
                                 type="button"
                                 class="btn btn-success btn-sm"
@@ -1015,7 +1045,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        {#each filteredUsers as u (u.id)}
+                        {#each filteredUsers as u (u.uuid)}
                             <tr
                                 class="hover:bg-base-200/50 cursor-pointer"
                                 onclick={() => openUserModal(u)}>
@@ -1024,8 +1054,8 @@
                                     <input
                                         type="checkbox"
                                         class="checkbox checkbox-sm"
-                                        value={u.id}
-                                        bind:group={selectedUserIds} />
+                                        value={u.uuid}
+                                        bind:group={selectedUserUuids} />
                                 </td>
                                 <td>
                                     <div class="flex items-center gap-3">
@@ -1126,7 +1156,7 @@
                 </div>
             {:else}
                 <div class="divide-y divide-base-200">
-                    {#each visibleOrgNodes.entries() as [idx, n] (n.kind + "-" + n.id + "-" + idx)}
+                    {#each visibleOrgNodes.entries() as [idx, n] (n.kind + "-" + n.uuid + "-" + idx)}
                         <div
                             class="flex items-center gap-2 px-4 py-3 hover:bg-base-200/40 transition-colors"
                             style="padding-left: {1 + n.depth * 1.2}rem">
@@ -1136,10 +1166,11 @@
                                         type="button"
                                         class="btn btn-ghost btn-xs btn-square shrink-0"
                                         aria-label="チームを展開"
-                                        onclick={() => toggleDeptExpand(n.id)}>
+                                        onclick={() =>
+                                            toggleDeptExpand(n.uuid)}>
                                         <ChevronRight
-                                            class="h-4 w-4 transition-transform {expandedDeptIds.has(
-                                                n.id,
+                                            class="h-4 w-4 transition-transform {expandedDeptUuids.has(
+                                                n.uuid,
                                             )
                                                 ? 'rotate-90'
                                                 : ''}" />
@@ -1162,7 +1193,7 @@
                                 <button
                                     type="button"
                                     class="btn btn-ghost btn-xs"
-                                    onclick={() => openCreateTeamModal(n.id)}
+                                    onclick={() => openCreateTeamModal(n.uuid)}
                                     >チームを追加</button>
                                 <button
                                     type="button"
@@ -1279,14 +1310,12 @@
 {/if}
 
 <dialog class="modal" class:modal-open={userModalOpen}>
-    <div class="modal-box max-w-2xl max-h-[85vh] flex flex-col p-0">
+    <div class="modal-box max-w-3xl max-h-[100vh] flex flex-col p-0">
         <div
             class="flex justify-between items-start gap-2 p-6 pb-2 border-b border-base-200 shrink-0">
             <div>
                 <h3 class="font-bold text-lg">{userForm?.name}</h3>
-                <p class="text-sm text-base-content/60 mt-0.5">
-                    権限・操作範囲・所属
-                </p>
+                <p class="text-sm text-base-content/60 mt-0.5">権限・所属</p>
             </div>
             <button
                 type="button"
@@ -1295,127 +1324,150 @@
                 onclick={() => (userModalOpen = false)}>×</button>
         </div>
         {#if userForm}
-            <div class="overflow-y-auto px-6 py-4 space-y-5 flex-1">
-                <div class="grid sm:grid-cols-2 gap-4">
-                    <label class="form-control">
-                        <span class="label-text font-medium">権限</span>
-                        <p class="text-xs text-base-content/50 mt-0.5">
-                            現在: <span
-                                >{authorityLabel(userForm.authority)}</span>
-                        </p>
-                        <select
-                            class="select select-bordered select-sm mt-1"
-                            bind:value={authoritySelect}
-                            onchange={onAuthoritySelectChange}>
-                            {#each AUTHORITY_OPTIONS as opt (opt.value)}
-                                <option value={opt.value}>{opt.label}</option>
-                            {/each}
-                        </select>
-                    </label>
-                    <label class="form-control">
-                        <span class="label-text font-medium">ロール</span>
-                        <p class="text-xs text-base-content/50 mt-0.5">
-                            現在: <span
-                                >{systemRoleLabel(userForm.systemRole)}</span>
-                        </p>
-                        <select
-                            class="select select-bordered select-sm mt-1"
-                            bind:value={systemRoleSelect}
-                            onchange={onSystemRoleSelectChange}>
-                            {#each SYSTEM_ROLE_OPTIONS as opt (opt.value)}
-                                <option value={opt.value}>{opt.label}</option>
-                            {/each}
-                        </select>
-                    </label>
-                </div>
-                <div class="space-y-3">
-                    <div class="flex items-center justify-between gap-2">
-                        <span class="label-text font-medium">部署</span>
+            <div
+                class="overflow-y-auto px-6 py-4 space-y-5 flex justify-around gap-2">
+                <div class="flex flex-col w-1/2 items-around gap-2 h-full">
+                    <div class="flex justify-center w-full">
+                        <Icon
+                            url={userAvatarByUri(userForm.imageUri)}
+                            text={userForm.name}
+                            height="200px"
+                            width="200px"
+                            alt={userForm.name}></Icon>
+                    </div>
+                    <div class="pt-4 flex flex-wrap gap-2 justify-around">
                         <button
                             type="button"
-                            class="btn btn-outline btn-xs"
-                            onclick={addUserDepartmentRow}>行を追加</button>
-                    </div>
-                    {#each userForm.departments as row, i (`user-dept-${i}`)}
-                        <div class="flex items-center gap-2">
-                            <select
-                                class="select select-bordered select-sm flex-1"
-                                bind:value={row.departmentId}
-                                onchange={onUserDepartmentChange}>
-                                <option value={0}>部署を選択</option>
-                                {#each departmentChoices(userForm.departments, i) as d (`user-dept-opt-${i}-${d.id}`)}
-                                    <option value={d.id}>{d.name}</option>
-                                {/each}
-                            </select>
-                            <select
-                                class="select select-bordered select-sm flex-1"
-                                bind:value={row.roleId}>
-                                <option value={0}>役職を選択</option>
-                                {#each options.roles as r (`user-role-opt-${i}-${r.id}`)}
-                                    <option value={r.id}>{r.name}</option>
-                                {/each}
-                            </select>
+                            class="btn btn-ghost btn-sm text-error hover:bg-error/10"
+                            onclick={deleteUserIcon}>
+                            <Trash2 class="h-4 w-4" />
+                            アイコンを削除
+                        </button>
+                        {#if !userForm.suspended}
                             <button
                                 type="button"
-                                class="btn btn-ghost btn-sm"
-                                onclick={() => removeUserDepartmentRow(i)}
-                                >削除</button>
-                        </div>
-                    {/each}
+                                class="btn btn-warning btn-sm"
+                                onclick={() => toggleSuspendInModal(false)}
+                                >アカウント停止</button>
+                        {/if}
+                        {#if userForm.suspended}
+                            <button
+                                type="button"
+                                class="btn btn-success btn-sm"
+                                onclick={() => toggleSuspendInModal(true)}
+                                >停止解除</button>
+                        {/if}
+                    </div>
                 </div>
-                {#if departmentsHaveTeams(userForm.departments)}
-                    <div class="space-y-3">
-                        <div class="flex items-center justify-between gap-2">
-                            <span class="label-text font-medium">チーム</span>
+                <div class="flex flex-col w-1/2">
+                    <div class="grid sm:grid-cols-2 gap-4">
+                        <label class="form-control">
+                            <span class="label-text font-medium">権限</span>
+                            <p class="text-xs text-base-content/50 mt-0.5">
+                                現在: <span
+                                    >{authorityLabel(userForm.authority)}</span>
+                            </p>
+                            <select
+                                class="select select-bordered select-sm mt-1"
+                                bind:value={authoritySelect}
+                                onchange={onAuthoritySelectChange}>
+                                {#each AUTHORITY_OPTIONS as opt (opt.value)}
+                                    <option value={opt.value}
+                                        >{opt.label}</option>
+                                {/each}
+                            </select>
+                        </label>
+                        <label class="form-control">
+                            <span class="label-text font-medium">ロール</span>
+                            <p class="text-xs text-base-content/50 mt-0.5">
+                                現在: <span
+                                    >{systemRoleLabel(
+                                        userForm.systemRole,
+                                    )}</span>
+                            </p>
+                            <select
+                                class="select select-bordered select-sm mt-1"
+                                bind:value={systemRoleSelect}
+                                onchange={onSystemRoleSelectChange}>
+                                {#each SYSTEM_ROLE_OPTIONS as opt (opt.value)}
+                                    <option value={opt.value}
+                                        >{opt.label}</option>
+                                {/each}
+                            </select>
+                        </label>
+                    </div>
+                    <div class="space-y-1 flex flex-col mt-1">
+                        <div class="flex items-center justify-between mt-1">
+                            <span class="label-text font-medium">部署</span>
                             <button
                                 type="button"
                                 class="btn btn-outline btn-xs"
-                                onclick={addUserTeamRow}>行を追加</button>
+                                onclick={addUserDepartmentRow}>行を追加</button>
                         </div>
-                        {#each userForm.teams as row, i (`user-team-${i}`)}
-                            <div class="flex items-center gap-2">
+                        {#each userForm.departments as row, i (`user-dept-${i}`)}
+                            <div class="flex items-center gap-1">
                                 <select
                                     class="select select-bordered select-sm flex-1"
-                                    bind:value={row.teamId}>
-                                    <option value={0} selected
-                                        >チームを選択</option>
-                                    {#each teamChoices(userForm.departments, userForm.teams, i) as t (`user-team-opt-${i}-${t.id}`)}
-                                        <option value={t.id}>{t.name}</option>
+                                    bind:value={row.departmentUuid}
+                                    onchange={onUserDepartmentChange}>
+                                    <option value="">部署を選択</option>
+                                    {#each departmentChoices(userForm.departments, i) as d (`user-dept-opt-${i}-${d.uuid}`)}
+                                        <option value={d.uuid}>{d.name}</option>
                                     {/each}
                                 </select>
                                 <select
                                     class="select select-bordered select-sm flex-1"
-                                    bind:value={row.teamRole}>
-                                    <option value="member">メンバー</option>
-                                    <option value="leader">リーダー</option>
+                                    bind:value={row.roleUuid}>
+                                    <option value="">役職を選択</option>
+                                    {#each options.roles as r (`user-role-opt-${i}-${r.uuid}`)}
+                                        <option value={r.uuid}>{r.name}</option>
+                                    {/each}
                                 </select>
                                 <button
                                     type="button"
                                     class="btn btn-ghost btn-sm"
-                                    onclick={() => removeUserTeamRow(i)}
+                                    onclick={() => removeUserDepartmentRow(i)}
                                     >削除</button>
                             </div>
                         {/each}
                     </div>
-                {/if}
-                <div class="border-t border-base-300 pt-4 flex flex-wrap gap-2">
-                    <button
-                        type="button"
-                        class="btn btn-outline btn-sm"
-                        onclick={deleteUserIcon}>アイコン削除</button>
-                    {#if !userForm.suspended}
-                        <button
-                            type="button"
-                            class="btn btn-warning btn-sm"
-                            onclick={() => toggleSuspendInModal(false)}
-                            >アカウント停止</button>
-                    {/if}
-                    {#if userForm.suspended}
-                        <button
-                            type="button"
-                            class="btn btn-success btn-sm"
-                            onclick={() => toggleSuspendInModal(true)}
-                            >停止解除</button>
+                    {#if departmentsHaveTeams(userForm.departments)}
+                        <div class="space-y-3 flex flex-col gap-1 mt-2">
+                            <div
+                                class="flex items-center justify-between gap-2">
+                                <span class="label-text font-medium"
+                                    >チーム</span>
+                                <button
+                                    type="button"
+                                    class="btn btn-outline btn-xs"
+                                    onclick={addUserTeamRow}>行を追加</button>
+                            </div>
+                            {#each userForm.teams as row, i (`user-team-${i}`)}
+                                <div class="flex items-center gap-2">
+                                    <select
+                                        class="select select-bordered select-sm flex-1"
+                                        bind:value={row.teamUuid}>
+                                        <option value={0} selected
+                                            >チームを選択</option>
+                                        {#each teamChoices(userForm.departments, userForm.teams, i) as t (`user-team-opt-${i}-${t.uuid}`)}
+                                            <option value={t.uuid}
+                                                >{t.name}</option>
+                                        {/each}
+                                    </select>
+                                    <select
+                                        class="select select-bordered select-sm flex-1"
+                                        bind:value={row.teamRole}>
+                                        <option value="member">メンバー</option>
+                                        <option value="leader">リーダー</option>
+                                    </select>
+                                    <button
+                                        type="button"
+                                        class="btn btn-ghost btn-sm"
+                                        onclick={() => removeUserTeamRow(i)}
+                                        >削除</button>
+                                </div>
+                            {/each}
+                        </div>
                     {/if}
                 </div>
             </div>
@@ -1466,8 +1518,8 @@
                         class="rounded-xl border border-base-300 bg-base-200/30 px-3 py-2 text-sm">
                         <span class="text-base-content/60">部長</span>
                         <span class="ml-2 font-medium"
-                            >{orgDetail.headUserId
-                                ? userName(orgDetail.headUserId)
+                            >{orgDetail.headUserUuid
+                                ? userName(orgDetail.headUserUuid)
                                 : "未設定"}</span>
                     </div>
                 {/if}
@@ -1476,8 +1528,8 @@
                         class="rounded-xl border border-base-300 bg-base-200/30 px-3 py-2 text-sm">
                         <span class="text-base-content/60">チームリーダー</span>
                         <span class="ml-2 font-medium"
-                            >{orgDetail.leaderId
-                                ? userName(orgDetail.leaderId)
+                            >{orgDetail.leaderUuid
+                                ? userName(orgDetail.leaderUuid)
                                 : "未設定"}</span>
                     </div>
                 {/if}
@@ -1498,19 +1550,19 @@
                             bind:value={orgChildSearch} />
                         <div
                             class="border border-base-300 rounded-2xl max-h-44 overflow-y-auto p-2">
-                            {#each filteredOrgDepartments() as d (`c-${d.id}`)}
-                                {#if d.id !== orgDetail?.id && !d.isRoot}
+                            {#each filteredOrgDepartments() as d (`c-${d.uuid}`)}
+                                {#if d.uuid !== orgDetail?.uuid && !d.isRoot}
                                     <label
                                         class="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-base-200 cursor-pointer">
                                         <input
                                             type="checkbox"
                                             class="checkbox checkbox-sm"
                                             checked={isInList(
-                                                orgEdit.childIds,
-                                                d.id,
+                                                orgEdit.childDepartmentUuids,
+                                                d.uuid,
                                             )}
                                             onchange={() =>
-                                                toggleOrgChild(d.id)} />
+                                                toggleOrgChild(d.uuid)} />
                                         <span>{d.name}</span>
                                     </label>
                                 {/if}
@@ -1524,10 +1576,10 @@
                             <span class="label-text font-medium">部長</span>
                             <select
                                 class="select select-bordered"
-                                bind:value={orgEdit.headUserId}>
-                                <option value={0} hidden>未設定</option>
-                                {#each headUserCandidates.filter((u) => u.authority !== "general") as u (`head-${u.id}`)}
-                                    <option value={u.id}>{u.name}</option>
+                                bind:value={orgEdit.headUserUuid}>
+                                <option value="" hidden>未設定</option>
+                                {#each headUserCandidates.filter((u) => u.authority !== "general") as u (`head-${u.uuid}`)}
+                                    <option value={u.uuid}>{u.name}</option>
                                 {/each}
                             </select>
                         </label>
@@ -1539,18 +1591,18 @@
                                 bind:value={orgTeamSearch} />
                             <div
                                 class="border border-base-300 rounded-2xl max-h-36 overflow-y-auto p-2">
-                                {#each filteredOrgTeams() as t (`t-${t.id}`)}
+                                {#each filteredOrgTeams() as t (`t-${t.uuid}`)}
                                     <label
                                         class="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-base-200 cursor-pointer">
                                         <input
                                             type="checkbox"
                                             class="checkbox checkbox-sm"
                                             checked={isInList(
-                                                orgEdit.teamIds,
-                                                t.id,
+                                                orgEdit.teamUuids,
+                                                t.uuid,
                                             )}
                                             onchange={() =>
-                                                toggleOrgTeam(t.id)} />
+                                                toggleOrgTeam(t.uuid)} />
                                         <span>{t.name}</span>
                                     </label>
                                 {/each}
@@ -1564,13 +1616,13 @@
                             >チームリーダー</span>
                         <select
                             class="select select-bordered"
-                            bind:value={orgEdit.leaderId}>
-                            <option value={0} hidden>未設定</option>
+                            bind:value={orgEdit.leaderUuid}>
+                            <option value="" hidden>未設定</option>
                             {#each teamLeaderCandidates.filter((u) => {
-                                if (createTeamForm.departmentId === u.departmentId) return true;
-                                return (u.departments || []).some((d) => d.departmentId === orgDetail?.departmentId);
-                            }) as u (`team-lead-${u.id}`)}
-                                <option value={u.id}>{u.name}</option>
+                                if (createTeamForm.departmentUuid === u.departmentUuid) return true;
+                                return (u.departments || []).some((d) => d.departmentUuid === orgDetail?.departmentUuid);
+                            }) as u (`team-lead-${u.uuid}`)}
+                                <option value={u.uuid}>{u.name}</option>
                             {/each}
                         </select>
                     </label>
@@ -1642,19 +1694,19 @@
                     <div class="flex items-center gap-2">
                         <select
                             class="select select-bordered select-sm flex-1"
-                            bind:value={row.departmentId}
+                            bind:value={row.departmentUuid}
                             onchange={onCreateDepartmentChange}>
-                            <option value={0}>部署を選択</option>
-                            {#each departmentChoices(createUserForm.departments, i) as d (`new-dept-opt-${i}-${d.id}`)}
-                                <option value={d.id}>{d.name}</option>
+                            <option value="">部署を選択</option>
+                            {#each departmentChoices(createUserForm.departments, i) as d (`new-dept-opt-${i}-${d.uuid}`)}
+                                <option value={d.uuid}>{d.name}</option>
                             {/each}
                         </select>
                         <select
                             class="select select-bordered select-sm flex-1"
-                            bind:value={row.roleId}>
-                            <option value={0}>役職を選択</option>
-                            {#each options.roles as r (`new-role-opt-${i}-${r.id}`)}
-                                <option value={r.id}>{r.name}</option>
+                            bind:value={row.roleUuid}>
+                            <option value="">役職を選択</option>
+                            {#each options.roles as r (`new-role-opt-${i}-${r.uuid}`)}
+                                <option value={r.uuid}>{r.name}</option>
                             {/each}
                         </select>
                         <button
@@ -1678,10 +1730,10 @@
                         <div class="flex items-center gap-2">
                             <select
                                 class="select select-bordered select-sm flex-1"
-                                bind:value={row.teamId}>
+                                bind:value={row.teamUuid}>
                                 <option value={0} selected>チームを選択</option>
-                                {#each teamChoices(createUserForm.departments, createUserForm.teams, i) as t (`new-team-opt-${i}-${t.id}`)}
-                                    <option value={t.id}>{t.name}</option>
+                                {#each teamChoices(createUserForm.departments, createUserForm.teams, i) as t (`new-team-opt-${i}-${t.uuid}`)}
+                                    <option value={t.uuid}>{t.name}</option>
                                 {/each}
                             </select>
                             <select
@@ -1739,10 +1791,10 @@
                 ><span class="label-text font-medium">親部署（任意）</span>
                 <select
                     class="select select-bordered"
-                    bind:value={createDeptForm.parentDepartmentId}>
-                    <option value={0}>なし（ルート）</option>
-                    {#each options.departments as d (`parent-${d.id}`)}
-                        <option value={d.id}>{d.name}</option>
+                    bind:value={createDeptForm.parentDepartmentUuid}>
+                    <option value="">なし（ルート）</option>
+                    {#each options.departments as d (`parent-${d.uuid}`)}
+                        <option value={d.uuid}>{d.name}</option>
                     {/each}
                 </select>
             </label>
@@ -1751,7 +1803,7 @@
                 <SearchableSelect
                     allowClear={true}
                     pickRootId="create-dept-head"
-                    bind:value={createDeptForm.headUserId}
+                    bind:value={createDeptForm.headUserUuid}
                     labelOf={(u: ManagementUser) => {
                         return `${u.name}`;
                     }}
@@ -1811,15 +1863,15 @@
             <SearchableSelect
                 allowClear={true}
                 pickRootId="create-team-leader"
-                bind:value={createTeamForm.leaderId}
+                bind:value={createTeamForm.leaderUuid}
                 labelOf={(u: ManagementUser) => {
                     return `${u.name}`;
                 }}
                 items={users.filter((u) => {
-                    const deptId = createTeamForm.departmentId;
-                    if (u.departmentId === deptId) return true;
+                    const deptUuid = createTeamForm.departmentUuid;
+                    if (u.departmentUuid === deptUuid) return true;
                     return (u.departments || []).some(
-                        (d) => d.departmentId === deptId,
+                        (d) => d.departmentUuid === deptUuid,
                     );
                 })}></SearchableSelect>
         </label>

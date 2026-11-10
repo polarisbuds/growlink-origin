@@ -1,13 +1,15 @@
 package inputmodel
 
 type PairingTargetInput struct {
-	Kind     string `json:"kind"`
-	TargetID uint   `json:"targetId"`
+	Kind       string `json:"kind"`
+	TargetUuid string `json:"targetUuid"`
+	TargetID   uint   `json:"-"`
 }
 
 type PairingInput struct {
-	MentorID uint                 `json:"mentorId"`
-	Targets  []PairingTargetInput `json:"targets"`
+	MentorUuid string               `json:"mentorUuid"`
+	MentorID   uint                 `json:"-"`
+	Targets    []PairingTargetInput `json:"targets"`
 }
 
 func (in PairingInput) ResolvedTargets() []PairingTargetInput {

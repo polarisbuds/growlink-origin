@@ -25,6 +25,7 @@ type Deps struct {
 	Setting        *setting_usecase.IconRegisterUsecase
 	SettingRm      *setting_usecase.IconRemoverUsecase
 	MeetingRepo    repository_interface.MeetingRepository
+	AnswerRepo     repository_interface.AnswerRepository
 	PairingRepo    repository_interface.PairingRepository
 	TemplateRepo   repository_interface.TemplateRepository
 	UserRepo       repository_interface.UserRepository
@@ -57,6 +58,7 @@ func RegisterRoutes(e *echo.Echo, deps Deps, auditLogger *slog.Logger) {
 		Setting:        deps.Setting,
 		SettingRm:      deps.SettingRm,
 		MeetingRepo:    deps.MeetingRepo,
+		AnswerRepo:     deps.AnswerRepo,
 		PairingRepo:    deps.PairingRepo,
 		TemplateRepo:   deps.TemplateRepo,
 		UserRepo:       deps.UserRepo,
@@ -92,10 +94,10 @@ func RegisterRoutes(e *echo.Echo, deps Deps, auditLogger *slog.Logger) {
 	auth.GET("/meeting/all", redirectPage("/planning/meetings"), auditLogging(auditLogger, false))
 	auth.GET("/pairing", redirectPage("/planning/pairs"), auditLogging(auditLogger, false))
 	auth.GET("/pairing/new", redirectPage("/planning/pairs/new"), auditLogging(auditLogger, false))
-	auth.GET("/pairing/:id/edit", redirectPage("/planning/pairs"), auditLogging(auditLogger, false))
+	auth.GET("/pairing/:uuid/edit", redirectPage("/planning/pairs"), auditLogging(auditLogger, false))
 	auth.GET("/template", redirectPage("/planning/templates"), auditLogging(auditLogger, false))
 	auth.GET("/template/new", redirectPage("/planning/templates/new"), auditLogging(auditLogger, false))
-	auth.GET("/template/:id", redirectPage("/planning/templates"), auditLogging(auditLogger, false))
+	auth.GET("/template/:uuid", redirectPage("/planning/templates"), auditLogging(auditLogger, false))
 
 	auth.GET("/setting", spa, auditLogging(auditLogger, false))
 	auth.GET("/management", spa, SystemAdminPage(), auditLogging(auditLogger, false))
@@ -136,7 +138,6 @@ func RegisterRoutes(e *echo.Echo, deps Deps, auditLogger *slog.Logger) {
 	apiAuth.PUT("/templates/:uuid/lock", ah.UpdateTemplateLock, auditLogging(auditLogger, false))
 	apiAuth.DELETE("/templates/:uuid", ah.DeleteTemplate, auditLogging(auditLogger, false))
 	apiAuth.POST("/templates/:uuid/copy", ah.CopyTemplate, auditLogging(auditLogger, false))
-	apiAuth.PUT("/templates/reorder", ah.ReorderTemplates, auditLogging(auditLogger, false))
 
 	apiAuth.GET("/planning/directory", ah.ListPlanningDirectory, auditLogging(auditLogger, false))
 	apiAuth.GET("/progress/summary", ah.ProgressSummary, ProgressAPI(), auditLogging(auditLogger, false))
@@ -149,19 +150,19 @@ func RegisterRoutes(e *echo.Echo, deps Deps, auditLogger *slog.Logger) {
 
 	apiAuth.GET("/management/users", ah.ListManagementUsers, SystemAdminAPI(), auditLogging(auditLogger, false))
 	apiAuth.POST("/management/users", ah.CreateManagementUser, SystemAdminAPI(), auditLogging(auditLogger, false))
-	apiAuth.PUT("/management/users/:id", ah.UpdateManagementUser, SystemAdminAPI(), auditLogging(auditLogger, false))
+	apiAuth.PUT("/management/users/:uuid", ah.UpdateManagementUser, SystemAdminAPI(), auditLogging(auditLogger, false))
 	apiAuth.POST("/management/users/suspend", ah.SuspendManagementUsers, SystemAdminAPI(), auditLogging(auditLogger, false))
-	apiAuth.DELETE("/management/users/:id/icon", ah.DeleteManagementUserIcon, SystemAdminAPI(), auditLogging(auditLogger, false))
+	apiAuth.DELETE("/management/users/:uuid/icon", ah.DeleteManagementUserIcon, SystemAdminAPI(), auditLogging(auditLogger, false))
 	apiAuth.GET("/management/org/tree", ah.ListOrgTree, SystemAdminAPI(), auditLogging(auditLogger, false))
 	apiAuth.POST("/management/departments", ah.CreateDepartment, SystemAdminAPI(), auditLogging(auditLogger, false))
-	apiAuth.GET("/management/departments/:id", ah.GetDepartmentDetail, SystemAdminAPI(), auditLogging(auditLogger, false))
-	apiAuth.PUT("/management/departments/:id", ah.UpdateDepartment, SystemAdminAPI(), auditLogging(auditLogger, false))
-	apiAuth.DELETE("/management/departments/:id", ah.DeleteDepartment, SystemAdminAPI(), auditLogging(auditLogger, false))
+	apiAuth.GET("/management/departments/:uuid", ah.GetDepartmentDetail, SystemAdminAPI(), auditLogging(auditLogger, false))
+	apiAuth.PUT("/management/departments/:uuid", ah.UpdateDepartment, SystemAdminAPI(), auditLogging(auditLogger, false))
+	apiAuth.DELETE("/management/departments/:uuid", ah.DeleteDepartment, SystemAdminAPI(), auditLogging(auditLogger, false))
 	apiAuth.POST("/management/teams", ah.CreateTeam, SystemAdminAPI(), auditLogging(auditLogger, false))
 	apiAuth.POST("/management/roles", ah.CreateRole, SystemAdminAPI(), auditLogging(auditLogger, false))
-	apiAuth.GET("/management/teams/:id", ah.GetTeamDetail, SystemAdminAPI(), auditLogging(auditLogger, false))
-	apiAuth.PUT("/management/teams/:id", ah.UpdateTeam, SystemAdminAPI(), auditLogging(auditLogger, false))
-	apiAuth.DELETE("/management/teams/:id", ah.DeleteTeam, SystemAdminAPI(), auditLogging(auditLogger, false))
+	apiAuth.GET("/management/teams/:uuid", ah.GetTeamDetail, SystemAdminAPI(), auditLogging(auditLogger, false))
+	apiAuth.PUT("/management/teams/:uuid", ah.UpdateTeam, SystemAdminAPI(), auditLogging(auditLogger, false))
+	apiAuth.DELETE("/management/teams/:uuid", ah.DeleteTeam, SystemAdminAPI(), auditLogging(auditLogger, false))
 	apiAuth.GET("/management/settings/remind", ah.GetRemindSettings, SystemAdminAPI(), auditLogging(auditLogger, false))
 	apiAuth.PUT("/management/settings/remind", ah.UpdateRemindSettings, SystemAdminAPI(), auditLogging(auditLogger, false))
 	apiAuth.GET("/management/options", ah.ListManagementOptions, SystemAdminAPI(), auditLogging(auditLogger, false))

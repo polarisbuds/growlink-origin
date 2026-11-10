@@ -3,8 +3,8 @@ package template_mng_usecase_test
 import (
 	"testing"
 
-	template_mng_usecase "growlink/internal/application/usecase/management_usecase/template_management_usecase"
 	inputmodel "growlink/internal/application/model/input_model"
+	template_mng_usecase "growlink/internal/application/usecase/management_usecase/template_management_usecase"
 	"growlink/internal/domain/entity"
 	repomock "growlink/internal/domain/interface/repository/mock"
 
@@ -58,7 +58,6 @@ func TestTemplateCreator_CreateTemplate(t *testing.T) {
 			input:   inputWithTopics,
 			wantErr: false,
 			setup: func(templateRepo *repomock.MockTemplateRepository, topicRepo *repomock.MockTopicRepository, cap *templateCreatorCaptures) {
-				templateRepo.EXPECT().Count().Return(int64(0), nil)
 				templateRepo.EXPECT().Create(gomock.Any()).DoAndReturn(func(template *entity.Template) error {
 					cap.createdTemplate = template
 					return nil
@@ -81,7 +80,6 @@ func TestTemplateCreator_CreateTemplate(t *testing.T) {
 				assert.Equal(t, "test-template", cap.createdTemplate.Title)
 				assert.Equal(t, "test description", cap.createdTemplate.Description)
 				assert.Equal(t, validUserID, cap.createdTemplate.UserID)
-				assert.Equal(t, 1, cap.createdTemplate.DisplayNo)
 			},
 		},
 		{
@@ -89,7 +87,8 @@ func TestTemplateCreator_CreateTemplate(t *testing.T) {
 			input:       inputEmptyTopics,
 			wantErr:     true,
 			errContains: "質問を1件以上",
-			setup:       func(_ *repomock.MockTemplateRepository, _ *repomock.MockTopicRepository, _ *templateCreatorCaptures) {},
+			setup: func(_ *repomock.MockTemplateRepository, _ *repomock.MockTopicRepository, _ *templateCreatorCaptures) {
+			},
 		},
 		{
 			name:        "異常系_トピック作成失敗",
@@ -97,7 +96,6 @@ func TestTemplateCreator_CreateTemplate(t *testing.T) {
 			wantErr:     true,
 			errContains: "トピックの作成に失敗しました",
 			setup: func(templateRepo *repomock.MockTemplateRepository, topicRepo *repomock.MockTopicRepository, _ *templateCreatorCaptures) {
-				templateRepo.EXPECT().Count().Return(int64(0), nil)
 				templateRepo.EXPECT().Create(gomock.Any()).Return(nil)
 				topicRepo.EXPECT().Create(gomock.Any()).Return(errCreateTopicFailed)
 			},
@@ -108,7 +106,6 @@ func TestTemplateCreator_CreateTemplate(t *testing.T) {
 			wantErr:     true,
 			errContains: "テンプレートの新規作成に失敗しました",
 			setup: func(templateRepo *repomock.MockTemplateRepository, topicRepo *repomock.MockTopicRepository, _ *templateCreatorCaptures) {
-				templateRepo.EXPECT().Count().Return(int64(0), nil)
 				templateRepo.EXPECT().Create(gomock.Any()).Return(errCreateTemplateFailed)
 			},
 		},

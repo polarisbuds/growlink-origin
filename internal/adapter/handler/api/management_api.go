@@ -2,7 +2,6 @@ package api
 
 import (
 	"net/http"
-	"strconv"
 	"strings"
 
 	"growlink/internal/adapter/handler/authctx"
@@ -11,8 +10,56 @@ import (
 	user_admin_usecase "growlink/internal/application/usecase/management_usecase/user_admin_usecase"
 	"growlink/internal/domain/entity"
 
+	"github.com/google/uuid"
 	"github.com/labstack/echo/v5"
+	"gorm.io/gorm"
 )
+
+func (h *Handler) resolveUserID(param string) (uint, error) {
+	userUUID, err := uuid.Parse(param)
+	if err != nil {
+		return 0, err
+	}
+	user, err := h.deps.UserRepo.GetByUUID(userUUID)
+	if err != nil {
+		return 0, err
+	}
+	return user.ID, nil
+}
+
+func (h *Handler) resolveDepartmentID(param string) (uint, error) {
+	deptUUID, err := uuid.Parse(param)
+	if err != nil {
+		return 0, err
+	}
+	dept, err := h.deps.DepartmentRepo.GetByUUID(deptUUID)
+	if err != nil {
+		return 0, err
+	}
+	return dept.ID, nil
+}
+
+func (h *Handler) resolveTeamID(param string) (uint, error) {
+	teamUUID, err := uuid.Parse(param)
+	if err != nil {
+		return 0, err
+	}
+	team, err := h.deps.TeamRepo.GetByUUID(teamUUID)
+	if err != nil {
+		return 0, err
+	}
+	return team.ID, nil
+}
+
+func managementUUIDResolveError(c *echo.Context, err error) error {
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return c.JSON(http.StatusNotFound, map[string]string{"error": "not found"})
+		}
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid uuid"})
+	}
+	return nil
+}
 
 func (h *Handler) CreateManagementUser(c *echo.Context) error {
 	var req user_admin_usecase.CreateUserInput
@@ -35,15 +82,15 @@ func (h *Handler) ListManagementUsers(c *echo.Context) error {
 }
 
 func (h *Handler) UpdateManagementUser(c *echo.Context) error {
-	id64, err := strconv.ParseUint(c.Param("id"), 10, 64)
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid id"})
+	userID, err := h.resolveUserID(c.Param("uuid"))
+	if respErr := managementUUIDResolveError(c, err); respErr != nil {
+		return respErr
 	}
 	var req user_admin_usecase.UpdateUserInput
 	if err := c.Bind(&req); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid request"})
 	}
-	if err := h.deps.Management.UserAdmin.UpdateUser(uint(id64), req); err != nil {
+	if err := h.deps.Management.UserAdmin.UpdateUser(userID, req); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
 	}
 	return c.JSON(http.StatusOK, map[string]string{"ok": "true"})
@@ -51,8 +98,8 @@ func (h *Handler) UpdateManagementUser(c *echo.Context) error {
 
 func (h *Handler) SuspendManagementUsers(c *echo.Context) error {
 	var req struct {
-		IDs       []uint `json:"ids"`
-		Suspended *bool  `json:"suspended"`
+		UUIDs     []string `json:"uuids"`
+		Suspended *bool    `json:"suspended"`
 	}
 	if err := c.Bind(&req); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid request"})
@@ -61,18 +108,18 @@ func (h *Handler) SuspendManagementUsers(c *echo.Context) error {
 	if req.Suspended != nil {
 		suspended = *req.Suspended
 	}
-	if err := h.deps.Management.UserAdmin.SetUsersSuspended(req.IDs, suspended); err != nil {
+	if err := h.deps.Management.UserAdmin.SetUsersSuspended(req.UUIDs, suspended); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
 	}
 	return c.JSON(http.StatusOK, map[string]string{"ok": "true"})
 }
 
 func (h *Handler) DeleteManagementUserIcon(c *echo.Context) error {
-	id64, err := strconv.ParseUint(c.Param("id"), 10, 64)
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid id"})
+	userID, err := h.resolveUserID(c.Param("uuid"))
+	if respErr := managementUUIDResolveError(c, err); respErr != nil {
+		return respErr
 	}
-	if err := h.deps.SettingRm.RemoveIcon(uint(id64)); err != nil {
+	if err := h.deps.SettingRm.RemoveIcon(userID); err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
 	return c.JSON(http.StatusOK, map[string]string{"ok": "true"})
@@ -99,11 +146,11 @@ func (h *Handler) CreateDepartment(c *echo.Context) error {
 }
 
 func (h *Handler) GetDepartmentDetail(c *echo.Context) error {
-	id64, err := strconv.ParseUint(c.Param("id"), 10, 64)
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid id"})
+	deptID, err := h.resolveDepartmentID(c.Param("uuid"))
+	if respErr := managementUUIDResolveError(c, err); respErr != nil {
+		return respErr
 	}
-	detail, err := h.deps.Management.OrgAdmin.GetDepartmentDetail(uint(id64))
+	detail, err := h.deps.Management.OrgAdmin.GetDepartmentDetail(deptID)
 	if err != nil {
 		return c.JSON(http.StatusNotFound, map[string]string{"error": err.Error()})
 	}
@@ -111,11 +158,11 @@ func (h *Handler) GetDepartmentDetail(c *echo.Context) error {
 }
 
 func (h *Handler) GetTeamDetail(c *echo.Context) error {
-	id64, err := strconv.ParseUint(c.Param("id"), 10, 64)
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid id"})
+	teamID, err := h.resolveTeamID(c.Param("uuid"))
+	if respErr := managementUUIDResolveError(c, err); respErr != nil {
+		return respErr
 	}
-	detail, err := h.deps.Management.OrgAdmin.GetTeamDetail(uint(id64))
+	detail, err := h.deps.Management.OrgAdmin.GetTeamDetail(teamID)
 	if err != nil {
 		return c.JSON(http.StatusNotFound, map[string]string{"error": err.Error()})
 	}
@@ -123,41 +170,41 @@ func (h *Handler) GetTeamDetail(c *echo.Context) error {
 }
 
 func (h *Handler) UpdateDepartment(c *echo.Context) error {
-	id64, err := strconv.ParseUint(c.Param("id"), 10, 64)
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid id"})
+	deptID, err := h.resolveDepartmentID(c.Param("uuid"))
+	if respErr := managementUUIDResolveError(c, err); respErr != nil {
+		return respErr
 	}
 	var req org_admin_usecase.UpdateDepartmentInput
 	if err := c.Bind(&req); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid request"})
 	}
-	if err := h.deps.Management.OrgAdmin.UpdateDepartment(uint(id64), req); err != nil {
+	if err := h.deps.Management.OrgAdmin.UpdateDepartment(deptID, req); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
 	}
 	return c.JSON(http.StatusOK, map[string]string{"ok": "true"})
 }
 
 func (h *Handler) UpdateTeam(c *echo.Context) error {
-	id64, err := strconv.ParseUint(c.Param("id"), 10, 64)
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid id"})
+	teamID, err := h.resolveTeamID(c.Param("uuid"))
+	if respErr := managementUUIDResolveError(c, err); respErr != nil {
+		return respErr
 	}
 	var req org_admin_usecase.UpdateTeamInput
 	if err := c.Bind(&req); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid request"})
 	}
-	if err := h.deps.Management.OrgAdmin.UpdateTeam(uint(id64), req); err != nil {
+	if err := h.deps.Management.OrgAdmin.UpdateTeam(teamID, req); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
 	}
 	return c.JSON(http.StatusOK, map[string]string{"ok": "true"})
 }
 
 func (h *Handler) DeleteDepartment(c *echo.Context) error {
-	id64, err := strconv.ParseUint(c.Param("id"), 10, 64)
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid id"})
+	deptID, err := h.resolveDepartmentID(c.Param("uuid"))
+	if respErr := managementUUIDResolveError(c, err); respErr != nil {
+		return respErr
 	}
-	if err := h.deps.Management.OrgAdmin.DeleteDepartment(uint(id64)); err != nil {
+	if err := h.deps.Management.OrgAdmin.DeleteDepartment(deptID); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
 	}
 	return c.JSON(http.StatusOK, map[string]string{"ok": "true"})
@@ -191,15 +238,15 @@ func (h *Handler) CreateRole(c *echo.Context) error {
 	if err := h.deps.RoleRepo.Create(role); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
 	}
-	return c.JSON(http.StatusCreated, map[string]interface{}{"id": role.ID, "name": role.Name, "rank": role.Rank})
+	return c.JSON(http.StatusCreated, map[string]interface{}{"uuid": role.UUID.String(), "name": role.Name, "rank": role.Rank})
 }
 
 func (h *Handler) DeleteTeam(c *echo.Context) error {
-	id64, err := strconv.ParseUint(c.Param("id"), 10, 64)
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid id"})
+	teamID, err := h.resolveTeamID(c.Param("uuid"))
+	if respErr := managementUUIDResolveError(c, err); respErr != nil {
+		return respErr
 	}
-	if err := h.deps.Management.OrgAdmin.DeleteTeam(uint(id64)); err != nil {
+	if err := h.deps.Management.OrgAdmin.DeleteTeam(teamID); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
 	}
 	return c.JSON(http.StatusOK, map[string]string{"ok": "true"})
@@ -240,7 +287,7 @@ func (h *Handler) ListManagementOptions(c *echo.Context) error {
 	}
 	roleOpts := make([]map[string]interface{}, 0, len(roles))
 	for _, r := range roles {
-		roleOpts = append(roleOpts, map[string]interface{}{"id": r.ID, "name": r.Name, "rank": r.Rank})
+		roleOpts = append(roleOpts, map[string]interface{}{"uuid": r.UUID.String(), "name": r.Name, "rank": r.Rank})
 	}
 	return c.JSON(http.StatusOK, map[string]interface{}{
 		"departments": depts,

@@ -6,7 +6,7 @@
     import PanelRightClose from "lucide-svelte/icons/panel-right-close";
     import PanelRightOpen from "lucide-svelte/icons/panel-right-open";
 
-    type User = { id: number; name?: string; email?: string };
+    type User = { uuid: string; name?: string; email?: string };
 
     let {
         open = $bindable(true),
@@ -26,22 +26,22 @@
         canEditImplementedDate?: boolean;
     } = $props();
 
-    let sharerUserIds = $state<number[]>([]);
+    let sharerUserUuids = $state<string[]>([]);
     let sharerPickQuery = $state("");
     let candidateUsers = $state<User[]>([]);
     let savingSharers = $state(false);
 
     let sharerChips = $derived(
-        sharerUserIds.map((id) => {
-            const fromSharers = sharers.find((s) => s.id === id);
-            return { id, name: fromSharers?.name || `ユーザ #${id}` };
+        sharerUserUuids.map((id) => {
+            const fromSharers = sharers.find((s) => s.uuid === id);
+            return { uuid: id, name: fromSharers?.name || `ユーザ` };
         }),
     );
 
     $effect(() => {
-        sharerUserIds = (sharers || [])
-            .map((s) => s.id)
-            .filter((id): id is number => id != null);
+        sharerUserUuids = (sharers || [])
+            .map((s) => s.uuid)
+            .filter((id): id is string => !!id);
     });
 
     let searchTimer: ReturnType<typeof setTimeout> | undefined;
@@ -59,14 +59,17 @@
     });
 
     function addSharer(u: User) {
-        if (sharerUserIds.includes(u.id)) return;
-        sharerUserIds = [...sharerUserIds, u.id];
-        sharers = [...sharers, { id: u.id, name: u.name, email: u.email }];
+        if (sharerUserUuids.includes(u.uuid)) return;
+        sharerUserUuids = [...sharerUserUuids, u.uuid];
+        sharers = [
+            ...sharers,
+            { uuid: u.uuid, name: u.name, email: u.email },
+        ];
     }
 
-    function removeSharer(id: number) {
-        sharerUserIds = sharerUserIds.filter((x) => x !== id);
-        sharers = sharers.filter((s) => s.id !== id);
+    function removeSharer(uuid: string) {
+        sharerUserUuids = sharerUserUuids.filter((x) => x !== uuid);
+        sharers = sharers.filter((s) => s.uuid !== uuid);
     }
 
     async function saveSharers() {
@@ -75,7 +78,7 @@
             const res = await api<{ sharers: MeetingUserRef[] }>(
                 "PUT",
                 `/api/v1/meetings/${uuid}/sharers`,
-                { sharerUserIds },
+                { sharerUserUuids },
             );
             sharers = res.sharers || [];
             showToast("共有者を保存しました");
@@ -130,7 +133,7 @@
                         </button>
                     {:else if sharers.length}
                         <ul class="space-y-1">
-                            {#each sharers as s (s.id)}
+                            {#each sharers as s (s.uuid)}
                                 <li>{s.name || "—"}</li>
                             {/each}
                         </ul>

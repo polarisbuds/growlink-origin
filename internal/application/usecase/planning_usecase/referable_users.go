@@ -1,6 +1,9 @@
 package planning_usecase
 
-import "growlink/internal/domain/valueobject"
+import (
+	"growlink/internal/domain/valueobject"
+	"log/slog"
+)
 
 func fullPlanningAccess(systemRole valueobject.SystemRole) bool {
 	return systemRole == valueobject.SystemRoleAdmin || systemRole == valueobject.SystemRoleAnalyst
@@ -18,11 +21,13 @@ func (uc *PlanningAccessUsecase) ReferableUserIDs(userID uint, systemRole valueo
 	if err != nil {
 		return nil, err
 	}
+	slog.Debug("ReferableUserIDs-1", slog.Any("deptUserIDs", deptUserIDs))
 	for _, id := range deptUserIDs {
 		if id > 0 {
 			visible[id] = true
 		}
 	}
+	slog.Debug("ReferableUserIDs-2", slog.Any("visible", visible))
 
 	teamIDs, err := uc.readerTeamIDs(userID)
 	if err != nil {

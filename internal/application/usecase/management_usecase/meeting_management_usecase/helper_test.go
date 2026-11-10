@@ -67,14 +67,6 @@ func newTestMeeting(id, pairingID uint) entity.Meeting {
 	}
 }
 
-func newTestUserRelationship(id, sourceUserID, targetUserID uint) entity.UserRelationship {
-	return entity.UserRelationship{
-		Model:        gorm.Model{ID: id},
-		SourceUserID: sourceUserID,
-		TargetUserID: targetUserID,
-	}
-}
-
 func newTestTeamMember(id, teamID, memberID uint) entity.TeamMember {
 	return entity.TeamMember{
 		Model:    gorm.Model{ID: id},

@@ -1,10 +1,15 @@
 package repository_interface
 
-import "growlink/internal/domain/entity"
+import (
+	"growlink/internal/domain/entity"
+
+	"github.com/google/uuid"
+)
 
 //go:generate go tool mockgen -typed -source=$GOFILE -destination=mock/mock_$GOFILE -package=mock
 
 type RoleRepository interface {
 	GetAll() ([]entity.Role, error)
+	GetByUUID(roleUUID uuid.UUID) (*entity.Role, error)
 	Create(role *entity.Role) error
 }

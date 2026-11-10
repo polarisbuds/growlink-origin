@@ -117,31 +117,13 @@ func (h *Handler) CopyTemplate(c *echo.Context) error {
 		}
 		title = tpl.Title + " のコピー"
 	}
-	if err := h.deps.Management.TemplateCopier.CopyTemplate(templateID, title); err != nil {
+	if err := h.deps.Management.TemplateCopier.CopyTemplate(templateID, title, claims.UserID); err != nil {
 		if errors.Is(err, template_mng_usecase.ErrInvalidTemplateInput) {
 			return c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
 		}
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
 	_ = claims
-	return c.JSON(http.StatusOK, map[string]string{"ok": "true"})
-}
-
-func (h *Handler) ReorderTemplates(c *echo.Context) error {
-	var req struct {
-		Items []struct {
-			ID        uint `json:"id"`
-			DisplayNo int  `json:"displayNo"`
-		} `json:"items"`
-	}
-	if err := c.Bind(&req); err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid request"})
-	}
-	for _, item := range req.Items {
-		if err := h.deps.Management.TemplateUpdater.UpdateDisplayNo(item.ID, item.DisplayNo); err != nil {
-			return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
-		}
-	}
 	return c.JSON(http.StatusOK, map[string]string{"ok": "true"})
 }
 
@@ -154,9 +136,14 @@ func (h *Handler) DeleteTemplate(c *echo.Context) error {
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid id"})
 	}
-	if _, err := h.deps.TemplateRepo.Get(templateID); err != nil {
+	t, err := h.deps.TemplateRepo.Get(templateID)
+	if err != nil {
 		return c.JSON(http.StatusNotFound, map[string]string{"error": "not found"})
 	}
+	if t.UserID != claims.UserID && !claims.SystemRole.IsAdmin() {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "permission denied"})
+	}
+
 	if err := h.deps.Management.TemplateDeleter.DeleteTemplate(templateID); err != nil {
 		if errors.Is(err, template_mng_usecase.ErrTemplateLocked) {
 			return c.JSON(http.StatusForbidden, map[string]string{"error": err.Error()})
