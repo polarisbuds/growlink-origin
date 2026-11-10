@@ -21,12 +21,12 @@ func NewSubmitterUsecase(meetingRepo repository_interface.MeetingRepository, ans
 	}
 }
 
-func (uc *SubmitterUsecase) Submit(meetingID uint, answers []outputmodel.AnswerOutput) error {
+func (uc *SubmitterUsecase) Submit(meetingID uint, answers []outputmodel.AnswerOutput, nextStatus valueobject.MeetingStatus) error {
 	if _, err := uc.answerRepo.Submits(converter.AnswerOutputsToEntities(answers)); err != nil {
 		return fmt.Errorf("回答の投稿に失敗しました: %w", err)
 	}
 
-	if err := uc.meetingRepo.UpdateStatus(meetingID, valueobject.MeetingStatusDone); err != nil {
+	if err := uc.meetingRepo.UpdateStatus(meetingID, nextStatus); err != nil {
 		return fmt.Errorf("投稿完了へのステータス更新に失敗しました: %w", err)
 	}
 	return nil

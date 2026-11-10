@@ -4,6 +4,7 @@ package usecase_interface
 
 import (
 	outputmodel "growlink/internal/application/model/output_model"
+	"growlink/internal/domain/valueobject"
 )
 
 type (
@@ -27,7 +28,7 @@ type (
 		SaveDraft(meetingID uint, answers []outputmodel.AnswerOutput, keepMeetingStatus bool) error
 	}
 	Submitter interface {
-		Submit(meetingID uint, answers []outputmodel.AnswerOutput) error
+		Submit(meetingID uint, answers []outputmodel.AnswerOutput, nextStatus valueobject.MeetingStatus) error
 	}
 	SubmitCanceller interface {
 		CancelSubmit(meetingID uint) error

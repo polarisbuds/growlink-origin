@@ -28,6 +28,9 @@ func (h *Handler) GetMeeting(c *echo.Context) error {
 			return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 		}
 		if !ok {
+			ok = canViewMeeting(meeting, claims.UserID)
+		}
+		if !ok {
 			return c.JSON(http.StatusNotFound, map[string]string{"error": "not found"})
 		}
 	}
@@ -96,7 +99,7 @@ func (h *Handler) SaveDraft(c *echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
 	keepStatus := meetingViewerRole(meeting, claims.UserID) == "mentor" &&
-		meeting.Status == valueobject.MeetingStatusDone
+		meeting.Status == valueobject.MeetingStatusSubmitted
 	if err := h.deps.Meeting.DraftSaver.SaveDraft(meeting.ID, req.Answers, keepStatus); err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
@@ -129,7 +132,12 @@ func (h *Handler) SubmitMeeting(c *echo.Context) error {
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
-	if err := h.deps.Meeting.Submitter.Submit(meeting.ID, req.Answers); err != nil {
+	role := meetingViewerRole(meeting, claims.UserID)
+	nextStatus := valueobject.MeetingStatusSubmitted
+	if role == "mentor" {
+		nextStatus = valueobject.MeetingStatusDone
+	}
+	if err := h.deps.Meeting.Submitter.Submit(meeting.ID, req.Answers, nextStatus); err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
 	return c.JSON(http.StatusOK, map[string]string{"ok": "true"})
@@ -256,6 +264,9 @@ func (h *Handler) PostMeetingComment(c *echo.Context) error {
 	}
 	if err := c.Bind(&req); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid request"})
+	}
+	if meeting.Status != valueobject.MeetingStatusDone {
+		return c.JSON(http.StatusForbidden, map[string]string{"error": "forbidden"})
 	}
 	if err := h.deps.Meeting.MeetingCommenter.PostComment(meeting.ID, claims.UserID, req.Content, req.IsLimited); err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})

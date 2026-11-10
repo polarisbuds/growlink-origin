@@ -4,9 +4,11 @@ export type ProgressBreakdownRow = {
 	departmentName?: string;
 	pending: number;
 	draft: number;
+	submitted: number;
 	done: number;
 	donePercent?: number;
 	usersPending?: string[];
 	usersDraft?: string[];
+	usersSubmitted?: string[];
 	usersDone?: string[];
 };

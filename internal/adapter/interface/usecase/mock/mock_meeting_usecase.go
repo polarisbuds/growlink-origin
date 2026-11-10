@@ -11,6 +11,7 @@ package mock
 
 import (
 	outputmodel "growlink/internal/application/model/output_model"
+	"growlink/internal/domain/valueobject"
 	reflect "reflect"
 
 	gomock "go.uber.org/mock/gomock"
@@ -309,17 +310,17 @@ func (c *MockMeetingUsecaseSaveDraftCall) DoAndReturn(f func(uint, []outputmodel
 }
 
 // Submit mocks base method.
-func (m *MockMeetingUsecase) Submit(meetingID uint, answers []outputmodel.AnswerOutput) error {
+func (m *MockMeetingUsecase) Submit(meetingID uint, answers []outputmodel.AnswerOutput, nextStatus valueobject.MeetingStatus) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Submit", meetingID, answers)
+	ret := m.ctrl.Call(m, "Submit", meetingID, answers, nextStatus)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Submit indicates an expected call of Submit.
-func (mr *MockMeetingUsecaseMockRecorder) Submit(meetingID, answers any) *MockMeetingUsecaseSubmitCall {
+func (mr *MockMeetingUsecaseMockRecorder) Submit(meetingID, answers, nextStatus any) *MockMeetingUsecaseSubmitCall {
 	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Submit", reflect.TypeOf((*MockMeetingUsecase)(nil).Submit), meetingID, answers)
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Submit", reflect.TypeOf((*MockMeetingUsecase)(nil).Submit), meetingID, answers, nextStatus)
 	return &MockMeetingUsecaseSubmitCall{Call: call}
 }
 
@@ -335,13 +336,13 @@ func (c *MockMeetingUsecaseSubmitCall) Return(arg0 error) *MockMeetingUsecaseSub
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockMeetingUsecaseSubmitCall) Do(f func(uint, []outputmodel.AnswerOutput) error) *MockMeetingUsecaseSubmitCall {
+func (c *MockMeetingUsecaseSubmitCall) Do(f func(uint, []outputmodel.AnswerOutput, valueobject.MeetingStatus) error) *MockMeetingUsecaseSubmitCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockMeetingUsecaseSubmitCall) DoAndReturn(f func(uint, []outputmodel.AnswerOutput) error) *MockMeetingUsecaseSubmitCall {
+func (c *MockMeetingUsecaseSubmitCall) DoAndReturn(f func(uint, []outputmodel.AnswerOutput, valueobject.MeetingStatus) error) *MockMeetingUsecaseSubmitCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
@@ -598,17 +599,17 @@ func (m *MockSubmitter) EXPECT() *MockSubmitterMockRecorder {
 }
 
 // Submit mocks base method.
-func (m *MockSubmitter) Submit(meetingID uint, answers []outputmodel.AnswerOutput) error {
+func (m *MockSubmitter) Submit(meetingID uint, answers []outputmodel.AnswerOutput, nextStatus valueobject.MeetingStatus) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Submit", meetingID, answers)
+	ret := m.ctrl.Call(m, "Submit", meetingID, answers, nextStatus)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Submit indicates an expected call of Submit.
-func (mr *MockSubmitterMockRecorder) Submit(meetingID, answers any) *MockSubmitterSubmitCall {
+func (mr *MockSubmitterMockRecorder) Submit(meetingID, answers, nextStatus any) *MockSubmitterSubmitCall {
 	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Submit", reflect.TypeOf((*MockSubmitter)(nil).Submit), meetingID, answers)
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Submit", reflect.TypeOf((*MockSubmitter)(nil).Submit), meetingID, answers, nextStatus)
 	return &MockSubmitterSubmitCall{Call: call}
 }
 
@@ -624,13 +625,13 @@ func (c *MockSubmitterSubmitCall) Return(arg0 error) *MockSubmitterSubmitCall {
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockSubmitterSubmitCall) Do(f func(uint, []outputmodel.AnswerOutput) error) *MockSubmitterSubmitCall {
+func (c *MockSubmitterSubmitCall) Do(f func(uint, []outputmodel.AnswerOutput, valueobject.MeetingStatus) error) *MockSubmitterSubmitCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockSubmitterSubmitCall) DoAndReturn(f func(uint, []outputmodel.AnswerOutput) error) *MockSubmitterSubmitCall {
+func (c *MockSubmitterSubmitCall) DoAndReturn(f func(uint, []outputmodel.AnswerOutput, valueobject.MeetingStatus) error) *MockSubmitterSubmitCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }

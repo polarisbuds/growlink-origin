@@ -8,6 +8,7 @@ const (
 	MeetingStatusPending MeetingStatus = iota + 1
 	MeetingStatusDraft
 	MeetingStatusDone
+	MeetingStatusSubmitted
 )
 
 func (s MeetingStatus) String() string {
@@ -18,6 +19,8 @@ func (s MeetingStatus) String() string {
 		return "draft"
 	case MeetingStatusDone:
 		return "done"
+	case MeetingStatusSubmitted:
+		return "submitted"
 	default:
 		return ""
 	}
@@ -33,7 +36,7 @@ func (s MeetingStatus) UInt() uint {
 
 func (s MeetingStatus) IsValid() bool {
 	switch s {
-	case MeetingStatusPending, MeetingStatusDraft, MeetingStatusDone:
+	case MeetingStatusPending, MeetingStatusDraft, MeetingStatusDone, MeetingStatusSubmitted:
 		return true
 	default:
 		return false
@@ -48,6 +51,8 @@ func ParseMeetingStatus(s string) (MeetingStatus, error) {
 		return MeetingStatusDraft, nil
 	case MeetingStatusDone.String():
 		return MeetingStatusDone, nil
+	case MeetingStatusSubmitted.String():
+		return MeetingStatusSubmitted, nil
 	default:
 		return 0, fmt.Errorf("invalid meeting status: %s", s)
 	}

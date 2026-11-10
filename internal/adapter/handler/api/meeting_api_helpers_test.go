@@ -34,12 +34,16 @@ func TestCanWriteMeetingAnswers(t *testing.T) {
 	if canWriteMeetingAnswers(meeting, 1) {
 		t.Fatal("mentor should not write while draft")
 	}
-	meeting.Status = valueobject.MeetingStatusDone
+	meeting.Status = valueobject.MeetingStatusSubmitted
 	if canWriteMeetingAnswers(meeting, 2) {
-		t.Fatal("mentee should not write when done")
+		t.Fatal("mentee should not write when submitted")
 	}
 	if !canWriteMeetingAnswers(meeting, 1) {
-		t.Fatal("mentor should write when done")
+		t.Fatal("mentor should write when submitted")
+	}
+	meeting.Status = valueobject.MeetingStatusDone
+	if canWriteMeetingAnswers(meeting, 1) {
+		t.Fatal("mentor should not write when done")
 	}
 }
 
@@ -57,17 +61,21 @@ func TestMeetingViewerRole(t *testing.T) {
 
 func TestCanCancelMeetingSubmit(t *testing.T) {
 	meeting := &entity.Meeting{
-		Status:  valueobject.MeetingStatusDone,
+		Status:  valueobject.MeetingStatusSubmitted,
 		Pairing: &entity.Pairing{MentorID: 1, MenteeID: 2},
 	}
 	if !canCancelMeetingSubmit(meeting, 2) {
-		t.Fatal("mentee should cancel submit when done")
+		t.Fatal("mentee should cancel submit when submitted")
 	}
 	if canCancelMeetingSubmit(meeting, 1) {
 		t.Fatal("mentor should not cancel submit")
 	}
 	meeting.Status = valueobject.MeetingStatusDraft
 	if canCancelMeetingSubmit(meeting, 2) {
-		t.Fatal("mentee should not cancel when not done")
+		t.Fatal("mentee should not cancel when draft")
+	}
+	meeting.Status = valueobject.MeetingStatusDone
+	if canCancelMeetingSubmit(meeting, 2) {
+		t.Fatal("mentee should not cancel when done")
 	}
 }

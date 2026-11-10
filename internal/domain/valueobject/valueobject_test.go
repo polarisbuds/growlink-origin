@@ -56,6 +56,7 @@ func TestMeetingStatus_String_Parse_Int_UInt(t *testing.T) {
 		{name: "pending", value: valueobject.MeetingStatusPending, str: "pending", intVal: 1},
 		{name: "draft", value: valueobject.MeetingStatusDraft, str: "draft", intVal: 2},
 		{name: "done", value: valueobject.MeetingStatusDone, str: "done", intVal: 3},
+		{name: "submitted", value: valueobject.MeetingStatusSubmitted, str: "submitted", intVal: 4},
 	}
 
 	for _, tt := range tests {

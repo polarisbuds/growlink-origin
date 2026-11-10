@@ -100,6 +100,8 @@ func (uc *ProgressViewer) Summary(filter ProgressFilter) (*outputmodel.ProgressS
 			out.Pending++
 		case valueobject.MeetingStatusDraft:
 			out.Draft++
+		case valueobject.MeetingStatusSubmitted:
+			out.Submitted++
 		case valueobject.MeetingStatusDone:
 			out.Done++
 		}
@@ -117,9 +119,11 @@ type progressBucket struct {
 	departmentName string
 	pending        int
 	draft          int
+	submitted      int
 	done           int
 	usersPending   []string
 	usersDraft     []string
+	usersSubmitted []string
 	usersDone      []string
 }
 
@@ -160,6 +164,11 @@ func (uc *ProgressViewer) Breakdown(group string, filter ProgressFilter) ([]outp
 			b.draft++
 			if userName != "" {
 				b.usersDraft = append(b.usersDraft, userName)
+			}
+		case valueobject.MeetingStatusSubmitted:
+			b.submitted++
+			if userName != "" {
+				b.usersSubmitted = append(b.usersSubmitted, userName)
 			}
 		case valueobject.MeetingStatusDone:
 			b.done++
@@ -232,7 +241,7 @@ func (uc *ProgressViewer) Breakdown(group string, filter ProgressFilter) ([]outp
 
 	out := make([]outputmodel.ProgressBreakdownRowOutput, 0, len(buckets))
 	for _, b := range buckets {
-		total := b.pending + b.draft + b.done
+		total := b.pending + b.draft + b.submitted + b.done
 		var donePct float64
 		if total > 0 {
 			donePct = float64(b.done) / float64(total) * 100
@@ -244,10 +253,12 @@ func (uc *ProgressViewer) Breakdown(group string, filter ProgressFilter) ([]outp
 			DepartmentName: b.departmentName,
 			Pending:        b.pending,
 			Draft:          b.draft,
+			Submitted:      b.submitted,
 			Done:           b.done,
 			DonePercent:    donePct,
 			UsersPending:   b.usersPending,
 			UsersDraft:     b.usersDraft,
+			UsersSubmitted: b.usersSubmitted,
 			UsersDone:      b.usersDone,
 		})
 	}

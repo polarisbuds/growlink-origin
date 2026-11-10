@@ -61,9 +61,18 @@ export type DualTopicRow = {
 };
 
 export const MEETING_STATUS_DONE = 3;
+export const MEETING_STATUS_SUBMITTED = 4;
 
 export function isMeetingDone(status?: number): boolean {
 	return status === MEETING_STATUS_DONE;
+}
+
+export function isMeetingSubmitted(status?: number): boolean {
+	return status === MEETING_STATUS_SUBMITTED;
+}
+
+export function isMeetingContentRevealed(status?: number): boolean {
+	return isMeetingSubmitted(status) || isMeetingDone(status);
 }
 
 export function menteeTargetLabel(pairing?: MeetingPairingRef): string {
@@ -78,12 +87,13 @@ export function canUserAnswerMeeting(
 	userUuid: string | undefined
 ): boolean {
 	if (!userUuid || !item.pairing) return false;
+	const submitted = isMeetingSubmitted(item.status);
 	const done = isMeetingDone(item.status);
 	if (isUserMentorOfMeeting(item, userUuid)) {
-		return done;
+		return submitted && !done;
 	}
 	if (isUserMenteeOfMeeting(item, userUuid)) {
-		return !done;
+		return !submitted && !done;
 	}
 	return false;
 }
@@ -94,14 +104,15 @@ export function canUserViewMeeting(
 	userUuid: string | undefined
 ): boolean {
 	if (!item.pairing) return false;
+	const submitted = isMeetingSubmitted(item.status);
 	const done = isMeetingDone(item.status);
 	if (userUuid && isUserMenteeOfMeeting(item, userUuid)) {
-		return done;
+		return submitted || done;
 	}
 	if (userUuid && isUserMentorOfMeeting(item, userUuid)) {
-		return !done;
+		return done;
 	}
-	return true;
+	return isMeetingContentRevealed(item.status);
 }
 
 /** メンター・共有者はメンティー提出前に面談の中身を画面に出さない */
@@ -110,7 +121,7 @@ export function shouldHideMeetingContentBeforeSubmit(
 	status?: number
 ): boolean {
 	if (viewerRole === 'mentee') return false;
-	return !isMeetingDone(status);
+	return !isMeetingContentRevealed(status);
 }
 
 export function pairLabel(item: { pairing?: MeetingPairingRef }): string {

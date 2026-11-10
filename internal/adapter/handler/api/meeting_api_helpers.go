@@ -65,17 +65,37 @@ func canWriteMeetingAnswers(meeting *entity.Meeting, viewerID uint) bool {
 		return meeting.Status == valueobject.MeetingStatusPending ||
 			meeting.Status == valueobject.MeetingStatusDraft
 	case "mentor":
-		return meeting.Status == valueobject.MeetingStatusDone
+		return meeting.Status == valueobject.MeetingStatusSubmitted
 	default:
 		return false
 	}
+}
+
+func canViewMeeting(meeting *entity.Meeting, viewerID uint) bool {
+	if meeting == nil || viewerID == 0 {
+		return false
+	}
+	switch meetingViewerRole(meeting, viewerID) {
+	case "mentor", "mentee":
+		return true
+	}
+	if meeting.Status != valueobject.MeetingStatusSubmitted &&
+		meeting.Status != valueobject.MeetingStatusDone {
+		return false
+	}
+	for _, s := range meeting.Sharers {
+		if s.UserID == viewerID {
+			return true
+		}
+	}
+	return false
 }
 
 func canCancelMeetingSubmit(meeting *entity.Meeting, viewerID uint) bool {
 	if meeting == nil || viewerID == 0 {
 		return false
 	}
-	if meeting.Status != valueobject.MeetingStatusDone {
+	if meeting.Status != valueobject.MeetingStatusSubmitted {
 		return false
 	}
 	return meetingViewerRole(meeting, viewerID) == "mentee"

@@ -18,7 +18,7 @@
         groupLabel?: string;
         onSegmentClick?: (payload: {
             row: ProgressBreakdownRow;
-            status: "pending" | "draft" | "done";
+            status: "pending" | "draft" | "submitted" | "done";
             users: string[];
         }) => void;
     } = $props();
@@ -31,15 +31,21 @@
     const series = [
         { key: "pending" as const, label: "未着手", color: "oklch(var(--p))" },
         { key: "draft" as const, label: "下書き", color: "oklch(var(--wa))" },
+        {
+            key: "submitted" as const,
+            label: "提出済み",
+            color: "oklch(var(--in))",
+        },
         { key: "done" as const, label: "完了", color: "oklch(var(--su))" },
     ];
 
     function usersFor(
         row: ProgressBreakdownRow,
-        key: "pending" | "draft" | "done",
+        key: "pending" | "draft" | "submitted" | "done",
     ) {
         if (key === "pending") return row.usersPending || [];
         if (key === "draft") return row.usersDraft || [];
+        if (key === "submitted") return row.usersSubmitted || [];
         return row.usersDone || [];
     }
 
@@ -76,7 +82,8 @@
             .range([0, innerW])
             .padding(0.25);
 
-        const maxTotal = max(data, (d) => d.pending + d.draft + d.done) ?? 0;
+        const maxTotal =
+            max(data, (d) => d.pending + d.draft + d.submitted + d.done) ?? 0;
         const y = scaleLinear()
             .domain([0, Math.max(1, maxTotal)])
             .nice()
@@ -121,10 +128,15 @@
                 const key = (layerKey || "pending") as
                     | "pending"
                     | "draft"
+                    | "submitted"
                     | "done";
                 const s = series.find((x) => x.key === key);
                 const count = d.data[key];
-                const total = d.data.pending + d.data.draft + d.data.done;
+                const total =
+                    d.data.pending +
+                    d.data.draft +
+                    d.data.submitted +
+                    d.data.done;
                 const pct = total > 0 ? Math.round((count / total) * 100) : 0;
                 tooltip = {
                     x: ev.clientX,
@@ -146,6 +158,7 @@
                 const key = (layerKey || "pending") as
                     | "pending"
                     | "draft"
+                    | "submitted"
                     | "done";
                 onSegmentClick?.({
                     row: d.data,

@@ -8,6 +8,7 @@
     import {
         dualTopicRows,
         isMeetingDone,
+        isMeetingSubmitted,
         menteeTargetLabel,
         ownAnswerDrafts,
         shouldHideMeetingContentBeforeSubmit,
@@ -25,13 +26,18 @@
     let rows = $derived(payload ? dualTopicRows(payload) : []);
     let viewerRole = $derived(payload?.viewerRole ?? "viewer");
     let canWrite = $derived(!!payload?.canWriteAnswers);
+    let submitted = $derived(isMeetingSubmitted(payload?.meeting?.status));
     let done = $derived(isMeetingDone(payload?.meeting?.status));
-    let showBothReadOnly = $derived(done && viewerRole === "mentee");
-    let showMentorAnswerForm = $derived(
-        viewerRole === "mentor" && done && canWrite,
+    let showBothReadOnly = $derived(
+        (submitted || done) && viewerRole === "mentee",
     );
-    let showMentorWaiting = $derived(viewerRole === "mentor" && !done);
-    let showCancelSubmit = $derived(done && viewerRole === "mentee");
+    let showMentorAnswerForm = $derived(
+        viewerRole === "mentor" && submitted && canWrite,
+    );
+    let showMentorWaiting = $derived(
+        viewerRole === "mentor" && !submitted && !done,
+    );
+    let showCancelSubmit = $derived(submitted && viewerRole === "mentee");
     let hideContentBeforeSubmit = $derived(
         shouldHideMeetingContentBeforeSubmit(
             viewerRole,

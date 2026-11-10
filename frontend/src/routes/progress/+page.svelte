@@ -7,6 +7,7 @@
     type ProgressSummary = {
         pending: number;
         draft: number;
+        submitted: number;
         done: number;
         total: number;
         donePercent?: number;
@@ -17,6 +18,7 @@
     let summary = $state<ProgressSummary>({
         pending: 0,
         draft: 0,
+        submitted: 0,
         done: 0,
         total: 0,
         donePercent: 0,
@@ -77,6 +79,7 @@
             summary = {
                 pending: 0,
                 draft: 0,
+                submitted: 0,
                 done: 0,
                 total: 0,
                 donePercent: 0,
@@ -117,7 +120,7 @@
 
     function onChartClick(payload: {
         row: ProgressBreakdownRow;
-        status: "pending" | "draft" | "done";
+        status: "pending" | "draft" | "submitted" | "done";
         users: string[];
     }) {
         const statusLabel =
@@ -125,7 +128,9 @@
                 ? "未着手"
                 : payload.status === "draft"
                   ? "下書き"
-                  : "完了";
+                  : payload.status === "submitted"
+                    ? "提出済み"
+                    : "完了";
         drilldownTitle = `${payload.row.name}（${statusLabel}）`;
         drilldownUsers = payload.users.length
             ? payload.users
@@ -160,7 +165,7 @@
         >期間を適用</button>
 </div>
 
-<div class="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+<div class="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-5">
     <div class="rounded-3xl border border-base-300 bg-base-100 p-5 shadow-sm">
         <p class="text-sm text-base-content/60">未着手</p>
         <p class="mt-2 text-3xl font-semibold text-primary">
@@ -170,6 +175,12 @@
     <div class="rounded-3xl border border-base-300 bg-base-100 p-5 shadow-sm">
         <p class="text-sm text-base-content/60">下書き</p>
         <p class="mt-2 text-3xl font-semibold text-warning">{summary.draft}</p>
+    </div>
+    <div class="rounded-3xl border border-base-300 bg-base-100 p-5 shadow-sm">
+        <p class="text-sm text-base-content/60">提出済み</p>
+        <p class="mt-2 text-3xl font-semibold text-info">
+            {summary.submitted ?? 0}
+        </p>
     </div>
     <div class="rounded-3xl border border-base-300 bg-base-100 p-5 shadow-sm">
         <p class="text-sm text-base-content/60">完了</p>
@@ -228,6 +239,7 @@
                         <th>{groupLabel}</th>
                         <th>未着手</th>
                         <th>下書き</th>
+                        <th>提出済み</th>
                         <th>完了</th>
                         <th>合計</th>
                         <th>完了率</th>
@@ -239,8 +251,13 @@
                             <td>{row.name}</td>
                             <td>{row.pending}</td>
                             <td>{row.draft}</td>
+                            <td>{row.submitted ?? 0}</td>
                             <td>{row.done}</td>
-                            <td>{row.pending + row.draft + row.done}</td>
+                            <td
+                                >{row.pending +
+                                    row.draft +
+                                    (row.submitted ?? 0) +
+                                    row.done}</td>
                             <td>{(row.donePercent ?? 0).toFixed(1)}%</td>
                         </tr>
                     {/each}

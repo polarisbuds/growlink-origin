@@ -238,9 +238,9 @@ func genSeed(db *gorm.DB) error {
 			PairingID:       pairing.ID,
 			CreatedByUserID: mentor.ID,
 		}
-		meetingTodayDone := &entity.Meeting{
+		meetingTodaySubmitted := &entity.Meeting{
 			ImplementedAt:   &todayDoneAt,
-			Status:          valueobject.MeetingStatusDone,
+			Status:          valueobject.MeetingStatusSubmitted,
 			TemplateID:      template.ID,
 			PairingID:       pairing.ID,
 			CreatedByUserID: mentor.ID,
@@ -282,7 +282,7 @@ func genSeed(db *gorm.DB) error {
 		}
 		if err := tx.Create([]*entity.Meeting{
 			meetingPastDone,
-			meetingTodayDone,
+			meetingTodaySubmitted,
 			meetingTodayPending,
 			meetingDraft,
 			meetingFuturePending,
@@ -293,7 +293,7 @@ func genSeed(db *gorm.DB) error {
 		}
 		if err := tx.Create([]*entity.MeetingSharer{
 			{MeetingID: meetingPastDone.ID, UserID: sharer.ID},
-			{MeetingID: meetingTodayDone.ID, UserID: sharer.ID},
+			{MeetingID: meetingTodaySubmitted.ID, UserID: sharer.ID},
 			{MeetingID: meetingDraft.ID, UserID: sharer.ID},
 			{MeetingID: meetingBossPastDone.ID, UserID: mentor.ID},
 		}).Error; err != nil {
@@ -327,27 +327,15 @@ func genSeed(db *gorm.DB) error {
 			},
 			{
 				Content:   "目標を達成しました。",
-				MeetingID: meetingTodayDone.ID,
+				MeetingID: meetingTodaySubmitted.ID,
 				TopicID:   topicRequired.ID,
 				UserID:    mentee.ID,
 			},
 			{
 				Content:   "特にありません。",
-				MeetingID: meetingTodayDone.ID,
+				MeetingID: meetingTodaySubmitted.ID,
 				TopicID:   topicOptional.ID,
 				UserID:    mentee.ID,
-			},
-			{
-				Content:   "成果の内容を次回も共有してください。",
-				MeetingID: meetingTodayDone.ID,
-				TopicID:   topicRequired.ID,
-				UserID:    mentor.ID,
-			},
-			{
-				Content:   "困りごとがあれば早めに相談を。",
-				MeetingID: meetingTodayDone.ID,
-				TopicID:   topicOptional.ID,
-				UserID:    mentor.ID,
 			},
 			{
 				Content:   "下書き中の回答です。",
@@ -383,18 +371,6 @@ func genSeed(db *gorm.DB) error {
 				Content:   "着実に成長しています。",
 				IsLimited: false,
 				MeetingID: meetingPastDone.ID,
-				UserID:    mentor.ID,
-			},
-			{
-				Content:   "よく頑張りました。",
-				IsLimited: false,
-				MeetingID: meetingTodayDone.ID,
-				UserID:    mentor.ID,
-			},
-			{
-				Content:   "メンター限定のフィードバックです。",
-				IsLimited: true,
-				MeetingID: meetingTodayDone.ID,
 				UserID:    mentor.ID,
 			},
 			{

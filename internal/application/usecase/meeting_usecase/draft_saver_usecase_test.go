@@ -38,16 +38,18 @@ func TestDraftSaverUsecase_SaveDraft(t *testing.T) {
 	answers := []entity.Answer{*newTestAnswer(1, validMeetingID, "draft")}
 
 	tests := []struct {
-		name        string
-		meetingID   uint
-		answers     []entity.Answer
-		wantErr     bool
-		errContains string
-		setup       draftSaverSetupFn
-		assertFn    draftSaverAssertFn
+		name              string
+		meetingID         uint
+		answers           []entity.Answer
+		keepMeetingStatus bool
+		wantErr           bool
+		errContains       string
+		setup             draftSaverSetupFn
+		assertFn          draftSaverAssertFn
 	}{
 		{
 			name:      "通常系_下書き保存",
+			keepMeetingStatus: false,
 			meetingID: validMeetingID,
 			answers:   answers,
 			wantErr:   false,
@@ -74,6 +76,7 @@ func TestDraftSaverUsecase_SaveDraft(t *testing.T) {
 		},
 		{
 			name:        "異常系_回答保存失敗",
+			keepMeetingStatus: false,
 			meetingID:   validMeetingID,
 			answers:     answers,
 			wantErr:     true,
@@ -84,6 +87,7 @@ func TestDraftSaverUsecase_SaveDraft(t *testing.T) {
 		},
 		{
 			name:        "異常系_ステータス更新失敗",
+			keepMeetingStatus: false,
 			meetingID:   validMeetingID,
 			answers:     answers,
 			wantErr:     true,
@@ -103,7 +107,7 @@ func TestDraftSaverUsecase_SaveDraft(t *testing.T) {
 				tt.setup(t, meetingRepo, answerRepo, cap)
 			}
 
-			err := uc.SaveDraft(tt.meetingID, converter.AnswerEntitiesToOutputs(tt.answers), true)
+			err := uc.SaveDraft(tt.meetingID, converter.AnswerEntitiesToOutputs(tt.answers), tt.keepMeetingStatus)
 			assertUsecaseErr(t, err, tt.wantErr, tt.errContains, "SaveDraft")
 			if !t.Failed() && tt.assertFn != nil {
 				tt.assertFn(t, cap)

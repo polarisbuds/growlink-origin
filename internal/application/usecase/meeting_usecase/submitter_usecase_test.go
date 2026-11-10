@@ -56,7 +56,7 @@ func TestSubmitterUsecase_Submit(t *testing.T) {
 					cap.submittedAnswers = submitted
 					return submitted, nil
 				})
-				meeting.EXPECT().UpdateStatus(validMeetingID, valueobject.MeetingStatusDone).DoAndReturn(
+				meeting.EXPECT().UpdateStatus(validMeetingID, valueobject.MeetingStatusSubmitted).DoAndReturn(
 					func(meetingID uint, status valueobject.MeetingStatus) error {
 						cap.updatedMeetingID = meetingID
 						cap.updatedStatus = status
@@ -69,7 +69,7 @@ func TestSubmitterUsecase_Submit(t *testing.T) {
 				assert.Len(t, cap.submittedAnswers, 1)
 				assert.Equal(t, answers[0].Content, cap.submittedAnswers[0].Content)
 				assert.Equal(t, validMeetingID, cap.updatedMeetingID)
-				assert.Equal(t, valueobject.MeetingStatusDone, cap.updatedStatus)
+				assert.Equal(t, valueobject.MeetingStatusSubmitted, cap.updatedStatus)
 			},
 		},
 		{
@@ -90,7 +90,7 @@ func TestSubmitterUsecase_Submit(t *testing.T) {
 			errContains: "投稿完了へのステータス更新に失敗しました",
 			setup: func(_ *testing.T, meeting *repomock.MockMeetingRepository, answer *repomock.MockAnswerRepository, _ *submitterCaptures) {
 				answer.EXPECT().Submits(gomock.Any()).Return(answers, nil)
-				meeting.EXPECT().UpdateStatus(validMeetingID, valueobject.MeetingStatusDone).Return(errUpdateStatusFailed)
+				meeting.EXPECT().UpdateStatus(validMeetingID, valueobject.MeetingStatusSubmitted).Return(errUpdateStatusFailed)
 			},
 		},
 	}
@@ -103,7 +103,7 @@ func TestSubmitterUsecase_Submit(t *testing.T) {
 				tt.setup(t, meetingRepo, answerRepo, cap)
 			}
 
-			err := uc.Submit(tt.meetingID, converter.AnswerEntitiesToOutputs(tt.answers))
+			err := uc.Submit(tt.meetingID, converter.AnswerEntitiesToOutputs(tt.answers), valueobject.MeetingStatusSubmitted)
 			assertUsecaseErr(t, err, tt.wantErr, tt.errContains, "Submit")
 			if !t.Failed() && tt.assertFn != nil {
 				tt.assertFn(t, cap)
