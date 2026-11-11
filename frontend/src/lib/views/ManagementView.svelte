@@ -281,6 +281,19 @@
             .join("、");
     }
 
+    function leaderOptionLabel(u: ManagementUser): string {
+        const names = (u.departments || [])
+            .map(
+                (d) =>
+                    options.departments.find(
+                        (x) => x.uuid === d.departmentUuid,
+                    )?.name || "",
+            )
+            .filter(Boolean);
+        const dept = names.length > 0 ? names.join("・") : u.departmentName;
+        return dept ? `${dept} ${u.name}` : u.name;
+    }
+
     function selectedDepartmentUuids(rows: DeptAssignment[]) {
         return rows.map((row) => row.departmentUuid).filter((id) => id !== "");
     }
@@ -1623,7 +1636,7 @@
                                 allowClear={true}
                                 pickRootId="edit-dept-head"
                                 bind:value={orgEdit.headUserUuid}
-                                labelOf={(u: ManagementUser) => u.name}
+                                labelOf={leaderOptionLabel}
                                 items={departmentLeaderCandidates}
                             ></SearchableSelect>
                         </label>
@@ -1633,7 +1646,7 @@
                                 pickRootId="edit-dept-managers"
                                 bind:selectedUuids={orgEdit.managerUserUuids}
                                 placeholder="未設定"
-                                labelOf={(u: ManagementUser) => u.name}
+                                labelOf={leaderOptionLabel}
                                 items={departmentLeaderCandidates.filter(
                                     (u) => u.uuid !== orgEdit.headUserUuid,
                                 )}></MultiCheckSelect>
@@ -1853,9 +1866,7 @@
                     allowClear={true}
                     pickRootId="create-dept-head"
                     bind:value={createDeptForm.headUserUuid}
-                    labelOf={(u: ManagementUser) => {
-                        return `${u.name}`;
-                    }}
+                    labelOf={leaderOptionLabel}
                     items={departmentLeaderCandidates}></SearchableSelect>
             </label>
         </div>
