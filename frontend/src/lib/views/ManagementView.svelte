@@ -12,6 +12,7 @@
     import Info from "lucide-svelte/icons/info";
     import SearchableSelect from "$lib/components/SearchableSelect.svelte";
     import MultiCheckSelect from "$lib/components/MultiCheckSelect.svelte";
+    import MemberPickModal from "$lib/components/MemberPickModal.svelte";
     import { fade } from "svelte/transition";
     import Icon from "$lib/components/Icon.svelte";
     import Trash2 from "lucide-svelte/icons/trash-2";
@@ -203,7 +204,43 @@
         leaderUuid: "",
         headUserUuid: "",
         managerUserUuids: [] as string[],
+        memberUserUuids: [] as string[],
     });
+    let orgMemberPickOpen = $state(false);
+
+    let memberPickerUsers = $derived(
+        users.map((u) => ({
+            uuid: u.uuid,
+            name: u.name,
+            email: u.email,
+            imageUri: u.imageUri,
+        })),
+    );
+
+    function uniqueUuids(groups: (string | undefined | null)[][]): string[] {
+        return [...new Set(groups.flat().filter((id): id is string => !!id))];
+    }
+
+    function plainDepartmentMemberUuids(detail: OrgDetail): string[] {
+        const head = detail.headUserUuid || "";
+        const managers = new Set(detail.managerUserUuids || []);
+        return (detail.userUuids || []).filter(
+            (id) => id && id !== head && !managers.has(id),
+        );
+    }
+
+    function plainTeamMemberUuids(detail: OrgDetail): string[] {
+        const leader = detail.leaderUuid || "";
+        return (detail.memberUuids || []).filter((id) => id && id !== leader);
+    }
+
+    function memberNames(uuids: string[]): string {
+        if (uuids.length === 0) return "未設定";
+        return uuids
+            .map((id) => userName(id))
+            .filter(Boolean)
+            .join("、");
+    }
 
     function isDepartmentLeaderCandidate(u: ManagementUser): boolean {
         if (u.authority !== "general") return true;
@@ -826,6 +863,10 @@
             leaderUuid: detail.leaderUuid || "",
             headUserUuid: detail.headUserUuid || "",
             managerUserUuids: [...(detail.managerUserUuids || [])],
+            memberUserUuids:
+                detail.kind === "team"
+                    ? plainTeamMemberUuids(detail)
+                    : plainDepartmentMemberUuids(detail),
         };
         orgModalOpen = true;
     }
@@ -877,15 +918,26 @@
         if (!orgDetail) return;
         try {
             if (orgDetail.kind === "team") {
+                const leaderUuid = orgEdit.leaderUuid;
+                const memberUuids = uniqueUuids([
+                    orgEdit.memberUserUuids,
+                    leaderUuid ? [leaderUuid] : [],
+                ]);
                 await api("PUT", `/api/v1/management/teams/${orgDetail.uuid}`, {
                     name: orgEdit.name,
-                    leaderUuid: orgEdit.leaderUuid,
+                    leaderUuid,
+                    memberUuids,
                 });
             } else {
                 const headUuid = orgEdit.headUserUuid;
                 const managerUserUuids = orgEdit.managerUserUuids.filter(
                     (id) => id && id !== headUuid,
                 );
+                const userUuids = uniqueUuids([
+                    orgEdit.memberUserUuids,
+                    headUuid ? [headUuid] : [],
+                    managerUserUuids,
+                ]);
                 await api(
                     "PUT",
                     `/api/v1/management/departments/${orgDetail.uuid}`,
@@ -895,6 +947,7 @@
                         teamUuids: orgEdit.teamUuids,
                         headUserUuid: headUuid,
                         managerUserUuids,
+                        userUuids,
                     },
                 );
             }
@@ -1580,6 +1633,14 @@
                         <span class="ml-2 font-medium"
                             >{managerNames(orgDetail.managerUserUuids)}</span>
                     </div>
+                    <div
+                        class="rounded-xl border border-base-300 bg-base-200/30 px-3 py-2 text-sm">
+                        <span class="text-base-content/60">メンバー</span>
+                        <span class="ml-2 font-medium"
+                            >{memberNames(
+                                plainDepartmentMemberUuids(orgDetail),
+                            )}</span>
+                    </div>
                 {/if}
                 {#if orgDetail?.kind === "team"}
                     <div
@@ -1589,6 +1650,12 @@
                             >{orgDetail.leaderUuid
                                 ? userName(orgDetail.leaderUuid)
                                 : "未設定"}</span>
+                    </div>
+                    <div
+                        class="rounded-xl border border-base-300 bg-base-200/30 px-3 py-2 text-sm">
+                        <span class="text-base-content/60">メンバー</span>
+                        <span class="ml-2 font-medium"
+                            >{memberNames(plainTeamMemberUuids(orgDetail))}</span>
                     </div>
                 {/if}
             </div>
@@ -1652,6 +1719,31 @@
                                 )}></MultiCheckSelect>
                         </label>
                         <div class="space-y-2">
+                            <div
+                                class="flex items-center justify-between gap-2">
+                                <span class="label-text font-medium"
+                                    >メンバー</span>
+                                <button
+                                    type="button"
+                                    class="btn btn-outline btn-xs"
+                                    onclick={() => (orgMemberPickOpen = true)}
+                                    >メンバーを選択</button>
+                            </div>
+                            <div
+                                class="rounded-xl border border-base-300 bg-base-200/30 px-3 py-2 text-sm min-h-11">
+                                {#if orgEdit.memberUserUuids.length === 0}
+                                    <span class="text-base-content/50"
+                                        >未設定</span>
+                                {:else}
+                                    <ul class="list-disc list-inside space-y-0.5">
+                                        {#each orgEdit.memberUserUuids as uid (`dept-mem-${uid}`)}
+                                            <li>{userName(uid)}</li>
+                                        {/each}
+                                    </ul>
+                                {/if}
+                            </div>
+                        </div>
+                        <div class="space-y-2">
                             <span class="label-text font-medium">チーム</span>
                             <input
                                 class="input input-bordered input-sm w-full placeholder-current"
@@ -1694,6 +1786,28 @@
                             {/each}
                         </select>
                     </label>
+                    <div class="space-y-2">
+                        <div class="flex items-center justify-between gap-2">
+                            <span class="label-text font-medium">メンバー</span>
+                            <button
+                                type="button"
+                                class="btn btn-outline btn-xs"
+                                onclick={() => (orgMemberPickOpen = true)}
+                                >メンバーを選択</button>
+                        </div>
+                        <div
+                            class="rounded-xl border border-base-300 bg-base-200/30 px-3 py-2 text-sm min-h-11">
+                            {#if orgEdit.memberUserUuids.length === 0}
+                                <span class="text-base-content/50">未設定</span>
+                            {:else}
+                                <ul class="list-disc list-inside space-y-0.5">
+                                    {#each orgEdit.memberUserUuids as uid (`team-mem-${uid}`)}
+                                        <li>{userName(uid)}</li>
+                                    {/each}
+                                </ul>
+                            {/if}
+                        </div>
+                    </div>
                 {/if}
                 <div class="border-t border-base-300 pt-4">
                     <button
@@ -1988,3 +2102,14 @@
             >close</button>
     </form>
 </dialog>
+
+<MemberPickModal
+    open={orgMemberPickOpen}
+    title="メンバーを選択"
+    users={memberPickerUsers}
+    selectedUuids={orgEdit.memberUserUuids}
+    onApply={(uuids) => {
+        orgEdit.memberUserUuids = uuids;
+        orgMemberPickOpen = false;
+    }}
+    onClose={() => (orgMemberPickOpen = false)} />
