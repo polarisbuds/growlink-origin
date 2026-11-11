@@ -15,9 +15,7 @@ func TeamInputToEntity(in inputmodel.TeamInput) *entity.Team {
 
 func teamEntityToOutputShallow(e entity.Team) outputmodel.TeamOutput {
 	out := outputmodel.TeamOutput{
-		ID:           e.ID,
-		Name:         e.Name,
-		DepartmentID: e.DepartmentID,
+		Name: e.Name,
 	}
 	if e.Department != nil {
 		out.Department = DepartmentEntityToOutput(*e.Department)

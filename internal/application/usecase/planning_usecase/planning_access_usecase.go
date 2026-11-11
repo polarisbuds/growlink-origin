@@ -14,15 +14,15 @@ import (
 )
 
 type PlanningAccessUsecase struct {
-	meetingRepo      repository_interface.MeetingRepository
-	deptMemberRepo   repository_interface.DepartmentMemberRepository
-	hierarchyRepo    repository_interface.DepartmentHierarchyRepository
+	meetingRepo    repository_interface.MeetingRepository
+	deptMemberRepo repository_interface.DepartmentMemberRepository
+	hierarchyRepo  repository_interface.DepartmentHierarchyRepository
 	teamRepo       repository_interface.TeamRepository
 	teamMemberRepo repository_interface.TeamMemberRepository
-	meetingViewer    *meeting_mng_usecase.MeetingViewer
-	meetingList      *meeting_usecase.MeetingListUsecase
-	pairingViewer    *pairing_mng_usecase.PairingViewer
-	pairingRepo      repository_interface.PairingRepository
+	meetingViewer  *meeting_mng_usecase.MeetingViewer
+	meetingList    *meeting_usecase.MeetingListUsecase
+	pairingViewer  *pairing_mng_usecase.PairingViewer
+	pairingRepo    repository_interface.PairingRepository
 }
 
 func NewPlanningAccessUsecase(
@@ -37,15 +37,15 @@ func NewPlanningAccessUsecase(
 	pairingRepo repository_interface.PairingRepository,
 ) *PlanningAccessUsecase {
 	return &PlanningAccessUsecase{
-		meetingRepo:      meetingRepo,
-		deptMemberRepo:   deptMemberRepo,
-		hierarchyRepo:    hierarchyRepo,
+		meetingRepo:    meetingRepo,
+		deptMemberRepo: deptMemberRepo,
+		hierarchyRepo:  hierarchyRepo,
 		teamRepo:       teamRepo,
 		teamMemberRepo: teamMemberRepo,
-		meetingViewer:    meetingViewer,
-		meetingList:      meetingList,
-		pairingViewer:    pairingViewer,
-		pairingRepo:      pairingRepo,
+		meetingViewer:  meetingViewer,
+		meetingList:    meetingList,
+		pairingViewer:  pairingViewer,
+		pairingRepo:    pairingRepo,
 	}
 }
 
@@ -81,8 +81,8 @@ func dedupePairings(pairings []outputmodel.PairingOutput) []outputmodel.PairingO
 	return out
 }
 
-func (uc *PlanningAccessUsecase) ListPlanningMeetings(userID uint, systemRole valueobject.SystemRole) ([]outputmodel.MeetingOutput, error) {
-	if fullPlanningAccess(systemRole) {
+func (uc *PlanningAccessUsecase) ListPlanningMeetings(userID uint, authority valueobject.Authority, systemRole valueobject.SystemRole) ([]outputmodel.MeetingOutput, error) {
+	if fullPlanningAccess(systemRole) || authority.IsOwner() {
 		meetings, err := uc.meetingRepo.GetAll()
 		if err != nil {
 			return []outputmodel.MeetingOutput{}, fmt.Errorf("ミーティング一覧の取得に失敗しました: %w", err)
@@ -120,11 +120,11 @@ func (uc *PlanningAccessUsecase) ListPlanningMeetings(userID uint, systemRole va
 	return dedupeMeetings(merged), nil
 }
 
-func (uc *PlanningAccessUsecase) CanViewPlanningMeeting(userID uint, systemRole valueobject.SystemRole, meetingID uint) (bool, error) {
-	if fullPlanningAccess(systemRole) {
+func (uc *PlanningAccessUsecase) CanViewPlanningMeeting(userID uint, authority valueobject.Authority, systemRole valueobject.SystemRole, meetingID uint) (bool, error) {
+	if fullPlanningAccess(systemRole) || authority.IsOwner() {
 		return true, nil
 	}
-	list, err := uc.ListPlanningMeetings(userID, systemRole)
+	list, err := uc.ListPlanningMeetings(userID, authority, systemRole)
 	if err != nil {
 		return false, err
 	}
@@ -136,26 +136,26 @@ func (uc *PlanningAccessUsecase) CanViewPlanningMeeting(userID uint, systemRole 
 	return false, nil
 }
 
-func (uc *PlanningAccessUsecase) HasPairManagementAccess(userID uint, systemRole valueobject.SystemRole) (bool, error) {
-	if fullPlanningAccess(systemRole) {
+func (uc *PlanningAccessUsecase) HasPairManagementAccess(userID uint, authority valueobject.Authority, systemRole valueobject.SystemRole) (bool, error) {
+	if fullPlanningAccess(systemRole) || authority.IsOwner() {
 		return true, nil
 	}
-	scope, err := uc.PairManagementScopeUserIDs(userID, systemRole)
+	scope, err := uc.PairManagementScopeUserIDs(userID, authority, systemRole)
 	if err != nil {
 		return false, err
 	}
 	return len(scope) > 0, nil
 }
 
-func (uc *PlanningAccessUsecase) ListPairingsForManagement(userID uint, systemRole valueobject.SystemRole) ([]outputmodel.PairingOutput, error) {
-	if fullPlanningAccess(systemRole) {
+func (uc *PlanningAccessUsecase) ListPairingsForManagement(userID uint, authority valueobject.Authority, systemRole valueobject.SystemRole) ([]outputmodel.PairingOutput, error) {
+	if fullPlanningAccess(systemRole) || authority.IsOwner() {
 		return uc.pairingViewer.ListPairingsByAll()
 	}
-	return uc.listPairManagementScopedPairings(userID, systemRole)
+	return uc.listPairManagementScopedPairings(userID, authority, systemRole)
 }
 
-func (uc *PlanningAccessUsecase) listPairManagementScopedPairings(userID uint, systemRole valueobject.SystemRole) ([]outputmodel.PairingOutput, error) {
-	scope, err := uc.PairManagementScopeUserIDs(userID, systemRole)
+func (uc *PlanningAccessUsecase) listPairManagementScopedPairings(userID uint, authority valueobject.Authority, systemRole valueobject.SystemRole) ([]outputmodel.PairingOutput, error) {
+	scope, err := uc.PairManagementScopeUserIDs(userID, authority, systemRole)
 	if err != nil {
 		return nil, err
 	}
@@ -166,8 +166,8 @@ func (uc *PlanningAccessUsecase) listPairManagementScopedPairings(userID uint, s
 	return uc.listPairingsByMenteeIDs(menteeIDs)
 }
 
-func (uc *PlanningAccessUsecase) ListPairingsForMeeting(userID uint, systemRole valueobject.SystemRole) ([]outputmodel.PairingOutput, error) {
-	if fullPlanningAccess(systemRole) {
+func (uc *PlanningAccessUsecase) ListPairingsForMeeting(userID uint, authority valueobject.Authority, systemRole valueobject.SystemRole) ([]outputmodel.PairingOutput, error) {
+	if fullPlanningAccess(systemRole) || authority.IsOwner() {
 		return uc.pairingViewer.ListPairingsByAll()
 	}
 
@@ -343,8 +343,8 @@ func (uc *PlanningAccessUsecase) listPairingsByMenteeIDs(ids []uint) ([]outputmo
 	return merged, nil
 }
 
-func (uc *PlanningAccessUsecase) CanSpecifyPairMeeting(userID uint, systemRole valueobject.SystemRole, _ valueobject.Authority) (bool, error) {
-	if fullPlanningAccess(systemRole) {
+func (uc *PlanningAccessUsecase) CanSpecifyPairMeeting(userID uint, systemRole valueobject.SystemRole, authority valueobject.Authority) (bool, error) {
+	if fullPlanningAccess(systemRole) || authority.IsOwner() {
 		return true, nil
 	}
 	referable, err := uc.ReferableUserIDs(userID, systemRole)

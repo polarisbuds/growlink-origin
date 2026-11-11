@@ -15,7 +15,9 @@ type DepartmentMember struct {
 
 	DepartmentID uint `gorm:"not null;uniqueIndex:idx_department_member"`
 	UserID       uint `gorm:"not null;uniqueIndex:idx_department_member"`
+	RoleID       uint `gorm:"not null;"`
 
 	Department *Department `gorm:"foreignKey:DepartmentID;references:ID"`
 	User       *User       `gorm:"foreignKey:UserID;references:ID"`
+	Role       *Role       `gorm:"foreignKey:RoleID;references:ID"`
 }

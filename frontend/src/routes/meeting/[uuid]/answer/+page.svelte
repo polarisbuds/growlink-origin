@@ -25,14 +25,16 @@
     let uuid = $derived(page.params.uuid);
     let rows = $derived(payload ? dualTopicRows(payload) : []);
     let viewerRole = $derived(payload?.viewerRole ?? "viewer");
-    let canWrite = $derived(!!payload?.canWriteAnswers);
+    let canWriteMentee = $derived(!!payload?.canWriteAnswers);
+    let canWriteMentor = $derived(!!payload?.canWriteTopicComments);
+    let canWrite = $derived(canWriteMentee || canWriteMentor);
     let submitted = $derived(isMeetingSubmitted(payload?.meeting?.status));
     let done = $derived(isMeetingDone(payload?.meeting?.status));
     let showBothReadOnly = $derived(
         (submitted || done) && viewerRole === "mentee",
     );
     let showMentorAnswerForm = $derived(
-        viewerRole === "mentor" && submitted && canWrite,
+        viewerRole === "mentor" && submitted && canWriteMentor,
     );
     let showMentorWaiting = $derived(
         viewerRole === "mentor" && !submitted && !done,
@@ -82,14 +84,25 @@
             .map((row) => {
                 const topicUuid = row.topic?.uuid;
                 if (!topicUuid) return null;
-                const existing =
-                    viewerRole === "mentor"
-                        ? row.mentorAnswer
-                        : row.menteeAnswer;
                 return {
-                    uuid: existing?.uuid ?? "",
+                    uuid: row.menteeAnswer?.uuid ?? "",
                     content: drafts[topicUuid] ?? "",
                     topic: { uuid: topicUuid },
+                };
+            })
+            .filter(Boolean);
+    }
+
+    function mentorCommentPayload() {
+        return rows
+            .map((row) => {
+                const topicUuid = row.topic?.uuid;
+                if (!topicUuid) return null;
+                const answerUuid = row.menteeAnswer?.uuid;
+                if (!answerUuid) return null;
+                return {
+                    answerUuid,
+                    content: drafts[topicUuid] ?? "",
                 };
             })
             .filter(Boolean);
@@ -103,8 +116,8 @@
         await load();
     }
     async function saveMentorComplete() {
-        await api("POST", `/api/v1/meetings/${uuid}/submit`, {
-            answers: answerPayload(),
+        await api("POST", `/api/v1/meetings/${uuid}/complete`, {
+            comments: mentorCommentPayload(),
         });
         showToast("保存し完了しました");
         await goto("/");

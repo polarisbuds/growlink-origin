@@ -33,8 +33,6 @@ func TestUserRepository_GetByID(t *testing.T) {
 	assertions.EqualUUID(t, want.UUID, got.UUID)
 	assert.Equal(t, want.Name, got.Name)
 	assert.Equal(t, want.Email, got.Email)
-	assert.Equal(t, want.RoleID, got.RoleID)
-	assert.Equal(t, want.DepartmentID, got.DepartmentID)
 	assert.Equal(t, want.Authority, got.Authority)
 }
 
@@ -80,7 +78,8 @@ func TestUserRepository_GetByDepartmentID(t *testing.T) {
 	tx := testutils.Begin(t)
 	repo := newUserRepo(t, tx)
 
-	targetDept := fixtures.User(t, tx, "dept-target").Department
+	targetUser := fixtures.User(t, tx, "dept-target")
+	targetDept := targetUser.DepartmentMembers[0].Department
 	inDept := fixtures.UserInDepartment(t, tx, "dept-in", targetDept)
 	_ = fixtures.User(t, tx, "dept-out")
 
@@ -93,10 +92,15 @@ func TestUserRepository_GetByDepartmentID(t *testing.T) {
 	assert.True(t, okTarget)
 
 	for _, user := range got {
-		assert.Equal(t, targetDept.ID, user.DepartmentID)
-		require.NotNil(t, user.Department)
-		assert.Equal(t, targetDept.ID, user.Department.ID)
-		require.NotNil(t, user.Role)
+		require.NotEmpty(t, user.DepartmentMembers)
+		var inTarget bool
+		for _, member := range user.DepartmentMembers {
+			if member.DepartmentID == targetDept.ID {
+				inTarget = true
+				require.NotNil(t, member.Role)
+			}
+		}
+		assert.True(t, inTarget)
 	}
 }
 

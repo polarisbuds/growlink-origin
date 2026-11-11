@@ -7,9 +7,8 @@ import (
 
 func PairingEntityToOutput(e entity.Pairing) outputmodel.PairingOutput {
 	out := outputmodel.PairingOutput{
-		ID:              e.ID,
-		UUID:            e.UUID.String(),
-		CreatedByUserID: e.CreatedByUserID,
+		ID:   e.ID,
+		UUID: e.UUID.String(),
 	}
 	if e.Mentor != nil {
 		out.Mentor = UserEntityToOutput(*e.Mentor)

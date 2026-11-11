@@ -14,12 +14,13 @@ func AnswerCommentInputToEntity(in inputmodel.AnswerCommentInput) *entity.Answer
 	}
 }
 
-func AnswerCommentEntityToOutput(e entity.AnswerComment) outputmodel.AnswerCommentOutput {
-	out := outputmodel.AnswerCommentOutput{
-		ID:       e.ID,
-		Content:  e.Content,
-		AnswerID: e.AnswerID,
-		UserID:   e.UserID,
+func AnswerCommentEntityToOutput(e *entity.AnswerComment) *outputmodel.AnswerCommentOutput {
+	if e == nil {
+		return nil
+	}
+
+	out := &outputmodel.AnswerCommentOutput{
+		Content: e.Content,
 	}
 	if e.Answer != nil {
 		out.Answer = answerEntityToOutputShallow(*e.Answer)
@@ -30,12 +31,4 @@ func AnswerCommentEntityToOutput(e entity.AnswerComment) outputmodel.AnswerComme
 		out.User = UserEntityToOutput(*e.User)
 	}
 	return out
-}
-
-func AnswerCommentEntitiesToOutputs(es []entity.AnswerComment) []outputmodel.AnswerCommentOutput {
-	outputs := make([]outputmodel.AnswerCommentOutput, len(es))
-	for i, e := range es {
-		outputs[i] = AnswerCommentEntityToOutput(e)
-	}
-	return outputs
 }

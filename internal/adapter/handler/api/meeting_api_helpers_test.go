@@ -38,12 +38,18 @@ func TestCanWriteMeetingAnswers(t *testing.T) {
 	if canWriteMeetingAnswers(meeting, 2) {
 		t.Fatal("mentee should not write when submitted")
 	}
-	if !canWriteMeetingAnswers(meeting, 1) {
-		t.Fatal("mentor should write when submitted")
+	if canWriteMeetingAnswers(meeting, 1) {
+		t.Fatal("mentor should not write meeting answers when submitted")
+	}
+	if !canWriteTopicComments(meeting, 1) {
+		t.Fatal("mentor should write topic comments when submitted")
 	}
 	meeting.Status = valueobject.MeetingStatusDone
 	if canWriteMeetingAnswers(meeting, 1) {
 		t.Fatal("mentor should not write when done")
+	}
+	if canWriteTopicComments(meeting, 1) {
+		t.Fatal("mentor should not write topic comments when done")
 	}
 }
 

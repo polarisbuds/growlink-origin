@@ -23,7 +23,7 @@ func (repo *DepartmentMemberRepository) preloadWhere(query string, args ...any) 
 		Order("id ASC").
 		Preload("User", nil).
 		Preload("Department", nil).
-		Preload("User.Role", nil).
+		Preload("Role", nil).
 		Find(repo.ctx)
 	if err != nil {
 		return nil, fmt.Errorf("部署メンバー情報の取得に失敗しました: %w", err)
@@ -63,6 +63,7 @@ func (repo *DepartmentMemberRepository) ReplaceByDepartment(departmentID uint, m
 			rows = append(rows, entity.DepartmentMember{
 				DepartmentID: departmentID,
 				UserID:       member.UserID,
+				RoleID:       member.RoleID,
 				IsHead:       member.IsHead,
 				IsManager:    member.IsManager,
 			})

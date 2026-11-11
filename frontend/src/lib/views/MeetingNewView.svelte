@@ -53,9 +53,7 @@
     let menteeUuids = $state<string[]>([]);
     let sharerUserUuids = $state<string[]>([]);
     let pickableUsers = $derived(
-        currentUserUuid
-            ? users.filter((u) => u.uuid !== currentUserUuid)
-            : users,
+        mentorUuid ? users.filter((u) => u.uuid !== mentorUuid) : users,
     );
     let submitting = $state(false);
     let error = $state("");
@@ -174,8 +172,7 @@
         currentUserUuid =
             users.find((u) => u.email === profile.email)?.uuid || "";
         canSpecifyPair = getAvatar()?.canSpecifyPair ?? false;
-        const defaultTpl =
-            templates.find((x) => x.isDefault) ?? templates[0];
+        const defaultTpl = templates.find((x) => x.isDefault) ?? templates[0];
         form.templateUuid = defaultTpl?.uuid || "";
     });
 

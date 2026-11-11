@@ -2,30 +2,34 @@
     import { statusBadge, statusLabel } from "$lib/status";
     import {
         formatDate,
-        pairLabel,
         canUserAnswerMeeting,
         canUserViewMeeting,
-        meetingRoleBadgeLabel,
         type MeetingListItem,
     } from "$lib/meeting-helpers";
+    import {
+        buildUserDepartmentMaps,
+        departmentNameForUser,
+        type PlanningDirectoryUser,
+    } from "$lib/planning-directory";
+    import WorkspacePerson from "$lib/components/WorkspacePerson.svelte";
 
-    type RoleBadgeMode = "mentee-only" | "mentor-always" | "none";
+    export type WorkspacePersonMode = "mentor" | "mentee" | "both";
 
     let {
         items,
         currentUserUuid,
-        roleBadgeMode = "none",
-        labelForItem = pairLabel,
+        directoryUsers,
+        personMode,
         emptyMessage = "面談はありません",
     }: {
         items: MeetingListItem[];
         currentUserUuid?: string;
-        roleBadgeMode?: RoleBadgeMode;
-        labelForItem?: (item: MeetingListItem) => string;
+        directoryUsers: PlanningDirectoryUser[];
+        personMode: WorkspacePersonMode;
         emptyMessage?: string;
     } = $props();
 
-    let showRoleColumn = $derived(roleBadgeMode !== "none");
+    let deptMaps = $derived(buildUserDepartmentMaps(directoryUsers));
 </script>
 
 <div
@@ -33,10 +37,18 @@
     <table class="table">
         <thead>
             <tr class="text-base-content/70">
-                {#if showRoleColumn}
-                    <th>区分</th>
+                {#if personMode === "both"}
+                    <th>メンター部署</th>
+                    <th>メンター</th>
+                    <th>メンティー部署</th>
+                    <th>メンティー</th>
+                {:else if personMode === "mentor"}
+                    <th>部署</th>
+                    <th>メンター</th>
+                {:else}
+                    <th>部署</th>
+                    <th>メンティー</th>
                 {/if}
-                <th>ペア</th>
                 <th>テンプレート</th>
                 <th>状態</th>
                 <th>実施予定日</th>
@@ -45,22 +57,63 @@
         </thead>
         <tbody>
             {#each items as item (item.uuid)}
-                {@const roleBadge = meetingRoleBadgeLabel(
-                    item,
-                    currentUserUuid,
-                    roleBadgeMode,
-                )}
                 <tr class="hover:bg-base-200/40">
-                    {#if showRoleColumn}
-                        <td class="max-w-[11rem] text-xs">
-                            {#if roleBadge}
-                                <span
-                                    class="badge badge-outline badge-sm whitespace-normal text-left"
-                                    >{roleBadge}</span>
-                            {/if}
+                    {#if personMode === "both"}
+                        <td class="text-sm whitespace-nowrap"
+                            >{departmentNameForUser(
+                                item.pairing?.mentor?.uuid,
+                                deptMaps,
+                            ) || "—"}</td>
+                        <td>
+                            <WorkspacePerson
+                                userUuid={item.pairing?.mentor?.uuid}
+                                name={item.pairing?.mentor?.name}
+                                {directoryUsers}
+                                {deptMaps}
+                                showDepartment={false} />
+                        </td>
+                        <td class="text-sm whitespace-nowrap"
+                            >{departmentNameForUser(
+                                item.pairing?.mentee?.uuid,
+                                deptMaps,
+                            ) || "—"}</td>
+                        <td>
+                            <WorkspacePerson
+                                userUuid={item.pairing?.mentee?.uuid}
+                                name={item.pairing?.mentee?.name}
+                                {directoryUsers}
+                                {deptMaps}
+                                showDepartment={false} />
+                        </td>
+                    {:else if personMode === "mentor"}
+                        <td class="text-sm whitespace-nowrap"
+                            >{departmentNameForUser(
+                                item.pairing?.mentor?.uuid,
+                                deptMaps,
+                            ) || "—"}</td>
+                        <td>
+                            <WorkspacePerson
+                                userUuid={item.pairing?.mentor?.uuid}
+                                name={item.pairing?.mentor?.name}
+                                {directoryUsers}
+                                {deptMaps}
+                                showDepartment={false} />
+                        </td>
+                    {:else}
+                        <td class="text-sm whitespace-nowrap"
+                            >{departmentNameForUser(
+                                item.pairing?.mentee?.uuid,
+                                deptMaps,
+                            ) || "—"}</td>
+                        <td>
+                            <WorkspacePerson
+                                userUuid={item.pairing?.mentee?.uuid}
+                                name={item.pairing?.mentee?.name}
+                                {directoryUsers}
+                                {deptMaps}
+                                showDepartment={false} />
                         </td>
                     {/if}
-                    <td class="whitespace-nowrap">{labelForItem(item)}</td>
                     <td>{item.template?.title || "1on1"}</td>
                     <td>
                         <span

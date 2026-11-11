@@ -26,11 +26,17 @@ export type MeetingTopicRef = {
 	description?: string;
 };
 
+export type MeetingAnswerCommentRef = {
+	content?: string;
+	user?: { uuid?: string; name?: string; email?: string };
+};
+
 export type MeetingAnswerRef = {
 	uuid?: string;
 	content?: string;
 	topic?: MeetingTopicRef;
 	user?: { uuid?: string; name?: string; email?: string };
+	answerComment?: MeetingAnswerCommentRef;
 };
 
 export type MeetingUserRef = {
@@ -205,24 +211,6 @@ export function isUserMenteeOfMeeting(
 	return item.pairing.mentee?.uuid === userUuid;
 }
 
-export const BADGE_YOU_ARE_MENTEE = 'あなたがメンティーの面談';
-export const BADGE_YOU_ARE_MENTOR = 'あなたがメンターの面談';
-
-export function meetingRoleBadgeLabel(
-	item: { pairing?: MeetingPairingRef },
-	userUuid: string | undefined,
-	mode: 'mentee-only' | 'mentor-always' | 'none'
-): string | null {
-	if (mode === 'none' || !userUuid) return null;
-	if (mode === 'mentor-always' || isUserMentorOfMeeting(item, userUuid)) {
-		if (isUserMentorOfMeeting(item, userUuid)) return BADGE_YOU_ARE_MENTOR;
-	}
-	if (mode === 'mentee-only' && isUserMenteeOfMeeting(item, userUuid)) {
-		return BADGE_YOU_ARE_MENTEE;
-	}
-	return null;
-}
-
 export function canShowMeetingSetting(implementedAt?: string): boolean {
 	if (!implementedAt) return true;
 	const d = new Date(implementedAt);
@@ -253,13 +241,6 @@ function topicKey(topic?: MeetingTopicRef): string | undefined {
 	return topic.uuid || (topic.displayNo != null ? `display-${topic.displayNo}` : undefined);
 }
 
-export function mentorTabPairLabel(item: { pairing?: MeetingPairingRef }): string {
-	const mentee = menteeTargetLabel(item.pairing);
-	const mentor = item.pairing?.mentor?.name || '';
-	if (mentee && mentee !== '—') return `メンティー: ${mentee}`;
-	return pairLabel(item) || mentor;
-}
-
 export type MeetingPayload = {
 	uuid: string;
 	meeting: MeetingListItem;
@@ -269,6 +250,7 @@ export type MeetingPayload = {
 	canEdit: boolean;
 	viewerRole?: 'mentee' | 'mentor' | 'viewer';
 	canWriteAnswers?: boolean;
+	canWriteTopicComments?: boolean;
 	canEditSharers?: boolean;
 	sharers?: MeetingUserRef[];
 };
@@ -299,50 +281,54 @@ function pairingUserUuids(payload: MeetingPayload): { mentorUuid?: string; mente
 	return { mentorUuid: p?.mentor?.uuid, menteeUuid: p?.mentee?.uuid };
 }
 
+function mentorCommentContent(answer?: MeetingAnswerRef): string | undefined {
+	const raw = answer?.answerComment?.content;
+	if (raw == null || raw === '') return undefined;
+	return raw;
+}
+
 export function dualTopicRows(payload: MeetingPayload): DualTopicRow[] {
-	const { mentorUuid, menteeUuid } = pairingUserUuids(payload);
-	const slots = new Map<
-		string,
-		{ menteeAnswer?: MeetingAnswerRef; mentorAnswer?: MeetingAnswerRef }
-	>();
+	const { menteeUuid } = pairingUserUuids(payload);
+	const slots = new Map<string, { menteeAnswer?: MeetingAnswerRef }>();
 	for (const a of payload.answers || []) {
 		const key = topicKey(a.topic);
 		if (!key) continue;
+		const uid = a.user?.uuid;
+		if (uid && uid !== menteeUuid) {
+			continue;
+		}
 		let slot = slots.get(key);
 		if (!slot) {
 			slot = {};
 			slots.set(key, slot);
 		}
-		const uid = a.user?.uuid;
-		if (uid && uid === mentorUuid) {
-			slot.mentorAnswer = a;
-		} else if (uid && uid === menteeUuid) {
-			slot.menteeAnswer = a;
-		} else if (!slot.menteeAnswer) {
-			slot.menteeAnswer = a;
-		} else if (!slot.mentorAnswer) {
-			slot.mentorAnswer = a;
-		}
+		slot.menteeAnswer = a;
 	}
 	const topics = payload.topics || [];
 	if (topics.length) {
 		return topics.map((topic, i) => {
 			const key = topicKey(topic);
 			const slot = key ? slots.get(key) : undefined;
+			const menteeAnswer = slot?.menteeAnswer;
+			const mentorText = mentorCommentContent(menteeAnswer);
 			return {
 				topic,
 				displayNo: topic.displayNo || i + 1,
-				menteeAnswer: slot?.menteeAnswer,
-				mentorAnswer: slot?.mentorAnswer
+				menteeAnswer,
+				mentorAnswer: mentorText ? { content: mentorText } : undefined
 			};
 		});
 	}
-	return [...slots.entries()].map(([key, slot], i) => ({
-		displayNo: i + 1,
-		topic: slot.menteeAnswer?.topic ?? slot.mentorAnswer?.topic ?? { uuid: key },
-		menteeAnswer: slot.menteeAnswer,
-		mentorAnswer: slot.mentorAnswer
-	}));
+	return [...slots.entries()].map(([key, slot], i) => {
+		const menteeAnswer = slot.menteeAnswer;
+		const mentorText = mentorCommentContent(menteeAnswer);
+		return {
+			displayNo: i + 1,
+			topic: menteeAnswer?.topic ?? { uuid: key },
+			menteeAnswer,
+			mentorAnswer: mentorText ? { content: mentorText } : undefined
+		};
+	});
 }
 
 export function ownAnswerDrafts(
@@ -354,13 +340,11 @@ export function ownAnswerDrafts(
 	for (const row of rows) {
 		const key = topicKey(row.topic);
 		if (!key) continue;
-		const answer =
-			viewerRole === 'mentor'
-				? row.mentorAnswer
-				: viewerRole === 'mentee'
-					? row.menteeAnswer
-					: undefined;
-		next[key] = answer?.content || '';
+		if (viewerRole === 'mentor') {
+			next[key] = row.menteeAnswer?.answerComment?.content || '';
+		} else if (viewerRole === 'mentee') {
+			next[key] = row.menteeAnswer?.content || '';
+		}
 	}
 	return next;
 }

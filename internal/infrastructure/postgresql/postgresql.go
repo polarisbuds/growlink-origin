@@ -26,7 +26,13 @@ func NewPostgresqlDB(dsn string) (*gorm.DB, error) {
 		return nil, err
 	}
 
+	if err := migrateDepartmentMemberRoles(db); err != nil {
+		return nil, err
+	}
 	if err := AutoMigrate(db); err != nil {
+		return nil, err
+	}
+	if err := dropLegacyUserDepartmentColumns(db); err != nil {
 		return nil, err
 	}
 	if err := migrateAndDropPairingTargets(db); err != nil {
@@ -79,7 +85,6 @@ func AutoMigrate(db *gorm.DB) error {
 		&entity.SystemSettings{},
 		&entity.DepartmentHierarchy{},
 		&entity.DepartmentRole{},
-		&entity.UserDepartment{},
 
 		// マスタテーブル
 		&entity.Role{},

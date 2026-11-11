@@ -114,6 +114,7 @@ func RegisterRoutes(e *echo.Echo, deps Deps, auditLogger *slog.Logger) {
 	apiAuth.GET("/meetings/:uuid/sharer-candidates", ah.ListMeetingSharerCandidates, auditLogging(auditLogger, false))
 	apiAuth.POST("/meetings/:uuid/draft", ah.SaveDraft, auditLogging(auditLogger, false))
 	apiAuth.POST("/meetings/:uuid/submit", ah.SubmitMeeting, auditLogging(auditLogger, false))
+	apiAuth.POST("/meetings/:uuid/complete", ah.CompleteMentorMeeting, auditLogging(auditLogger, false))
 	apiAuth.POST("/meetings/:uuid/draft/cancel", ah.CancelSubmit, auditLogging(auditLogger, false))
 	apiAuth.POST("/meetings/:uuid/meeting-comment", ah.PostMeetingComment, auditLogging(auditLogger, false))
 	apiAuth.POST("/meetings/answer-comment", ah.PostAnswerComment, auditLogging(auditLogger, false))

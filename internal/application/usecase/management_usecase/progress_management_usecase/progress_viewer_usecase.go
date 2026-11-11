@@ -92,6 +92,7 @@ func (uc *ProgressViewer) Summary(filter ProgressFilter) (*outputmodel.ProgressS
 	if err != nil {
 		return nil, err
 	}
+	// TODO; GORMを用いて取得するものへと変更する
 	out := &outputmodel.ProgressSummaryOutput{}
 	for _, m := range meetings {
 		out.Total++
@@ -113,7 +114,6 @@ func (uc *ProgressViewer) Summary(filter ProgressFilter) (*outputmodel.ProgressS
 }
 
 type progressBucket struct {
-	id             uint
 	uuid           string
 	name           string
 	departmentName string
@@ -151,7 +151,7 @@ func (uc *ProgressViewer) Breakdown(group string, filter ProgressFilter) ([]outp
 	addCount := func(id uint, rowUUID, name, deptName string, status valueobject.MeetingStatus, userName string) {
 		b, ok := buckets[id]
 		if !ok {
-			b = &progressBucket{id: id, uuid: rowUUID, name: name, departmentName: deptName}
+			b = &progressBucket{uuid: rowUUID, name: name, departmentName: deptName}
 			buckets[id] = b
 		}
 		switch status {
@@ -189,12 +189,14 @@ func (uc *ProgressViewer) Breakdown(group string, filter ProgressFilter) ([]outp
 				addCount(0, "", unassignedProgressName, "", m.Status, uname)
 				continue
 			}
-			if mentee.Department != nil && mentee.Department.Name != "" {
-				addCount(mentee.Department.ID, mentee.Department.UUID.String(), mentee.Department.Name, "", m.Status, uname)
-				continue
-			}
-			if mentee.DepartmentID > 0 {
-				addCount(mentee.DepartmentID, "", fmt.Sprintf("部署 #%d", mentee.DepartmentID), "", m.Status, uname)
+			if dept := primaryDepartmentMembership(mentee); dept != nil {
+				name := fmt.Sprintf("部署 #%d", dept.DepartmentID)
+				deptUUID := ""
+				if dept.Department != nil {
+					name = dept.Department.Name
+					deptUUID = dept.Department.UUID.String()
+				}
+				addCount(dept.DepartmentID, deptUUID, name, "", m.Status, uname)
 				continue
 			}
 			addCount(0, "", unassignedProgressName, "", m.Status, uname)
@@ -247,7 +249,6 @@ func (uc *ProgressViewer) Breakdown(group string, filter ProgressFilter) ([]outp
 			donePct = float64(b.done) / float64(total) * 100
 		}
 		out = append(out, outputmodel.ProgressBreakdownRowOutput{
-			ID:             b.id,
 			UUID:           b.uuid,
 			Name:           b.name,
 			DepartmentName: b.departmentName,
@@ -278,4 +279,17 @@ func (uc *ProgressViewer) Breakdown(group string, filter ProgressFilter) ([]outp
 		return 0
 	})
 	return out, nil
+}
+
+func primaryDepartmentMembership(user *entity.User) *entity.DepartmentMember {
+	if user == nil || len(user.DepartmentMembers) == 0 {
+		return nil
+	}
+	primary := user.DepartmentMembers[0]
+	for _, dm := range user.DepartmentMembers[1:] {
+		if dm.ID < primary.ID {
+			primary = dm
+		}
+	}
+	return &primary
 }

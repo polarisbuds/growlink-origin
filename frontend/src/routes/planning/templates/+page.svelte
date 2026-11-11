@@ -167,10 +167,7 @@
     async function confirmDelete() {
         if (!active) return;
         try {
-            await api(
-                "DELETE",
-                `/api/v1/templates/${active.uuid}`,
-            );
+            await api("DELETE", `/api/v1/templates/${active.uuid}`);
             await reloadTemplates();
             closeModal();
         } catch {
@@ -180,11 +177,9 @@
     async function setTemplateLock(isLock: boolean) {
         if (!active) return;
         try {
-            await api(
-                "PUT",
-                `/api/v1/templates/${active.uuid}/lock`,
-                { isLock },
-            );
+            await api("PUT", `/api/v1/templates/${active.uuid}/lock`, {
+                isLock,
+            });
             showToast(isLock ? "ロックしました" : "ロックを解除しました");
             await reloadTemplates();
         } catch (e) {
@@ -197,15 +192,13 @@
     async function setTemplateDefault(isDefault: boolean) {
         if (!active) return;
         try {
-            await api(
-                "PUT",
-                `/api/v1/templates/${active.uuid}/default`,
-                { isDefault },
-            );
+            await api("PUT", `/api/v1/templates/${active.uuid}/default`, {
+                isDefault,
+            });
             showToast(
                 isDefault
-                    ? "ミーティング作成時の初期テンプレートに設定しました"
-                    : "初期テンプレートを解除しました",
+                    ? "ミーティングのデフォルトテンプレートに設定しました"
+                    : "テンプレートのデフォルト設定を解除しました",
             );
             await reloadTemplates();
             if (active) {
@@ -216,7 +209,7 @@
             showToast(
                 e instanceof Error
                     ? e.message
-                    : "初期テンプレートの更新に失敗しました",
+                    : "デフォルトテンプレートの更新に失敗しました",
                 "error",
             );
         }
@@ -277,7 +270,7 @@
                         {#if t.isDefault}
                             <span
                                 class="badge badge-info badge-outline shrink-0"
-                                >初期</span>
+                                >デフォルト</span>
                         {/if}
                         {#if t.isLock}
                             <span
@@ -323,7 +316,7 @@
                     {/if}
                 {/if}
             </div>
-            <div class="flex shrink-0 gap-1">
+            <div class="flex shrink-0 gap-2">
                 {#if !editMode && canToggleLock(active)}
                     {#if active?.isLock}
                         <button
@@ -344,12 +337,6 @@
                         type="button"
                         class="btn btn-sm btn-outline"
                         onclick={startEdit}>編集</button>
-                {/if}
-                {#if canEditDelete(active)}
-                    <button
-                        type="button"
-                        class="btn btn-sm btn-error btn-outline"
-                        onclick={askDelete}>削除</button>
                 {/if}
                 <button
                     type="button"
@@ -390,9 +377,10 @@
         {:else}
             <div class="flex-1 space-y-3 overflow-y-auto px-6 py-4">
                 {#if isSystemAdmin}
-                    <label class="label flex cursor-pointer justify-between gap-2 rounded-2xl border border-base-300 px-3 py-2">
+                    <label
+                        class="label flex cursor-pointer justify-between gap-2 rounded-2xl border border-base-300 px-3 py-2">
                         <span class="label-text font-medium"
-                            >ミーティング作成時の初期テンプレート</span>
+                            >ミーティング作成時のデフォルトテンプレート</span>
                         <input
                             type="checkbox"
                             class="toggle toggle-primary"
@@ -454,13 +442,26 @@
                     onclick={addTopic}>質問を追加</button>
             </div>
         {/if}
-        <div class="modal-action shrink-0 border-t border-base-200 p-4">
-            <button type="button" class="btn btn-ghost" onclick={closeModal}
-                >閉じる</button>
-            {#if editMode}
-                <button type="button" class="btn btn-primary" onclick={saveEdit}
-                    >保存</button>
-            {/if}
+        <div
+            class="modal-action shrink-0 border-t border-base-200 p-4 flex w-full justify-between items-center">
+            <div>
+                {#if canEditDelete(active)}
+                    <button
+                        type="button"
+                        class="btn btn-error btn-outline"
+                        onclick={askDelete}>削除</button>
+                {/if}
+            </div>
+            <div class="gap-2 flex justify-end">
+                <button type="button" class="btn btn-ghost" onclick={closeModal}
+                    >閉じる</button>
+                {#if editMode}
+                    <button
+                        type="button"
+                        class="btn btn-primary"
+                        onclick={saveEdit}>保存</button>
+                {/if}
+            </div>
         </div>
     </div>
     <form method="dialog" class="modal-backdrop">

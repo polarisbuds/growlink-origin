@@ -44,16 +44,16 @@ func answerEntityToOutputShallow(e entity.Answer) outputmodel.AnswerOutput {
 
 func AnswerEntityToOutput(e entity.Answer) outputmodel.AnswerOutput {
 	out := answerEntityToOutputShallow(e)
-	if len(e.AnswerComments) > 0 {
-		out.AnswerComments = AnswerCommentEntitiesToOutputs(e.AnswerComments)
+	if e.AnswerComment != nil {
+		out.AnswerComment = AnswerCommentEntityToOutput(e.AnswerComment)
 	}
 	return out
 }
 
 func AnswerOutputToEntity(in outputmodel.AnswerOutput) entity.Answer {
 	return entity.Answer{
-		Model:   gorm.Model{ID: in.ID},
-		Content: in.Content,
+		Model:     gorm.Model{ID: in.ID},
+		Content:   in.Content,
 		MeetingID: in.MeetingID,
 		TopicID:   in.TopicID,
 		UserID:    in.UserID,

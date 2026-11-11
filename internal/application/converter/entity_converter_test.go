@@ -162,7 +162,6 @@ func TestDepartmentHierarchyInputToEntityAndBack(t *testing.T) {
 		ChildDepartmentID:  2,
 	}
 	out := converter.DepartmentHierarchyEntityToOutput(entityHierarchy)
-	assert.Equal(t, uint(3), out.ID)
 	assert.Equal(t, uint(1), out.ParentDepartment.ID)
 	assert.Equal(t, uint(2), out.ChildDepartment.ID)
 
@@ -195,7 +194,7 @@ func TestDepartmentRoleInputToEntityAndBack(t *testing.T) {
 		Department:   &entity.Department{Model: gorm.Model{ID: 20}, Name: "Engineering"},
 	}
 	out := converter.DepartmentRoleEntityToOutput(entityRole)
-	assert.Equal(t, uint(5), out.ID)
+	assert.Equal(t, "Manager", out.Name)
 	assert.Equal(t, "Alice", out.User.Name)
 	assert.Equal(t, "Engineering", out.Department.Name)
 }

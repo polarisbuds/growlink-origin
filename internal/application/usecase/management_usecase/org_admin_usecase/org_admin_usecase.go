@@ -17,7 +17,6 @@ type OrgAdmin struct {
 	deptMemberRepo repository_interface.DepartmentMemberRepository
 	teamMemberRepo repository_interface.TeamMemberRepository
 	userRepo       repository_interface.UserRepository
-	userDeptRepo   repository_interface.UserDepartmentRepository
 }
 
 func NewOrgAdmin(
@@ -28,7 +27,6 @@ func NewOrgAdmin(
 	deptMemberRepo repository_interface.DepartmentMemberRepository,
 	teamMemberRepo repository_interface.TeamMemberRepository,
 	userRepo repository_interface.UserRepository,
-	userDeptRepo repository_interface.UserDepartmentRepository,
 ) *OrgAdmin {
 	return &OrgAdmin{
 		deptRepo:       deptRepo,
@@ -38,7 +36,6 @@ func NewOrgAdmin(
 		deptMemberRepo: deptMemberRepo,
 		teamMemberRepo: teamMemberRepo,
 		userRepo:       userRepo,
-		userDeptRepo:   userDeptRepo,
 	}
 }
 
@@ -81,22 +78,42 @@ func (uc *OrgAdmin) ListTree() ([]outputmodel.OrgTreeNodeOutput, error) {
 		membersByTeam[m.TeamID] = append(membersByTeam[m.TeamID], m.MemberID)
 		if m.IsReader && m.Member != nil {
 			leaderByTeam[m.TeamID] = m.Member.Name
-			if m.Member.Role != nil {
-				leaderRoleByTeam[m.TeamID] = m.Member.Role.Name
+			if m.Team != nil {
+				if roleName := memberRoleNameForDepartment(m.Member.DepartmentMembers, m.Team.DepartmentID); roleName != "" {
+					leaderRoleByTeam[m.TeamID] = roleName
+				}
 			}
 		}
 	}
-	allUsers, err := uc.userRepo.GetAll()
-	if err != nil {
-		return nil, err
-	}
-	usersByDept := map[uint][]uint{}
-	for _, u := range allUsers {
-		usersByDept[u.DepartmentID] = append(usersByDept[u.DepartmentID], u.ID)
-	}
 	userByID := map[uint]entity.User{}
-	for _, u := range allUsers {
-		userByID[u.ID] = u
+	usersByDept := map[uint][]uint{}
+	for _, d := range depts {
+		members, err := uc.deptMemberRepo.GetByDepartmentID(d.ID)
+		if err != nil {
+			return nil, err
+		}
+		for _, member := range members {
+			usersByDept[d.ID] = append(usersByDept[d.ID], member.UserID)
+			if member.User != nil {
+				userByID[member.UserID] = *member.User
+			}
+		}
+	}
+	headRoleByUserDept := map[uint]map[uint]string{}
+	for _, d := range depts {
+		members, err := uc.deptMemberRepo.GetByDepartmentID(d.ID)
+		if err != nil {
+			return nil, err
+		}
+		for _, member := range members {
+			if member.Role == nil {
+				continue
+			}
+			if headRoleByUserDept[member.DepartmentID] == nil {
+				headRoleByUserDept[member.DepartmentID] = map[uint]string{}
+			}
+			headRoleByUserDept[member.DepartmentID][member.UserID] = member.Role.Name
+		}
 	}
 	memberCountByDept := map[uint]int{}
 	var subtreeDeptIDs func(deptID uint) []uint
@@ -130,7 +147,9 @@ func (uc *OrgAdmin) ListTree() ([]outputmodel.OrgTreeNodeOutput, error) {
 		if d.HeadUserID != 0 {
 			if u, ok := userByID[d.HeadUserID]; ok {
 				headName = u.Name
-				headRole = u.Role.Name
+			}
+			if roles, ok := headRoleByUserDept[d.ID]; ok {
+				headRole = roles[d.HeadUserID]
 			}
 		}
 		nodes = append(nodes, outputmodel.OrgTreeNodeOutput{
@@ -407,16 +426,14 @@ func (uc *OrgAdmin) UpdateDepartment(id uint, input UpdateDepartmentInput) error
 	if err != nil {
 		return err
 	}
-	if teamIDs != nil {
-		for _, teamID := range teamIDs {
-			team, err := uc.teamRepo.GetByID(teamID)
-			if err != nil {
-				return err
-			}
-			team.DepartmentID = id
-			if err := uc.teamRepo.UpdateByID(team); err != nil {
-				return err
-			}
+	for _, teamID := range teamIDs {
+		team, err := uc.teamRepo.GetByID(teamID)
+		if err != nil {
+			return err
+		}
+		team.DepartmentID = id
+		if err := uc.teamRepo.UpdateByID(team); err != nil {
+			return err
 		}
 	}
 	userIDs, err := uc.resolveUserUUIDs(input.UserUUIDs)
@@ -443,9 +460,6 @@ func (uc *OrgAdmin) UpdateDepartment(id uint, input UpdateDepartmentInput) error
 		}
 	}
 	if userIDs != nil {
-		if err := uc.userDeptRepo.SyncDepartmentMembers(id, userIDs); err != nil {
-			return err
-		}
 		return uc.syncDepartmentMemberFlags(id, userIDs, headUserID, managerUserIDs)
 	}
 	return uc.applyDepartmentHeadOnly(id, headUserID, managerUserIDs)
@@ -471,7 +485,7 @@ func (uc *OrgAdmin) validateDepartmentLeaderCandidate(userID uint) error {
 			return nil
 		}
 	}
-	return fmt.Errorf("部長・管理職にはボス以上またはチームリーダーのユーザーを指定してください")
+	return fmt.Errorf("責任者・管理職にはボス以上またはチームリーダーのユーザーを指定してください")
 }
 
 func departmentMemberIsManager(
@@ -532,21 +546,36 @@ func (uc *OrgAdmin) replaceDepartmentMemberFlags(
 		userIDsInDept[headUserID] = struct{}{}
 	}
 	explicitManagers := map[uint]bool{}
-	if managerUserIDs != nil {
-		for _, managerID := range managerUserIDs {
-			if managerID == 0 || managerID == headUserID {
-				continue
-			}
-			explicitManagers[managerID] = true
-			userIDsInDept[managerID] = struct{}{}
+
+	for _, managerID := range managerUserIDs {
+		if managerID == 0 || managerID == headUserID {
+			continue
+		}
+		explicitManagers[managerID] = true
+		userIDsInDept[managerID] = struct{}{}
+	}
+
+	roleByUser := map[uint]uint{}
+	for _, member := range existing {
+		if member.RoleID != 0 {
+			roleByUser[member.UserID] = member.RoleID
 		}
 	}
 	rows := make([]entity.DepartmentMember, 0, len(userIDsInDept))
 	for userID := range userIDsInDept {
 		isHead := headUserID != 0 && userID == headUserID
+		roleID := roleByUser[userID]
+		if roleID == 0 {
+			var err error
+			roleID, err = uc.resolveRoleIDForUser(userID)
+			if err != nil {
+				return err
+			}
+		}
 		rows = append(rows, entity.DepartmentMember{
 			DepartmentID: departmentID,
 			UserID:       userID,
+			RoleID:       roleID,
 			IsHead:       isHead,
 			IsManager: departmentMemberIsManager(
 				userID, headUserID, managerUserIDs, explicitManagers, prevManager, prevHead,
@@ -807,8 +836,36 @@ func (uc *OrgAdmin) ListTeamOptions() ([]outputmodel.TeamOptionOutput, error) {
 		out = append(out, outputmodel.TeamOptionOutput{
 			UUID:           t.UUID.String(),
 			Name:           t.Name,
+			DepartmentName: t.Department.Name,
 			DepartmentUUID: uc.departmentUUIDByID(t.DepartmentID),
 		})
 	}
 	return out, nil
+}
+
+func memberRoleNameForDepartment(members []entity.DepartmentMember, departmentID uint) string {
+	for _, m := range members {
+		if m.DepartmentID == departmentID && m.Role != nil {
+			return m.Role.Name
+		}
+	}
+	for _, m := range members {
+		if m.Role != nil {
+			return m.Role.Name
+		}
+	}
+	return ""
+}
+
+func (uc *OrgAdmin) resolveRoleIDForUser(userID uint) (uint, error) {
+	memberships, err := uc.deptMemberRepo.GetByUserID(userID)
+	if err != nil {
+		return 0, err
+	}
+	for _, m := range memberships {
+		if m.RoleID != 0 {
+			return m.RoleID, nil
+		}
+	}
+	return 0, fmt.Errorf("役職を選択してください")
 }

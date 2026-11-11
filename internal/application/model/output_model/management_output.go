@@ -1,6 +1,7 @@
 package outputmodel
 
 type UserDepartmentAssignmentOutput struct {
+	DepartmentName string `json:"departmentName"`
 	DepartmentUUID string `json:"departmentUuid"`
 	RoleUUID       string `json:"roleUuid"`
 }
@@ -49,19 +50,19 @@ type OrgMemberOutput struct {
 }
 
 type OrgDetailOutput struct {
-	Kind                  string            `json:"kind"`
-	UUID                  string            `json:"uuid"`
-	Name                  string            `json:"name"`
-	IsRoot                bool              `json:"isRoot"`
-	DepartmentUUID        string            `json:"departmentUuid,omitempty"`
-	Members               []OrgMemberOutput `json:"members"`
-	ChildDepartmentUUIDs  []string          `json:"childDepartmentUuids"`
-	TeamUUIDs             []string          `json:"teamUuids"`
-	UserUUIDs             []string          `json:"userUuids"`
-	MemberUUIDs           []string          `json:"memberUuids"`
-	LeaderUUID            string            `json:"leaderUuid"`
-	HeadUserUUID          string            `json:"headUserUuid"`
-	ManagerUserUUIDs      []string          `json:"managerUserUuids"`
+	Kind                 string            `json:"kind"`
+	UUID                 string            `json:"uuid"`
+	Name                 string            `json:"name"`
+	IsRoot               bool              `json:"isRoot"`
+	DepartmentUUID       string            `json:"departmentUuid,omitempty"`
+	Members              []OrgMemberOutput `json:"members"`
+	ChildDepartmentUUIDs []string          `json:"childDepartmentUuids"`
+	TeamUUIDs            []string          `json:"teamUuids"`
+	UserUUIDs            []string          `json:"userUuids"`
+	MemberUUIDs          []string          `json:"memberUuids"`
+	LeaderUUID           string            `json:"leaderUuid"`
+	HeadUserUUID         string            `json:"headUserUuid"`
+	ManagerUserUUIDs     []string          `json:"managerUserUuids"`
 }
 
 type RemindSettingsOutput struct {
@@ -86,5 +87,6 @@ type DepartmentOptionOutput struct {
 type TeamOptionOutput struct {
 	UUID           string `json:"uuid"`
 	Name           string `json:"name"`
+	DepartmentName string `json:"departmentName"`
 	DepartmentUUID string `json:"departmentUuid"`
 }

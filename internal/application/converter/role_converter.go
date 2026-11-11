@@ -11,7 +11,7 @@ func RoleInputToEntity(in inputmodel.RoleInput) *entity.Role {
 }
 
 func RoleEntityToOutput(e entity.Role) outputmodel.RoleOutput {
-	return outputmodel.RoleOutput{ID: e.ID, Name: e.Name}
+	return outputmodel.RoleOutput{Name: e.Name}
 }
 
 func RoleEntitiesToOutputs(es []entity.Role) []outputmodel.RoleOutput {

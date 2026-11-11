@@ -13,7 +13,6 @@ type Department struct {
 
 	HeadUserID uint `gorm:"not null;default:0;index"`
 
-	Users []User `gorm:"foreignKey:DepartmentID;references:ID"`
 	Teams []Team `gorm:"foreignKey:DepartmentID;references:ID"`
 
 	ParentHierarchies        []DepartmentHierarchy     `gorm:"foreignKey:ParentDepartmentID;references:ID"`

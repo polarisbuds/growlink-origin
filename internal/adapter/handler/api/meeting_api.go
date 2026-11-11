@@ -7,6 +7,7 @@ import (
 	"growlink/internal/adapter/handler/authctx"
 	"growlink/internal/application/converter"
 	outputmodel "growlink/internal/application/model/output_model"
+	meeting_usecase "growlink/internal/application/usecase/meeting_usecase"
 	"growlink/internal/domain/valueobject"
 
 	"github.com/google/uuid"
@@ -23,7 +24,7 @@ func (h *Handler) GetMeeting(c *echo.Context) error {
 		return c.JSON(http.StatusNotFound, map[string]string{"error": "not found"})
 	}
 	if claims := authctx.Claims(c); claims != nil {
-		ok, err := h.deps.Planning.CanViewPlanningMeeting(claims.UserID, authctx.SystemRole(c), meeting.ID)
+		ok, err := h.deps.Planning.CanViewPlanningMeeting(claims.UserID, claims.Authority, authctx.SystemRole(c), meeting.ID)
 		if err != nil {
 			return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 		}
@@ -35,7 +36,12 @@ func (h *Handler) GetMeeting(c *echo.Context) error {
 		}
 	}
 	out := converter.MeetingEntityToOutput(*meeting)
-	answers, _ := h.deps.Meeting.AnswerReader.ListAnswersByMeeting(meeting.ID)
+	answers, err := h.deps.Meeting.AnswerReader.ListAnswersByMeeting(meeting.ID)
+
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+	}
+
 	topics := out.Template.Topics
 	if len(topics) == 0 && meeting.Template != nil {
 		topics = converter.TopicEntitiesToOutputs(meeting.Template.Topics)
@@ -44,27 +50,30 @@ func (h *Handler) GetMeeting(c *echo.Context) error {
 	var viewerID uint
 	viewerRole := "viewer"
 	canWriteAnswers := false
+	allowTopicCommentWrite := false
 	canEditSharers := false
 	if claims := authctx.Claims(c); claims != nil {
 		viewerID = claims.UserID
 		canEdit = authctx.CanModify(claims.UserID, claims.SystemRole, meeting.CreatedByUserID)
 		viewerRole = meetingViewerRole(meeting, viewerID)
 		canWriteAnswers = canWriteMeetingAnswers(meeting, viewerID)
+		allowTopicCommentWrite = canWriteTopicComments(meeting, viewerID)
 		canEditSharers = canEditMeetingSharers(meeting, viewerID)
 	}
 	meetingComments := filterMeetingComments(meeting, viewerID)
 	sharers := meetingSharersToOutputs(meeting)
 	return c.JSON(http.StatusOK, map[string]interface{}{
-		"uuid":            id.String(),
-		"meeting":         out,
-		"answers":         answers,
-		"topics":          topics,
-		"meetingComments": meetingComments,
-		"canEdit":         canEdit,
-		"viewerRole":      viewerRole,
-		"canWriteAnswers": canWriteAnswers,
-		"canEditSharers":  canEditSharers,
-		"sharers":         sharers,
+		"uuid":                  id.String(),
+		"meeting":               out,
+		"answers":               answers,
+		"topics":                topics,
+		"meetingComments":       meetingComments,
+		"canEdit":               canEdit,
+		"viewerRole":            viewerRole,
+		"canWriteAnswers":       canWriteAnswers,
+		"canWriteTopicComments": allowTopicCommentWrite,
+		"canEditSharers":        canEditSharers,
+		"sharers":               sharers,
 	})
 }
 
@@ -94,13 +103,11 @@ func (h *Handler) SaveDraft(c *echo.Context) error {
 	if err := c.Bind(&req); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid request"})
 	}
-	req.Answers, err = sanitizeAnswerOutputs(meeting.ID, claims.UserID, req.Answers, h.lookupAnswerOutput)
+	req.Answers, err = sanitizeAnswerOutputs(meeting.ID, claims.UserID, req.Answers, meeting, h.lookupAnswerOutput)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
-	keepStatus := meetingViewerRole(meeting, claims.UserID) == "mentor" &&
-		meeting.Status == valueobject.MeetingStatusSubmitted
-	if err := h.deps.Meeting.DraftSaver.SaveDraft(meeting.ID, req.Answers, keepStatus); err != nil {
+	if err := h.deps.Meeting.DraftSaver.SaveDraft(meeting.ID, req.Answers, false); err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
 	return c.JSON(http.StatusOK, map[string]string{"ok": "true"})
@@ -128,16 +135,47 @@ func (h *Handler) SubmitMeeting(c *echo.Context) error {
 	if err := c.Bind(&req); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid request"})
 	}
-	req.Answers, err = sanitizeAnswerOutputs(meeting.ID, claims.UserID, req.Answers, h.lookupAnswerOutput)
+	req.Answers, err = sanitizeAnswerOutputs(meeting.ID, claims.UserID, req.Answers, meeting, h.lookupAnswerOutput)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
-	role := meetingViewerRole(meeting, claims.UserID)
-	nextStatus := valueobject.MeetingStatusSubmitted
-	if role == "mentor" {
-		nextStatus = valueobject.MeetingStatusDone
+	if err := h.deps.Meeting.Submitter.Submit(meeting.ID, req.Answers, valueobject.MeetingStatusSubmitted); err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
-	if err := h.deps.Meeting.Submitter.Submit(meeting.ID, req.Answers, nextStatus); err != nil {
+	return c.JSON(http.StatusOK, map[string]string{"ok": "true"})
+}
+
+func (h *Handler) CompleteMentorMeeting(c *echo.Context) error {
+	claims := authctx.Claims(c)
+	if claims == nil {
+		return c.JSON(http.StatusUnauthorized, map[string]string{"error": "unauthorized"})
+	}
+	id, err := uuid.Parse(c.Param("uuid"))
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid uuid"})
+	}
+	meeting, err := h.deps.MeetingRepo.GetByUUID(id)
+	if err != nil {
+		return c.JSON(http.StatusNotFound, map[string]string{"error": "not found"})
+	}
+	if !canWriteTopicComments(meeting, claims.UserID) {
+		return c.JSON(http.StatusForbidden, map[string]string{"error": "forbidden"})
+	}
+	if meeting.Pairing == nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "pairing not found"})
+	}
+	var req struct {
+		Comments []meeting_usecase.MentorTopicCommentInput `json:"comments"`
+	}
+	if err := c.Bind(&req); err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid request"})
+	}
+	if err := h.deps.Meeting.MentorMeetingCompleter.Complete(
+		meeting.ID,
+		claims.UserID,
+		meeting.Pairing.MenteeID,
+		req.Comments,
+	); err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
 	return c.JSON(http.StatusOK, map[string]string{"ok": "true"})
@@ -293,7 +331,11 @@ func (h *Handler) PostAnswerComment(c *echo.Context) error {
 	if respErr := apiUUIDResolveError(c, err); respErr != nil {
 		return respErr
 	}
-	if err := h.deps.Meeting.AnswerCommenter.PostComment(answer.ID, req.Content); err != nil {
+	claims := authctx.Claims(c)
+	if claims == nil {
+		return c.JSON(http.StatusUnauthorized, map[string]string{"error": "unauthorized"})
+	}
+	if err := h.deps.Meeting.AnswerCommenter.PostComment(answer.ID, claims.UserID, req.Content); err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
 	return c.JSON(http.StatusOK, map[string]string{"ok": "true"})
@@ -304,7 +346,7 @@ func (h *Handler) ListMeetingsAll(c *echo.Context) error {
 	if claims == nil {
 		return c.JSON(http.StatusUnauthorized, map[string]string{"error": "unauthorized"})
 	}
-	list, err := h.deps.Planning.ListPlanningMeetings(claims.UserID, authctx.SystemRole(c))
+	list, err := h.deps.Planning.ListPlanningMeetings(claims.UserID, claims.Authority, authctx.SystemRole(c))
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}

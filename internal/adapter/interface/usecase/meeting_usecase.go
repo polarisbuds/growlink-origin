@@ -13,9 +13,6 @@ type (
 		DraftSaver
 		SubmitCanceller
 		Submitter
-
-		AnswerCommenter
-		MeetingCommenter
 	}
 	MeetingList interface {
 		ListMyMeeting(menteeID uint) ([]outputmodel.MeetingOutput, error)
@@ -34,7 +31,7 @@ type (
 		CancelSubmit(meetingID uint) error
 	}
 	AnswerCommenter interface {
-		PostComment(answerID uint, content string) error
+		PostComment(answerID, userID uint, content string) error
 		EditComment(commentID uint, content string) error
 		DeleteComment(commentID uint) error
 	}

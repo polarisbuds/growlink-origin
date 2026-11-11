@@ -3,9 +3,9 @@
     import { api } from "$lib/api";
     import {
         splitInvolvedMeetingsForWorkspace,
-        mentorTabPairLabel,
         type MeetingListItem,
     } from "$lib/meeting-helpers";
+    import type { PlanningDirectoryUser } from "$lib/planning-directory";
     import WorkspaceMeetingPeriodViews from "$lib/components/WorkspaceMeetingPeriodViews.svelte";
     import LayoutGrid from "lucide-svelte/icons/layout-grid";
     import Table from "lucide-svelte/icons/table";
@@ -17,17 +17,19 @@
     let showMentorTab = $state(false);
     let sharedMeetings = $state<MeetingListItem[]>([]);
     let currentUserUuid = $state("");
+    let directoryUsers = $state<PlanningDirectoryUser[]>([]);
 
     onMount(async () => {
-        const [own, shared, profile] = await Promise.all([
+        const [own, shared, profile, directory] = await Promise.all([
             api<MeetingListItem[]>("GET", "/api/v1/meetings/involved"),
             api<MeetingListItem[]>("GET", "/api/v1/meetings/shared"),
             api<{ email?: string }>("GET", "/api/v1/setting/profile"),
+            api<{ users?: PlanningDirectoryUser[] }>(
+                "GET",
+                "/api/v1/planning/directory",
+            ),
         ]);
-        const directory = await api<{ users?: { uuid: string; email: string }[] }>(
-            "GET",
-            "/api/v1/planning/directory",
-        );
+        directoryUsers = directory.users || [];
         currentUserUuid =
             directory.users?.find((u) => u.email === profile.email)?.uuid || "";
         const split = splitInvolvedMeetingsForWorkspace(own, currentUserUuid);
@@ -106,18 +108,20 @@
         meetings={ownMeetings}
         {viewMode}
         {currentUserUuid}
-        roleBadgeMode="mentee-only" />
+        {directoryUsers}
+        personMode="mentor" />
 {:else if tab === "mentor"}
     <WorkspaceMeetingPeriodViews
         meetings={mentorMeetings}
         {viewMode}
         {currentUserUuid}
-        roleBadgeMode="mentor-always"
-        labelForItem={mentorTabPairLabel} />
+        {directoryUsers}
+        personMode="mentee" />
 {:else}
     <WorkspaceMeetingPeriodViews
         meetings={sharedMeetings}
         {viewMode}
         {currentUserUuid}
-        roleBadgeMode="none" />
+        {directoryUsers}
+        personMode="both" />
 {/if}

@@ -129,7 +129,8 @@
             提出後に閲覧できます
         </div>
     {:else}
-        <div class="mt-6 flex max-w-7xl flex-col gap-6 lg:flex-row lg:items-start">
+        <div
+            class="mt-6 flex max-w-7xl flex-col gap-6 lg:flex-row lg:items-start">
             <div class="min-w-0 flex-1 space-y-4">
                 {#each rows as row (rowKey(row))}
                     <div

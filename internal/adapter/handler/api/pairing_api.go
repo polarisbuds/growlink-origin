@@ -1,7 +1,6 @@
 package api
 
 import (
-	"log/slog"
 	"net/http"
 	"strconv"
 
@@ -32,8 +31,8 @@ func (h *Handler) ListPairings(c *echo.Context) error {
 	if claims == nil {
 		return c.JSON(http.StatusUnauthorized, map[string]string{"error": "unauthorized"})
 	}
-	list, err := h.deps.Planning.ListPairingsForManagement(claims.UserID, authctx.SystemRole(c))
-	slog.Debug("ListPairings", slog.Any("list", list), slog.Int("id", int(claims.UserID)))
+	list, err := h.deps.Planning.ListPairingsForManagement(claims.UserID, claims.Authority, authctx.SystemRole(c))
+
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
@@ -45,7 +44,7 @@ func (h *Handler) ListPairingsForMeeting(c *echo.Context) error {
 	if claims == nil {
 		return c.JSON(http.StatusUnauthorized, map[string]string{"error": "unauthorized"})
 	}
-	list, err := h.deps.Planning.ListPairingsForMeeting(claims.UserID, authctx.SystemRole(c))
+	list, err := h.deps.Planning.ListPairingsForMeeting(claims.UserID, claims.Authority, authctx.SystemRole(c))
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
@@ -77,7 +76,7 @@ func (h *Handler) CreatePairing(c *echo.Context) error {
 		return err
 	}
 	for _, t := range req.ResolvedTargets() {
-		ok, err := h.deps.Planning.CanManagePairingMentee(claims.UserID, claims.SystemRole, t.TargetID)
+		ok, err := h.deps.Planning.CanManagePairingMentee(claims.UserID, claims.Authority, claims.SystemRole, t.TargetID)
 		if err != nil {
 			return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 		}
@@ -104,7 +103,7 @@ func (h *Handler) DeletePairing(c *echo.Context) error {
 	if err != nil {
 		return c.JSON(http.StatusNotFound, map[string]string{"error": "not found"})
 	}
-	ok, err := h.deps.Planning.CanBreakPairing(claims.UserID, claims.SystemRole, pair.CreatedByUserID, pair.MenteeID)
+	ok, err := h.deps.Planning.CanBreakPairing(claims.UserID, claims.Authority, claims.SystemRole, pair.CreatedByUserID, pair.MenteeID)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}

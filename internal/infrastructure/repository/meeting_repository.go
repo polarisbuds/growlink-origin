@@ -34,7 +34,8 @@ func preloadAll(chain gorm.ChainInterface[entity.Meeting]) gorm.ChainInterface[e
 		Preload("Pairing.Mentor", preloadNone).
 		Preload("Pairing.Mentee", preloadNone).
 		Preload("Answers", preloadNone).
-		Preload("Answers.AnswerComments", preloadNone).
+		Preload("Answers.AnswerComment", preloadNone).
+		Preload("Answers.AnswerComment.User", preloadNone).
 		Preload("MeetingComments", preloadNone).
 		Preload("MeetingComments.User", preloadNone).
 		Preload("Sharers", preloadNone).
@@ -47,7 +48,8 @@ func preloadBasic(chain gorm.ChainInterface[entity.Meeting]) gorm.ChainInterface
 		Preload("Pairing", preloadNone).
 		Preload("Pairing.Mentor", preloadNone).
 		Preload("Pairing.Mentee", preloadNone).
-		Preload("Pairing.Mentee.Department", preloadNone).
+		Preload("Pairing.Mentee.DepartmentMembers", preloadNone).
+		Preload("Pairing.Mentee.DepartmentMembers.Department", preloadNone).
 		Preload("Pairing.Mentee.TeamMembers", preloadNone).
 		Preload("Pairing.Mentee.TeamMembers.Team", preloadNone).
 		Preload("Pairing.Mentee.TeamMembers.Team.Department", preloadNone)

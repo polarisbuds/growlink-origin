@@ -78,7 +78,7 @@ func RequireMeetingNestedPreload(t *testing.T, got *entity.Meeting) {
 	require.NotNil(t, got.Template)
 	require.NotEmpty(t, got.Template.Topics)
 	require.NotEmpty(t, got.Answers)
-	require.NotEmpty(t, got.Answers[0].AnswerComments)
+	require.NotNil(t, got.Answers[0].AnswerComment)
 	require.NotEmpty(t, got.MeetingComments)
 	require.NotNil(t, got.MeetingComments[0].User)
 }

@@ -6,4 +6,5 @@ import "growlink/internal/domain/entity"
 
 type AnswerCommentRepository interface {
 	Commenter[entity.AnswerComment]
+	GetByAnswerID(answerID uint) (*entity.AnswerComment, error)
 }

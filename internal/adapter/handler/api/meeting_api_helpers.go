@@ -1,6 +1,7 @@
 package api
 
 import (
+	"fmt"
 	"strings"
 
 	"growlink/internal/application/converter"
@@ -9,24 +10,44 @@ import (
 	"growlink/internal/domain/valueobject"
 )
 
-func enrichAnswersForMeeting(meetingID, userID uint, answers []outputmodel.AnswerOutput) []outputmodel.AnswerOutput {
+func enrichAnswersForMeeting(meetingID, userID uint, answers []outputmodel.AnswerOutput, meeting *entity.Meeting) ([]outputmodel.AnswerOutput, error) {
 	out := make([]outputmodel.AnswerOutput, len(answers))
+	topicsByUUID := map[string]uint{}
+	if meeting != nil && meeting.Template != nil {
+		for _, topic := range meeting.Template.Topics {
+			topicsByUUID[topic.UUID.String()] = topic.ID
+		}
+	}
+
 	for i, a := range answers {
 		out[i] = a
 		if out[i].MeetingID == 0 {
 			out[i].MeetingID = meetingID
 		}
+		if out[i].TopicID == 0 {
+			topicID, ok := topicsByUUID[a.Topic.UUID]
+			if !ok {
+				return nil, fmt.Errorf("トピックIDが見つかりませんでした")
+			}
+			out[i].TopicID = topicID
+		}
+
 		out[i].UserID = userID
 	}
-	return out
+	return out, nil
 }
 
 func sanitizeAnswerOutputs(
 	meetingID, userID uint,
 	answers []outputmodel.AnswerOutput,
+	meeting *entity.Meeting,
 	lookup func(answerID uint) (*outputmodel.AnswerOutput, error),
 ) ([]outputmodel.AnswerOutput, error) {
-	out := enrichAnswersForMeeting(meetingID, userID, answers)
+	out, err := enrichAnswersForMeeting(meetingID, userID, answers, meeting)
+	if err != nil {
+		return nil, fmt.Errorf("回答内容の埋め込みに失敗しました: %w", err)
+	}
+
 	for i := range out {
 		if out[i].ID == 0 {
 			continue
@@ -59,16 +80,21 @@ func canWriteMeetingAnswers(meeting *entity.Meeting, viewerID uint) bool {
 	if meeting == nil || viewerID == 0 {
 		return false
 	}
-	role := meetingViewerRole(meeting, viewerID)
-	switch role {
-	case "mentee":
-		return meeting.Status == valueobject.MeetingStatusPending ||
-			meeting.Status == valueobject.MeetingStatusDraft
-	case "mentor":
-		return meeting.Status == valueobject.MeetingStatusSubmitted
-	default:
+	if meetingViewerRole(meeting, viewerID) != "mentee" {
 		return false
 	}
+	return meeting.Status == valueobject.MeetingStatusPending ||
+		meeting.Status == valueobject.MeetingStatusDraft
+}
+
+func canWriteTopicComments(meeting *entity.Meeting, viewerID uint) bool {
+	if meeting == nil || viewerID == 0 {
+		return false
+	}
+	if meetingViewerRole(meeting, viewerID) != "mentor" {
+		return false
+	}
+	return meeting.Status == valueobject.MeetingStatusSubmitted
 }
 
 func canViewMeeting(meeting *entity.Meeting, viewerID uint) bool {

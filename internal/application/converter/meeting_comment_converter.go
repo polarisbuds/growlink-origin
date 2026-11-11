@@ -16,12 +16,10 @@ func MeetingCommentInputToEntity(in inputmodel.MeetingCommentInput) *entity.Meet
 
 func MeetingCommentEntityToOutput(e entity.MeetingComment) outputmodel.MeetingCommentOutput {
 	out := outputmodel.MeetingCommentOutput{
-		ID:        e.ID,
+		UUID:      e.UUID.String(),
 		Content:   e.Content,
 		IsLimited: e.IsLimited,
 		CreatedAt: e.CreatedAt,
-		MeetingID: e.MeetingID,
-		UserID:    e.UserID,
 	}
 	if e.Meeting != nil {
 		out.Meeting = MeetingEntityToOutput(*e.Meeting)

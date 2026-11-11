@@ -5,20 +5,22 @@ import (
 )
 
 // PairManagementScopeUserIDs returns user IDs whose pairings may be viewed or managed
-// on the planning pair list (dept head/manager scope and team leader scope only).
-func (uc *PlanningAccessUsecase) PairManagementScopeUserIDs(userID uint, systemRole valueobject.SystemRole) (map[uint]bool, error) {
-	if systemRole == valueobject.SystemRoleAdmin {
+// (boss dept scope, team leader scope, and mentor mentees for general users).
+func (uc *PlanningAccessUsecase) PairManagementScopeUserIDs(userID uint, authority valueobject.Authority, systemRole valueobject.SystemRole) (map[uint]bool, error) {
+	if systemRole == valueobject.SystemRoleAdmin || authority.IsOwner() {
 		return nil, nil
 	}
 	visible := map[uint]bool{}
 
-	deptUserIDs, err := uc.departmentScopeUserIDs(userID)
-	if err != nil {
-		return nil, err
-	}
-	for _, id := range deptUserIDs {
-		if id > 0 {
-			visible[id] = true
+	if authority.IsBoss() {
+		deptUserIDs, err := uc.departmentScopeUserIDs(userID)
+		if err != nil {
+			return nil, err
+		}
+		for _, id := range deptUserIDs {
+			if id > 0 {
+				visible[id] = true
+			}
 		}
 	}
 
@@ -37,26 +39,38 @@ func (uc *PlanningAccessUsecase) PairManagementScopeUserIDs(userID uint, systemR
 			}
 		}
 	}
+
+	if !authority.IsBoss() && uc.pairingRepo != nil {
+		pairings, err := uc.pairingRepo.GetByMentorID(userID)
+		if err != nil {
+			return nil, err
+		}
+		for _, p := range pairings {
+			if p.MenteeID > 0 {
+				visible[p.MenteeID] = true
+			}
+		}
+	}
 	return visible, nil
 }
 
-func (uc *PlanningAccessUsecase) CanManagePairingMentee(userID uint, systemRole valueobject.SystemRole, menteeID uint) (bool, error) {
-	if systemRole == valueobject.SystemRoleAdmin {
+func (uc *PlanningAccessUsecase) CanManagePairingMentee(userID uint, authority valueobject.Authority, systemRole valueobject.SystemRole, menteeID uint) (bool, error) {
+	if systemRole == valueobject.SystemRoleAdmin || authority.IsOwner() {
 		return true, nil
 	}
-	scope, err := uc.PairManagementScopeUserIDs(userID, systemRole)
+	scope, err := uc.PairManagementScopeUserIDs(userID, authority, systemRole)
 	if err != nil {
 		return false, err
 	}
 	return scope[menteeID], nil
 }
 
-func (uc *PlanningAccessUsecase) CanBreakPairing(userID uint, systemRole valueobject.SystemRole, createdByUserID, menteeID uint) (bool, error) {
-	if systemRole == valueobject.SystemRoleAdmin {
+func (uc *PlanningAccessUsecase) CanBreakPairing(userID uint, authority valueobject.Authority, systemRole valueobject.SystemRole, createdByUserID, menteeID uint) (bool, error) {
+	if systemRole == valueobject.SystemRoleAdmin || authority.IsOwner() {
 		return true, nil
 	}
 	if userID == createdByUserID && createdByUserID > 0 {
 		return true, nil
 	}
-	return uc.CanManagePairingMentee(userID, systemRole, menteeID)
+	return uc.CanManagePairingMentee(userID, authority, systemRole, menteeID)
 }

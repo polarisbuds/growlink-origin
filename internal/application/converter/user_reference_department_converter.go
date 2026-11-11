@@ -14,11 +14,7 @@ func UserReferenceDepartmentInputToEntity(in inputmodel.UserReferenceDepartmentI
 }
 
 func UserReferenceDepartmentEntityToOutput(e entity.UserReferenceDepartment) outputmodel.UserReferenceDepartmentOutput {
-	out := outputmodel.UserReferenceDepartmentOutput{
-		ID:                    e.ID,
-		UserID:                e.UserID,
-		ReferableDepartmentID: e.ReferableDepartmentID,
-	}
+	out := outputmodel.UserReferenceDepartmentOutput{}
 	if e.User != nil {
 		out.User = UserEntityToOutput(*e.User)
 	} else if e.UserID != 0 {

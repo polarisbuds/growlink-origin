@@ -14,8 +14,7 @@ type deptAssignmentResolved struct {
 }
 
 type teamAssignmentResolved struct {
-	TeamID   uint
-	IsLeader bool
+	TeamID uint
 }
 
 func (uc *UserAdmin) resolveDepartmentAssignments(rows []DepartmentAssignmentInput) ([]deptAssignmentResolved, error) {
@@ -57,8 +56,7 @@ func (uc *UserAdmin) resolveTeamAssignments(rows []TeamAssignmentInput) ([]teamA
 			return nil, fmt.Errorf("チームを選択してください")
 		}
 		out = append(out, teamAssignmentResolved{
-			TeamID:   team.ID,
-			IsLeader: row.IsLeader,
+			TeamID: team.ID,
 		})
 	}
 	return out, nil

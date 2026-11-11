@@ -10,6 +10,14 @@ const (
 	AuthorityOwner
 )
 
+func (a Authority) IsOwner() bool {
+	return a == AuthorityOwner
+}
+
+func (a Authority) IsBoss() bool {
+	return a == AuthorityBoss
+}
+
 func (a Authority) String() string {
 	switch a {
 	case AuthorityGeneral:

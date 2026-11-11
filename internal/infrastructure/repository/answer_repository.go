@@ -46,6 +46,10 @@ func (repo *AnswerRepository) GetByMeetingID(meetingID uint) ([]entity.Answer, e
 	answers, err := gorm.G[entity.Answer](repo.db).
 		Where("meeting_id = ?", meetingID).
 		Order("id ASC").
+		Preload("Topic", nil).
+		Preload("User", nil).
+		Preload("AnswerComment", nil).
+		Preload("AnswerComment.User", nil).
 		Find(repo.ctx)
 	if err != nil {
 		return nil, fmt.Errorf("ID指定での回答取得に失敗しました: %w", err)

@@ -27,9 +27,27 @@ func (uc *AnswerCommenterUsecase) GetComment(commentID uint) (*entity.AnswerComm
 	return comment, nil
 }
 
-func (uc *AnswerCommenterUsecase) PostComment(answerID uint, content string) error {
+func (uc *AnswerCommenterUsecase) PostComment(answerID, userID uint, content string) error {
+	return uc.SaveComment(answerID, userID, content)
+}
+
+func (uc *AnswerCommenterUsecase) SaveComment(answerID, userID uint, content string) error {
+	if userID == 0 {
+		return fmt.Errorf("回答へのコメントの保存に失敗しました: ユーザIDが不正です")
+	}
+	existing, err := uc.answerCommentRepo.GetByAnswerID(answerID)
+	if err != nil {
+		return fmt.Errorf("回答へのコメントの保存に失敗しました: %w", err)
+	}
+	if existing != nil {
+		if err := uc.answerCommentRepo.UpdateComment(existing.ID, content); err != nil {
+			return fmt.Errorf("回答へのコメントの保存に失敗しました: %w", err)
+		}
+		return nil
+	}
 	if err := uc.answerCommentRepo.PostComment(&entity.AnswerComment{
 		AnswerID: answerID,
+		UserID:   userID,
 		Content:  &content,
 	}); err != nil {
 		return fmt.Errorf("回答へのコメントの作成に失敗しました: %w", err)

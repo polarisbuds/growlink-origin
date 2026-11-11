@@ -25,14 +25,15 @@ import (
 )
 
 type AuthUsecase struct {
-	ldapClient ldap_interface.LDAPClient
-	userRepo   repository_interface.UserRepository
+	ldapClient     ldap_interface.LDAPClient
+	userRepo       repository_interface.UserRepository
+	deptMemberRepo repository_interface.DepartmentMemberRepository
 }
 
 const opAuth = "auth_usecase"
 
-func NewAuthUsecase(ldapClient ldap_interface.LDAPClient, userRepo repository_interface.UserRepository) *AuthUsecase {
-	return &AuthUsecase{ldapClient: ldapClient, userRepo: userRepo}
+func NewAuthUsecase(ldapClient ldap_interface.LDAPClient, userRepo repository_interface.UserRepository, deptMemberRepo repository_interface.DepartmentMemberRepository) *AuthUsecase {
+	return &AuthUsecase{ldapClient: ldapClient, userRepo: userRepo, deptMemberRepo: deptMemberRepo}
 }
 
 func (uc *AuthUsecase) LoginLDAP(ctx context.Context, email, password string) (string, outputmodel.UserOutput, error) {
@@ -55,13 +56,25 @@ func (uc *AuthUsecase) LoginLDAP(ctx context.Context, email, password string) (s
 			return "", outputmodel.UserOutput{}, err
 		}
 		user = &entity.User{
-			Name:         ldapUser.Name,
-			Email:        ldapUser.Mail,
-			RoleID:       defaultRoleID(),
-			DepartmentID: defaultDepartmentID(),
-			Authority:    valueobject.AuthorityGeneral,
+			Name:      ldapUser.Name,
+			Email:     ldapUser.Mail,
+			Authority: valueobject.AuthorityGeneral,
 		}
 		if err := uc.userRepo.Create(user); err != nil {
+			return "", outputmodel.UserOutput{}, err
+		}
+		deptID := defaultDepartmentID()
+		roleID := defaultRoleID()
+		members, err := uc.deptMemberRepo.GetByDepartmentID(deptID)
+		if err != nil {
+			return "", outputmodel.UserOutput{}, err
+		}
+		members = append(members, entity.DepartmentMember{
+			DepartmentID: deptID,
+			UserID:       user.ID,
+			RoleID:       roleID,
+		})
+		if err := uc.deptMemberRepo.ReplaceByDepartment(deptID, members); err != nil {
 			return "", outputmodel.UserOutput{}, err
 		}
 	} else {

@@ -9,7 +9,7 @@ type Role struct {
 	gorm.Model
 
 	UUID uuid.UUID `gorm:"type:uuid;not null;uniqueIndex;default:gen_random_uuid()"`
-	Name string `gorm:"type:text;not null"`
+	Name string    `gorm:"type:text;not null;uniqueIndx"`
 
-	Users []User `gorm:"foreignKey:RoleID;references:ID"`
+	DepartmentMember []DepartmentMember `gorm:"foreignKey:RoleID;references:ID"`
 }

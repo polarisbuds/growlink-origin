@@ -29,7 +29,7 @@ func (h *Handler) AvatarMe(c *echo.Context) error {
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
-	canAccessPairs, err := h.deps.Planning.HasPairManagementAccess(claims.UserID, claims.SystemRole)
+	canAccessPairs, err := h.deps.Planning.HasPairManagementAccess(claims.UserID, claims.Authority, claims.SystemRole)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}

@@ -43,16 +43,23 @@ func createUserWithDeps(t *testing.T, tx *gorm.DB, prefix string, role *entity.R
 	t.Helper()
 
 	user := &entity.User{
-		Name:         fmt.Sprintf("%s-name", prefix),
-		Email:        fmt.Sprintf("%s-%d@example.com", prefix, time.Now().UnixNano()),
-		RoleID:       role.ID,
-		DepartmentID: department.ID,
-		Authority:    valueobject.AuthorityGeneral,
+		Name:      fmt.Sprintf("%s-name", prefix),
+		Email:     fmt.Sprintf("%s-%d@example.com", prefix, time.Now().UnixNano()),
+		Authority: valueobject.AuthorityGeneral,
 	}
 	if err := tx.Create(user).Error; err != nil {
 		t.Fatalf("failed to create user fixture: %v", err)
 	}
-	user.Role = role
-	user.Department = department
+	member := &entity.DepartmentMember{
+		DepartmentID: department.ID,
+		UserID:       user.ID,
+		RoleID:       role.ID,
+	}
+	if err := tx.Create(member).Error; err != nil {
+		t.Fatalf("failed to create department member fixture: %v", err)
+	}
+	member.Department = department
+	member.Role = role
+	user.DepartmentMembers = []entity.DepartmentMember{*member}
 	return user
 }

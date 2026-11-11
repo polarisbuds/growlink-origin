@@ -16,10 +16,7 @@ func DepartmentRoleInputToEntity(in inputmodel.DepartmentRoleInput) *entity.Depa
 
 func DepartmentRoleEntityToOutput(e entity.DepartmentRole) outputmodel.DepartmentRoleOutput {
 	out := outputmodel.DepartmentRoleOutput{
-		ID:           e.ID,
-		Name:         e.Name,
-		UserID:       e.UserID,
-		DepartmentID: e.DepartmentID,
+		Name: e.Name,
 	}
 	if e.User != nil {
 		out.User = UserEntityToOutput(*e.User)

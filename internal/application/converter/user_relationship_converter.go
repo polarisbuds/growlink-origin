@@ -16,10 +16,7 @@ func UserRelationshipInputToEntity(in inputmodel.UserRelationshipInput) *entity.
 
 func UserRelationshipEntityToOutput(e entity.UserRelationship) outputmodel.UserRelationshipOutput {
 	out := outputmodel.UserRelationshipOutput{
-		ID:           e.ID,
 		RelationType: e.RelationType,
-		SourceUserID: e.SourceUserID,
-		TargetUserID: e.TargetUserID,
 	}
 	if e.SourceUser != nil {
 		out.SourceUser = UserEntityToOutput(*e.SourceUser)

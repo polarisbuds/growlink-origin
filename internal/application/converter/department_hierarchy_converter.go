@@ -14,11 +14,7 @@ func DepartmentHierarchyInputToEntity(in inputmodel.DepartmentHierarchyInput) *e
 }
 
 func DepartmentHierarchyEntityToOutput(e entity.DepartmentHierarchy) outputmodel.DepartmentHierarchyOutput {
-	out := outputmodel.DepartmentHierarchyOutput{
-		ID:                 e.ID,
-		ParentDepartmentID: e.ParentDepartmentID,
-		ChildDepartmentID:  e.ChildDepartmentID,
-	}
+	out := outputmodel.DepartmentHierarchyOutput{}
 	if e.ParentDepartment != nil {
 		out.ParentDepartment = DepartmentEntityToOutput(*e.ParentDepartment)
 	} else if e.ParentDepartmentID != 0 {

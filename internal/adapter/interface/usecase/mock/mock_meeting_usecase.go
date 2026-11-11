@@ -11,7 +11,7 @@ package mock
 
 import (
 	outputmodel "growlink/internal/application/model/output_model"
-	"growlink/internal/domain/valueobject"
+	valueobject "growlink/internal/domain/valueobject"
 	reflect "reflect"
 
 	gomock "go.uber.org/mock/gomock"
@@ -75,82 +75,6 @@ func (c *MockMeetingUsecaseCancelSubmitCall) Do(f func(uint) error) *MockMeeting
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
 func (c *MockMeetingUsecaseCancelSubmitCall) DoAndReturn(f func(uint) error) *MockMeetingUsecaseCancelSubmitCall {
-	c.Call = c.Call.DoAndReturn(f)
-	return c
-}
-
-// DeleteComment mocks base method.
-func (m *MockMeetingUsecase) DeleteComment(commentID uint) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeleteComment", commentID)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// DeleteComment indicates an expected call of DeleteComment.
-func (mr *MockMeetingUsecaseMockRecorder) DeleteComment(commentID any) *MockMeetingUsecaseDeleteCommentCall {
-	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteComment", reflect.TypeOf((*MockMeetingUsecase)(nil).DeleteComment), commentID)
-	return &MockMeetingUsecaseDeleteCommentCall{Call: call}
-}
-
-// MockMeetingUsecaseDeleteCommentCall wrap *gomock.Call
-type MockMeetingUsecaseDeleteCommentCall struct {
-	*gomock.Call
-}
-
-// Return rewrite *gomock.Call.Return
-func (c *MockMeetingUsecaseDeleteCommentCall) Return(arg0 error) *MockMeetingUsecaseDeleteCommentCall {
-	c.Call = c.Call.Return(arg0)
-	return c
-}
-
-// Do rewrite *gomock.Call.Do
-func (c *MockMeetingUsecaseDeleteCommentCall) Do(f func(uint) error) *MockMeetingUsecaseDeleteCommentCall {
-	c.Call = c.Call.Do(f)
-	return c
-}
-
-// DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockMeetingUsecaseDeleteCommentCall) DoAndReturn(f func(uint) error) *MockMeetingUsecaseDeleteCommentCall {
-	c.Call = c.Call.DoAndReturn(f)
-	return c
-}
-
-// EditComment mocks base method.
-func (m *MockMeetingUsecase) EditComment(commentID uint, content string) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "EditComment", commentID, content)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// EditComment indicates an expected call of EditComment.
-func (mr *MockMeetingUsecaseMockRecorder) EditComment(commentID, content any) *MockMeetingUsecaseEditCommentCall {
-	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "EditComment", reflect.TypeOf((*MockMeetingUsecase)(nil).EditComment), commentID, content)
-	return &MockMeetingUsecaseEditCommentCall{Call: call}
-}
-
-// MockMeetingUsecaseEditCommentCall wrap *gomock.Call
-type MockMeetingUsecaseEditCommentCall struct {
-	*gomock.Call
-}
-
-// Return rewrite *gomock.Call.Return
-func (c *MockMeetingUsecaseEditCommentCall) Return(arg0 error) *MockMeetingUsecaseEditCommentCall {
-	c.Call = c.Call.Return(arg0)
-	return c
-}
-
-// Do rewrite *gomock.Call.Do
-func (c *MockMeetingUsecaseEditCommentCall) Do(f func(uint, string) error) *MockMeetingUsecaseEditCommentCall {
-	c.Call = c.Call.Do(f)
-	return c
-}
-
-// DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockMeetingUsecaseEditCommentCall) DoAndReturn(f func(uint, string) error) *MockMeetingUsecaseEditCommentCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
@@ -229,44 +153,6 @@ func (c *MockMeetingUsecaseListAnswersByMeetingCall) Do(f func(uint) ([]outputmo
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
 func (c *MockMeetingUsecaseListAnswersByMeetingCall) DoAndReturn(f func(uint) ([]outputmodel.AnswerOutput, error)) *MockMeetingUsecaseListAnswersByMeetingCall {
-	c.Call = c.Call.DoAndReturn(f)
-	return c
-}
-
-// PostComment mocks base method.
-func (m *MockMeetingUsecase) PostComment(answerID uint, content string) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "PostComment", answerID, content)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// PostComment indicates an expected call of PostComment.
-func (mr *MockMeetingUsecaseMockRecorder) PostComment(answerID, content any) *MockMeetingUsecasePostCommentCall {
-	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PostComment", reflect.TypeOf((*MockMeetingUsecase)(nil).PostComment), answerID, content)
-	return &MockMeetingUsecasePostCommentCall{Call: call}
-}
-
-// MockMeetingUsecasePostCommentCall wrap *gomock.Call
-type MockMeetingUsecasePostCommentCall struct {
-	*gomock.Call
-}
-
-// Return rewrite *gomock.Call.Return
-func (c *MockMeetingUsecasePostCommentCall) Return(arg0 error) *MockMeetingUsecasePostCommentCall {
-	c.Call = c.Call.Return(arg0)
-	return c
-}
-
-// Do rewrite *gomock.Call.Do
-func (c *MockMeetingUsecasePostCommentCall) Do(f func(uint, string) error) *MockMeetingUsecasePostCommentCall {
-	c.Call = c.Call.Do(f)
-	return c
-}
-
-// DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockMeetingUsecasePostCommentCall) DoAndReturn(f func(uint, string) error) *MockMeetingUsecasePostCommentCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
@@ -799,17 +685,17 @@ func (c *MockAnswerCommenterEditCommentCall) DoAndReturn(f func(uint, string) er
 }
 
 // PostComment mocks base method.
-func (m *MockAnswerCommenter) PostComment(answerID uint, content string) error {
+func (m *MockAnswerCommenter) PostComment(answerID, userID uint, content string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "PostComment", answerID, content)
+	ret := m.ctrl.Call(m, "PostComment", answerID, userID, content)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // PostComment indicates an expected call of PostComment.
-func (mr *MockAnswerCommenterMockRecorder) PostComment(answerID, content any) *MockAnswerCommenterPostCommentCall {
+func (mr *MockAnswerCommenterMockRecorder) PostComment(answerID, userID, content any) *MockAnswerCommenterPostCommentCall {
 	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PostComment", reflect.TypeOf((*MockAnswerCommenter)(nil).PostComment), answerID, content)
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PostComment", reflect.TypeOf((*MockAnswerCommenter)(nil).PostComment), answerID, userID, content)
 	return &MockAnswerCommenterPostCommentCall{Call: call}
 }
 
@@ -825,13 +711,13 @@ func (c *MockAnswerCommenterPostCommentCall) Return(arg0 error) *MockAnswerComme
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockAnswerCommenterPostCommentCall) Do(f func(uint, string) error) *MockAnswerCommenterPostCommentCall {
+func (c *MockAnswerCommenterPostCommentCall) Do(f func(uint, uint, string) error) *MockAnswerCommenterPostCommentCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockAnswerCommenterPostCommentCall) DoAndReturn(f func(uint, string) error) *MockAnswerCommenterPostCommentCall {
+func (c *MockAnswerCommenterPostCommentCall) DoAndReturn(f func(uint, uint, string) error) *MockAnswerCommenterPostCommentCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }

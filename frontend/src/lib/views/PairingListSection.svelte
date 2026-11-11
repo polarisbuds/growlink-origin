@@ -194,8 +194,7 @@
     onkeydown={(e: KeyboardEvent) =>
         e.key === "Escape" && (deleteOpen = false)} />
 
-<div class="mt-4 flex flex-wrap items-center gap-2 justify-between">
-    <span class="text-xs text-base-content/60">表示</span>
+<div class="mt-4 flex flex-wrap items-center gap-2 justify-end">
     <div class="join">
         <button
             type="button"

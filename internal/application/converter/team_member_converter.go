@@ -16,15 +16,10 @@ func TeamMemberInputToEntity(in inputmodel.TeamMemberInput) *entity.TeamMember {
 
 func TeamMemberEntityToOutput(e entity.TeamMember) outputmodel.TeamMemberOutput {
 	out := outputmodel.TeamMemberOutput{
-		ID:       e.ID,
 		IsReader: e.IsReader,
-		TeamID:   e.TeamID,
-		MemberID: e.MemberID,
 	}
 	if e.Team != nil {
 		out.Team = teamEntityToOutputShallow(*e.Team)
-	} else if e.TeamID != 0 {
-		out.Team = outputmodel.TeamOutput{ID: e.TeamID}
 	}
 	if e.Member != nil {
 		out.Member = UserEntityToOutput(*e.Member)

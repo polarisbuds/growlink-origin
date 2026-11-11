@@ -44,54 +44,52 @@ func genSeed(db *gorm.DB) error {
 		}
 
 		owner := &entity.User{
-			Name:         "オーナー",
-			Email:        "owner@example.com",
-			Password:     password,
-			RoleID:       roleOwner.ID,
-			DepartmentID: deptHQ.ID,
-			Authority:    valueobject.AuthorityOwner,
+			Name:      "オーナー",
+			Email:     "owner@example.com",
+			Password:  password,
+			Authority: valueobject.AuthorityOwner,
 		}
 		boss := &entity.User{
-			Name:         "上司",
-			Email:        "boss@example.com",
-			Password:     password,
-			RoleID:       roleBoss.ID,
-			DepartmentID: deptDev.ID,
-			Authority:    valueobject.AuthorityBoss,
+			Name:      "上司",
+			Email:     "boss@example.com",
+			Password:  password,
+			Authority: valueobject.AuthorityBoss,
 		}
 		mentor := &entity.User{
-			Name:         "メンター",
-			Email:        "mentor@example.com",
-			Password:     password,
-			RoleID:       roleGeneral.ID,
-			DepartmentID: deptDev.ID,
-			Authority:    valueobject.AuthorityGeneral,
+			Name:      "メンター",
+			Email:     "mentor@example.com",
+			Password:  password,
+			Authority: valueobject.AuthorityGeneral,
 		}
 		mentee := &entity.User{
-			Name:         "メンティ",
-			Email:        "mentee@example.com",
-			Password:     password,
-			RoleID:       roleGeneral.ID,
-			DepartmentID: deptDev.ID,
-			Authority:    valueobject.AuthorityGeneral,
+			Name:      "メンティ",
+			Email:     "mentee@example.com",
+			Password:  password,
+			Authority: valueobject.AuthorityGeneral,
 		}
 		sharer := &entity.User{
-			Name:         "共有者",
-			Email:        "sharer@example.com",
-			Password:     password,
-			RoleID:       roleGeneral.ID,
-			DepartmentID: deptSales.ID,
-			Authority:    valueobject.AuthorityGeneral,
+			Name:      "共有者",
+			Email:     "sharer@example.com",
+			Password:  password,
+			Authority: valueobject.AuthorityGeneral,
 		}
 		mentee2 := &entity.User{
-			Name:         "メンティ2",
-			Email:        "mentee2@example.com",
-			Password:     password,
-			RoleID:       roleGeneral.ID,
-			DepartmentID: deptDev.ID,
-			Authority:    valueobject.AuthorityGeneral,
+			Name:      "メンティ2",
+			Email:     "mentee2@example.com",
+			Password:  password,
+			Authority: valueobject.AuthorityGeneral,
 		}
 		if err := tx.Create([]*entity.User{owner, boss, mentor, mentee, sharer, mentee2}).Error; err != nil {
+			return err
+		}
+		if err := tx.Create([]*entity.DepartmentMember{
+			{DepartmentID: deptHQ.ID, UserID: owner.ID, RoleID: roleOwner.ID},
+			{DepartmentID: deptDev.ID, UserID: boss.ID, RoleID: roleBoss.ID},
+			{DepartmentID: deptDev.ID, UserID: mentor.ID, RoleID: roleGeneral.ID},
+			{DepartmentID: deptDev.ID, UserID: mentee.ID, RoleID: roleGeneral.ID},
+			{DepartmentID: deptSales.ID, UserID: sharer.ID, RoleID: roleGeneral.ID},
+			{DepartmentID: deptDev.ID, UserID: mentee2.ID, RoleID: roleGeneral.ID},
+		}).Error; err != nil {
 			return err
 		}
 
@@ -112,12 +110,9 @@ func genSeed(db *gorm.DB) error {
 		if err := tx.Model(&entity.Department{}).Where("id = ?", deptDev.ID).Update("head_user_id", boss.ID).Error; err != nil {
 			return err
 		}
-		if err := tx.Create(&entity.DepartmentMember{
-			DepartmentID: deptDev.ID,
-			UserID:       boss.ID,
-			IsHead:       true,
-			IsManager:    true,
-		}).Error; err != nil {
+		if err := tx.Model(&entity.DepartmentMember{}).
+			Where("department_id = ? AND user_id = ?", deptDev.ID, boss.ID).
+			Updates(map[string]any{"is_head": true, "is_manager": true}).Error; err != nil {
 			return err
 		}
 
@@ -314,18 +309,6 @@ func genSeed(db *gorm.DB) error {
 				UserID:    mentee.ID,
 			},
 			{
-				Content:   "進捗は順調です。次は品質改善に注力しましょう。",
-				MeetingID: meetingPastDone.ID,
-				TopicID:   topicRequired.ID,
-				UserID:    mentor.ID,
-			},
-			{
-				Content:   "コードレビューの頻度を上げたいです。",
-				MeetingID: meetingPastDone.ID,
-				TopicID:   topicOptional.ID,
-				UserID:    mentor.ID,
-			},
-			{
 				Content:   "目標を達成しました。",
 				MeetingID: meetingTodaySubmitted.ID,
 				TopicID:   topicRequired.ID,
@@ -355,12 +338,6 @@ func genSeed(db *gorm.DB) error {
 				TopicID:   topicCheckinBlocker.ID,
 				UserID:    mentee2.ID,
 			},
-			{
-				Content:   "来週はレビュー体制を整えましょう。",
-				MeetingID: meetingBossPastDone.ID,
-				TopicID:   topicCheckinGoal.ID,
-				UserID:    boss.ID,
-			},
 		}
 		if err := tx.Create(doneMeetingAnswers).Error; err != nil {
 			return err
@@ -383,18 +360,30 @@ func genSeed(db *gorm.DB) error {
 			return err
 		}
 
-		pastAnswerComment := "前回の振り返りが活きていますね。"
-		todayAnswerComment := "具体的で良いですね。"
+		pastRequiredComment := "進捗は順調です。次は品質改善に注力しましょう。"
+		pastOptionalComment := "コードレビューの頻度を上げたいです。"
+		todayRequiredComment := "具体的で良いですね。"
+		bossGoalComment := "来週はレビュー体制を整えましょう。"
 		if err := tx.Create([]*entity.AnswerComment{
 			{
-				Content:  &pastAnswerComment,
+				Content:  &pastRequiredComment,
 				AnswerID: doneMeetingAnswers[0].ID,
 				UserID:   mentor.ID,
 			},
 			{
-				Content:  &todayAnswerComment,
-				AnswerID: doneMeetingAnswers[4].ID,
+				Content:  &pastOptionalComment,
+				AnswerID: doneMeetingAnswers[1].ID,
 				UserID:   mentor.ID,
+			},
+			{
+				Content:  &todayRequiredComment,
+				AnswerID: doneMeetingAnswers[2].ID,
+				UserID:   mentor.ID,
+			},
+			{
+				Content:  &bossGoalComment,
+				AnswerID: doneMeetingAnswers[5].ID,
+				UserID:   boss.ID,
 			},
 		}).Error; err != nil {
 			return err

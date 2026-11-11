@@ -8,12 +8,10 @@ import (
 
 func UserInputToEntity(in inputmodel.UserInput) *entity.User {
 	return &entity.User{
-		Name:         in.Name,
-		Email:        in.Email,
-		ImageURI:     in.ImageURI,
-		RoleID:       in.RoleID,
-		DepartmentID: in.DepartmentID,
-		Authority:    in.Authority,
+		Name:      in.Name,
+		Email:     in.Email,
+		ImageURI:  in.ImageURI,
+		Authority: in.Authority,
 	}
 }
 

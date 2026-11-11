@@ -10,11 +10,9 @@ import (
 func TestUserColumnChanges_Unchanged(t *testing.T) {
 	suspended := false
 	user := &entity.User{
-		Authority:    valueobject.AuthorityGeneral,
-		SystemRole:   valueobject.SystemRoleNone,
-		DepartmentID: 1,
-		RoleID:       2,
-		Suspended:    false,
+		Authority:  valueobject.AuthorityGeneral,
+		SystemRole: valueobject.SystemRoleNone,
+		Suspended:  false,
 	}
 	departments := []deptAssignmentResolved{{DepartmentID: 1, RoleID: 2}}
 	columns, err := userColumnChanges(user, UpdateUserInput{
@@ -34,35 +32,26 @@ func TestUserColumnChanges_Unchanged(t *testing.T) {
 func TestUserColumnChanges_OnlyChanged(t *testing.T) {
 	suspended := false
 	user := &entity.User{
-		Authority:    valueobject.AuthorityGeneral,
-		SystemRole:   valueobject.SystemRoleNone,
-		DepartmentID: 1,
-		RoleID:       2,
-		Suspended:    true,
+		Authority:  valueobject.AuthorityGeneral,
+		SystemRole: valueobject.SystemRoleNone,
+		Suspended:  true,
 	}
-	departments := []deptAssignmentResolved{{DepartmentID: 4, RoleID: 2}}
 	columns, err := userColumnChanges(user, UpdateUserInput{
-		Authority:   "boss",
-		SystemRole:  "none",
-		Suspended:   &suspended,
-	}, departments)
+		Authority:  "boss",
+		SystemRole: "none",
+		Suspended:  &suspended,
+	}, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
 	if columns["authority"] != valueobject.AuthorityBoss.Int() {
 		t.Fatalf("authority = %#v", columns["authority"])
 	}
-	if columns["department_id"] != uint(4) {
-		t.Fatalf("department_id = %#v", columns["department_id"])
-	}
 	if columns["suspended"] != false {
 		t.Fatalf("suspended = %#v", columns["suspended"])
 	}
 	if _, ok := columns["system_role"]; ok {
 		t.Fatal("unchanged system role was included")
-	}
-	if _, ok := columns["role_id"]; ok {
-		t.Fatal("unchanged role was included")
 	}
 }
 

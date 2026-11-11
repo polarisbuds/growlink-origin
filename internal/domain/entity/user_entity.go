@@ -10,27 +10,21 @@ import (
 type User struct {
 	gorm.Model
 
-	UUID     uuid.UUID `gorm:"type:uuid;not null;uniqueIndex;default:gen_random_uuid()"`
-	Name     string    `gorm:"type:text;not null"`
-	Email    string    `gorm:"type:text;not null"`
-	Password *string   `gorm:"type:text"`
-	ImageURI    *string `gorm:"type:text"`
-	ImageBase64 *string `gorm:"-"`
+	UUID        uuid.UUID `gorm:"type:uuid;not null;uniqueIndex;default:gen_random_uuid()"`
+	Name        string    `gorm:"type:text;not null"`
+	Email       string    `gorm:"type:text;not null"`
+	Password    *string   `gorm:"type:text"`
+	ImageURI    *string   `gorm:"type:text"`
+	ImageBase64 *string   `gorm:"-"`
 
-	RoleID          uint                        `gorm:"not null;index"`
-	DepartmentID    uint                        `gorm:"not null;index"`
-	Authority       valueobject.Authority       `gorm:"type:smallint;not null;index"`
-	SystemRole valueobject.SystemRole `gorm:"type:smallint;not null;default:1;index"`
-	Suspended  bool                   `gorm:"not null;default:false;index"`
-	LineWorksID     string                      `gorm:"type:text;not null;default:''"`
-	RemindEnabled   bool                        `gorm:"not null;default:false"`
-
-	Role       *Role       `gorm:"foreignKey:RoleID"`
-	Department *Department `gorm:"foreignKey:DepartmentID"`
+	Authority     valueobject.Authority  `gorm:"type:smallint;not null;index"`
+	SystemRole    valueobject.SystemRole `gorm:"type:smallint;not null;default:1;index"`
+	Suspended     bool                   `gorm:"not null;default:false;index"`
+	LineWorksID   string                 `gorm:"type:text;not null;default:''"`
+	RemindEnabled bool                   `gorm:"not null;default:false"`
 
 	TeamMembers []TeamMember `gorm:"foreignKey:MemberID;references:ID"`
 
-	UserDepartments []UserDepartment `gorm:"foreignKey:UserID;references:ID"`
-
-	DepartmentRoles []DepartmentRole `gorm:"foreignKey:UserID;references:ID"`
+	DepartmentMembers []DepartmentMember `gorm:"foreignKey:UserID;references:ID"`
+	DepartmentRoles   []DepartmentRole   `gorm:"foreignKey:UserID;references:ID"`
 }

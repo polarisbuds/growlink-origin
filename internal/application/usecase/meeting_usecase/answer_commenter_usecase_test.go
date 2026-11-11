@@ -110,6 +110,7 @@ func TestAnswerCommenterUsecase_PostComment(t *testing.T) {
 			content:  content,
 			wantErr:  false,
 			setup: func(_ *testing.T, comment *repomock.MockAnswerCommentRepository, cap *answerCommenterCaptures) {
+				comment.EXPECT().GetByAnswerID(validAnswerID).Return(nil, nil)
 				comment.EXPECT().PostComment(gomock.Any()).DoAndReturn(func(c *entity.AnswerComment) error {
 					cap.postedComment = c
 					return nil
@@ -119,6 +120,7 @@ func TestAnswerCommenterUsecase_PostComment(t *testing.T) {
 				t.Helper()
 				require.NotNil(t, cap.postedComment)
 				assert.Equal(t, validAnswerID, cap.postedComment.AnswerID)
+				assert.Equal(t, uint(1), cap.postedComment.UserID)
 				requireStringPtrEqual(t, cap.postedComment.Content, strPtr(content))
 			},
 		},
@@ -129,6 +131,7 @@ func TestAnswerCommenterUsecase_PostComment(t *testing.T) {
 			wantErr:     true,
 			errContains: "回答へのコメントの作成に失敗しました",
 			setup: func(_ *testing.T, comment *repomock.MockAnswerCommentRepository, _ *answerCommenterCaptures) {
+				comment.EXPECT().GetByAnswerID(validAnswerID).Return(nil, nil)
 				comment.EXPECT().PostComment(gomock.Any()).Return(errPostCommentFailed)
 			},
 		},
@@ -142,7 +145,7 @@ func TestAnswerCommenterUsecase_PostComment(t *testing.T) {
 				tt.setup(t, commentRepo, cap)
 			}
 
-			err := uc.PostComment(tt.answerID, tt.content)
+			err := uc.PostComment(tt.answerID, 1, tt.content)
 			assertUsecaseErr(t, err, tt.wantErr, tt.errContains, "PostComment")
 			if !t.Failed() && tt.assertFn != nil {
 				tt.assertFn(t, cap)

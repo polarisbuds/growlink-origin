@@ -665,45 +665,6 @@ func (c *MockManagerGetTemplateCall) DoAndReturn(f func(uint) (*outputmodel.Temp
 	return c
 }
 
-// ListMeetingsByBoss mocks base method.
-func (m *MockManager) ListMeetingsByBoss(bossID uint) ([]outputmodel.MeetingOutput, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListMeetingsByBoss", bossID)
-	ret0, _ := ret[0].([]outputmodel.MeetingOutput)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// ListMeetingsByBoss indicates an expected call of ListMeetingsByBoss.
-func (mr *MockManagerMockRecorder) ListMeetingsByBoss(bossID any) *MockManagerListMeetingsByBossCall {
-	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListMeetingsByBoss", reflect.TypeOf((*MockManager)(nil).ListMeetingsByBoss), bossID)
-	return &MockManagerListMeetingsByBossCall{Call: call}
-}
-
-// MockManagerListMeetingsByBossCall wrap *gomock.Call
-type MockManagerListMeetingsByBossCall struct {
-	*gomock.Call
-}
-
-// Return rewrite *gomock.Call.Return
-func (c *MockManagerListMeetingsByBossCall) Return(arg0 []outputmodel.MeetingOutput, arg1 error) *MockManagerListMeetingsByBossCall {
-	c.Call = c.Call.Return(arg0, arg1)
-	return c
-}
-
-// Do rewrite *gomock.Call.Do
-func (c *MockManagerListMeetingsByBossCall) Do(f func(uint) ([]outputmodel.MeetingOutput, error)) *MockManagerListMeetingsByBossCall {
-	c.Call = c.Call.Do(f)
-	return c
-}
-
-// DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockManagerListMeetingsByBossCall) DoAndReturn(f func(uint) ([]outputmodel.MeetingOutput, error)) *MockManagerListMeetingsByBossCall {
-	c.Call = c.Call.DoAndReturn(f)
-	return c
-}
-
 // ListMeetingsByDepartment mocks base method.
 func (m *MockManager) ListMeetingsByDepartment(departmentID uint) ([]outputmodel.MeetingOutput, error) {
 	m.ctrl.T.Helper()
@@ -856,45 +817,6 @@ func (c *MockManagerListPairingsByAllCall) Do(f func() ([]outputmodel.PairingOut
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
 func (c *MockManagerListPairingsByAllCall) DoAndReturn(f func() ([]outputmodel.PairingOutput, error)) *MockManagerListPairingsByAllCall {
-	c.Call = c.Call.DoAndReturn(f)
-	return c
-}
-
-// ListPairingsByBoss mocks base method.
-func (m *MockManager) ListPairingsByBoss(bossID uint) ([]outputmodel.PairingOutput, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListPairingsByBoss", bossID)
-	ret0, _ := ret[0].([]outputmodel.PairingOutput)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// ListPairingsByBoss indicates an expected call of ListPairingsByBoss.
-func (mr *MockManagerMockRecorder) ListPairingsByBoss(bossID any) *MockManagerListPairingsByBossCall {
-	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListPairingsByBoss", reflect.TypeOf((*MockManager)(nil).ListPairingsByBoss), bossID)
-	return &MockManagerListPairingsByBossCall{Call: call}
-}
-
-// MockManagerListPairingsByBossCall wrap *gomock.Call
-type MockManagerListPairingsByBossCall struct {
-	*gomock.Call
-}
-
-// Return rewrite *gomock.Call.Return
-func (c *MockManagerListPairingsByBossCall) Return(arg0 []outputmodel.PairingOutput, arg1 error) *MockManagerListPairingsByBossCall {
-	c.Call = c.Call.Return(arg0, arg1)
-	return c
-}
-
-// Do rewrite *gomock.Call.Do
-func (c *MockManagerListPairingsByBossCall) Do(f func(uint) ([]outputmodel.PairingOutput, error)) *MockManagerListPairingsByBossCall {
-	c.Call = c.Call.Do(f)
-	return c
-}
-
-// DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockManagerListPairingsByBossCall) DoAndReturn(f func(uint) ([]outputmodel.PairingOutput, error)) *MockManagerListPairingsByBossCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
@@ -1630,45 +1552,6 @@ func (c *MockMeetingManagerDeleteMeetingCall) DoAndReturn(f func(...uint) (bool,
 	return c
 }
 
-// ListMeetingsByBoss mocks base method.
-func (m *MockMeetingManager) ListMeetingsByBoss(bossID uint) ([]outputmodel.MeetingOutput, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListMeetingsByBoss", bossID)
-	ret0, _ := ret[0].([]outputmodel.MeetingOutput)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// ListMeetingsByBoss indicates an expected call of ListMeetingsByBoss.
-func (mr *MockMeetingManagerMockRecorder) ListMeetingsByBoss(bossID any) *MockMeetingManagerListMeetingsByBossCall {
-	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListMeetingsByBoss", reflect.TypeOf((*MockMeetingManager)(nil).ListMeetingsByBoss), bossID)
-	return &MockMeetingManagerListMeetingsByBossCall{Call: call}
-}
-
-// MockMeetingManagerListMeetingsByBossCall wrap *gomock.Call
-type MockMeetingManagerListMeetingsByBossCall struct {
-	*gomock.Call
-}
-
-// Return rewrite *gomock.Call.Return
-func (c *MockMeetingManagerListMeetingsByBossCall) Return(arg0 []outputmodel.MeetingOutput, arg1 error) *MockMeetingManagerListMeetingsByBossCall {
-	c.Call = c.Call.Return(arg0, arg1)
-	return c
-}
-
-// Do rewrite *gomock.Call.Do
-func (c *MockMeetingManagerListMeetingsByBossCall) Do(f func(uint) ([]outputmodel.MeetingOutput, error)) *MockMeetingManagerListMeetingsByBossCall {
-	c.Call = c.Call.Do(f)
-	return c
-}
-
-// DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockMeetingManagerListMeetingsByBossCall) DoAndReturn(f func(uint) ([]outputmodel.MeetingOutput, error)) *MockMeetingManagerListMeetingsByBossCall {
-	c.Call = c.Call.DoAndReturn(f)
-	return c
-}
-
 // ListMeetingsByDepartment mocks base method.
 func (m *MockMeetingManager) ListMeetingsByDepartment(departmentID uint) ([]outputmodel.MeetingOutput, error) {
 	m.ctrl.T.Helper()
@@ -1846,45 +1729,6 @@ func NewMockMeetingViewer(ctrl *gomock.Controller) *MockMeetingViewer {
 // EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockMeetingViewer) EXPECT() *MockMeetingViewerMockRecorder {
 	return m.recorder
-}
-
-// ListMeetingsByBoss mocks base method.
-func (m *MockMeetingViewer) ListMeetingsByBoss(bossID uint) ([]outputmodel.MeetingOutput, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListMeetingsByBoss", bossID)
-	ret0, _ := ret[0].([]outputmodel.MeetingOutput)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// ListMeetingsByBoss indicates an expected call of ListMeetingsByBoss.
-func (mr *MockMeetingViewerMockRecorder) ListMeetingsByBoss(bossID any) *MockMeetingViewerListMeetingsByBossCall {
-	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListMeetingsByBoss", reflect.TypeOf((*MockMeetingViewer)(nil).ListMeetingsByBoss), bossID)
-	return &MockMeetingViewerListMeetingsByBossCall{Call: call}
-}
-
-// MockMeetingViewerListMeetingsByBossCall wrap *gomock.Call
-type MockMeetingViewerListMeetingsByBossCall struct {
-	*gomock.Call
-}
-
-// Return rewrite *gomock.Call.Return
-func (c *MockMeetingViewerListMeetingsByBossCall) Return(arg0 []outputmodel.MeetingOutput, arg1 error) *MockMeetingViewerListMeetingsByBossCall {
-	c.Call = c.Call.Return(arg0, arg1)
-	return c
-}
-
-// Do rewrite *gomock.Call.Do
-func (c *MockMeetingViewerListMeetingsByBossCall) Do(f func(uint) ([]outputmodel.MeetingOutput, error)) *MockMeetingViewerListMeetingsByBossCall {
-	c.Call = c.Call.Do(f)
-	return c
-}
-
-// DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockMeetingViewerListMeetingsByBossCall) DoAndReturn(f func(uint) ([]outputmodel.MeetingOutput, error)) *MockMeetingViewerListMeetingsByBossCall {
-	c.Call = c.Call.DoAndReturn(f)
-	return c
 }
 
 // ListMeetingsByDepartment mocks base method.
@@ -3151,45 +2995,6 @@ func (c *MockPairingManagerListPairingsByAllCall) DoAndReturn(f func() ([]output
 	return c
 }
 
-// ListPairingsByBoss mocks base method.
-func (m *MockPairingManager) ListPairingsByBoss(bossID uint) ([]outputmodel.PairingOutput, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListPairingsByBoss", bossID)
-	ret0, _ := ret[0].([]outputmodel.PairingOutput)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// ListPairingsByBoss indicates an expected call of ListPairingsByBoss.
-func (mr *MockPairingManagerMockRecorder) ListPairingsByBoss(bossID any) *MockPairingManagerListPairingsByBossCall {
-	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListPairingsByBoss", reflect.TypeOf((*MockPairingManager)(nil).ListPairingsByBoss), bossID)
-	return &MockPairingManagerListPairingsByBossCall{Call: call}
-}
-
-// MockPairingManagerListPairingsByBossCall wrap *gomock.Call
-type MockPairingManagerListPairingsByBossCall struct {
-	*gomock.Call
-}
-
-// Return rewrite *gomock.Call.Return
-func (c *MockPairingManagerListPairingsByBossCall) Return(arg0 []outputmodel.PairingOutput, arg1 error) *MockPairingManagerListPairingsByBossCall {
-	c.Call = c.Call.Return(arg0, arg1)
-	return c
-}
-
-// Do rewrite *gomock.Call.Do
-func (c *MockPairingManagerListPairingsByBossCall) Do(f func(uint) ([]outputmodel.PairingOutput, error)) *MockPairingManagerListPairingsByBossCall {
-	c.Call = c.Call.Do(f)
-	return c
-}
-
-// DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockPairingManagerListPairingsByBossCall) DoAndReturn(f func(uint) ([]outputmodel.PairingOutput, error)) *MockPairingManagerListPairingsByBossCall {
-	c.Call = c.Call.DoAndReturn(f)
-	return c
-}
-
 // ListPairingsByDepartment mocks base method.
 func (m *MockPairingManager) ListPairingsByDepartment(departmentID uint) ([]outputmodel.PairingOutput, error) {
 	m.ctrl.T.Helper()
@@ -3443,45 +3248,6 @@ func (c *MockPairingViewerListPairingsByAllCall) Do(f func() ([]outputmodel.Pair
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
 func (c *MockPairingViewerListPairingsByAllCall) DoAndReturn(f func() ([]outputmodel.PairingOutput, error)) *MockPairingViewerListPairingsByAllCall {
-	c.Call = c.Call.DoAndReturn(f)
-	return c
-}
-
-// ListPairingsByBoss mocks base method.
-func (m *MockPairingViewer) ListPairingsByBoss(bossID uint) ([]outputmodel.PairingOutput, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListPairingsByBoss", bossID)
-	ret0, _ := ret[0].([]outputmodel.PairingOutput)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// ListPairingsByBoss indicates an expected call of ListPairingsByBoss.
-func (mr *MockPairingViewerMockRecorder) ListPairingsByBoss(bossID any) *MockPairingViewerListPairingsByBossCall {
-	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListPairingsByBoss", reflect.TypeOf((*MockPairingViewer)(nil).ListPairingsByBoss), bossID)
-	return &MockPairingViewerListPairingsByBossCall{Call: call}
-}
-
-// MockPairingViewerListPairingsByBossCall wrap *gomock.Call
-type MockPairingViewerListPairingsByBossCall struct {
-	*gomock.Call
-}
-
-// Return rewrite *gomock.Call.Return
-func (c *MockPairingViewerListPairingsByBossCall) Return(arg0 []outputmodel.PairingOutput, arg1 error) *MockPairingViewerListPairingsByBossCall {
-	c.Call = c.Call.Return(arg0, arg1)
-	return c
-}
-
-// Do rewrite *gomock.Call.Do
-func (c *MockPairingViewerListPairingsByBossCall) Do(f func(uint) ([]outputmodel.PairingOutput, error)) *MockPairingViewerListPairingsByBossCall {
-	c.Call = c.Call.Do(f)
-	return c
-}
-
-// DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockPairingViewerListPairingsByBossCall) DoAndReturn(f func(uint) ([]outputmodel.PairingOutput, error)) *MockPairingViewerListPairingsByBossCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }

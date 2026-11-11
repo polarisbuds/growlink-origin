@@ -14,11 +14,7 @@ func UserReferenceUserInputToEntity(in inputmodel.UserReferenceUserInput) *entit
 }
 
 func UserReferenceUserEntityToOutput(e entity.UserReferenceUser) outputmodel.UserReferenceUserOutput {
-	out := outputmodel.UserReferenceUserOutput{
-		ID:              e.ID,
-		UserID:          e.UserID,
-		ReferableUserID: e.ReferableUserID,
-	}
+	out := outputmodel.UserReferenceUserOutput{}
 	if e.User != nil {
 		out.User = UserEntityToOutput(*e.User)
 	} else if e.UserID != 0 {

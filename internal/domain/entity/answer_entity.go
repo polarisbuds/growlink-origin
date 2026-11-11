@@ -15,9 +15,8 @@ type Answer struct {
 	TopicID   uint `gorm:"not null;index"`
 	UserID    uint `gorm:"not null;index"`
 
-	Meeting *Meeting `gorm:"foreignKey:MeetingID"`
-	Topic   *Topic   `gorm:"foreignKey:TopicID"`
-	User    *User    `gorm:"foreignKey:UserID"`
-
-	AnswerComments []AnswerComment `gorm:"foreignKey:AnswerID"`
+	Meeting       *Meeting       `gorm:"foreignKey:MeetingID"`
+	Topic         *Topic         `gorm:"foreignKey:TopicID"`
+	User          *User          `gorm:"foreignKey:UserID"`
+	AnswerComment *AnswerComment `gorm:"foreignKey:AnswerID"`
 }

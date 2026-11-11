@@ -94,7 +94,6 @@ func main() {
 	deptRoleRepo := repository.NewDepartmentRoleRepository(ctx, db)
 	deptMemberRepo := repository.NewDepartmentMemberRepository(ctx, db)
 	roleRepo := repository.NewRoleRepository(ctx, db)
-	userDeptRepo := repository.NewUserDepartmentRepository(ctx, db)
 	systemSettingsRepo := repository.NewSystemSettingsRepository(ctx, db)
 
 	ldapSetting, err := ldap.NewLDAPSetting()
@@ -105,16 +104,17 @@ func main() {
 		ldapClient = ldap.NewClient(ldapSetting)
 	}
 
-	authUC := authenticate_usecase.NewAuthUsecase(ldapClient, userRepo)
-
+	authUC := authenticate_usecase.NewAuthUsecase(ldapClient, userRepo, deptMemberRepo)
+	answerCommenter := meeting_usecase.NewAnswerCommenterUsecase(answerCommentRepo)
 	meetingBundle := meeting_usecase.Bundle{
-		List:             meeting_usecase.NewMeetingListUsecase(meetingRepo, pairingRepo),
-		AnswerReader:     meeting_usecase.NewAnswerReaderUsecase(answerRepo),
-		DraftSaver:       meeting_usecase.NewDraftSaverUsecase(meetingRepo, answerRepo),
-		Submitter:        meeting_usecase.NewSubmitterUsecase(meetingRepo, answerRepo),
-		SubmitCanceller:  meeting_usecase.NewSubmitCancellerUsecase(meetingRepo),
-		AnswerCommenter:  meeting_usecase.NewAnswerCommenterUsecase(answerCommentRepo),
-		MeetingCommenter: meeting_usecase.NewMeetingCommenterUsecase(meetingCommentRepo),
+		List:                   meeting_usecase.NewMeetingListUsecase(meetingRepo, pairingRepo),
+		AnswerReader:           meeting_usecase.NewAnswerReaderUsecase(answerRepo),
+		DraftSaver:             meeting_usecase.NewDraftSaverUsecase(meetingRepo, answerRepo),
+		Submitter:              meeting_usecase.NewSubmitterUsecase(meetingRepo, answerRepo),
+		SubmitCanceller:        meeting_usecase.NewSubmitCancellerUsecase(meetingRepo),
+		AnswerCommenter:        answerCommenter,
+		MentorMeetingCompleter: meeting_usecase.NewMentorMeetingCompleterUsecase(meetingRepo, answerRepo, answerCommenter),
+		MeetingCommenter:       meeting_usecase.NewMeetingCommenterUsecase(meetingCommentRepo),
 	}
 
 	managementBundle := management_usecase.Bundle{
@@ -133,7 +133,6 @@ func main() {
 		TemplateCopier:  template_mng_usecase.NewTemplateCopier(templateRepo, topicRepo),
 		UserAdmin: user_admin_usecase.NewUserAdmin(
 			userRepo,
-			userDeptRepo,
 			deptRoleRepo,
 			deptMemberRepo,
 			teamMemberRepo,
@@ -141,7 +140,7 @@ func main() {
 			teamRepo,
 			roleRepo,
 		),
-		OrgAdmin:       org_admin_usecase.NewOrgAdmin(deptRepo, teamRepo, deptHierarchyRepo, deptRoleRepo, deptMemberRepo, teamMemberRepo, userRepo, userDeptRepo),
+		OrgAdmin:       org_admin_usecase.NewOrgAdmin(deptRepo, teamRepo, deptHierarchyRepo, deptRoleRepo, deptMemberRepo, teamMemberRepo, userRepo),
 		RemindSettings: remind_settings_usecase.NewRemindSettings(systemSettingsRepo),
 	}
 

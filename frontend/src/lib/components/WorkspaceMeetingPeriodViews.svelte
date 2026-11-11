@@ -6,31 +6,37 @@
     } from "$lib/stores/workspaceTab.svelte";
     import {
         formatDate,
-        pairLabel,
         splitByMeetingPeriod,
         canUserAnswerMeeting,
         canUserViewMeeting,
-        meetingRoleBadgeLabel,
         type MeetingListItem,
     } from "$lib/meeting-helpers";
-    import WorkspaceMeetingTable from "$lib/components/WorkspaceMeetingTable.svelte";
+    import {
+        buildUserDepartmentMaps,
+        type PlanningDirectoryUser,
+    } from "$lib/planning-directory";
+    import WorkspaceMeetingTable, {
+        type WorkspacePersonMode,
+    } from "$lib/components/WorkspaceMeetingTable.svelte";
+    import WorkspacePerson from "$lib/components/WorkspacePerson.svelte";
 
-    type RoleBadgeMode = "mentee-only" | "mentor-always" | "none";
     type PeriodKey = Exclude<WorkspaceTab, "all">;
 
     let {
         meetings,
         viewMode,
         currentUserUuid,
-        roleBadgeMode = "none",
-        labelForItem = pairLabel,
+        directoryUsers,
+        personMode,
     }: {
         meetings: MeetingListItem[];
         viewMode: "card" | "table";
         currentUserUuid?: string;
-        roleBadgeMode?: RoleBadgeMode;
-        labelForItem?: (item: MeetingListItem) => string;
+        directoryUsers: PlanningDirectoryUser[];
+        personMode: WorkspacePersonMode;
     } = $props();
+
+    let deptMaps = $derived(buildUserDepartmentMaps(directoryUsers));
 
     let periodTab = $derived(workspace.workspaceTab);
 
@@ -96,23 +102,37 @@
 {#snippet meetingCards(items: MeetingListItem[], empty: string)}
     <div class="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {#each items as item (item.uuid)}
-            {@const roleBadge = meetingRoleBadgeLabel(
-                item,
-                currentUserUuid,
-                roleBadgeMode,
-            )}
             <div
                 class="group rounded-3xl border border-base-300 bg-base-100 p-5 shadow-sm hover:border-primary/40 transition-colors">
                 <div class="flex items-start justify-between gap-3">
-                    <div class="min-w-0">
-                        {#if roleBadge}
-                            <span class="badge badge-outline badge-sm mb-2"
-                                >{roleBadge}</span>
+                    <div class="min-w-0 flex-1">
+                        {#if personMode === "both"}
+                            <div class="space-y-2">
+                                <WorkspacePerson
+                                    userUuid={item.pairing?.mentor?.uuid}
+                                    name={item.pairing?.mentor?.name}
+                                    {directoryUsers}
+                                    {deptMaps} />
+                                <WorkspacePerson
+                                    userUuid={item.pairing?.mentee?.uuid}
+                                    name={item.pairing?.mentee?.name}
+                                    {directoryUsers}
+                                    {deptMaps} />
+                            </div>
+                        {:else if personMode === "mentor"}
+                            <WorkspacePerson
+                                userUuid={item.pairing?.mentor?.uuid}
+                                name={item.pairing?.mentor?.name}
+                                {directoryUsers}
+                                {deptMaps} />
+                        {:else}
+                            <WorkspacePerson
+                                userUuid={item.pairing?.mentee?.uuid}
+                                name={item.pairing?.mentee?.name}
+                                {directoryUsers}
+                                {deptMaps} />
                         {/if}
-                        <p class="text-sm text-base-content/60 truncate">
-                            {labelForItem(item)}
-                        </p>
-                        <h3 class="mt-1 font-semibold">
+                        <h3 class="mt-3 font-semibold">
                             {item.template?.title || "1on1"}
                         </h3>
                     </div>
@@ -158,8 +178,8 @@
                     <WorkspaceMeetingTable
                         {items}
                         {currentUserUuid}
-                        {roleBadgeMode}
-                        {labelForItem}
+                        {directoryUsers}
+                        {personMode}
                         emptyMessage={section.empty} />
                 </div>
             {:else}
@@ -172,8 +192,8 @@
         <WorkspaceMeetingTable
             items={singleItems}
             {currentUserUuid}
-            {roleBadgeMode}
-            {labelForItem}
+            {directoryUsers}
+            {personMode}
             emptyMessage={activeSection?.empty ?? "面談はありません"} />
     </div>
 {:else}

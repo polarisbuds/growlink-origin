@@ -76,18 +76,14 @@ func (h *Handler) ListPlanningDirectory(c *echo.Context) error {
 			continue
 		}
 		roleName := ""
-		if u.Role != nil {
-			roleName = u.Role.Name
-		}
-		deptNames := make([]string, 0, 1+len(u.UserDepartments))
-		if u.Department != nil && u.Department.Name != "" {
-			deptNames = append(deptNames, u.Department.Name)
-		}
-		for _, link := range u.UserDepartments {
-			if link.Department == nil || link.Department.Name == "" {
-				continue
+		deptNames := make([]string, 0, len(u.DepartmentMembers))
+		for _, link := range u.DepartmentMembers {
+			if link.Department != nil && link.Department.Name != "" {
+				deptNames = append(deptNames, link.Department.Name)
 			}
-			deptNames = append(deptNames, link.Department.Name)
+			if roleName == "" && link.Role != nil {
+				roleName = link.Role.Name
+			}
 		}
 		deptName := stringsJoinUnique(deptNames)
 		teamNames := make([]string, 0, len(u.TeamMembers))

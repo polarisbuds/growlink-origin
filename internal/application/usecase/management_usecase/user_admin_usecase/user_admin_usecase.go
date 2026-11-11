@@ -17,7 +17,6 @@ import (
 
 type UserAdmin struct {
 	userRepo       repository_interface.UserRepository
-	userDeptRepo   repository_interface.UserDepartmentRepository
 	deptRoleRepo   repository_interface.DepartmentRoleRepository
 	deptMemberRepo repository_interface.DepartmentMemberRepository
 	teamMemberRepo repository_interface.TeamMemberRepository
@@ -28,7 +27,6 @@ type UserAdmin struct {
 
 func NewUserAdmin(
 	userRepo repository_interface.UserRepository,
-	userDeptRepo repository_interface.UserDepartmentRepository,
 	deptRoleRepo repository_interface.DepartmentRoleRepository,
 	deptMemberRepo repository_interface.DepartmentMemberRepository,
 	teamMemberRepo repository_interface.TeamMemberRepository,
@@ -38,7 +36,6 @@ func NewUserAdmin(
 ) *UserAdmin {
 	return &UserAdmin{
 		userRepo:       userRepo,
-		userDeptRepo:   userDeptRepo,
 		deptRoleRepo:   deptRoleRepo,
 		deptMemberRepo: deptMemberRepo,
 		teamMemberRepo: teamMemberRepo,
@@ -58,23 +55,27 @@ func (uc *UserAdmin) ListUsers() ([]outputmodel.ManagementUserOutput, error) {
 		return nil, err
 	}
 	roleIDToUUID := map[uint]string{}
-	roleNameToUUID := map[string]string{}
 	for _, role := range roles {
-		s := role.UUID.String()
-		roleIDToUUID[role.ID] = s
-		roleNameToUUID[role.Name] = s
+		roleIDToUUID[role.ID] = role.UUID.String()
 	}
 	depts, err := uc.deptRepo.GetAll()
 	if err != nil {
 		return nil, err
 	}
 	deptIDToUUID := map[uint]string{}
+	deptUUIDToName := map[string]string{}
 	for _, dept := range depts {
-		deptIDToUUID[dept.ID] = dept.UUID.String()
+		u := dept.UUID.String()
+		deptIDToUUID[dept.ID] = u
+		deptUUIDToName[u] = dept.Name
+	}
+	roleUUIDToName := map[string]string{}
+	for _, role := range roles {
+		roleUUIDToName[role.UUID.String()] = role.Name
 	}
 	out := make([]outputmodel.ManagementUserOutput, 0, len(users))
 	for _, u := range users {
-		departments, err := uc.loadDepartmentAssignments(u, roleNameToUUID, roleIDToUUID, deptIDToUUID)
+		departments, err := uc.loadDepartmentAssignments(u.ID, deptIDToUUID, roleIDToUUID)
 		if err != nil {
 			return nil, err
 		}
@@ -82,17 +83,12 @@ func (uc *UserAdmin) ListUsers() ([]outputmodel.ManagementUserOutput, error) {
 		if err != nil {
 			return nil, err
 		}
-		deptName := ""
-		deptUUID := deptIDToUUID[u.DepartmentID]
-		if u.Department != nil {
-			deptName = u.Department.Name
-			deptUUID = u.Department.UUID.String()
-		}
-		roleName := ""
-		roleUUID := roleIDToUUID[u.RoleID]
-		if u.Role != nil {
-			roleName = u.Role.Name
-			roleUUID = u.Role.UUID.String()
+		deptName, deptUUID, roleName, roleUUID := "", "", "", ""
+		if len(departments) > 0 {
+			deptUUID = departments[0].DepartmentUUID
+			roleUUID = departments[0].RoleUUID
+			deptName = deptUUIDToName[deptUUID]
+			roleName = roleUUIDToName[roleUUID]
 		}
 		out = append(out, outputmodel.ManagementUserOutput{
 			UUID:           u.UUID.String(),
@@ -113,34 +109,20 @@ func (uc *UserAdmin) ListUsers() ([]outputmodel.ManagementUserOutput, error) {
 	return out, nil
 }
 
-func (uc *UserAdmin) loadDepartmentAssignments(user entity.User, roleNameToUUID map[string]string, roleIDToUUID map[uint]string, deptIDToUUID map[uint]string) ([]outputmodel.UserDepartmentAssignmentOutput, error) {
-	deptRoles, err := uc.deptRoleRepo.GetByUserID(user.ID)
+func (uc *UserAdmin) loadDepartmentAssignments(userID uint, deptIDToUUID map[uint]string, roleIDToUUID map[uint]string) ([]outputmodel.UserDepartmentAssignmentOutput, error) {
+	members, err := uc.deptMemberRepo.GetByUserID(userID)
 	if err != nil {
 		return nil, err
 	}
-	out := make([]outputmodel.UserDepartmentAssignmentOutput, 0, len(deptRoles))
-	seen := map[uint]struct{}{}
-	for _, role := range deptRoles {
-		if role.DepartmentID == 0 {
+	out := make([]outputmodel.UserDepartmentAssignmentOutput, 0, len(members))
+	for _, member := range members {
+		if member.DepartmentID == 0 || member.RoleID == 0 {
 			continue
 		}
-		if _, ok := seen[role.DepartmentID]; ok {
-			continue
-		}
-		seen[role.DepartmentID] = struct{}{}
 		out = append(out, outputmodel.UserDepartmentAssignmentOutput{
-			DepartmentUUID: deptIDToUUID[role.DepartmentID],
-			RoleUUID:       roleNameToUUID[role.Name],
-		})
-	}
-	if len(out) == 0 && user.DepartmentID != 0 {
-		roleUUID := roleIDToUUID[user.RoleID]
-		if user.Role != nil {
-			roleUUID = user.Role.UUID.String()
-		}
-		out = append(out, outputmodel.UserDepartmentAssignmentOutput{
-			DepartmentUUID: deptIDToUUID[user.DepartmentID],
-			RoleUUID:       roleUUID,
+			DepartmentName: member.Department.Name,
+			DepartmentUUID: deptIDToUUID[member.DepartmentID],
+			RoleUUID:       roleIDToUUID[member.RoleID],
 		})
 	}
 	return out, nil
@@ -184,7 +166,6 @@ type DepartmentAssignmentInput struct {
 
 type TeamAssignmentInput struct {
 	TeamUuid string `json:"teamUuid"`
-	IsLeader bool   `json:"isLeader"`
 }
 
 type CreateUserInput struct {
@@ -223,10 +204,8 @@ func (uc *UserAdmin) CreateUser(input CreateUserInput) (*outputmodel.ManagementU
 		return nil, fmt.Errorf("このメールアドレスは既に登録されています")
 	}
 	user := &entity.User{
-		Name:         name,
-		Email:        email,
-		DepartmentID: departments[0].DepartmentID,
-		RoleID:       departments[0].RoleID,
+		Name:       name,
+		Email:      email,
 		Authority:  valueobject.AuthorityGeneral,
 		SystemRole: valueobject.SystemRoleNone,
 		Suspended:  false,
@@ -323,14 +302,6 @@ func userColumnChanges(user *entity.User, input UpdateUserInput, departments []d
 			columns["system_role"] = role.Int()
 		}
 	}
-	if len(departments) > 0 {
-		if user.DepartmentID != departments[0].DepartmentID {
-			columns["department_id"] = departments[0].DepartmentID
-		}
-		if user.RoleID != departments[0].RoleID {
-			columns["role_id"] = departments[0].RoleID
-		}
-	}
 	if input.Suspended != nil && user.Suspended != *input.Suspended {
 		columns["suspended"] = *input.Suspended
 	}
@@ -364,7 +335,7 @@ func (uc *UserAdmin) syncAffiliations(userID uint, departments []deptAssignmentR
 	if err != nil {
 		return err
 	}
-	return uc.syncTeamLeaders(userID, teams, allowed)
+	return uc.syncTeamMemberships(userID, teams, allowed)
 }
 
 func (uc *UserAdmin) syncDepartmentAssignments(userID uint, rows []deptAssignmentResolved) (map[uint]struct{}, error) {
@@ -378,8 +349,8 @@ func (uc *UserAdmin) syncDepartmentAssignments(userID uint, rows []deptAssignmen
 	}
 	want := make([]struct {
 		departmentID uint
+		roleID       uint
 		roleName     string
-		isHead       bool
 	}, 0, len(rows))
 	allowed := map[uint]struct{}{}
 	for _, row := range rows {
@@ -396,12 +367,12 @@ func (uc *UserAdmin) syncDepartmentAssignments(userID uint, rows []deptAssignmen
 		allowed[row.DepartmentID] = struct{}{}
 		want = append(want, struct {
 			departmentID uint
+			roleID       uint
 			roleName     string
-			isHead       bool
 		}{
 			departmentID: row.DepartmentID,
+			roleID:       row.RoleID,
 			roleName:     roleName,
-			isHead:       roleName == "部長",
 		})
 	}
 
@@ -413,14 +384,6 @@ func (uc *UserAdmin) syncDepartmentAssignments(userID uint, rows []deptAssignmen
 	for _, member := range membersOfUser {
 		previous[member.DepartmentID] = struct{}{}
 	}
-	deptIDs, err := uc.userDeptRepo.GetDepartmentIDsByUserID(userID)
-	if err != nil {
-		return nil, err
-	}
-	for _, id := range deptIDs {
-		previous[id] = struct{}{}
-	}
-
 	touched := map[uint]struct{}{}
 	for id := range allowed {
 		touched[id] = struct{}{}
@@ -428,9 +391,9 @@ func (uc *UserAdmin) syncDepartmentAssignments(userID uint, rows []deptAssignmen
 	for id := range previous {
 		touched[id] = struct{}{}
 	}
-	headByDept := map[uint]bool{}
+	roleIDByDept := map[uint]uint{}
 	for _, row := range want {
-		headByDept[row.departmentID] = row.isHead
+		roleIDByDept[row.departmentID] = row.roleID
 	}
 
 	for deptID := range touched {
@@ -438,41 +401,34 @@ func (uc *UserAdmin) syncDepartmentAssignments(userID uint, rows []deptAssignmen
 		if err != nil {
 			return nil, err
 		}
-		dept, err := uc.deptRepo.GetByID(deptID)
-		if err != nil {
-			return nil, err
-		}
 		_, keep := allowed[deptID]
-		isHead := headByDept[deptID]
 		next := make([]entity.DepartmentMember, 0, len(members)+1)
 		found := false
+		removed := false
 		for _, member := range members {
 			if member.UserID == userID {
 				if !keep {
+					removed = true
 					continue
 				}
 				found = true
-				prevHead := member.IsHead
-				prevManager := member.IsManager
-				member.IsHead = isHead
-				member.IsManager = isHead || (prevManager && !prevHead)
+				if roleID, ok := roleIDByDept[deptID]; ok {
+					member.RoleID = roleID
+				}
 				next = append(next, member)
 				continue
-			}
-			if isHead && member.IsHead {
-				wasHead := true
-				wasManager := member.IsManager
-				member.IsHead = false
-				member.IsManager = wasManager && !wasHead
 			}
 			next = append(next, member)
 		}
 		if keep && !found {
+			roleID := roleIDByDept[deptID]
+			if roleID == 0 {
+				return nil, fmt.Errorf("役職を選択してください")
+			}
 			next = append(next, entity.DepartmentMember{
 				DepartmentID: deptID,
 				UserID:       userID,
-				IsHead:       isHead,
-				IsManager:    isHead,
+				RoleID:       roleID,
 			})
 		}
 		if !departmentMembersEqual(members, next) {
@@ -480,15 +436,15 @@ func (uc *UserAdmin) syncDepartmentAssignments(userID uint, rows []deptAssignmen
 				return nil, err
 			}
 		}
-		if isHead {
-			if dept.HeadUserID != userID {
-				if err := uc.deptRepo.UpdateHeadUserID(deptID, userID); err != nil {
+		if removed {
+			dept, err := uc.deptRepo.GetByID(deptID)
+			if err != nil {
+				return nil, err
+			}
+			if dept.HeadUserID == userID {
+				if err := uc.deptRepo.UpdateHeadUserID(deptID, 0); err != nil {
 					return nil, err
 				}
-			}
-		} else if dept.HeadUserID == userID {
-			if err := uc.deptRepo.UpdateHeadUserID(deptID, 0); err != nil {
-				return nil, err
 			}
 		}
 	}
@@ -529,31 +485,11 @@ func (uc *UserAdmin) syncDepartmentAssignments(userID uint, rows []deptAssignmen
 			return nil, err
 		}
 	}
-	haveDepts := map[uint]struct{}{}
-	for _, id := range deptIDs {
-		haveDepts[id] = struct{}{}
-	}
-	for id := range allowed {
-		if _, ok := haveDepts[id]; ok {
-			continue
-		}
-		if err := uc.userDeptRepo.Create(userID, id); err != nil {
-			return nil, err
-		}
-	}
-	for id := range haveDepts {
-		if _, ok := allowed[id]; ok {
-			continue
-		}
-		if err := uc.userDeptRepo.DeleteByUserAndDepartment(userID, id); err != nil {
-			return nil, err
-		}
-	}
 	return allowed, nil
 }
 
 func departmentMembersEqual(current, next []entity.DepartmentMember) bool {
-	count := map[[3]uint]int{}
+	count := map[[4]uint]int{}
 	n := 0
 	for _, member := range current {
 		if member.UserID == 0 {
@@ -576,7 +512,7 @@ func departmentMembersEqual(current, next []entity.DepartmentMember) bool {
 	return n == 0
 }
 
-func memberKey(member entity.DepartmentMember) [3]uint {
+func memberKey(member entity.DepartmentMember) [4]uint {
 	head := uint(0)
 	manager := uint(0)
 	if member.IsHead {
@@ -585,11 +521,11 @@ func memberKey(member entity.DepartmentMember) [3]uint {
 	if member.IsManager {
 		manager = 1
 	}
-	return [3]uint{member.UserID, head, manager}
+	return [4]uint{member.UserID, head, manager, member.RoleID}
 }
 
-func (uc *UserAdmin) syncTeamLeaders(userID uint, teams []teamAssignmentResolved, allowedDepartments map[uint]struct{}) error {
-	want := map[uint]bool{}
+func (uc *UserAdmin) syncTeamMemberships(userID uint, teams []teamAssignmentResolved, allowedDepartments map[uint]struct{}) error {
+	want := map[uint]struct{}{}
 	for _, row := range teams {
 		if row.TeamID == 0 {
 			return fmt.Errorf("チームを選択してください")
@@ -604,14 +540,14 @@ func (uc *UserAdmin) syncTeamLeaders(userID uint, teams []teamAssignmentResolved
 		if _, ok := allowedDepartments[team.DepartmentID]; !ok {
 			return fmt.Errorf("選択した部署に属さないチームは登録できません")
 		}
-		want[row.TeamID] = row.IsLeader
+		want[row.TeamID] = struct{}{}
 	}
 
 	existing, err := uc.teamMemberRepo.GetByMemberID(userID)
 	if err != nil {
 		return err
 	}
-	byTeam := map[uint]entity.TeamMember{}
+	have := map[uint]struct{}{}
 	for _, member := range existing {
 		if _, ok := want[member.TeamID]; !ok {
 			if err := uc.teamMemberRepo.Delete(member.ID); err != nil {
@@ -619,74 +555,17 @@ func (uc *UserAdmin) syncTeamLeaders(userID uint, teams []teamAssignmentResolved
 			}
 			continue
 		}
-		byTeam[member.TeamID] = member
+		have[member.TeamID] = struct{}{}
 	}
-	for teamID, isLeader := range want {
-		if isLeader {
-			if err := uc.applyExclusiveTeamLeader(teamID, userID); err != nil {
-				return err
-			}
+	for teamID := range want {
+		if _, ok := have[teamID]; ok {
 			continue
 		}
-		current, ok := byTeam[teamID]
-		if !ok {
-			if err := uc.teamMemberRepo.Create(teamID, userID, false); err != nil {
-				return err
-			}
-			continue
-		}
-		if !current.IsReader {
-			continue
-		}
-		current.IsReader = false
-		if err := uc.teamMemberRepo.Update(current.ID, &current); err != nil {
+		if err := uc.teamMemberRepo.Create(teamID, userID, false); err != nil {
 			return err
 		}
 	}
 	return nil
-}
-
-func (uc *UserAdmin) applyExclusiveTeamLeader(teamID, userID uint) error {
-	members, err := uc.teamMemberRepo.GetByTeamID(teamID)
-	if err != nil {
-		return err
-	}
-	if teamLeaderSetMatches(members, userID) {
-		return nil
-	}
-	found := false
-	for i := range members {
-		m := &members[i]
-		isReader := m.MemberID == userID
-		if isReader {
-			found = true
-		}
-		if m.IsReader == isReader {
-			continue
-		}
-		m.IsReader = isReader
-		if err := uc.teamMemberRepo.Update(m.ID, m); err != nil {
-			return err
-		}
-	}
-	if found {
-		return nil
-	}
-	return uc.teamMemberRepo.Create(teamID, userID, true)
-}
-
-func teamLeaderSetMatches(members []entity.TeamMember, userID uint) bool {
-	found := false
-	for _, member := range members {
-		isReader := member.MemberID == userID
-		if isReader {
-			found = true
-		}
-		if member.IsReader != isReader {
-			return false
-		}
-	}
-	return found
 }
 
 func (uc *UserAdmin) SetUsersSuspended(uuids []string, suspended bool) error {

@@ -36,10 +36,13 @@ func TestHasPairManagementAccess_NoScope(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	teamMember := repomock.NewMockTeamMemberRepository(ctrl)
 	teamMember.EXPECT().GetByMemberID(uint(7)).Return(nil, nil)
+	pairing := repomock.NewMockPairingRepository(ctrl)
+	pairing.EXPECT().GetByMentorID(uint(7)).Return(nil, nil)
 
-	uc := &PlanningAccessUsecase{teamMemberRepo: teamMember}
+	uc := &PlanningAccessUsecase{teamMemberRepo: teamMember, pairingRepo: pairing}
 
-	ok, err := uc.HasPairManagementAccess(7, valueobject.SystemRoleNone)
+	ok, err := uc.HasPairManagementAccess(7, valueobject.AuthorityGeneral, valueobject.SystemRoleNone)
 	require.NoError(t, err)
 	require.False(t, ok)
 }
+

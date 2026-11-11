@@ -13,7 +13,7 @@ erDiagram
 %% VO列は smallint で保持する。
 %% histories / read_commentables テーブルは持たない。
 %% users.image_uri はプロフィール画像の保存先（nullable）。バイナリ列は持たない。ImageBase64 は永続化しない。
-%% users.department_id は主所属。複数部署への所属は user_departments で表す。
+%% ユーザの部署所属・役職は department_members（user_id, department_id, role_id）で管理する。
 
 %% ユーザ系
 users {
@@ -27,20 +27,7 @@ users {
     boolean suspended "not null, default false。停止中"
     text line_works_id "not null, default 空文字。LINE WORKS ID"
     boolean remind_enabled "not null, default false。リマインド対象"
-
-    bigint role_id FK
-    bigint department_id FK "主所属部署"
 }
-roles ||--o{ users: ""
-departments ||--|{ users: "主所属"
-
-%% ユーザが複数部署に所属する中間テーブル。users.department_id（主所属）とは別に持つ
-user_departments {
-    bigint user_id FK "UK(user_id, department_id)"
-    bigint department_id FK "UK(user_id, department_id)"
-}
-users ||--o{ user_departments: "所属ユーザ"
-departments ||--o{ user_departments: "所属部署"
 
 team_members {
     boolean is_reader "not null, default false。チームリーダーフラグ"
@@ -55,11 +42,13 @@ department_members {
     boolean is_head "not null, default false。部長。is_manager も true"
     boolean is_manager "not null, default false。部内と子孫部署の面談を参照"
 
+bigint role_id FK
     bigint department_id FK "UK(department_id, user_id)"
     bigint user_id FK "UK(department_id, user_id)"
 }
 departments ||--o{ department_members: "部署メンバー"
 users ||--o{ department_members: "ユーザ"
+roles ||--|| department_members: "役職"
 
 departments {
     text name "not null"
@@ -165,8 +154,8 @@ answer_comments {
     bigint answer_id FK
     bigint user_id FK
 }
-answers ||--o{ answer_comments: ""
-users ||--o{ answer_comments: ""
+answers ||--o| answer_comments: ""
+users ||--o{ answer_comments: "メンターID"
 
 %% user_relationships: 上司–部下。pairings（mentor–mentee）とは役割を分離
 user_relationships {

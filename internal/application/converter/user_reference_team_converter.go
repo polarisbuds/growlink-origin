@@ -14,11 +14,7 @@ func UserReferenceTeamInputToEntity(in inputmodel.UserReferenceTeamInput) *entit
 }
 
 func UserReferenceTeamEntityToOutput(e entity.UserReferenceTeam) outputmodel.UserReferenceTeamOutput {
-	out := outputmodel.UserReferenceTeamOutput{
-		ID:              e.ID,
-		UserID:          e.UserID,
-		ReferableTeamID: e.ReferableTeamID,
-	}
+	out := outputmodel.UserReferenceTeamOutput{}
 	if e.User != nil {
 		out.User = UserEntityToOutput(*e.User)
 	} else if e.UserID != 0 {
@@ -26,8 +22,6 @@ func UserReferenceTeamEntityToOutput(e entity.UserReferenceTeam) outputmodel.Use
 	}
 	if e.ReferableTeam != nil {
 		out.ReferableTeam = teamEntityToOutputShallow(*e.ReferableTeam)
-	} else if e.ReferableTeamID != 0 {
-		out.ReferableTeam = outputmodel.TeamOutput{ID: e.ReferableTeamID}
 	}
 	return out
 }
