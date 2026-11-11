@@ -100,13 +100,6 @@ func genSeed(db *gorm.DB) error {
 			return err
 		}
 
-		if err := tx.Create(&entity.DepartmentRole{
-			Name:         "部長",
-			UserID:       boss.ID,
-			DepartmentID: deptDev.ID,
-		}).Error; err != nil {
-			return err
-		}
 		if err := tx.Model(&entity.Department{}).Where("id = ?", deptDev.ID).Update("head_user_id", boss.ID).Error; err != nil {
 			return err
 		}

@@ -171,30 +171,3 @@ func TestDepartmentHierarchyInputToEntityAndBack(t *testing.T) {
 	assert.Equal(t, "parent", outWithRelations.ParentDepartment.Name)
 	assert.Equal(t, "child", outWithRelations.ChildDepartment.Name)
 }
-
-func TestDepartmentRoleInputToEntityAndBack(t *testing.T) {
-	input := inputmodel.DepartmentRoleInput{
-		Name:         "Manager",
-		UserID:       10,
-		DepartmentID: 20,
-	}
-
-	got := converter.DepartmentRoleInputToEntity(input)
-	require.NotNil(t, got)
-	assert.Equal(t, "Manager", got.Name)
-	assert.Equal(t, uint(10), got.UserID)
-	assert.Equal(t, uint(20), got.DepartmentID)
-
-	entityRole := entity.DepartmentRole{
-		Model:        gorm.Model{ID: 5},
-		Name:         "Manager",
-		UserID:       10,
-		DepartmentID: 20,
-		User:         &entity.User{Model: gorm.Model{ID: 10}, Name: "Alice", Email: "alice@example.com"},
-		Department:   &entity.Department{Model: gorm.Model{ID: 20}, Name: "Engineering"},
-	}
-	out := converter.DepartmentRoleEntityToOutput(entityRole)
-	assert.Equal(t, "Manager", out.Name)
-	assert.Equal(t, "Alice", out.User.Name)
-	assert.Equal(t, "Engineering", out.Department.Name)
-}

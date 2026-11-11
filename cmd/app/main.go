@@ -91,7 +91,6 @@ func main() {
 	deptRepo := repository.NewDepartementRepository(ctx, db)
 	teamRepo := repository.NewTeamsRepository(ctx, db)
 	deptHierarchyRepo := repository.NewDepartmentHierarchyRepository(ctx, db)
-	deptRoleRepo := repository.NewDepartmentRoleRepository(ctx, db)
 	deptMemberRepo := repository.NewDepartmentMemberRepository(ctx, db)
 	roleRepo := repository.NewRoleRepository(ctx, db)
 	systemSettingsRepo := repository.NewSystemSettingsRepository(ctx, db)
@@ -133,14 +132,13 @@ func main() {
 		TemplateCopier:  template_mng_usecase.NewTemplateCopier(templateRepo, topicRepo),
 		UserAdmin: user_admin_usecase.NewUserAdmin(
 			userRepo,
-			deptRoleRepo,
 			deptMemberRepo,
 			teamMemberRepo,
 			deptRepo,
 			teamRepo,
 			roleRepo,
 		),
-		OrgAdmin:       org_admin_usecase.NewOrgAdmin(deptRepo, teamRepo, deptHierarchyRepo, deptRoleRepo, deptMemberRepo, teamMemberRepo, userRepo),
+		OrgAdmin:       org_admin_usecase.NewOrgAdmin(deptRepo, teamRepo, deptHierarchyRepo, deptMemberRepo, teamMemberRepo, userRepo),
 		RemindSettings: remind_settings_usecase.NewRemindSettings(systemSettingsRepo),
 	}
 

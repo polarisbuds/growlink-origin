@@ -17,7 +17,6 @@ import (
 
 type UserAdmin struct {
 	userRepo       repository_interface.UserRepository
-	deptRoleRepo   repository_interface.DepartmentRoleRepository
 	deptMemberRepo repository_interface.DepartmentMemberRepository
 	teamMemberRepo repository_interface.TeamMemberRepository
 	deptRepo       repository_interface.DepartmentRepository
@@ -27,7 +26,6 @@ type UserAdmin struct {
 
 func NewUserAdmin(
 	userRepo repository_interface.UserRepository,
-	deptRoleRepo repository_interface.DepartmentRoleRepository,
 	deptMemberRepo repository_interface.DepartmentMemberRepository,
 	teamMemberRepo repository_interface.TeamMemberRepository,
 	deptRepo repository_interface.DepartmentRepository,
@@ -36,7 +34,6 @@ func NewUserAdmin(
 ) *UserAdmin {
 	return &UserAdmin{
 		userRepo:       userRepo,
-		deptRoleRepo:   deptRoleRepo,
 		deptMemberRepo: deptMemberRepo,
 		teamMemberRepo: teamMemberRepo,
 		deptRepo:       deptRepo,
@@ -350,7 +347,6 @@ func (uc *UserAdmin) syncDepartmentAssignments(userID uint, rows []deptAssignmen
 	want := make([]struct {
 		departmentID uint
 		roleID       uint
-		roleName     string
 	}, 0, len(rows))
 	allowed := map[uint]struct{}{}
 	for _, row := range rows {
@@ -360,19 +356,16 @@ func (uc *UserAdmin) syncDepartmentAssignments(userID uint, rows []deptAssignmen
 		if _, dup := allowed[row.DepartmentID]; dup {
 			return nil, fmt.Errorf("同じ部署を重複して登録できません")
 		}
-		roleName, ok := roleNameByID[row.RoleID]
-		if !ok {
+		if _, ok := roleNameByID[row.RoleID]; !ok {
 			return nil, fmt.Errorf("役職を選択してください")
 		}
 		allowed[row.DepartmentID] = struct{}{}
 		want = append(want, struct {
 			departmentID uint
 			roleID       uint
-			roleName     string
 		}{
 			departmentID: row.DepartmentID,
 			roleID:       row.RoleID,
-			roleName:     roleName,
 		})
 	}
 
@@ -449,42 +442,6 @@ func (uc *UserAdmin) syncDepartmentAssignments(userID uint, rows []deptAssignmen
 		}
 	}
 
-	existingRoles, err := uc.deptRoleRepo.GetByUserID(userID)
-	if err != nil {
-		return nil, err
-	}
-	roleByDept := map[uint]entity.DepartmentRole{}
-	for _, role := range existingRoles {
-		if _, dup := roleByDept[role.DepartmentID]; dup {
-			if err := uc.deptRoleRepo.Delete(role.ID); err != nil {
-				return nil, err
-			}
-			continue
-		}
-		roleByDept[role.DepartmentID] = role
-	}
-	for _, row := range want {
-		existing, ok := roleByDept[row.departmentID]
-		if !ok {
-			if err := uc.deptRoleRepo.Create(userID, row.departmentID, row.roleName); err != nil {
-				return nil, err
-			}
-			continue
-		}
-		delete(roleByDept, row.departmentID)
-		if existing.Name == row.roleName {
-			continue
-		}
-		existing.Name = row.roleName
-		if err := uc.deptRoleRepo.Update(existing.ID, &existing); err != nil {
-			return nil, err
-		}
-	}
-	for _, role := range roleByDept {
-		if err := uc.deptRoleRepo.Delete(role.ID); err != nil {
-			return nil, err
-		}
-	}
 	return allowed, nil
 }
 

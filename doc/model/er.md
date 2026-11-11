@@ -190,15 +190,6 @@ department_hierarchies {
 departments ||--o{ department_hierarchies: "parent_department_id"
 departments ||--o{ department_hierarchies: "child_department_id"
 
-department_roles {
-    text name "ロール名。表示上利用するのみのため自由入力"
-
-    bigint user_id FK
-    bigint department_id FK
-}
-users ||--o{ department_roles: "役職名"
-departments ||--o{ department_roles: "部署ID"
-
 user_reference_users {
     bigint user_id FK
     bigint referable_user_id FK
@@ -229,6 +220,6 @@ users ||--o{ user_reference_departments: "参照可能部署ID"
 %% - team_members.is_reader: そのチームのメンティー面談
 %% - boss: user_relationships で部下のミーティング
 %% - owner: 全件
-%% 役職名（department_roles.name や SM 表示）は参照判定に使わない
+%% 役職名（roles.name や SM 表示）は参照判定に使わない
 %% system_role: none / system_admin（システム管理者）/ analyst（分析者）
 %% operation_target: none / department（部署）/ team（チーム）/ subordinate（部下）

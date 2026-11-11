@@ -13,7 +13,6 @@ type OrgAdmin struct {
 	deptRepo       repository_interface.DepartmentRepository
 	teamRepo       repository_interface.TeamRepository
 	hierarchyRepo  repository_interface.DepartmentHierarchyRepository
-	deptRoleRepo   repository_interface.DepartmentRoleRepository
 	deptMemberRepo repository_interface.DepartmentMemberRepository
 	teamMemberRepo repository_interface.TeamMemberRepository
 	userRepo       repository_interface.UserRepository
@@ -23,7 +22,6 @@ func NewOrgAdmin(
 	deptRepo repository_interface.DepartmentRepository,
 	teamRepo repository_interface.TeamRepository,
 	hierarchyRepo repository_interface.DepartmentHierarchyRepository,
-	deptRoleRepo repository_interface.DepartmentRoleRepository,
 	deptMemberRepo repository_interface.DepartmentMemberRepository,
 	teamMemberRepo repository_interface.TeamMemberRepository,
 	userRepo repository_interface.UserRepository,
@@ -32,7 +30,6 @@ func NewOrgAdmin(
 		deptRepo:       deptRepo,
 		teamRepo:       teamRepo,
 		hierarchyRepo:  hierarchyRepo,
-		deptRoleRepo:   deptRoleRepo,
 		deptMemberRepo: deptMemberRepo,
 		teamMemberRepo: teamMemberRepo,
 		userRepo:       userRepo,
@@ -204,23 +201,15 @@ func (uc *OrgAdmin) GetDepartmentDetail(id uint) (*outputmodel.OrgDetailOutput, 
 	if err != nil {
 		return nil, err
 	}
-	roles, err := uc.deptRoleRepo.GetByDepartmentID(id)
-	if err != nil {
-		return nil, err
-	}
-	roleByUser := map[uint]string{}
-	for _, r := range roles {
-		roleByUser[r.UserID] = r.Name
-	}
 	members := make([]outputmodel.OrgMemberOutput, 0, len(deptMembers))
 	for _, row := range deptMembers {
 		name := ""
 		if row.User != nil {
 			name = row.User.Name
 		}
-		title := roleByUser[row.UserID]
-		if title == "" {
-			title = "メンバー"
+		title := "メンバー"
+		if row.Role != nil && row.Role.Name != "" {
+			title = row.Role.Name
 		}
 		members = append(members, outputmodel.OrgMemberOutput{
 			UserUUID: uc.userUUIDByID(row.UserID),

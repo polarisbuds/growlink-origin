@@ -26,5 +26,4 @@ type User struct {
 	TeamMembers []TeamMember `gorm:"foreignKey:MemberID;references:ID"`
 
 	DepartmentMembers []DepartmentMember `gorm:"foreignKey:UserID;references:ID"`
-	DepartmentRoles   []DepartmentRole   `gorm:"foreignKey:UserID;references:ID"`
 }

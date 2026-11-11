@@ -47,6 +47,9 @@ func NewPostgresqlDB(dsn string) (*gorm.DB, error) {
 	if err := dropRoleRank(db); err != nil {
 		return nil, err
 	}
+	if err := dropDepartmentRolesTable(db); err != nil {
+		return nil, err
+	}
 	if err := ensureTemplateDefaultIndex(db); err != nil {
 		return nil, err
 	}
@@ -84,7 +87,6 @@ func AutoMigrate(db *gorm.DB) error {
 		&entity.AnswerComment{},
 		&entity.SystemSettings{},
 		&entity.DepartmentHierarchy{},
-		&entity.DepartmentRole{},
 
 		// マスタテーブル
 		&entity.Role{},
@@ -97,6 +99,10 @@ func dropTemplateDisplayNo(db *gorm.DB) error {
 
 func dropRoleRank(db *gorm.DB) error {
 	return db.Exec("ALTER TABLE roles DROP COLUMN IF EXISTS rank").Error
+}
+
+func dropDepartmentRolesTable(db *gorm.DB) error {
+	return db.Exec("DROP TABLE IF EXISTS department_roles").Error
 }
 
 func ensureTemplateDefaultIndex(db *gorm.DB) error {

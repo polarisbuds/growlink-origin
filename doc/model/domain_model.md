@@ -60,10 +60,6 @@ classDiagram
         子部署ID childDepartmentID
     }
 
-    class DepartmentRole {
-        表示用役職名 name
-    }
-
     class Pairing {
         <<集約ルート Pairing>>
         メンターID mentorID
@@ -153,8 +149,6 @@ classDiagram
     Department "1" --> "*" DepartmentMember : 含む
     User "1" --> "*" DepartmentMember : メンバー
     Department "1" --> "*" DepartmentHierarchy : 親子
-    User "1" --> "*" DepartmentRole : 役職表示
-    Department "1" --> "*" DepartmentRole : ""
 
     User "1" --> "*" Pairing : mentor
     User "1" --> "*" Pairing : mentee
@@ -211,7 +205,7 @@ classDiagram
 %%
 %% 集約と Repository（実装の目安）
 %% - User: UserRepository
-%% - Department / Team / DepartmentHierarchy / DepartmentRole / DepartmentMember: 各 Repository
+%% - Department / Team / DepartmentHierarchy / DepartmentMember: 各 Repository
 %% - Pairing: PairingRepository
 %% - UserRelationship: UserRelationshipRepository
 %% - Template + Topic: TemplateRepository, TopicRepository
