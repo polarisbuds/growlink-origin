@@ -56,7 +56,9 @@
     let departments = $state<{ uuid: string; name: string }[]>([]);
     let teams = $state<DirectoryTeam[]>([]);
     let menteeModalOpen = $state(false);
+    let sharerModalOpen = $state(false);
     let selectedMenteeTablePage = $state(1);
+    let selectedSharerTablePage = $state(1);
     let currentUserUuid = $state("");
     let canSpecifyPair = $state(false);
     let managedTeams = $state<ManagedTeam[]>([]);
@@ -101,6 +103,42 @@
         menteeUuids.length;
         selectedMenteeTablePage = 1;
     });
+
+    let selectedSharerRows = $derived.by(() => {
+        const rows = sharerUserUuids
+            .map((uuid) => users.find((u) => u.uuid === uuid))
+            .filter((u): u is User => u != null);
+        rows.sort((a, b) => {
+            const c = (a.departmentNames || "").localeCompare(
+                b.departmentNames || "",
+                "ja",
+            );
+            if (c !== 0) return c;
+            return a.name.localeCompare(b.name, "ja");
+        });
+        return rows;
+    });
+    let selectedSharerPageCount = $derived(
+        Math.max(1, Math.ceil(selectedSharerRows.length / MENTEE_PAGE_SIZE)),
+    );
+    let selectedSharerPageRows = $derived(
+        selectedSharerRows.slice(
+            (selectedSharerTablePage - 1) * MENTEE_PAGE_SIZE,
+            selectedSharerTablePage * MENTEE_PAGE_SIZE,
+        ),
+    );
+
+    $effect(() => {
+        if (selectedSharerTablePage > selectedSharerPageCount) {
+            selectedSharerTablePage = selectedSharerPageCount;
+        }
+    });
+
+    $effect(() => {
+        sharerUserUuids.length;
+        selectedSharerTablePage = 1;
+    });
+
     let submitting = $state(false);
     let error = $state("");
 
@@ -674,17 +712,90 @@
                 </div>
             </div>
         {/if}
-        <label class="form-control">
+        <div class="form-control space-y-3">
             <span class="label-text font-medium">共有者（任意・複数）</span>
-            <MultiCheckSelect
-                pickRootId="meeting-new-sharer"
-                items={pickableUsers}
-                bind:selectedUuids={sharerUserUuids}
-                labelOf={userLabelOf}
-                placeholder="選択してください"
-                inputClass={multiPickInputClass}
-            />
-        </label>
+            {#if mode === "pair"}
+                <MultiCheckSelect
+                    pickRootId="meeting-new-sharer"
+                    items={pickableUsers}
+                    bind:selectedUuids={sharerUserUuids}
+                    labelOf={userLabelOf}
+                    placeholder="選択してください"
+                    inputClass={multiPickInputClass}
+                />
+            {:else}
+                <button
+                    type="button"
+                    class="btn btn-outline mt-1 w-fit"
+                    onclick={() => (sharerModalOpen = true)}
+                    >共有者を選択</button>
+                {#if selectedSharerRows.length === 0}
+                    <p class="text-sm text-base-content/50">未選択</p>
+                {:else}
+                    <div
+                        class="overflow-hidden rounded-2xl border border-base-300">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>部署</th>
+                                    <th>氏名</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {#each selectedSharerPageRows as u (u.uuid)}
+                                    <tr>
+                                        <td
+                                            >{u.departmentNames ||
+                                                "所属無し"}</td>
+                                        <td>
+                                            <span
+                                                class="flex items-center gap-2">
+                                                <Icon
+                                                    url={avatarURL(u)}
+                                                    text={u.name}
+                                                    width={28}
+                                                    height={28} />
+                                                {u.name}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                {/each}
+                            </tbody>
+                        </table>
+                    </div>
+                    {#if selectedSharerRows.length > MENTEE_PAGE_SIZE}
+                        <div class="join justify-end w-full flex">
+                            <button
+                                type="button"
+                                class="btn btn-sm join-item"
+                                disabled={selectedSharerTablePage <= 1}
+                                onclick={() =>
+                                    (selectedSharerTablePage = Math.max(
+                                        1,
+                                        selectedSharerTablePage - 1,
+                                    ))}>前へ</button>
+                            <span
+                                class="btn btn-sm join-item btn-disabled pointer-events-none"
+                                >{selectedSharerTablePage} /
+                                {selectedSharerPageCount}</span>
+                            <button
+                                type="button"
+                                class="btn btn-sm join-item"
+                                disabled={selectedSharerTablePage >=
+                                    selectedSharerPageCount}
+                                onclick={() =>
+                                    (selectedSharerTablePage = Math.min(
+                                        selectedSharerPageCount,
+                                        selectedSharerTablePage + 1,
+                                    ))}>次へ</button>
+                        </div>
+                    {/if}
+                    <p class="text-xs text-base-content/60">
+                        選択済み: {selectedSharerRows.length} 人
+                    </p>
+                {/if}
+            {/if}
+        </div>
         {#if mode !== "monthly"}
             <label class="form-control">
                 <span class="label-text font-medium">実施日</span>
@@ -766,5 +877,22 @@
     }}
     onClose={() => {
         menteeModalOpen = false;
+    }}
+/>
+
+<MenteeSelectModal
+    open={sharerModalOpen}
+    title="共有者を選択"
+    users={pickableUsers}
+    {departments}
+    {teams}
+    selectedUuids={sharerUserUuids}
+    pickRootId="meeting-new-sharer-name"
+    onApply={(uuids) => {
+        sharerUserUuids = uuids;
+        sharerModalOpen = false;
+    }}
+    onClose={() => {
+        sharerModalOpen = false;
     }}
 />

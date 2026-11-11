@@ -18,6 +18,7 @@
 
     let {
         open = false,
+        title = "メンティを選択",
         users,
         departments = [],
         teams = [],
@@ -27,6 +28,7 @@
         onClose,
     }: {
         open?: boolean;
+        title?: string;
         users: MenteePickerUser[];
         departments?: Dept[];
         teams?: Team[];
@@ -35,6 +37,8 @@
         onApply: (uuids: string[]) => void;
         onClose: () => void;
     } = $props();
+
+    let dialogEl = $state<HTMLDialogElement | null>(null);
 
     let draftUuids = $state<Set<string>>(new Set());
     let filterNameUuid = $state("");
@@ -164,20 +168,19 @@
 
     function onWindowKeydown(e: KeyboardEvent) {
         if (!open || e.key !== "Escape") return;
-        const modal = document.querySelector("[data-mentee-select-modal]");
-        if (!modal) return;
-        if (modal.querySelector("[data-pick-root] ul")) return;
+        if (!dialogEl) return;
+        if (dialogEl.querySelector("[data-pick-root] ul")) return;
         discardClose();
     }
 </script>
 
 <svelte:window onkeydown={onWindowKeydown} />
 
-<dialog class="modal" class:modal-open={open} data-mentee-select-modal>
+<dialog bind:this={dialogEl} class="modal" class:modal-open={open}>
     <div class="modal-box flex max-h-[85vh] max-w-4xl flex-col p-0">
         <div
             class="flex shrink-0 items-center justify-between gap-2 border-b border-base-200 px-6 py-4">
-            <h3 class="text-lg font-bold">メンティを選択</h3>
+            <h3 class="text-lg font-bold">{title}</h3>
             <button
                 type="button"
                 class="btn btn-sm btn-circle btn-ghost"
