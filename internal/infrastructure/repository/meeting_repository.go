@@ -198,16 +198,40 @@ func (repo *MeetingRepository) GetMeetingIDsBySharerUserID(userID uint) ([]uint,
 }
 
 func (repo *MeetingRepository) ReplaceSharers(meetingID uint, userIDs []uint) error {
-	if err := repo.db.WithContext(repo.ctx).Where("meeting_id = ?", meetingID).Delete(&entity.MeetingSharer{}).Error; err != nil {
-		return fmt.Errorf("ミーティング共有者の更新に失敗しました: %w", err)
-	}
+	want := map[uint]struct{}{}
 	for _, uid := range userIDs {
 		if uid == 0 {
 			continue
 		}
-		if err := repo.db.WithContext(repo.ctx).Create(&entity.MeetingSharer{MeetingID: meetingID, UserID: uid}).Error; err != nil {
-			return fmt.Errorf("ミーティング共有者の登録に失敗しました: %w", err)
+		want[uid] = struct{}{}
+	}
+
+	err := repo.db.WithContext(repo.ctx).Transaction(func(tx *gorm.DB) error {
+		var existing []entity.MeetingSharer
+		if err := tx.Where("meeting_id = ?", meetingID).Find(&existing).Error; err != nil {
+			return err
 		}
+		have := map[uint]struct{}{}
+		for _, row := range existing {
+			have[row.UserID] = struct{}{}
+			if _, ok := want[row.UserID]; !ok {
+				if err := tx.Delete(&row).Error; err != nil {
+					return err
+				}
+			}
+		}
+		for uid := range want {
+			if _, ok := have[uid]; ok {
+				continue
+			}
+			if err := tx.Create(&entity.MeetingSharer{MeetingID: meetingID, UserID: uid}).Error; err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+	if err != nil {
+		return fmt.Errorf("ミーティング共有者の更新に失敗しました: %w", err)
 	}
 	return nil
 }

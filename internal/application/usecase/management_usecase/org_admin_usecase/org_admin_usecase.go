@@ -646,17 +646,46 @@ func (uc *OrgAdmin) UpdateTeam(id uint, input UpdateTeamInput) error {
 		return err
 	}
 	if memberIDs != nil {
+		want := map[uint]struct{}{}
+		for _, memberID := range memberIDs {
+			if memberID == 0 {
+				continue
+			}
+			want[memberID] = struct{}{}
+		}
 		existing, err := uc.teamMemberRepo.GetByTeamID(id)
 		if err != nil {
 			return err
 		}
-		for _, m := range existing {
-			if err := uc.teamMemberRepo.Delete(m.ID); err != nil {
-				return err
+		byMember := map[uint]*entity.TeamMember{}
+		for i := range existing {
+			m := &existing[i]
+			if prev, ok := byMember[m.MemberID]; ok {
+				if err := uc.teamMemberRepo.Delete(prev.ID); err != nil {
+					return err
+				}
+			}
+			byMember[m.MemberID] = m
+		}
+		for memberID, m := range byMember {
+			if _, keep := want[memberID]; !keep {
+				if err := uc.teamMemberRepo.Delete(m.ID); err != nil {
+					return err
+				}
+				delete(byMember, memberID)
 			}
 		}
-		for _, memberID := range memberIDs {
+		for memberID := range want {
 			isReader := memberID == leaderID
+			if m, ok := byMember[memberID]; ok {
+				if m.IsReader != isReader {
+					m.IsReader = isReader
+					if err := uc.teamMemberRepo.Update(m.ID, m); err != nil {
+						return err
+					}
+				}
+				continue
+			}
 			if err := uc.teamMemberRepo.Create(id, memberID, isReader); err != nil {
 				return err
 			}

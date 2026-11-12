@@ -48,30 +48,60 @@ func (repo *DepartmentMemberRepository) GetByUserID(userID uint) ([]entity.Depar
 }
 
 func (repo *DepartmentMemberRepository) ReplaceByDepartment(departmentID uint, members []entity.DepartmentMember) error {
+	want := map[uint]entity.DepartmentMember{}
+	for _, member := range members {
+		if member.UserID == 0 {
+			continue
+		}
+		want[member.UserID] = entity.DepartmentMember{
+			DepartmentID: departmentID,
+			UserID:       member.UserID,
+			RoleID:       member.RoleID,
+			IsHead:       member.IsHead,
+			IsManager:    member.IsManager,
+		}
+	}
+
 	err := repo.db.WithContext(repo.ctx).Transaction(func(tx *gorm.DB) error {
-		if err := tx.Unscoped().Where("department_id = ?", departmentID).Delete(&entity.DepartmentMember{}).Error; err != nil {
+		var existing []entity.DepartmentMember
+		if err := tx.Where("department_id = ?", departmentID).Find(&existing).Error; err != nil {
 			return err
 		}
-		if len(members) == 0 {
-			return nil
+		byUser := map[uint]entity.DepartmentMember{}
+		for _, row := range existing {
+			byUser[row.UserID] = row
 		}
-		rows := make([]entity.DepartmentMember, 0, len(members))
-		for _, member := range members {
-			if member.UserID == 0 {
+
+		for userID, row := range byUser {
+			if _, ok := want[userID]; !ok {
+				if err := tx.Unscoped().Delete(&row).Error; err != nil {
+					return err
+				}
+			}
+		}
+		for userID, desired := range want {
+			current, ok := byUser[userID]
+			if !ok {
+				if err := tx.Create(&desired).Error; err != nil {
+					return err
+				}
 				continue
 			}
-			rows = append(rows, entity.DepartmentMember{
-				DepartmentID: departmentID,
-				UserID:       member.UserID,
-				RoleID:       member.RoleID,
-				IsHead:       member.IsHead,
-				IsManager:    member.IsManager,
-			})
+			if current.RoleID == desired.RoleID && current.IsHead == desired.IsHead && current.IsManager == desired.IsManager {
+				continue
+			}
+			if err := tx.Model(&entity.DepartmentMember{}).
+				Where("id = ?", current.ID).
+				Select("RoleID", "IsHead", "IsManager").
+				Updates(map[string]any{
+					"RoleID":    desired.RoleID,
+					"IsHead":    desired.IsHead,
+					"IsManager": desired.IsManager,
+				}).Error; err != nil {
+				return err
+			}
 		}
-		if len(rows) == 0 {
-			return nil
-		}
-		return tx.Create(&rows).Error
+		return nil
 	})
 	if err != nil {
 		return fmt.Errorf("部署メンバーの入れ替えに失敗しました: %w", err)
