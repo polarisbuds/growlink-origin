@@ -2,11 +2,17 @@
     import { api } from "$lib/api";
     import { showToast } from "$lib/toast";
     import { formatDate, type MeetingUserRef } from "$lib/meeting-helpers";
-    import UserChipSearchField from "$lib/components/UserChipSearchField.svelte";
+    import SharerSelectModal, {
+        type SharerPickerUser,
+    } from "$lib/components/SharerSelectModal.svelte";
     import PanelRightClose from "lucide-svelte/icons/panel-right-close";
     import PanelRightOpen from "lucide-svelte/icons/panel-right-open";
 
-    type User = { uuid: string; name?: string; email?: string };
+    type DirectoryTeam = {
+        uuid: string;
+        name: string;
+        departmentUuid: string;
+    };
 
     let {
         open = $bindable(true),
@@ -26,64 +32,56 @@
         canEditImplementedDate?: boolean;
     } = $props();
 
-    let sharerUserUuids = $state<string[]>([]);
-    let sharerPickQuery = $state("");
-    let candidateUsers = $state<User[]>([]);
-    let savingSharers = $state(false);
+    let sharerModalOpen = $state(false);
+    let directoryLoaded = $state(false);
+    let directoryUsers = $state<SharerPickerUser[]>([]);
+    let departments = $state<{ uuid: string; name: string }[]>([]);
+    let teams = $state<DirectoryTeam[]>([]);
+    let applyingSharers = $state(false);
 
-    let sharerChips = $derived(
-        sharerUserUuids.map((id) => {
-            const fromSharers = sharers.find((s) => s.uuid === id);
-            return { uuid: id, name: fromSharers?.name || `ユーザ` };
-        }),
+    let sharerUserUuids = $derived(
+        (sharers || [])
+            .map((s) => s.uuid)
+            .filter((id): id is string => !!id),
     );
 
-    $effect(() => {
-        sharerUserUuids = (sharers || [])
-            .map((s) => s.uuid)
-            .filter((id): id is string => !!id);
-    });
-
-    let searchTimer: ReturnType<typeof setTimeout> | undefined;
-    $effect(() => {
-        if (!canEditSharers || !open) return;
-        const q = sharerPickQuery;
-        clearTimeout(searchTimer);
-        searchTimer = setTimeout(async () => {
-            candidateUsers = await api<User[]>(
-                "GET",
-                `/api/v1/meetings/${uuid}/sharer-candidates?q=${encodeURIComponent(q)}`,
-            );
-        }, 200);
-        return () => clearTimeout(searchTimer);
-    });
-
-    function addSharer(u: User) {
-        if (sharerUserUuids.includes(u.uuid)) return;
-        sharerUserUuids = [...sharerUserUuids, u.uuid];
-        sharers = [
-            ...sharers,
-            { uuid: u.uuid, name: u.name, email: u.email },
-        ];
+    async function loadDirectoryIfNeeded() {
+        if (directoryLoaded) return;
+        const dir = await api<{
+            users?: SharerPickerUser[];
+            departments?: { uuid: string; name: string }[];
+            teams?: DirectoryTeam[];
+        }>("GET", "/api/v1/planning/directory");
+        directoryUsers = dir.users || [];
+        departments = dir.departments || [];
+        teams = (dir.teams || []).map((t) => ({
+            uuid: t.uuid,
+            name: t.name,
+            departmentUuid: t.departmentUuid,
+        }));
+        directoryLoaded = true;
     }
 
-    function removeSharer(uuid: string) {
-        sharerUserUuids = sharerUserUuids.filter((x) => x !== uuid);
-        sharers = sharers.filter((s) => s.uuid !== uuid);
+    async function openSharerModal() {
+        if (!uuid) return;
+        await loadDirectoryIfNeeded();
+        sharerModalOpen = true;
     }
 
-    async function saveSharers() {
-        savingSharers = true;
+    async function applySharers(uuids: string[]) {
+        if (!uuid) return;
+        applyingSharers = true;
         try {
             const res = await api<{ sharers: MeetingUserRef[] }>(
                 "PUT",
                 `/api/v1/meetings/${uuid}/sharers`,
-                { sharerUserUuids },
+                { sharerUserUuids: uuids },
             );
             sharers = res.sharers || [];
             showToast("共有者を保存しました");
+            sharerModalOpen = false;
         } finally {
-            savingSharers = false;
+            applyingSharers = false;
         }
     }
 
@@ -91,6 +89,18 @@
         showToast("実施日の API は今後接続されます（表示のみ更新可）", "info");
     }
 </script>
+
+<SharerSelectModal
+    open={sharerModalOpen}
+    users={directoryUsers}
+    {departments}
+    {teams}
+    selectedUuids={sharerUserUuids}
+    pickRootId="meeting-answer-sharer-name"
+    onApply={applySharers}
+    onClose={() => {
+        sharerModalOpen = false;
+    }} />
 
 {#if open}
     <aside
@@ -113,25 +123,7 @@
             <div>
                 <dt class="text-base-content/60">共有者</dt>
                 <dd class="mt-1">
-                    {#if canEditSharers}
-                        <UserChipSearchField
-                            pickRootId="meeting-answer-sharer"
-                            chips={sharerChips}
-                            items={candidateUsers}
-                            bind:query={sharerPickQuery}
-                            placeholder={sharerChips.length
-                                ? "追加で検索"
-                                : "名前で検索して追加"}
-                            onPick={addSharer}
-                            onRemove={removeSharer} />
-                        <button
-                            type="button"
-                            class="btn btn-primary btn-sm mt-3 w-full"
-                            disabled={savingSharers}
-                            onclick={saveSharers}>
-                            {savingSharers ? "保存中…" : "共有者を保存"}
-                        </button>
-                    {:else if sharers.length}
+                    {#if sharers.length}
                         <ul class="space-y-1">
                             {#each sharers as s (s.uuid)}
                                 <li>{s.name || "—"}</li>
@@ -139,6 +131,15 @@
                         </ul>
                     {:else}
                         <p class="text-base-content/50">未設定</p>
+                    {/if}
+                    {#if canEditSharers}
+                        <button
+                            type="button"
+                            class="btn btn-outline btn-sm mt-3 w-full"
+                            disabled={applyingSharers}
+                            onclick={openSharerModal}>
+                            {applyingSharers ? "保存中…" : "共有者を変更"}
+                        </button>
                     {/if}
                 </dd>
             </div>

@@ -16,7 +16,6 @@ type OrgAdmin struct {
 	deptMemberRepo repository_interface.DepartmentMemberRepository
 	teamMemberRepo repository_interface.TeamMemberRepository
 	userRepo       repository_interface.UserRepository
-	roleRepo       repository_interface.RoleRepository
 }
 
 func NewOrgAdmin(
@@ -26,7 +25,6 @@ func NewOrgAdmin(
 	deptMemberRepo repository_interface.DepartmentMemberRepository,
 	teamMemberRepo repository_interface.TeamMemberRepository,
 	userRepo repository_interface.UserRepository,
-	roleRepo repository_interface.RoleRepository,
 ) *OrgAdmin {
 	return &OrgAdmin{
 		deptRepo:       deptRepo,
@@ -35,7 +33,6 @@ func NewOrgAdmin(
 		deptMemberRepo: deptMemberRepo,
 		teamMemberRepo: teamMemberRepo,
 		userRepo:       userRepo,
-		roleRepo:       roleRepo,
 	}
 }
 
@@ -468,16 +465,7 @@ func (uc *OrgAdmin) validateDepartmentLeaderCandidate(userID uint) error {
 	if int(user.Authority) >= int(valueobject.AuthorityBoss) {
 		return nil
 	}
-	memberships, err := uc.teamMemberRepo.GetByMemberID(userID)
-	if err != nil {
-		return err
-	}
-	for _, m := range memberships {
-		if m.IsReader {
-			return nil
-		}
-	}
-	return fmt.Errorf("責任者・管理職にはボス以上またはチームリーダーのユーザーを指定してください")
+	return fmt.Errorf("責任者・管理職にはボス以上のユーザーを指定してください")
 }
 
 func departmentMemberIsManager(
@@ -581,9 +569,10 @@ func (uc *OrgAdmin) replaceDepartmentMemberFlags(
 }
 
 type CreateTeamInput struct {
-	Name           string `json:"name"`
-	DepartmentUUID string `json:"departmentUuid"`
-	LeaderUUID     string `json:"leaderUuid"`
+	Name           string   `json:"name"`
+	DepartmentUUID string   `json:"departmentUuid"`
+	LeaderUUID     string   `json:"leaderUuid"`
+	MemberUUIDs    []string `json:"memberUuids"`
 }
 
 func (uc *OrgAdmin) CreateTeam(input CreateTeamInput) (*outputmodel.TeamOptionOutput, error) {
@@ -611,7 +600,18 @@ func (uc *OrgAdmin) CreateTeam(input CreateTeamInput) (*outputmodel.TeamOptionOu
 	if err := uc.teamRepo.Create(team); err != nil {
 		return nil, err
 	}
-	if leaderID != 0 {
+	memberIDs, err := uc.resolveUserUUIDs(input.MemberUUIDs)
+	if err != nil {
+		return nil, err
+	}
+	if memberIDs != nil {
+		for _, memberID := range memberIDs {
+			isReader := memberID == leaderID
+			if err := uc.teamMemberRepo.Create(team.ID, memberID, isReader); err != nil {
+				return nil, err
+			}
+		}
+	} else if leaderID != 0 {
 		if err := uc.applyTeamLeaderOnly(team.ID, leaderID); err != nil {
 			return nil, err
 		}
@@ -748,9 +748,11 @@ func (uc *OrgAdmin) DeleteTeam(id uint) error {
 }
 
 type CreateDepartmentInput struct {
-	Name                 string `json:"name"`
-	ParentDepartmentUUID string `json:"parentDepartmentUuid"`
-	HeadUserUUID         string `json:"headUserUuid"`
+	Name                 string   `json:"name"`
+	ParentDepartmentUUID string   `json:"parentDepartmentUuid"`
+	HeadUserUUID         string   `json:"headUserUuid"`
+	ManagerUserUUIDs     []string `json:"managerUserUuids"`
+	UserUUIDs            []string `json:"userUuids"`
 }
 
 func (uc *OrgAdmin) CreateDepartment(input CreateDepartmentInput) (*outputmodel.DepartmentOptionOutput, error) {
@@ -786,8 +788,28 @@ func (uc *OrgAdmin) CreateDepartment(input CreateDepartmentInput) (*outputmodel.
 			return nil, err
 		}
 	}
-	if headUserID != 0 {
-		if err := uc.applyDepartmentHeadOnly(dept.ID, headUserID, nil); err != nil {
+	managerUserIDs, err := uc.resolveUserUUIDs(input.ManagerUserUUIDs)
+	if err != nil {
+		return nil, err
+	}
+	for _, managerID := range managerUserIDs {
+		if managerID == headUserID {
+			continue
+		}
+		if err := uc.validateDepartmentLeaderCandidate(managerID); err != nil {
+			return nil, err
+		}
+	}
+	userIDs, err := uc.resolveUserUUIDs(input.UserUUIDs)
+	if err != nil {
+		return nil, err
+	}
+	if userIDs != nil {
+		if err := uc.syncDepartmentMemberFlags(dept.ID, userIDs, headUserID, managerUserIDs); err != nil {
+			return nil, err
+		}
+	} else if headUserID != 0 || len(managerUserIDs) > 0 {
+		if err := uc.applyDepartmentHeadOnly(dept.ID, headUserID, managerUserIDs); err != nil {
 			return nil, err
 		}
 	}
@@ -859,17 +881,5 @@ func (uc *OrgAdmin) resolveRoleIDForUser(userID uint) (uint, error) {
 			return m.RoleID, nil
 		}
 	}
-	roles, err := uc.roleRepo.GetAll()
-	if err != nil {
-		return 0, err
-	}
-	if len(roles) == 0 {
-		return 0, fmt.Errorf("役職を選択してください")
-	}
-	for _, role := range roles {
-		if role.Name == "一般" {
-			return role.ID, nil
-		}
-	}
-	return roles[0].ID, nil
+	return 0, fmt.Errorf("役職を選択してください")
 }

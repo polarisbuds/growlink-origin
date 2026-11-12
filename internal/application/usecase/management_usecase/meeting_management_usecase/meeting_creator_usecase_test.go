@@ -484,3 +484,117 @@ func TestMeetingCreator_CreateMeetingByAll(t *testing.T) {
 		})
 	}
 }
+
+func TestMeetingCreator_CreateMeetingEveryMonthByPairings(t *testing.T) {
+	from := time.Date(2026, time.January, 1, 0, 0, 0, 0, time.UTC)
+	to := from
+	expectedImplementDate, ok := utils.GetSpecificWeekday(from, 2, time.Wednesday)
+	require.True(t, ok)
+
+	tests := []struct {
+		name        string
+		templateID  uint
+		from        time.Time
+		to          time.Time
+		week        int
+		weekday     time.Weekday
+		pairingIDs  []uint
+		wantErr     bool
+		errContains string
+		setup       func(meeting *repomock.MockMeetingRepository, pairing *repomock.MockPairingRepository, cap *meetingCreatorCaptures)
+		assertFn    func(t *testing.T, got []outputmodel.MeetingOutput, cap *meetingCreatorCaptures)
+	}{
+		{
+			name:       "通常系_指定期間内の日付×指定ペア分作成",
+			templateID: validTemplateID,
+			from:       from,
+			to:         to,
+			week:       2,
+			weekday:    time.Wednesday,
+			pairingIDs: []uint{pairingID1, pairingID2},
+			wantErr:    false,
+			setup: func(meeting *repomock.MockMeetingRepository, pairing *repomock.MockPairingRepository, cap *meetingCreatorCaptures) {
+				pairing.EXPECT().GetAll().Return([]entity.Pairing{
+					*newTestPairing(pairingID1, validMenteeID, validMentorID),
+					*newTestPairing(pairingID2, validMemberID, validMentorID),
+				}, nil)
+				var mux = sync.Mutex{}
+				meeting.EXPECT().Create(gomock.Any()).DoAndReturn(func(m *entity.Meeting) (*entity.Meeting, error) {
+					mux.Lock()
+					cap.createdMeetings = append(cap.createdMeetings, *m)
+					mux.Unlock()
+					created := *m
+					if m.PairingID == pairingID1 {
+						created.ID = meetingID1
+					} else {
+						created.ID = meetingID2
+					}
+					return &created, nil
+				}).Times(2)
+			},
+			assertFn: func(t *testing.T, got []outputmodel.MeetingOutput, cap *meetingCreatorCaptures) {
+				assertMeetingOutputIDSet(t, []uint{meetingID1, meetingID2}, got)
+				require.Len(t, cap.createdMeetings, 2)
+				for _, m := range cap.createdMeetings {
+					require.NotNil(t, m.ImplementedAt)
+					assert.Equal(t, expectedImplementDate.Format("2006-01-02"), m.ImplementedAt.Format("2006-01-02"))
+				}
+			},
+		},
+		{
+			name:        "異常系_ペア未指定",
+			templateID:  validTemplateID,
+			from:        from,
+			to:          to,
+			week:        2,
+			weekday:     time.Wednesday,
+			pairingIDs:  nil,
+			wantErr:     true,
+			errContains: "ペアが指定されていません",
+		},
+		{
+			name:        "異常系_該当ペアなし",
+			templateID:  validTemplateID,
+			from:        from,
+			to:          to,
+			week:        2,
+			weekday:     time.Wednesday,
+			pairingIDs:  []uint{999},
+			wantErr:     true,
+			errContains: "ペアがありません",
+			setup: func(_ *repomock.MockMeetingRepository, pairing *repomock.MockPairingRepository, _ *meetingCreatorCaptures) {
+				pairing.EXPECT().GetAll().Return([]entity.Pairing{
+					*newTestPairing(pairingID1, validMenteeID, validMentorID),
+				}, nil)
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			uc, meetingRepo, pairingRepo := newMeetingCreator(t)
+			cap := &meetingCreatorCaptures{}
+			if tt.setup != nil {
+				tt.setup(meetingRepo, pairingRepo, cap)
+			}
+
+			got, gotErr := uc.CreateMeetingEveryMonthByPairings(
+				tt.templateID,
+				tt.from,
+				tt.to,
+				tt.week,
+				tt.weekday,
+				1,
+				nil,
+				tt.pairingIDs,
+			)
+			assertUsecaseErr(t, gotErr, tt.wantErr, tt.errContains, "CreateMeetingEveryMonthByPairings")
+			if t.Failed() {
+				return
+			}
+			if tt.assertFn != nil {
+				tt.assertFn(t, got, cap)
+			}
+		})
+	}
+}

@@ -40,6 +40,7 @@ type (
 	}
 	MeetingCreator interface {
 		CreateMeetingEveryMonth(mentorID, templateID uint, menteeIDs []uint, from, to time.Time, week int, weekday time.Weekday, createdByUserID uint, sharerUserIDs []uint) ([]outputmodel.MeetingOutput, error)
+		CreateMeetingEveryMonthByPairings(templateID uint, from, to time.Time, week int, weekday time.Weekday, createdByUserID uint, sharerUserIDs []uint, pairingIDs []uint) ([]outputmodel.MeetingOutput, error)
 		CreateMeeting(pairingID, templateID uint, implementDate time.Time, createdByUserID uint, sharerUserIDs []uint) (*outputmodel.MeetingOutput, error)
 		CreatePlannedMeetings(mentorID, templateID uint, menteeIDs []uint, implementDate time.Time, createdByUserID uint, sharerUserIDs []uint) ([]outputmodel.MeetingOutput, error)
 		CreateMeetingByAll(templateID uint, implementDate time.Time, createdByUserID uint, sharerUserIDs []uint, pairingIDs []uint) ([]outputmodel.MeetingOutput, error)

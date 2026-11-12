@@ -18,7 +18,7 @@ func IsHoliday(t time.Time) (isHoliday bool) {
 
 func GetNextWeekdays(day time.Time) (nextWeekDays time.Time) {
 	nextWeekDays = day
-	for IsHoliday(nextWeekDays) {
+	for IsHoliday(nextWeekDays) || nextWeekDays.Weekday() == time.Saturday || nextWeekDays.Weekday() == time.Sunday {
 		nextWeekDays = nextWeekDays.AddDate(0, 0, 1)
 	}
 	return nextWeekDays

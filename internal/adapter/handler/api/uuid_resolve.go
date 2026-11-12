@@ -202,3 +202,28 @@ func (h *Handler) resolveCreateMeetingMonthlyInput(c *echo.Context, req *inputmo
 	req.SharerUserIDs = sharerIDs
 	return nil
 }
+
+func (h *Handler) resolveCreateMeetingMonthlyByPairingsInput(c *echo.Context, req *inputmodel.CreateMeetingMonthlyByPairingsInput) error {
+	if req.TemplateUuid == "" {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "templateUuid is required"})
+	}
+	if len(req.PairingUuids) == 0 {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "pairingUuids are required"})
+	}
+	templateID, err := h.resolveTemplateIDFromUUIDString(req.TemplateUuid)
+	if respErr := apiUUIDResolveError(c, err); respErr != nil {
+		return respErr
+	}
+	sharerIDs, err := h.resolveUserIDsFromUUIDs(req.SharerUserUuids)
+	if respErr := apiUUIDResolveError(c, err); respErr != nil {
+		return respErr
+	}
+	pairingIDs, err := h.resolvePairingIDs(req.PairingUuids)
+	if respErr := apiUUIDResolveError(c, err); respErr != nil {
+		return respErr
+	}
+	req.TemplateID = templateID
+	req.SharerUserIDs = sharerIDs
+	req.PairingIDs = pairingIDs
+	return nil
+}

@@ -96,7 +96,11 @@ func (repo *PairingRepository) GetByUUID(pairingUUID uuid.UUID) (*entity.Pairing
 func (repo *PairingRepository) GetAll() ([]entity.Pairing, error) {
 	pairing, err := gorm.G[entity.Pairing](repo.db).Order("id ASC").
 		Preload("Mentor", nil).
+		Preload("Mentor.DepartmentMembers", nil).
+		Preload("Mentor.TeamMembers", nil).
 		Preload("Mentee", nil).
+		Preload("Mentee.DepartmentMembers", nil).
+		Preload("Mentee.TeamMembers", nil).
 		Find(repo.ctx)
 	if err != nil {
 		return nil, fmt.Errorf("全てのペアリング情報の取得に失敗しました: %w", err)

@@ -179,6 +179,67 @@ func (uc *MeetingCreator) CreateMeetingEveryMonth(mentorID, templateID uint, men
 	return converter.MeetingEntitiesToOutputs(result), nil
 }
 
+func (uc *MeetingCreator) CreateMeetingEveryMonthByPairings(templateID uint, from, to time.Time, week int, weekday time.Weekday, createdByUserID uint, sharerUserIDs []uint, pairingIDs []uint) ([]outputmodel.MeetingOutput, error) {
+	if len(pairingIDs) == 0 {
+		return nil, fmt.Errorf("ペアが指定されていません")
+	}
+	pairings, err := uc.pairingRepo.GetAll()
+	if err != nil {
+		return nil, fmt.Errorf("ミーティング作成時に全てのペアリング情報の取得に失敗しました: %w", err)
+	}
+	pairings = filterPairingsByIDs(pairings, pairingIDs)
+	if len(pairings) == 0 {
+		return nil, fmt.Errorf("ペアがありません")
+	}
+	implementDates := utils.ListSpecificWeekdays(from, to, week, weekday)
+	if len(implementDates) == 0 {
+		return converter.MeetingEntitiesToOutputs(nil), nil
+	}
+	var (
+		result = []entity.Meeting{}
+		mux    = sync.Mutex{}
+		wg     = sync.WaitGroup{}
+	)
+	totalCreates := len(implementDates) * len(pairings)
+	errCh := make(chan error, totalCreates)
+	for _, implementDate := range implementDates {
+		implementDate := implementDate
+		for _, pairing := range pairings {
+			wg.Add(1)
+			pairingID := pairing.ID
+			go func(pairingID uint, ec chan<- error) {
+				defer wg.Done()
+				meeting, err := uc.meetingRepo.Create(&entity.Meeting{
+					ImplementedAt:   implementedAtPtr(implementDate),
+					Status:          valueobject.MeetingStatusPending,
+					TemplateID:      templateID,
+					PairingID:       pairingID,
+					CreatedByUserID: createdByUserID,
+				})
+				if err != nil {
+					ec <- fmt.Errorf("定期ミーティングのペアリングのミーティング作成に失敗しました: %w", err)
+					return
+				}
+				if err := uc.saveSharers(meeting.ID, sharerUserIDs); err != nil {
+					ec <- err
+					return
+				}
+				mux.Lock()
+				result = append(result, *meeting)
+				mux.Unlock()
+			}(pairingID, errCh)
+		}
+	}
+	wg.Wait()
+	close(errCh)
+	for err := range errCh {
+		if err != nil {
+			return nil, err
+		}
+	}
+	return converter.MeetingEntitiesToOutputs(result), nil
+}
+
 func (uc *MeetingCreator) CreateMeeting(pairingID, templateID uint, implementDate time.Time, createdByUserID uint, sharerUserIDs []uint) (*outputmodel.MeetingOutput, error) {
 	meeting, err := uc.meetingRepo.Create(&entity.Meeting{
 		Status:          valueobject.MeetingStatusPending,

@@ -353,6 +353,45 @@ func (c *MockManagerCreateMeetingEveryMonthCall) DoAndReturn(f func(uint, uint, 
 	return c
 }
 
+// CreateMeetingEveryMonthByPairings mocks base method.
+func (m *MockManager) CreateMeetingEveryMonthByPairings(templateID uint, from, to time.Time, week int, weekday time.Weekday, createdByUserID uint, sharerUserIDs, pairingIDs []uint) ([]outputmodel.MeetingOutput, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateMeetingEveryMonthByPairings", templateID, from, to, week, weekday, createdByUserID, sharerUserIDs, pairingIDs)
+	ret0, _ := ret[0].([]outputmodel.MeetingOutput)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CreateMeetingEveryMonthByPairings indicates an expected call of CreateMeetingEveryMonthByPairings.
+func (mr *MockManagerMockRecorder) CreateMeetingEveryMonthByPairings(templateID, from, to, week, weekday, createdByUserID, sharerUserIDs, pairingIDs any) *MockManagerCreateMeetingEveryMonthByPairingsCall {
+	mr.mock.ctrl.T.Helper()
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateMeetingEveryMonthByPairings", reflect.TypeOf((*MockManager)(nil).CreateMeetingEveryMonthByPairings), templateID, from, to, week, weekday, createdByUserID, sharerUserIDs, pairingIDs)
+	return &MockManagerCreateMeetingEveryMonthByPairingsCall{Call: call}
+}
+
+// MockManagerCreateMeetingEveryMonthByPairingsCall wrap *gomock.Call
+type MockManagerCreateMeetingEveryMonthByPairingsCall struct {
+	*gomock.Call
+}
+
+// Return rewrite *gomock.Call.Return
+func (c *MockManagerCreateMeetingEveryMonthByPairingsCall) Return(arg0 []outputmodel.MeetingOutput, arg1 error) *MockManagerCreateMeetingEveryMonthByPairingsCall {
+	c.Call = c.Call.Return(arg0, arg1)
+	return c
+}
+
+// Do rewrite *gomock.Call.Do
+func (c *MockManagerCreateMeetingEveryMonthByPairingsCall) Do(f func(uint, time.Time, time.Time, int, time.Weekday, uint, []uint, []uint) ([]outputmodel.MeetingOutput, error)) *MockManagerCreateMeetingEveryMonthByPairingsCall {
+	c.Call = c.Call.Do(f)
+	return c
+}
+
+// DoAndReturn rewrite *gomock.Call.DoAndReturn
+func (c *MockManagerCreateMeetingEveryMonthByPairingsCall) DoAndReturn(f func(uint, time.Time, time.Time, int, time.Weekday, uint, []uint, []uint) ([]outputmodel.MeetingOutput, error)) *MockManagerCreateMeetingEveryMonthByPairingsCall {
+	c.Call = c.Call.DoAndReturn(f)
+	return c
+}
+
 // CreatePairing mocks base method.
 func (m *MockManager) CreatePairing(menteeID, mentorID uint) error {
 	m.ctrl.T.Helper()
@@ -1470,6 +1509,45 @@ func (c *MockMeetingManagerCreateMeetingEveryMonthCall) DoAndReturn(f func(uint,
 	return c
 }
 
+// CreateMeetingEveryMonthByPairings mocks base method.
+func (m *MockMeetingManager) CreateMeetingEveryMonthByPairings(templateID uint, from, to time.Time, week int, weekday time.Weekday, createdByUserID uint, sharerUserIDs, pairingIDs []uint) ([]outputmodel.MeetingOutput, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateMeetingEveryMonthByPairings", templateID, from, to, week, weekday, createdByUserID, sharerUserIDs, pairingIDs)
+	ret0, _ := ret[0].([]outputmodel.MeetingOutput)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CreateMeetingEveryMonthByPairings indicates an expected call of CreateMeetingEveryMonthByPairings.
+func (mr *MockMeetingManagerMockRecorder) CreateMeetingEveryMonthByPairings(templateID, from, to, week, weekday, createdByUserID, sharerUserIDs, pairingIDs any) *MockMeetingManagerCreateMeetingEveryMonthByPairingsCall {
+	mr.mock.ctrl.T.Helper()
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateMeetingEveryMonthByPairings", reflect.TypeOf((*MockMeetingManager)(nil).CreateMeetingEveryMonthByPairings), templateID, from, to, week, weekday, createdByUserID, sharerUserIDs, pairingIDs)
+	return &MockMeetingManagerCreateMeetingEveryMonthByPairingsCall{Call: call}
+}
+
+// MockMeetingManagerCreateMeetingEveryMonthByPairingsCall wrap *gomock.Call
+type MockMeetingManagerCreateMeetingEveryMonthByPairingsCall struct {
+	*gomock.Call
+}
+
+// Return rewrite *gomock.Call.Return
+func (c *MockMeetingManagerCreateMeetingEveryMonthByPairingsCall) Return(arg0 []outputmodel.MeetingOutput, arg1 error) *MockMeetingManagerCreateMeetingEveryMonthByPairingsCall {
+	c.Call = c.Call.Return(arg0, arg1)
+	return c
+}
+
+// Do rewrite *gomock.Call.Do
+func (c *MockMeetingManagerCreateMeetingEveryMonthByPairingsCall) Do(f func(uint, time.Time, time.Time, int, time.Weekday, uint, []uint, []uint) ([]outputmodel.MeetingOutput, error)) *MockMeetingManagerCreateMeetingEveryMonthByPairingsCall {
+	c.Call = c.Call.Do(f)
+	return c
+}
+
+// DoAndReturn rewrite *gomock.Call.DoAndReturn
+func (c *MockMeetingManagerCreateMeetingEveryMonthByPairingsCall) DoAndReturn(f func(uint, time.Time, time.Time, int, time.Weekday, uint, []uint, []uint) ([]outputmodel.MeetingOutput, error)) *MockMeetingManagerCreateMeetingEveryMonthByPairingsCall {
+	c.Call = c.Call.DoAndReturn(f)
+	return c
+}
+
 // CreatePlannedMeetings mocks base method.
 func (m *MockMeetingManager) CreatePlannedMeetings(mentorID, templateID uint, menteeIDs []uint, implementDate time.Time, createdByUserID uint, sharerUserIDs []uint) ([]outputmodel.MeetingOutput, error) {
 	m.ctrl.T.Helper()
@@ -1985,6 +2063,45 @@ func (c *MockMeetingCreatorCreateMeetingEveryMonthCall) Do(f func(uint, uint, []
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
 func (c *MockMeetingCreatorCreateMeetingEveryMonthCall) DoAndReturn(f func(uint, uint, []uint, time.Time, time.Time, int, time.Weekday, uint, []uint) ([]outputmodel.MeetingOutput, error)) *MockMeetingCreatorCreateMeetingEveryMonthCall {
+	c.Call = c.Call.DoAndReturn(f)
+	return c
+}
+
+// CreateMeetingEveryMonthByPairings mocks base method.
+func (m *MockMeetingCreator) CreateMeetingEveryMonthByPairings(templateID uint, from, to time.Time, week int, weekday time.Weekday, createdByUserID uint, sharerUserIDs, pairingIDs []uint) ([]outputmodel.MeetingOutput, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateMeetingEveryMonthByPairings", templateID, from, to, week, weekday, createdByUserID, sharerUserIDs, pairingIDs)
+	ret0, _ := ret[0].([]outputmodel.MeetingOutput)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CreateMeetingEveryMonthByPairings indicates an expected call of CreateMeetingEveryMonthByPairings.
+func (mr *MockMeetingCreatorMockRecorder) CreateMeetingEveryMonthByPairings(templateID, from, to, week, weekday, createdByUserID, sharerUserIDs, pairingIDs any) *MockMeetingCreatorCreateMeetingEveryMonthByPairingsCall {
+	mr.mock.ctrl.T.Helper()
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateMeetingEveryMonthByPairings", reflect.TypeOf((*MockMeetingCreator)(nil).CreateMeetingEveryMonthByPairings), templateID, from, to, week, weekday, createdByUserID, sharerUserIDs, pairingIDs)
+	return &MockMeetingCreatorCreateMeetingEveryMonthByPairingsCall{Call: call}
+}
+
+// MockMeetingCreatorCreateMeetingEveryMonthByPairingsCall wrap *gomock.Call
+type MockMeetingCreatorCreateMeetingEveryMonthByPairingsCall struct {
+	*gomock.Call
+}
+
+// Return rewrite *gomock.Call.Return
+func (c *MockMeetingCreatorCreateMeetingEveryMonthByPairingsCall) Return(arg0 []outputmodel.MeetingOutput, arg1 error) *MockMeetingCreatorCreateMeetingEveryMonthByPairingsCall {
+	c.Call = c.Call.Return(arg0, arg1)
+	return c
+}
+
+// Do rewrite *gomock.Call.Do
+func (c *MockMeetingCreatorCreateMeetingEveryMonthByPairingsCall) Do(f func(uint, time.Time, time.Time, int, time.Weekday, uint, []uint, []uint) ([]outputmodel.MeetingOutput, error)) *MockMeetingCreatorCreateMeetingEveryMonthByPairingsCall {
+	c.Call = c.Call.Do(f)
+	return c
+}
+
+// DoAndReturn rewrite *gomock.Call.DoAndReturn
+func (c *MockMeetingCreatorCreateMeetingEveryMonthByPairingsCall) DoAndReturn(f func(uint, time.Time, time.Time, int, time.Weekday, uint, []uint, []uint) ([]outputmodel.MeetingOutput, error)) *MockMeetingCreatorCreateMeetingEveryMonthByPairingsCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }

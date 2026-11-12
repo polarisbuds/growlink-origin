@@ -122,6 +122,7 @@ func RegisterRoutes(e *echo.Echo, deps Deps, auditLogger *slog.Logger) {
 	apiAuth.POST("/meetings", ah.CreateMeeting, auditLogging(auditLogger, false))
 	apiAuth.POST("/meetings/all", ah.CreateMeetingByAll, auditLogging(auditLogger, false))
 	apiAuth.POST("/meetings/monthly", ah.CreateMeetingMonthly, auditLogging(auditLogger, false))
+	apiAuth.POST("/meetings/monthly/pairings", ah.CreateMeetingMonthlyByPairings, auditLogging(auditLogger, false))
 
 	pairAPI := PlanningPairManagementAPI(deps.Planning)
 	apiAuth.GET("/pairings/meeting", ah.ListPairingsForMeeting, auditLogging(auditLogger, false))

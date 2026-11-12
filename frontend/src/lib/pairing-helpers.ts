@@ -1,7 +1,7 @@
 export type PairingListItem = {
 	uuid: string;
-	mentor?: { uuid?: string; name?: string; imageUri?: string };
-	mentee?: { uuid?: string; name?: string; imageUri?: string };
+	mentor?: { uuid?: string; name?: string; imageUri?: string; departments?: string; teams?: string };
+	mentee?: { uuid?: string; name?: string; imageUri?: string; departments?: string; teams?: string };
 };
 
 export type PairingDisplayRow = {
@@ -11,23 +11,31 @@ export type PairingDisplayRow = {
 	menteeUserUuid: string;
 	mentorName: string;
 	menteeName: string;
+	mentorDepartments: string;
+	menteeDepartments: string;
+	mentorTeams: string;
+	menteeTeams: string;
 };
 
 export function expandUserPairings(pairings: PairingListItem[]): PairingDisplayRow[] {
 	const rows: PairingDisplayRow[] = [];
 	for (const p of pairings) {
-		const mentorUserUuid = p.mentor?.uuid || '';
-		const mentorName = p.mentor?.name || '—';
-		if (!p.mentee?.uuid) {
+		if (!p.mentee?.uuid || !p.mentor?.uuid) {
 			continue;
 		}
+
 		rows.push({
 			pairing: p,
 			rowKey: `${p.uuid}-mentee-${p.mentee.uuid}`,
-			mentorUserUuid,
+			mentorUserUuid: p.mentor.uuid || '',
 			menteeUserUuid: p.mentee.uuid,
-			mentorName,
-			menteeName: p.mentee.name || '—'
+			mentorName: p.mentor.name || '—',
+			menteeName: p.mentee.name || '—',
+			mentorDepartments: p.mentor.departments || '',
+			menteeDepartments: p.mentee.departments || '',
+			mentorTeams: p.mentor.teams || '',
+			menteeTeams: p.mentee.teams || '',
+
 		});
 	}
 	return rows;
