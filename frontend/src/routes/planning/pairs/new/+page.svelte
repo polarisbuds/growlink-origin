@@ -134,19 +134,22 @@
         メンターとメンティを登録します
     </p>
     <div
-        class="mt-6 space-y-4 rounded-3xl border border-base-300 bg-base-100 p-6 shadow-sm">
-        <div class="form-control space-y-3 max-w-md">
-            <span class="label-text font-medium">メンター</span>
-            <button
-                type="button"
-                class="btn btn-outline btn-xs mt-1 w-fit"
-                onclick={() => (mentorModalOpen = true)}
-                >メンターを選択</button>
+        class="mt-6 space-y-4 rounded-3xl border border-base-300 bg-base-100 p-6 shadow-sm"
+    >
+        <div class="form-control space-y-3 w-full">
+            <div class="flex flex-1 w-full justify-between items-end">
+                <span class="label-text font-medium">メンター</span>
+                <button
+                    type="button"
+                    class="btn btn-outline btn-xs mt-1 w-fit"
+                    onclick={() => (mentorModalOpen = true)}
+                    >メンターを選択</button
+                >
+            </div>
             {#if !selectedMentorUser}
                 <p class="text-sm text-base-content/50">未選択</p>
             {:else}
-                <div
-                    class="overflow-hidden rounded-2xl border border-base-300">
+                <div class="overflow-hidden rounded-2xl border border-base-300">
                     <table class="table table-sm">
                         <thead>
                             <tr>
@@ -168,7 +171,8 @@
                                             url={avatarURL(selectedMentorUser)}
                                             text={selectedMentorUser.name}
                                             width={28}
-                                            height={28} />
+                                            height={28}
+                                        />
                                         {selectedMentorUser.name}
                                     </span>
                                 </td>
@@ -180,13 +184,16 @@
         </div>
 
         <div class="space-y-3">
-            <div class="form-control">
-                <span class="label-text font-medium">メンティ</span>
-                <button
-                    type="button"
-                    class="btn btn-outline btn-xs mt-1 w-fit"
-                    onclick={() => (menteeModalOpen = true)}
-                    >メンティを選択</button>
+            <div class="form-control w-full">
+                <div class="flex flex-1 w-full justify-between items-end">
+                    <span class="label-text font-medium">メンティ</span>
+                    <button
+                        type="button"
+                        class="btn btn-outline btn-xs mt-1 w-fit"
+                        onclick={() => (menteeModalOpen = true)}
+                        >メンティを選択</button
+                    >
+                </div>
             </div>
         </div>
         <div class="flex flex-1 w-full">
@@ -194,7 +201,8 @@
                 <p class="text-sm text-base-content/50">未選択</p>
             {:else}
                 <div
-                    class="flex flex-1 w-full overflow-hidden rounded-2xl border border-base-300">
+                    class="flex flex-1 w-full overflow-hidden rounded-2xl border border-base-300"
+                >
                     <table class="table table-sm">
                         <thead>
                             <tr>
@@ -218,7 +226,8 @@
                                                 url={avatarURL(u)}
                                                 text={u.name}
                                                 width={28}
-                                                height={28} />
+                                                height={28}
+                                            />
                                             {u.name}
                                         </span>
                                     </td>
@@ -237,11 +246,13 @@
                                 (selectedMenteeTablePage = Math.max(
                                     1,
                                     selectedMenteeTablePage - 1,
-                                ))}>前へ</button>
+                                ))}>前へ</button
+                        >
                         <span
                             class="btn btn-sm join-item btn-disabled pointer-events-none"
                             >{selectedMenteeTablePage} /
-                            {selectedMenteePageCount}</span>
+                            {selectedMenteePageCount}</span
+                        >
                         <button
                             type="button"
                             class="btn btn-sm join-item"
@@ -251,7 +262,8 @@
                                 (selectedMenteeTablePage = Math.min(
                                     selectedMenteePageCount,
                                     selectedMenteeTablePage + 1,
-                                ))}>次へ</button>
+                                ))}>次へ</button
+                        >
                     </div>
                 {/if}
             {/if}
@@ -259,7 +271,8 @@
 
         <div class="flex flex-wrap gap-2 pt-2 justify-end">
             <button type="button" class="btn btn-primary" onclick={requestSave}
-                >作成</button>
+                >作成</button
+            >
             <a href="/planning/pairs" class="btn btn-ghost">戻る</a>
         </div>
     </div>
@@ -269,7 +282,7 @@
     open={mentorModalOpen}
     title="メンターを選択"
     multiple={false}
-    users={users}
+    {users}
     {departments}
     {teams}
     selectedUuids={mentorUuid ? [mentorUuid] : []}
@@ -280,7 +293,8 @@
     }}
     onClose={() => {
         mentorModalOpen = false;
-    }} />
+    }}
+/>
 
 <UserSelectModal
     open={menteeModalOpen}
@@ -296,4 +310,5 @@
     }}
     onClose={() => {
         menteeModalOpen = false;
-    }} />
+    }}
+/>
