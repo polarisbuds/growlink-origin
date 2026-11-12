@@ -16,6 +16,7 @@ type OrgAdmin struct {
 	deptMemberRepo repository_interface.DepartmentMemberRepository
 	teamMemberRepo repository_interface.TeamMemberRepository
 	userRepo       repository_interface.UserRepository
+	roleRepo       repository_interface.RoleRepository
 }
 
 func NewOrgAdmin(
@@ -25,6 +26,7 @@ func NewOrgAdmin(
 	deptMemberRepo repository_interface.DepartmentMemberRepository,
 	teamMemberRepo repository_interface.TeamMemberRepository,
 	userRepo repository_interface.UserRepository,
+	roleRepo repository_interface.RoleRepository,
 ) *OrgAdmin {
 	return &OrgAdmin{
 		deptRepo:       deptRepo,
@@ -33,6 +35,7 @@ func NewOrgAdmin(
 		deptMemberRepo: deptMemberRepo,
 		teamMemberRepo: teamMemberRepo,
 		userRepo:       userRepo,
+		roleRepo:       roleRepo,
 	}
 }
 
@@ -856,5 +859,17 @@ func (uc *OrgAdmin) resolveRoleIDForUser(userID uint) (uint, error) {
 			return m.RoleID, nil
 		}
 	}
-	return 0, fmt.Errorf("役職を選択してください")
+	roles, err := uc.roleRepo.GetAll()
+	if err != nil {
+		return 0, err
+	}
+	if len(roles) == 0 {
+		return 0, fmt.Errorf("役職を選択してください")
+	}
+	for _, role := range roles {
+		if role.Name == "一般" {
+			return role.ID, nil
+		}
+	}
+	return roles[0].ID, nil
 }

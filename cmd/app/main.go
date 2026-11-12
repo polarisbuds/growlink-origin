@@ -138,7 +138,15 @@ func main() {
 			teamRepo,
 			roleRepo,
 		),
-		OrgAdmin:       org_admin_usecase.NewOrgAdmin(deptRepo, teamRepo, deptHierarchyRepo, deptMemberRepo, teamMemberRepo, userRepo),
+		OrgAdmin: org_admin_usecase.NewOrgAdmin(
+			deptRepo,
+			teamRepo,
+			deptHierarchyRepo,
+			deptMemberRepo,
+			teamMemberRepo,
+			userRepo,
+			roleRepo,
+		),
 		RemindSettings: remind_settings_usecase.NewRemindSettings(systemSettingsRepo),
 	}
 
