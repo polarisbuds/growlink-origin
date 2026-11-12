@@ -12,6 +12,7 @@
     import ChevronRight from "lucide-svelte/icons/chevron-right";
     import Info from "lucide-svelte/icons/info";
     import MemberPickModal from "$lib/components/MemberPickModal.svelte";
+    import MultiCheckSelect from "$lib/components/MultiCheckSelect.svelte";
     import { fade } from "svelte/transition";
     import Icon from "$lib/components/Icon.svelte";
     import Trash2 from "lucide-svelte/icons/trash-2";
@@ -34,7 +35,11 @@
         { value: 5, label: "金曜日" },
     ];
 
-    type DeptAssignment = { departmentUuid: string; roleUuid: string };
+    type DeptAssignment = {
+        departmentUuid: string;
+        roleUuid: string;
+        departmentName?: string;
+    };
     type TeamAssignment = {
         teamUuid: string;
         isLeader?: boolean;
@@ -151,6 +156,7 @@
     let options = $state<Options>({ departments: [], teams: [], roles: [] });
     let selectedUserUuids = $state<string[]>([]);
     let userSearch = $state("");
+    let userDeptFilter = $state<string[]>([]);
     let usersLoading = $state(true);
     let orgLoading = $state(true);
     let remind = $state({
@@ -457,13 +463,45 @@
 
     let filteredUsers = $derived.by(() => {
         const q = userSearch.trim().toLowerCase();
-        if (!q) return users;
-        return users.filter(
-            (u) =>
+        return users.filter((u) => {
+            const matchText =
+                !q ||
                 (u.name || "").toLowerCase().includes(q) ||
-                (u.email || "").toLowerCase().includes(q),
-        );
+                (u.email || "").toLowerCase().includes(q);
+            const deptIds = new Set(userDeptFilter);
+            const matchDept =
+                deptIds.size === 0 ||
+                deptIds.has(u.departmentUuid) ||
+                (u.departments || []).some((d) =>
+                    deptIds.has(d.departmentUuid),
+                );
+            return matchText && matchDept;
+        });
     });
+
+    function departmentLabels(u: ManagementUser): string[] {
+        const fromRows = (u.departments || [])
+            .map((d) => d.departmentName || "")
+            .filter((name) => name !== "");
+        const names =
+            fromRows.length > 0
+                ? fromRows
+                : u.departmentName
+                  ? [u.departmentName]
+                  : [];
+        return [...new Set(names)];
+    }
+
+    function teamLabels(u: ManagementUser): string[] {
+        const byUuid = new Map(options.teams.map((t) => [t.uuid, t.name]));
+        return [
+            ...new Set(
+                (u.teams || [])
+                    .map((t) => byUuid.get(t.teamUuid) || "")
+                    .filter((name) => name !== ""),
+            ),
+        ];
+    }
 
     let allUsersSelected = $derived(
         filteredUsers.length > 0 &&
@@ -1343,17 +1381,28 @@
         <div
             class="flex flex-col sm:flex-row sm:items-center gap-3 mb-4 justify-between"
         >
-            <label
-                class="input input-bordered flex items-center gap-2 flex-1 max-w-md"
-            >
-                <Search class="h-4 w-4 opacity-50" />
-                <input
-                    type="search"
-                    class="grow placeholder-current"
-                    placeholder="氏名・メールで検索"
-                    bind:value={userSearch}
-                />
-            </label>
+            <div class="flex flex-1 flex-col sm:flex-row gap-3 max-w-2xl">
+                <label
+                    class="input input-bordered flex items-center gap-2 flex-1"
+                >
+                    <Search class="h-4 w-4 opacity-50" />
+                    <input
+                        type="search"
+                        class="grow placeholder-current"
+                        placeholder="氏名・メールで検索"
+                        bind:value={userSearch}
+                    />
+                </label>
+                <div class="w-full sm:w-52 shrink-0">
+                    <MultiCheckSelect
+                        pickRootId="management-user-dept"
+                        items={options.departments}
+                        bind:selectedUuids={userDeptFilter}
+                        labelOf={(d) => d.name}
+                        placeholder="すべての部署"
+                    />
+                </div>
+            </div>
             <div class="flex justify-end gap-3">
                 {#if selectedUserUuids.length > 0}
                     <div class="flex items-center gap-2" transition:fade>
@@ -1414,6 +1463,7 @@
                                 />
                             </th>
                             <th>部署</th>
+                            <th>チーム</th>
                             <th>ユーザ</th>
                             <th>権限</th>
                             <th>ロール</th>
@@ -1422,6 +1472,8 @@
                     </thead>
                     <tbody>
                         {#each filteredUsers as u (u.uuid)}
+                            {@const deptNames = departmentLabels(u)}
+                            {@const teamNames = teamLabels(u)}
                             <tr
                                 class="hover:bg-base-200/50 cursor-pointer"
                                 onclick={() => openUserModal(u)}
@@ -1436,7 +1488,24 @@
                                     />
                                 </td>
                                 <td>
-                                    <span>{u.departmentName}</span>
+                                    <span title={deptNames.join("、")}>
+                                        {deptNames[0] || ""}
+                                        {#if deptNames.length > 1}
+                                            <span class="text-base-content/50"
+                                                >+{deptNames.length - 1}</span
+                                            >
+                                        {/if}
+                                    </span>
+                                </td>
+                                <td>
+                                    <span title={teamNames.join("、")}>
+                                        {teamNames[0] || ""}
+                                        {#if teamNames.length > 1}
+                                            <span class="text-base-content/50"
+                                                >+{teamNames.length - 1}</span
+                                            >
+                                        {/if}
+                                    </span>
                                 </td>
                                 <td>
                                     <div class="flex items-center gap-3">
