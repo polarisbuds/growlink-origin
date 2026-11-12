@@ -11,5 +11,9 @@ import (
 type RoleRepository interface {
 	GetAll() ([]entity.Role, error)
 	GetByUUID(roleUUID uuid.UUID) (*entity.Role, error)
+	GetByName(name string) (*entity.Role, error)
 	Create(role *entity.Role) error
+	Update(role *entity.Role) error
+	Delete(id uint) error
+	CountMembersByRoleID(roleID uint) (int64, error)
 }

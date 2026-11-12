@@ -41,6 +41,45 @@ func (m *MockRoleRepository) EXPECT() *MockRoleRepositoryMockRecorder {
 	return m.recorder
 }
 
+// CountMembersByRoleID mocks base method.
+func (m *MockRoleRepository) CountMembersByRoleID(roleID uint) (int64, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CountMembersByRoleID", roleID)
+	ret0, _ := ret[0].(int64)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CountMembersByRoleID indicates an expected call of CountMembersByRoleID.
+func (mr *MockRoleRepositoryMockRecorder) CountMembersByRoleID(roleID any) *MockRoleRepositoryCountMembersByRoleIDCall {
+	mr.mock.ctrl.T.Helper()
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CountMembersByRoleID", reflect.TypeOf((*MockRoleRepository)(nil).CountMembersByRoleID), roleID)
+	return &MockRoleRepositoryCountMembersByRoleIDCall{Call: call}
+}
+
+// MockRoleRepositoryCountMembersByRoleIDCall wrap *gomock.Call
+type MockRoleRepositoryCountMembersByRoleIDCall struct {
+	*gomock.Call
+}
+
+// Return rewrite *gomock.Call.Return
+func (c *MockRoleRepositoryCountMembersByRoleIDCall) Return(arg0 int64, arg1 error) *MockRoleRepositoryCountMembersByRoleIDCall {
+	c.Call = c.Call.Return(arg0, arg1)
+	return c
+}
+
+// Do rewrite *gomock.Call.Do
+func (c *MockRoleRepositoryCountMembersByRoleIDCall) Do(f func(uint) (int64, error)) *MockRoleRepositoryCountMembersByRoleIDCall {
+	c.Call = c.Call.Do(f)
+	return c
+}
+
+// DoAndReturn rewrite *gomock.Call.DoAndReturn
+func (c *MockRoleRepositoryCountMembersByRoleIDCall) DoAndReturn(f func(uint) (int64, error)) *MockRoleRepositoryCountMembersByRoleIDCall {
+	c.Call = c.Call.DoAndReturn(f)
+	return c
+}
+
 // Create mocks base method.
 func (m *MockRoleRepository) Create(role *entity.Role) error {
 	m.ctrl.T.Helper()
@@ -75,6 +114,44 @@ func (c *MockRoleRepositoryCreateCall) Do(f func(*entity.Role) error) *MockRoleR
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
 func (c *MockRoleRepositoryCreateCall) DoAndReturn(f func(*entity.Role) error) *MockRoleRepositoryCreateCall {
+	c.Call = c.Call.DoAndReturn(f)
+	return c
+}
+
+// Delete mocks base method.
+func (m *MockRoleRepository) Delete(id uint) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Delete", id)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Delete indicates an expected call of Delete.
+func (mr *MockRoleRepositoryMockRecorder) Delete(id any) *MockRoleRepositoryDeleteCall {
+	mr.mock.ctrl.T.Helper()
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockRoleRepository)(nil).Delete), id)
+	return &MockRoleRepositoryDeleteCall{Call: call}
+}
+
+// MockRoleRepositoryDeleteCall wrap *gomock.Call
+type MockRoleRepositoryDeleteCall struct {
+	*gomock.Call
+}
+
+// Return rewrite *gomock.Call.Return
+func (c *MockRoleRepositoryDeleteCall) Return(arg0 error) *MockRoleRepositoryDeleteCall {
+	c.Call = c.Call.Return(arg0)
+	return c
+}
+
+// Do rewrite *gomock.Call.Do
+func (c *MockRoleRepositoryDeleteCall) Do(f func(uint) error) *MockRoleRepositoryDeleteCall {
+	c.Call = c.Call.Do(f)
+	return c
+}
+
+// DoAndReturn rewrite *gomock.Call.DoAndReturn
+func (c *MockRoleRepositoryDeleteCall) DoAndReturn(f func(uint) error) *MockRoleRepositoryDeleteCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
@@ -118,6 +195,45 @@ func (c *MockRoleRepositoryGetAllCall) DoAndReturn(f func() ([]entity.Role, erro
 	return c
 }
 
+// GetByName mocks base method.
+func (m *MockRoleRepository) GetByName(name string) (*entity.Role, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetByName", name)
+	ret0, _ := ret[0].(*entity.Role)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetByName indicates an expected call of GetByName.
+func (mr *MockRoleRepositoryMockRecorder) GetByName(name any) *MockRoleRepositoryGetByNameCall {
+	mr.mock.ctrl.T.Helper()
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByName", reflect.TypeOf((*MockRoleRepository)(nil).GetByName), name)
+	return &MockRoleRepositoryGetByNameCall{Call: call}
+}
+
+// MockRoleRepositoryGetByNameCall wrap *gomock.Call
+type MockRoleRepositoryGetByNameCall struct {
+	*gomock.Call
+}
+
+// Return rewrite *gomock.Call.Return
+func (c *MockRoleRepositoryGetByNameCall) Return(arg0 *entity.Role, arg1 error) *MockRoleRepositoryGetByNameCall {
+	c.Call = c.Call.Return(arg0, arg1)
+	return c
+}
+
+// Do rewrite *gomock.Call.Do
+func (c *MockRoleRepositoryGetByNameCall) Do(f func(string) (*entity.Role, error)) *MockRoleRepositoryGetByNameCall {
+	c.Call = c.Call.Do(f)
+	return c
+}
+
+// DoAndReturn rewrite *gomock.Call.DoAndReturn
+func (c *MockRoleRepositoryGetByNameCall) DoAndReturn(f func(string) (*entity.Role, error)) *MockRoleRepositoryGetByNameCall {
+	c.Call = c.Call.DoAndReturn(f)
+	return c
+}
+
 // GetByUUID mocks base method.
 func (m *MockRoleRepository) GetByUUID(roleUUID uuid.UUID) (*entity.Role, error) {
 	m.ctrl.T.Helper()
@@ -153,6 +269,44 @@ func (c *MockRoleRepositoryGetByUUIDCall) Do(f func(uuid.UUID) (*entity.Role, er
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
 func (c *MockRoleRepositoryGetByUUIDCall) DoAndReturn(f func(uuid.UUID) (*entity.Role, error)) *MockRoleRepositoryGetByUUIDCall {
+	c.Call = c.Call.DoAndReturn(f)
+	return c
+}
+
+// Update mocks base method.
+func (m *MockRoleRepository) Update(role *entity.Role) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Update", role)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Update indicates an expected call of Update.
+func (mr *MockRoleRepositoryMockRecorder) Update(role any) *MockRoleRepositoryUpdateCall {
+	mr.mock.ctrl.T.Helper()
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockRoleRepository)(nil).Update), role)
+	return &MockRoleRepositoryUpdateCall{Call: call}
+}
+
+// MockRoleRepositoryUpdateCall wrap *gomock.Call
+type MockRoleRepositoryUpdateCall struct {
+	*gomock.Call
+}
+
+// Return rewrite *gomock.Call.Return
+func (c *MockRoleRepositoryUpdateCall) Return(arg0 error) *MockRoleRepositoryUpdateCall {
+	c.Call = c.Call.Return(arg0)
+	return c
+}
+
+// Do rewrite *gomock.Call.Do
+func (c *MockRoleRepositoryUpdateCall) Do(f func(*entity.Role) error) *MockRoleRepositoryUpdateCall {
+	c.Call = c.Call.Do(f)
+	return c
+}
+
+// DoAndReturn rewrite *gomock.Call.DoAndReturn
+func (c *MockRoleRepositoryUpdateCall) DoAndReturn(f func(*entity.Role) error) *MockRoleRepositoryUpdateCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }

@@ -51,6 +51,32 @@ func (h *Handler) resolveTeamID(param string) (uint, error) {
 	return team.ID, nil
 }
 
+func (h *Handler) resolveRoleID(param string) (uint, error) {
+	roleUUID, err := uuid.Parse(param)
+	if err != nil {
+		return 0, err
+	}
+	role, err := h.deps.RoleRepo.GetByUUID(roleUUID)
+	if err != nil {
+		return 0, err
+	}
+	if role == nil {
+		return 0, gorm.ErrRecordNotFound
+	}
+	return role.ID, nil
+}
+
+func (h *Handler) roleNameInUse(name string, excludeID uint) (bool, error) {
+	existing, err := h.deps.RoleRepo.GetByName(name)
+	if err != nil {
+		return false, err
+	}
+	if existing == nil {
+		return false, nil
+	}
+	return existing.ID != excludeID, nil
+}
+
 func managementUUIDResolveError(c *echo.Context, err error) error {
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
@@ -222,6 +248,18 @@ func (h *Handler) CreateTeam(c *echo.Context) error {
 	return c.JSON(http.StatusCreated, team)
 }
 
+func (h *Handler) ListRoles(c *echo.Context) error {
+	roles, err := h.deps.RoleRepo.GetAll()
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+	}
+	out := make([]map[string]interface{}, 0, len(roles))
+	for _, r := range roles {
+		out = append(out, map[string]interface{}{"uuid": r.UUID.String(), "name": r.Name})
+	}
+	return c.JSON(http.StatusOK, out)
+}
+
 func (h *Handler) CreateRole(c *echo.Context) error {
 	var req struct {
 		Name string `json:"name"`
@@ -233,11 +271,72 @@ func (h *Handler) CreateRole(c *echo.Context) error {
 	if name == "" {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "役職名を入力してください"})
 	}
+	inUse, err := h.roleNameInUse(name, 0)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+	}
+	if inUse {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "同じ名前の役職が既に存在します"})
+	}
 	role := &entity.Role{Name: name}
 	if err := h.deps.RoleRepo.Create(role); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
 	}
 	return c.JSON(http.StatusCreated, map[string]interface{}{"uuid": role.UUID.String(), "name": role.Name})
+}
+
+func (h *Handler) UpdateRole(c *echo.Context) error {
+	roleUUID, parseErr := uuid.Parse(c.Param("uuid"))
+	if parseErr != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid uuid"})
+	}
+	roleID, err := h.resolveRoleID(c.Param("uuid"))
+	if respErr := managementUUIDResolveError(c, err); respErr != nil {
+		return respErr
+	}
+	var req struct {
+		Name string `json:"name"`
+	}
+	if err := c.Bind(&req); err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid request"})
+	}
+	name := strings.TrimSpace(req.Name)
+	if name == "" {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "役職名を入力してください"})
+	}
+	inUse, err := h.roleNameInUse(name, roleID)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+	}
+	if inUse {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "同じ名前の役職が既に存在します"})
+	}
+	if err := h.deps.RoleRepo.Update(&entity.Role{Model: gorm.Model{ID: roleID}, Name: name}); err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
+	}
+	role, err := h.deps.RoleRepo.GetByUUID(roleUUID)
+	if err != nil || role == nil {
+		return c.JSON(http.StatusOK, map[string]interface{}{"uuid": roleUUID.String(), "name": name})
+	}
+	return c.JSON(http.StatusOK, map[string]interface{}{"uuid": role.UUID.String(), "name": role.Name})
+}
+
+func (h *Handler) DeleteRole(c *echo.Context) error {
+	roleID, err := h.resolveRoleID(c.Param("uuid"))
+	if respErr := managementUUIDResolveError(c, err); respErr != nil {
+		return respErr
+	}
+	count, err := h.deps.RoleRepo.CountMembersByRoleID(roleID)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+	}
+	if count > 0 {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "この役職はユーザに割り当てられているため削除できません"})
+	}
+	if err := h.deps.RoleRepo.Delete(roleID); err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
+	}
+	return c.JSON(http.StatusOK, map[string]string{"ok": "true"})
 }
 
 func (h *Handler) DeleteTeam(c *echo.Context) error {
