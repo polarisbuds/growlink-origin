@@ -31,6 +31,14 @@ func (repo *DepartmentMemberRepository) preloadWhere(query string, args ...any) 
 	return members, nil
 }
 
+func (repo *DepartmentMemberRepository) GetAll() ([]entity.DepartmentMember, error) {
+	members, err := gorm.G[entity.DepartmentMember](repo.db).Order("id ASC").Find(repo.ctx)
+	if err != nil {
+		return nil, fmt.Errorf("部署メンバーの全取得に失敗しました: %w", err)
+	}
+	return members, nil
+}
+
 func (repo *DepartmentMemberRepository) GetByDepartmentID(departmentID uint) ([]entity.DepartmentMember, error) {
 	members, err := repo.preloadWhere("department_id = ?", departmentID)
 	if err != nil {

@@ -46,6 +46,14 @@ func newTestUser(id uint, name string) *entity.User {
 	}
 }
 
+func testPairings(ps ...*entity.Pairing) []entity.Pairing {
+	out := make([]entity.Pairing, 0, len(ps))
+	for _, p := range ps {
+		out = append(out, *p)
+	}
+	return out
+}
+
 func newTestPairing(id, menteeID, mentorID uint) *entity.Pairing {
 	return &entity.Pairing{
 		Model:    gorm.Model{ID: id},

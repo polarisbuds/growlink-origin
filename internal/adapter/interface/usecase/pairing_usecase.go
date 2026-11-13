@@ -16,6 +16,6 @@ type (
 		CreatePairList(mentorID uint) (menteeList []outputmodel.UserOutput, err error)
 	}
 	PairingBreaker interface {
-		BreakPair(menteeID uint) bool
+		BreakPairByMenteeID(menteeID uint) bool
 	}
 )

@@ -17,8 +17,8 @@ type PairingRepository interface {
 	GetAll() ([]entity.Pairing, error)
 	Get(pairingID uint) (*entity.Pairing, error)
 	GetByUUID(pairingUUID uuid.UUID) (*entity.Pairing, error)
-	GetByMenteeID(menteeID uint) (*entity.Pairing, error)
-	GetByMentorID(mentorID uint) ([]entity.Pairing, error)
+	GetByMenteeID(menteeID uint) ([]entity.Pairing, error)
+	GetByMentorID(mentorID uint) (mentees []entity.Pairing, err error)
 	GetPairingIDsBySharerUserID(userID uint) ([]uint, error)
 	UpdatePairing(pairingID, mentorID, menteeID uint) error
 }

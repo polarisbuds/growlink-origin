@@ -38,7 +38,7 @@ func TestProgressViewer_Summary_AdminSeesAll(t *testing.T) {
 		meetingForMentee(1, valueobject.MeetingStatusPending),
 		meetingForMentee(2, valueobject.MeetingStatusDone),
 	}, nil)
-	uc := NewProgressViewer(meeting, &stubReferable{ids: map[uint]bool{99: true}})
+	uc := NewProgressViewer(meeting, &stubReferable{ids: map[uint]bool{99: true}}, nil, nil, nil, nil, nil, nil)
 
 	got, err := uc.Summary(ProgressFilter{ViewerID: 9, SystemRole: valueobject.SystemRoleAdmin})
 	require.NoError(t, err)
@@ -51,7 +51,7 @@ func TestProgressViewer_Summary_AnalystSeesAll(t *testing.T) {
 	meeting.EXPECT().GetAll().Return([]entity.Meeting{
 		meetingForMentee(1, valueobject.MeetingStatusPending),
 	}, nil)
-	uc := NewProgressViewer(meeting, &stubReferable{})
+	uc := NewProgressViewer(meeting, &stubReferable{}, nil, nil, nil, nil, nil, nil)
 
 	got, err := uc.Summary(ProgressFilter{ViewerID: 9, SystemRole: valueobject.SystemRoleAnalyst})
 	require.NoError(t, err)
@@ -65,7 +65,7 @@ func TestProgressViewer_Summary_ReferableScopeOnly(t *testing.T) {
 		meetingForMentee(10, valueobject.MeetingStatusPending),
 		meetingForMentee(99, valueobject.MeetingStatusDone),
 	}, nil)
-	uc := NewProgressViewer(meeting, &stubReferable{ids: map[uint]bool{10: true}})
+	uc := NewProgressViewer(meeting, &stubReferable{ids: map[uint]bool{10: true}}, nil, nil, nil, nil, nil, nil)
 
 	got, err := uc.Summary(ProgressFilter{ViewerID: 9, SystemRole: valueobject.SystemRoleNone})
 	require.NoError(t, err)
@@ -79,7 +79,7 @@ func TestProgressViewer_Summary_NoReferableUsers(t *testing.T) {
 	meeting.EXPECT().GetAll().Return([]entity.Meeting{
 		meetingForMentee(1, valueobject.MeetingStatusPending),
 	}, nil)
-	uc := NewProgressViewer(meeting, &stubReferable{ids: map[uint]bool{}})
+	uc := NewProgressViewer(meeting, &stubReferable{ids: map[uint]bool{}}, nil, nil, nil, nil, nil, nil)
 
 	got, err := uc.Summary(ProgressFilter{ViewerID: 9, SystemRole: valueobject.SystemRoleNone})
 	require.NoError(t, err)
@@ -92,7 +92,7 @@ func TestProgressViewer_Summary_ReferableError(t *testing.T) {
 	meeting.EXPECT().GetAll().Return([]entity.Meeting{
 		meetingForMentee(1, valueobject.MeetingStatusPending),
 	}, nil)
-	uc := NewProgressViewer(meeting, &stubReferable{err: errors.New("scope failed")})
+	uc := NewProgressViewer(meeting, &stubReferable{err: errors.New("scope failed")}, nil, nil, nil, nil, nil, nil)
 
 	_, err := uc.Summary(ProgressFilter{ViewerID: 9, SystemRole: valueobject.SystemRoleNone})
 	require.Error(t, err)

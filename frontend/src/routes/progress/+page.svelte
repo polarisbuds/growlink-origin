@@ -2,39 +2,26 @@
     import { onMount } from "svelte";
     import { api } from "$lib/api";
     import ProgressChart from "$lib/components/ProgressChart.svelte";
-    import type { ProgressBreakdownRow } from "$lib/progress-types";
+    import type {
+        ProgressDepartmentRow,
+        ProgressDoneMonthPoint,
+    } from "$lib/progress-types";
 
-    type ProgressSummary = {
-        pending: number;
-        draft: number;
-        submitted: number;
-        done: number;
-        total: number;
-        donePercent?: number;
-    };
+    type ProgressViewTab = "departments" | "trend";
 
-    type BreakdownGroup = "department" | "team";
-
-    let summary = $state<ProgressSummary>({
-        pending: 0,
-        draft: 0,
-        submitted: 0,
-        done: 0,
-        total: 0,
-        donePercent: 0,
-    });
-    let breakdownGroup = $state<BreakdownGroup>("department");
-    let breakdownRows = $state<ProgressBreakdownRow[]>([]);
-    let breakdownLoading = $state(false);
+    let viewTab = $state<ProgressViewTab>("departments");
+    let departmentRows = $state<ProgressDepartmentRow[]>([]);
+    let doneTrendPoints = $state<ProgressDoneMonthPoint[]>([]);
+    let departmentLoading = $state(false);
+    let doneTrendLoading = $state(false);
     let dateFrom = $state("");
     let dateTo = $state("");
     let periodLabel = $state("全期間");
-    let drilldownOpen = $state(false);
-    let drilldownTitle = $state("");
-    let drilldownUsers = $state<string[]>([]);
 
-    let groupLabel = $derived(
-        breakdownGroup === "department" ? "部署" : "チーム",
+    let trendRangeReady = $derived(Boolean(dateFrom && dateTo));
+
+    let chartPoints = $derived(
+        doneTrendPoints.map((p) => ({ label: p.label, done: p.done })),
     );
 
     async function setTomonthRange() {
@@ -53,11 +40,10 @@
         dateTo = formatDate(end);
     }
 
-    function buildQuery(extra: Record<string, string> = {}) {
+    function buildQuery() {
         const p = new URLSearchParams();
         if (dateFrom) p.set("from", dateFrom);
         if (dateTo) p.set("to", dateTo);
-        for (const [k, v] of Object.entries(extra)) p.set(k, v);
         const s = p.toString();
         return s ? `?${s}` : "";
     }
@@ -69,42 +55,42 @@
         else periodLabel = "全期間";
     }
 
-    async function loadSummary() {
+    async function loadDepartmentTable() {
+        departmentLoading = true;
         try {
-            summary = await api<ProgressSummary>(
+            const res = await api<{ rows: ProgressDepartmentRow[] }>(
                 "GET",
-                `/api/v1/progress/summary${buildQuery()}`,
+                `/api/v1/progress/departments${buildQuery()}`,
             );
+            departmentRows = res.rows ?? [];
         } catch {
-            summary = {
-                pending: 0,
-                draft: 0,
-                submitted: 0,
-                done: 0,
-                total: 0,
-                donePercent: 0,
-            };
+            departmentRows = [];
+        } finally {
+            departmentLoading = false;
         }
     }
 
-    async function loadBreakdown() {
-        breakdownLoading = true;
+    async function loadDoneTrend() {
+        if (!dateFrom || !dateTo) {
+            doneTrendPoints = [];
+            return;
+        }
+        doneTrendLoading = true;
         try {
-            breakdownRows = await api<ProgressBreakdownRow[]>(
+            doneTrendPoints = await api<ProgressDoneMonthPoint[]>(
                 "GET",
-                `/api/v1/progress/breakdown${buildQuery({ group: breakdownGroup })}`,
+                `/api/v1/progress/done-trend${buildQuery()}`,
             );
         } catch {
-            breakdownRows = [];
+            doneTrendPoints = [];
         } finally {
-            breakdownLoading = false;
+            doneTrendLoading = false;
         }
     }
 
     async function reloadAll() {
         updatePeriodLabel();
-        await loadSummary();
-        await loadBreakdown();
+        await Promise.all([loadDepartmentTable(), loadDoneTrend()]);
     }
 
     onMount(async () => {
@@ -112,178 +98,144 @@
         await reloadAll();
     });
 
-    async function setBreakdownGroup(group: BreakdownGroup) {
-        if (breakdownGroup === group) return;
-        breakdownGroup = group;
-        await loadBreakdown();
+    function switchViewTab(tab: ProgressViewTab) {
+        viewTab = tab;
     }
 
-    function onChartClick(payload: {
-        row: ProgressBreakdownRow;
-        status: "pending" | "draft" | "submitted" | "done";
-        users: string[];
-    }) {
-        const statusLabel =
-            payload.status === "pending"
-                ? "未着手"
-                : payload.status === "draft"
-                  ? "下書き"
-                  : payload.status === "submitted"
-                    ? "提出済み"
-                    : "完了";
-        drilldownTitle = `${payload.row.name}（${statusLabel}）`;
-        drilldownUsers = payload.users.length
-            ? payload.users
-            : ["（該当ユーザなし）"];
-        drilldownOpen = true;
+    function deptIndent(depth: number) {
+        return depth > 0 ? `${"　".repeat(depth)}` : "";
     }
 </script>
 
 <svelte:head><title>進捗 - Growlink</title></svelte:head>
 
 <h1 class="font-display text-2xl font-semibold">進捗</h1>
-<p class="mt-1 text-sm text-base-content/60">
-    面談ステータス別の件数（表示期間: {periodLabel}）
-</p>
 
-<div class="mt-4 flex flex-wrap items-end gap-3">
-    <label class="form-control">
-        <span class="label-text text-xs">開始日</span>
-        <input
-            type="date"
-            class="input input-bordered input-sm"
-            bind:value={dateFrom} />
-    </label>
-    <label class="form-control">
-        <span class="label-text text-xs">終了日</span>
-        <input
-            type="date"
-            class="input input-bordered input-sm"
-            bind:value={dateTo} />
-    </label>
-    <button type="button" class="btn btn-primary btn-sm" onclick={reloadAll}
-        >期間を適用</button>
+<div role="tablist" class="tabs tabs-bordered mt-6 max-w-3xl">
+    <button
+        type="button"
+        role="tab"
+        class="tab"
+        class:tab-active={viewTab === "departments"}
+        onclick={() => switchViewTab("departments")}>
+        部署ごとの実施状況
+    </button>
+    <button
+        type="button"
+        role="tab"
+        class="tab"
+        class:tab-active={viewTab === "trend"}
+        onclick={() => switchViewTab("trend")}>
+        実施数の遷移
+    </button>
 </div>
 
-<div class="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-5">
-    <div class="rounded-3xl border border-base-300 bg-base-100 p-5 shadow-sm">
-        <p class="text-sm text-base-content/60">未着手</p>
-        <p class="mt-2 text-3xl font-semibold text-primary">
-            {summary.pending}
-        </p>
-    </div>
-    <div class="rounded-3xl border border-base-300 bg-base-100 p-5 shadow-sm">
-        <p class="text-sm text-base-content/60">下書き</p>
-        <p class="mt-2 text-3xl font-semibold text-warning">{summary.draft}</p>
-    </div>
-    <div class="rounded-3xl border border-base-300 bg-base-100 p-5 shadow-sm">
-        <p class="text-sm text-base-content/60">提出済み</p>
-        <p class="mt-2 text-3xl font-semibold text-info">
-            {summary.submitted ?? 0}
-        </p>
-    </div>
-    <div class="rounded-3xl border border-base-300 bg-base-100 p-5 shadow-sm">
-        <p class="text-sm text-base-content/60">完了</p>
-        <p class="mt-2 text-3xl font-semibold text-success">{summary.done}</p>
-    </div>
-    <div class="rounded-3xl border border-base-300 bg-base-100 p-5 shadow-sm">
-        <p class="text-sm text-base-content/60">合計 / 完了率</p>
-        <p class="mt-2 text-3xl font-semibold">{summary.total}</p>
-        <p class="text-sm text-base-content/60">
-            完了率 {(summary.donePercent ?? 0).toFixed(1)}%
-        </p>
+<div class="flex flex-1 justify-between mt-5 items-center">
+    <p class="text-sm text-base-content/60">
+        表示期間: {periodLabel}
+    </p>
+
+    <div class="flex flex-wrap items-end gap-3 justify-end">
+        <label class="form-control">
+            <span class="label-text text-xs">開始日</span>
+            <input
+                type="date"
+                class="input input-bordered input-sm"
+                bind:value={dateFrom} />
+        </label>
+        <label class="form-control">
+            <span class="label-text text-xs">終了日</span>
+            <input
+                type="date"
+                class="input input-bordered input-sm"
+                bind:value={dateTo} />
+        </label>
+        <button type="button" class="btn btn-primary btn-sm" onclick={reloadAll}
+            >期間を適用</button>
     </div>
 </div>
 
-<section
-    class="mt-10 rounded-3xl border border-base-300 bg-base-100 p-6 shadow-sm">
-    <div class="flex flex-wrap items-center justify-between gap-3">
-        <div>
-            <h2 class="text-lg font-semibold">ステータス内訳</h2>
-            <p class="mt-1 text-sm text-base-content/60">
-                {groupLabel}ごとの面談件数
-            </p>
-        </div>
-        <div role="tablist" class="tabs tabs-bordered">
-            <button
-                type="button"
-                role="tab"
-                class="tab"
-                class:tab-active={breakdownGroup === "department"}
-                onclick={() => setBreakdownGroup("department")}>部署</button>
-            <button
-                type="button"
-                role="tab"
-                class="tab"
-                class:tab-active={breakdownGroup === "team"}
-                onclick={() => setBreakdownGroup("team")}>チーム</button>
-        </div>
-    </div>
-    <div class="mt-6">
-        {#if breakdownLoading}
-            <p class="py-12 text-center text-sm text-base-content/50">
+{#if viewTab === "departments"}
+    <section
+        class="mt-3 overflow-hidden rounded-3xl border border-base-300 bg-base-100 shadow-sm">
+        {#if departmentLoading}
+            <p class="p-12 text-center text-sm text-base-content/50">
                 読み込み中…
             </p>
+        {:else if departmentRows.length === 0}
+            <p class="p-12 text-center text-sm text-base-content/50">
+                表示するデータがありません
+            </p>
         {:else}
-            <ProgressChart
-                rows={breakdownRows}
-                {groupLabel}
-                onSegmentClick={onChartClick} />
-        {/if}
-    </div>
-    {#if breakdownRows.length > 0}
-        <div class="mt-8 overflow-x-auto">
-            <table class="table table-sm">
-                <thead>
-                    <tr>
-                        <th>{groupLabel}</th>
-                        <th>未着手</th>
-                        <th>下書き</th>
-                        <th>提出済み</th>
-                        <th>完了</th>
-                        <th>合計</th>
-                        <th>完了率</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {#each breakdownRows as row (row.uuid + row.name)}
-                        <tr>
-                            <td>{row.name}</td>
-                            <td>{row.pending}</td>
-                            <td>{row.draft}</td>
-                            <td>{row.submitted ?? 0}</td>
-                            <td>{row.done}</td>
-                            <td
-                                >{row.pending +
-                                    row.draft +
-                                    (row.submitted ?? 0) +
-                                    row.done}</td>
-                            <td>{(row.donePercent ?? 0).toFixed(1)}%</td>
+            <div class="overflow-x-auto">
+                <table class="table table-sm">
+                    <thead>
+                        <tr class="border-b border-base-300 bg-base-200/40">
+                            <th>部署</th>
+                            <th class="text-right">ユーザー数</th>
+                            <th class="text-right">ペア数</th>
+                            <th class="text-right">未実施[件]</th>
+                            <th class="text-right">完了[件]</th>
+                            <th class="text-right">実施率</th>
                         </tr>
-                    {/each}
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                        {#each departmentRows as row (row.isTotal ? "total" : row.uuid + row.name)}
+                            <tr
+                                class="border-b {row.isTotal
+                                    ? 'font-semibold bg-base-200/20'
+                                    : 'hover:bg-base-300/10'}">
+                                <td>{deptIndent(row.depth)}{row.name}</td>
+                                <td class="text-right">{row.userCount}</td>
+                                <td class="text-right">{row.pairCount}</td>
+                                <td class="text-right">{row.notDoneCount}</td>
+                                <td class="text-right">{row.doneCount}</td>
+                                <td class="text-right"
+                                    >{row.donePercent.toFixed(1)}%</td>
+                            </tr>
+                            {#each row.teams ?? [] as team (team.uuid + team.name)}
+                                <tr
+                                    class="border-b border-base-200/80 hover:bg-base-300/10">
+                                    <td
+                                        >{deptIndent(
+                                            row.depth + 1,
+                                        )}{team.name}</td>
+                                    <td class="text-right">{team.userCount}</td>
+                                    <td class="text-right">{team.pairCount}</td>
+                                    <td class="text-right"
+                                        >{team.notDoneCount}</td>
+                                    <td class="text-right">{team.doneCount}</td>
+                                    <td class="text-right"
+                                        >{team.donePercent.toFixed(1)}%</td>
+                                </tr>
+                            {/each}
+                        {/each}
+                    </tbody>
+                </table>
+            </div>
+        {/if}
+    </section>
+{:else}
+    <section
+        class="mt-10 rounded-3xl border border-base-300 bg-base-100 p-6 shadow-sm">
+        <div>
+            <h2 class="text-lg font-semibold">完了件数</h2>
+            <p class="mt-1 text-sm text-base-content/60">
+                表示期間の全部署合計（月別）
+            </p>
         </div>
-    {/if}
-</section>
-
-<dialog class="modal" class:modal-open={drilldownOpen}>
-    <div class="modal-box">
-        <h3 class="font-bold text-lg">{drilldownTitle}</h3>
-        <ul class="mt-4 list-disc space-y-1 pl-5 text-sm">
-            {#each drilldownUsers as name, i (i)}
-                <li>{name}</li>
-            {/each}
-        </ul>
-        <div class="modal-action">
-            <button
-                type="button"
-                class="btn"
-                onclick={() => (drilldownOpen = false)}>閉じる</button>
+        <div class="mt-6">
+            {#if !trendRangeReady}
+                <p class="py-12 text-center text-sm text-base-content/50">
+                    開始日と終了日を指定してください
+                </p>
+            {:else if doneTrendLoading}
+                <p class="py-12 text-center text-sm text-base-content/50">
+                    読み込み中…
+                </p>
+            {:else}
+                <ProgressChart points={chartPoints} />
+            {/if}
         </div>
-    </div>
-    <form method="dialog" class="modal-backdrop">
-        <button type="button" onclick={() => (drilldownOpen = false)}
-            >close</button>
-    </form>
-</dialog>
+    </section>
+{/if}

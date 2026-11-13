@@ -24,12 +24,14 @@ export function buildNavigation(pathname: string, me: AvatarMe): NavItem[] {
 			active: pathname.startsWith('/management')
 		});
 	}
-	nav.push({
-		href: '/progress',
-		label: '進捗',
-		icon: 'bar-chart-2',
-		active: pathname.startsWith('/progress')
-	});
+	if (me.isAnalyst || me.isSystemAdmin) {
+		nav.push({
+			href: '/progress',
+			label: '進捗',
+			icon: 'bar-chart-2',
+			active: pathname.startsWith('/progress')
+		});
+	}
 	return nav;
 }
 

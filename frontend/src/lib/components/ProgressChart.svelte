@@ -4,23 +4,18 @@
     import { format } from "d3-format";
     import { scaleBand, scaleLinear } from "d3-scale";
     import { select } from "d3-selection";
-    import { stack, type Series } from "d3-shape";
     import "d3-transition";
     import { onMount } from "svelte";
-    import type { ProgressBreakdownRow } from "$lib/progress-types";
+
+    export type ProgressDoneChartPoint = {
+        label: string;
+        done: number;
+    };
 
     let {
-        rows = [],
-        groupLabel = "部署",
-        onSegmentClick,
+        points = [],
     }: {
-        rows?: ProgressBreakdownRow[];
-        groupLabel?: string;
-        onSegmentClick?: (payload: {
-            row: ProgressBreakdownRow;
-            status: "pending" | "draft" | "submitted" | "done";
-            users: string[];
-        }) => void;
+        points?: ProgressDoneChartPoint[];
     } = $props();
 
     let container: HTMLDivElement | undefined = $state();
@@ -28,30 +23,11 @@
     let tooltip = $state<{ x: number; y: number; text: string } | null>(null);
 
     const margin = { top: 16, right: 16, bottom: 72, left: 48 };
-    const series = [
-        { key: "pending" as const, label: "未着手", color: "oklch(var(--p))" },
-        { key: "draft" as const, label: "下書き", color: "oklch(var(--wa))" },
-        {
-            key: "submitted" as const,
-            label: "提出済み",
-            color: "oklch(var(--in))",
-        },
-        { key: "done" as const, label: "完了", color: "oklch(var(--su))" },
-    ];
-
-    function usersFor(
-        row: ProgressBreakdownRow,
-        key: "pending" | "draft" | "submitted" | "done",
-    ) {
-        if (key === "pending") return row.usersPending || [];
-        if (key === "draft") return row.usersDraft || [];
-        if (key === "submitted") return row.usersSubmitted || [];
-        return row.usersDone || [];
-    }
+    const doneColor = "oklch(var(--su))";
 
     function draw() {
         if (!container) return;
-        const data = rows;
+        const data = points;
         container.innerHTML = "";
         tooltip = null;
         if (!data.length) {
@@ -71,108 +47,48 @@
             .attr("width", width)
             .attr("height", height)
             .attr("role", "img")
-            .attr("aria-label", `${groupLabel}別の面談ステータス`);
+            .attr("aria-label", "月別の完了件数");
 
         const g = svg
             .append("g")
             .attr("transform", `translate(${margin.left},${margin.top})`);
 
         const x = scaleBand()
-            .domain(data.map((d) => d.name))
+            .domain(data.map((d) => d.label))
             .range([0, innerW])
             .padding(0.25);
 
-        const maxTotal =
-            max(data, (d) => d.pending + d.draft + d.submitted + d.done) ?? 0;
+        const maxDone = max(data, (d) => d.done) ?? 0;
         const y = scaleLinear()
-            .domain([0, Math.max(1, maxTotal)])
+            .domain([0, Math.max(1, maxDone)])
             .nice()
             .range([innerH, 0]);
 
-        const stackGen = stack<ProgressBreakdownRow>().keys(
-            series.map((s) => s.key),
-        );
-        const stacked = stackGen(data);
-
-        g.selectAll("g.layer")
-            .data(stacked)
-            .join("g")
-            .attr("class", "layer")
-            .attr(
-                "fill",
-                (layer) =>
-                    series.find((s) => s.key === layer.key)?.color ??
-                    "hsl(var(--bc))",
-            )
-            .selectAll("rect")
-            .data((layer) => layer)
+        g.selectAll("rect.bar")
+            .data(data)
             .join("rect")
-            .attr("x", (d) => x(d.data.name) ?? 0)
+            .attr("class", "bar")
+            .attr("x", (d) => x(d.label) ?? 0)
             .attr("width", x.bandwidth())
             .attr("rx", 4)
+            .attr("fill", doneColor)
             .attr("y", innerH)
             .attr("height", 0)
             .transition()
             .duration(600)
-            .attr("y", (d) => y(d[1]))
-            .attr("height", (d) => Math.max(0, y(d[0]) - y(d[1])))
+            .attr("y", (d) => y(d.done))
+            .attr("height", (d) => Math.max(0, innerH - y(d.done)))
             .selection()
             .on("mouseenter", (ev, d) => {
-                const parent = (ev.currentTarget as SVGRectElement)
-                    .parentElement;
-                const layerKey =
-                    parent instanceof SVGGElement
-                        ? (parent as SVGGElement & { __layerKey?: string })
-                              .__layerKey
-                        : undefined;
-                const key = (layerKey || "pending") as
-                    | "pending"
-                    | "draft"
-                    | "submitted"
-                    | "done";
-                const s = series.find((x) => x.key === key);
-                const count = d.data[key];
-                const total =
-                    d.data.pending +
-                    d.data.draft +
-                    d.data.submitted +
-                    d.data.done;
-                const pct = total > 0 ? Math.round((count / total) * 100) : 0;
                 tooltip = {
                     x: ev.clientX,
                     y: ev.clientY,
-                    text: `${d.data.name} / ${s?.label ?? key}: ${count}件 (${pct}%)`,
+                    text: `${d.label} / 完了: ${d.done}件`,
                 };
             })
             .on("mouseleave", () => {
                 tooltip = null;
-            })
-            .on("click", (ev, d) => {
-                const parent = (ev.currentTarget as SVGRectElement)
-                    .parentElement;
-                const layerKey =
-                    parent instanceof SVGGElement
-                        ? (parent as SVGGElement & { __layerKey?: string })
-                              .__layerKey
-                        : undefined;
-                const key = (layerKey || "pending") as
-                    | "pending"
-                    | "draft"
-                    | "submitted"
-                    | "done";
-                onSegmentClick?.({
-                    row: d.data,
-                    status: key,
-                    users: usersFor(d.data, key),
-                });
             });
-
-        g.selectAll<SVGGElement, Series<ProgressBreakdownRow, string>>(
-            "g.layer",
-        ).each(function (layer) {
-            (this as SVGGElement & { __layerKey?: string }).__layerKey =
-                layer.key;
-        });
 
         g.append("g")
             .attr("transform", `translate(0,${innerH})`)
@@ -184,27 +100,6 @@
             .attr("dy", "0.2em");
 
         g.append("g").call(axisLeft(y).ticks(5).tickFormat(format("d")));
-
-        const legend = svg
-            .append("g")
-            .attr("transform", `translate(${margin.left}, ${height - 20})`);
-        let lx = 0;
-        for (const s of series) {
-            const item = legend
-                .append("g")
-                .attr("transform", `translate(${lx}, 0)`);
-            item.append("rect")
-                .attr("width", 12)
-                .attr("height", 12)
-                .attr("fill", s.color)
-                .attr("rx", 2);
-            item.append("text")
-                .attr("x", 16)
-                .attr("y", 10)
-                .attr("fill", "currentColor")
-                .text(s.label);
-            lx += s.label.length * 10 + 36;
-        }
     }
 
     $effect(() => {

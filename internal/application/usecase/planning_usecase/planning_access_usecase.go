@@ -178,10 +178,12 @@ func (uc *PlanningAccessUsecase) ListPairingsForMeeting(userID uint, authority v
 	}
 	merged = append(merged, mentorPairs...)
 
-	if pairing, err := uc.pairingRepo.GetByMenteeID(userID); err == nil && pairing != nil {
-		out, err := uc.pairingViewer.GetPairing(pairing.ID)
-		if err == nil && out != nil {
-			merged = append(merged, *out)
+	if menteePairings, err := uc.pairingRepo.GetByMenteeID(userID); err == nil {
+		for _, p := range menteePairings {
+			out, err := uc.pairingViewer.GetPairing(p.ID)
+			if err == nil && out != nil {
+				merged = append(merged, *out)
+			}
 		}
 	}
 
@@ -306,18 +308,17 @@ func descendantDepartmentIDs(rootIDs []uint, hierarchies []entity.DepartmentHier
 func (uc *PlanningAccessUsecase) listMeetingsByMenteeIDs(ids []uint) ([]outputmodel.MeetingOutput, error) {
 	var merged []outputmodel.MeetingOutput
 	for _, menteeID := range ids {
-		pairing, err := uc.pairingRepo.GetByMenteeID(menteeID)
+		pairings, err := uc.pairingRepo.GetByMenteeID(menteeID)
 		if err != nil {
 			return nil, err
 		}
-		if pairing == nil {
-			continue
+		for _, pairing := range pairings {
+			meetings, err := uc.meetingRepo.GetByPairingID(pairing.ID)
+			if err != nil {
+				return nil, err
+			}
+			merged = append(merged, converter.MeetingEntitiesToOutputs(meetings)...)
 		}
-		meetings, err := uc.meetingRepo.GetByPairingID(pairing.ID)
-		if err != nil {
-			return nil, err
-		}
-		merged = append(merged, converter.MeetingEntitiesToOutputs(meetings)...)
 	}
 	return merged, nil
 }
@@ -325,19 +326,18 @@ func (uc *PlanningAccessUsecase) listMeetingsByMenteeIDs(ids []uint) ([]outputmo
 func (uc *PlanningAccessUsecase) listPairingsByMenteeIDs(ids []uint) ([]outputmodel.PairingOutput, error) {
 	var merged []outputmodel.PairingOutput
 	for _, menteeID := range ids {
-		pairing, err := uc.pairingRepo.GetByMenteeID(menteeID)
+		pairings, err := uc.pairingRepo.GetByMenteeID(menteeID)
 		if err != nil {
 			return nil, err
 		}
-		if pairing == nil {
-			continue
-		}
-		out, err := uc.pairingViewer.GetPairing(pairing.ID)
-		if err != nil {
-			return nil, err
-		}
-		if out != nil {
-			merged = append(merged, *out)
+		for _, pairing := range pairings {
+			out, err := uc.pairingViewer.GetPairing(pairing.ID)
+			if err != nil {
+				return nil, err
+			}
+			if out != nil {
+				merged = append(merged, *out)
+			}
 		}
 	}
 	return merged, nil

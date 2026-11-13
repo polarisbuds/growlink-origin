@@ -427,21 +427,18 @@
             class="btn btn-sm"
             class:btn-primary={target === "manual"}
             class:btn-outline={target !== "manual"}
-            onclick={() => onTargetChange("manual")}>作成</button
-        >
+            onclick={() => onTargetChange("manual")}>作成</button>
         {#if canSpecifyPair}
             <button
                 type="button"
                 class="btn btn-sm"
                 class:btn-primary={target === "pair"}
                 class:btn-outline={target !== "pair"}
-                onclick={() => onTargetChange("pair")}>ペア指定</button
-            >
+                onclick={() => onTargetChange("pair")}>ペア指定</button>
         {/if}
     </div>
     <div
-        class="mt-6 space-y-4 rounded-3xl border border-base-300 bg-base-100 p-6 shadow-sm"
-    >
+        class="mt-6 space-y-4 rounded-3xl border border-base-300 bg-base-100 p-6 shadow-sm">
         {#if error}
             <div class="alert alert-error text-sm">{error}</div>
         {/if}
@@ -454,8 +451,7 @@
                     bind:value={form.templateUuid}
                     labelOf={templateLabelOf}
                     placeholder="名前で検索して選択"
-                    allowClear={true}
-                />
+                    allowClear={true} />
             </div>
         </div>
         {#if target === "pair"}
@@ -466,8 +462,7 @@
                         type="button"
                         class="btn btn-outline btn-xs mt-1 w-fit"
                         disabled={pairingsLoading}
-                        onclick={openPairModal}
-                    >
+                        onclick={openPairModal}>
                         {#if pairingsLoading}読み込み中…{:else}ペアを選択{/if}
                     </button>
                 </div>
@@ -483,8 +478,7 @@
                     <p class="text-sm text-base-content/50">未選択</p>
                 {:else}
                     <div
-                        class="overflow-x-auto overflow-hidden rounded-2xl border border-base-300"
-                    >
+                        class="overflow-x-auto overflow-hidden rounded-2xl border border-base-300">
                         <table class="table table-sm">
                             <thead>
                                 <tr>
@@ -506,14 +500,12 @@
                                     <tr>
                                         <td>
                                             <span
-                                                class="flex items-center gap-2"
-                                            >
+                                                class="flex items-center gap-2">
                                                 <Icon
                                                     url={avatarURL(mentorUser)}
                                                     text={row.mentorName}
                                                     width={28}
-                                                    height={28}
-                                                />
+                                                    height={28} />
                                                 {row.mentorName}
                                             </span>
                                         </td>
@@ -521,18 +513,15 @@
                                             >{departmentNameForUser(
                                                 row.mentorUserUuid,
                                                 deptMaps,
-                                            ) || "—"}</td
-                                        >
+                                            ) || "—"}</td>
                                         <td>
                                             <span
-                                                class="flex items-center gap-2"
-                                            >
+                                                class="flex items-center gap-2">
                                                 <Icon
                                                     url={avatarURL(menteeUser)}
                                                     text={row.menteeName}
                                                     width={28}
-                                                    height={28}
-                                                />
+                                                    height={28} />
                                                 {row.menteeName}
                                             </span>
                                         </td>
@@ -540,14 +529,12 @@
                                             >{departmentNameForUser(
                                                 row.menteeUserUuid,
                                                 deptMaps,
-                                            ) || "—"}</td
-                                        >
+                                            ) || "—"}</td>
                                         <td
                                             >{teamNameForUser(
                                                 row.menteeUserUuid,
                                                 teamMaps,
-                                            ) || "—"}</td
-                                        >
+                                            ) || "—"}</td>
                                     </tr>
                                 {/each}
                             </tbody>
@@ -563,13 +550,11 @@
                                     (selectedPairTablePage = Math.max(
                                         1,
                                         selectedPairTablePage - 1,
-                                    ))}>前へ</button
-                            >
+                                    ))}>前へ</button>
                             <span
                                 class="btn btn-sm join-item btn-disabled pointer-events-none"
                                 >{selectedPairTablePage} /
-                                {selectedPairPageCount}</span
-                            >
+                                {selectedPairPageCount}</span>
                             <button
                                 type="button"
                                 class="btn btn-sm join-item"
@@ -579,8 +564,7 @@
                                     (selectedPairTablePage = Math.min(
                                         selectedPairPageCount,
                                         selectedPairTablePage + 1,
-                                    ))}>次へ</button
-                            >
+                                    ))}>次へ</button>
                         </div>
                     {/if}
                     <p class="text-xs text-base-content/60">
@@ -597,15 +581,13 @@
                             type="button"
                             class="btn btn-outline btn-xs mt-1 w-fit"
                             onclick={() => (mentorModalOpen = true)}
-                            >メンターを選択</button
-                        >
+                            >メンターを選択</button>
                     </div>
                     {#if !selectedMentorUser}
                         <p class="text-sm text-base-content/50">未選択</p>
                     {:else}
                         <div
-                            class="overflow-hidden rounded-2xl border border-base-300"
-                        >
+                            class="overflow-hidden rounded-2xl border border-base-300">
                             <table class="table table-sm">
                                 <thead>
                                     <tr>
@@ -625,16 +607,14 @@
                                         </td>
                                         <td>
                                             <span
-                                                class="flex items-center gap-2"
-                                            >
+                                                class="flex items-center gap-2">
                                                 <Icon
                                                     url={avatarURL(
                                                         selectedMentorUser,
                                                     )}
                                                     text={selectedMentorUser.name}
                                                     width={28}
-                                                    height={28}
-                                                />
+                                                    height={28} />
                                                 {selectedMentorUser.name}
                                             </span>
                                         </td>
@@ -649,24 +629,21 @@
                         <div class="flex items-center justify-between gap-2">
                             <div class="flex">
                                 <span class="label-text font-medium"
-                                    >メンティ</span
-                                >
+                                    >メンティ</span>
                             </div>
                             <div class="flex gap-2 items-end">
                                 <button
                                     type="button"
                                     class="btn btn-outline btn-xs mt-1 w-fit"
                                     onclick={() => (menteeModalOpen = true)}
-                                    >メンティを選択</button
-                                >
+                                    >メンティを選択</button>
                                 {#if managedTeams.length > 0}
                                     <button
                                         type="button"
                                         class="btn btn-outline btn-xs"
                                         onclick={() =>
                                             (managedTeamModalOpen = true)}
-                                        >管理チーム選択</button
-                                    >
+                                        >管理チーム選択</button>
                                 {/if}
                             </div>
                         </div>
@@ -677,8 +654,7 @@
                         <p class="text-sm text-base-content/50">未選択</p>
                     {:else}
                         <div
-                            class="flex flex-1 w-full overflow-hidden rounded-2xl border border-base-300"
-                        >
+                            class="flex flex-1 w-full overflow-hidden rounded-2xl border border-base-300">
                             <table class="table table-sm">
                                 <thead>
                                     <tr>
@@ -699,14 +675,12 @@
                                             </td>
                                             <td>
                                                 <span
-                                                    class="flex items-center gap-2"
-                                                >
+                                                    class="flex items-center gap-2">
                                                     <Icon
                                                         url={avatarURL(u)}
                                                         text={u.name}
                                                         width={28}
-                                                        height={28}
-                                                    />
+                                                        height={28} />
                                                     {u.name}
                                                 </span>
                                             </td>
@@ -725,13 +699,11 @@
                                         (selectedMenteeTablePage = Math.max(
                                             1,
                                             selectedMenteeTablePage - 1,
-                                        ))}>前へ</button
-                                >
+                                        ))}>前へ</button>
                                 <span
                                     class="btn btn-sm join-item btn-disabled pointer-events-none"
                                     >{selectedMenteeTablePage} /
-                                    {selectedMenteePageCount}</span
-                                >
+                                    {selectedMenteePageCount}</span>
                                 <button
                                     type="button"
                                     class="btn btn-sm join-item"
@@ -741,8 +713,7 @@
                                         (selectedMenteeTablePage = Math.min(
                                             selectedMenteePageCount,
                                             selectedMenteeTablePage + 1,
-                                        ))}>次へ</button
-                                >
+                                        ))}>次へ</button>
                             </div>
                         {/if}
                     {/if}
@@ -756,8 +727,7 @@
                     type="button"
                     class="btn btn-outline btn-xs mt-1 w-fit"
                     onclick={() => (sharerModalOpen = true)}
-                    >共有者を選択</button
-                >
+                    >共有者を選択</button>
             </div>
             {#if selectedSharerRows.length === 0}
                 <p class="text-sm text-base-content/50">未選択</p>
@@ -780,8 +750,7 @@
                                                 url={avatarURL(u)}
                                                 text={u.name}
                                                 width={28}
-                                                height={28}
-                                            />
+                                                height={28} />
                                             {u.name}
                                         </span>
                                     </td>
@@ -800,13 +769,11 @@
                                 (selectedSharerTablePage = Math.max(
                                     1,
                                     selectedSharerTablePage - 1,
-                                ))}>前へ</button
-                        >
+                                ))}>前へ</button>
                         <span
                             class="btn btn-sm join-item btn-disabled pointer-events-none"
                             >{selectedSharerTablePage} /
-                            {selectedSharerPageCount}</span
-                        >
+                            {selectedSharerPageCount}</span>
                         <button
                             type="button"
                             class="btn btn-sm join-item"
@@ -816,8 +783,7 @@
                                 (selectedSharerTablePage = Math.min(
                                     selectedSharerPageCount,
                                     selectedSharerTablePage + 1,
-                                ))}>次へ</button
-                        >
+                                ))}>次へ</button>
                     </div>
                 {/if}
                 <p class="text-xs text-base-content/60">
@@ -826,11 +792,9 @@
             {/if}
         </div>
         <section
-            class="rounded-2xl border border-base-300 bg-base-200/30 p-4 space-y-4"
-        >
+            class="rounded-2xl border border-base-300 bg-base-200/30 p-4 space-y-4">
             <div
-                class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
-            >
+                class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <span class="label-text font-medium">日程</span>
                 <div class="join">
                     <button
@@ -839,16 +803,14 @@
                         class:btn-primary={schedule === "date"}
                         class:btn-outline={schedule !== "date"}
                         onclick={() => onScheduleChange("date")}
-                        >日付指定</button
-                    >
+                        >日付指定</button>
                     <button
                         type="button"
                         class="btn btn-sm join-item"
                         class:btn-primary={schedule === "monthly"}
                         class:btn-outline={schedule !== "monthly"}
                         onclick={() => onScheduleChange("monthly")}
-                        >繰り返し</button
-                    >
+                        >繰り返し</button>
                 </div>
             </div>
 
@@ -858,8 +820,7 @@
                     <input
                         class="input input-bordered mt-1"
                         type="date"
-                        bind:value={form.implementedAt}
-                    />
+                        bind:value={form.implementedAt} />
                 </label>
             {:else}
                 <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -868,23 +829,20 @@
                         <input
                             class="input input-bordered mt-1"
                             type="month"
-                            bind:value={form.fromMonth}
-                        />
+                            bind:value={form.fromMonth} />
                     </label>
                     <label class="form-control">
                         <span class="label-text font-medium">年月（まで）</span>
                         <input
                             class="input input-bordered mt-1"
                             type="month"
-                            bind:value={form.toMonth}
-                        />
+                            bind:value={form.toMonth} />
                     </label>
                     <label class="form-control">
                         <span class="label-text font-medium">実施週</span>
                         <select
                             class="select select-bordered mt-1"
-                            bind:value={form.week}
-                        >
+                            bind:value={form.week}>
                             <option value={1}>第1週</option>
                             <option value={2}>第2週</option>
                             <option value={3}>第3週</option>
@@ -896,8 +854,7 @@
                         <span class="label-text font-medium">曜日</span>
                         <select
                             class="select select-bordered mt-1"
-                            bind:value={form.weekday}
-                        >
+                            bind:value={form.weekday}>
                             <option value={1}>月曜</option>
                             <option value={2}>火曜</option>
                             <option value={3}>水曜</option>
@@ -913,11 +870,9 @@
                 type="button"
                 class="btn btn-primary"
                 disabled={submitting}
-                onclick={submit}>{submitLabel()}</button
-            >
+                onclick={submit}>{submitLabel()}</button>
             <a href="/planning/meetings" class="btn btn-ghost　btn-outline"
-                >戻る</a
-            >
+                >戻る</a>
         </div>
     </div>
 </main>
@@ -937,8 +892,7 @@
     }}
     onClose={() => {
         mentorModalOpen = false;
-    }}
-/>
+    }} />
 
 <UserSelectModal
     open={menteeModalOpen}
@@ -954,8 +908,7 @@
     }}
     onClose={() => {
         menteeModalOpen = false;
-    }}
-/>
+    }} />
 
 <UserSelectModal
     open={sharerModalOpen}
@@ -971,8 +924,7 @@
     }}
     onClose={() => {
         sharerModalOpen = false;
-    }}
-/>
+    }} />
 
 <PairSelectModal
     open={pairModalOpen}
@@ -988,8 +940,7 @@
     }}
     onClose={() => {
         pairModalOpen = false;
-    }}
-/>
+    }} />
 
 <dialog class="modal" class:modal-open={managedTeamModalOpen}>
     <div class="modal-box max-w-lg">
@@ -1005,22 +956,19 @@
                 labelOf={managedTeamLabelOf}
                 placeholder="チーム名で検索"
                 clearOnSelect={true}
-                onSelect={pickManagedTeamFromSelect}
-            />
+                onSelect={pickManagedTeamFromSelect} />
         </div>
         <div class="modal-action">
             <button
                 type="button"
                 class="btn"
-                onclick={() => (managedTeamModalOpen = false)}>閉じる</button
-            >
+                onclick={() => (managedTeamModalOpen = false)}>閉じる</button>
         </div>
     </div>
     <form method="dialog" class="modal-backdrop">
         <button
             type="button"
             aria-label="閉じる"
-            onclick={() => (managedTeamModalOpen = false)}
-        ></button>
+            onclick={() => (managedTeamModalOpen = false)}></button>
     </form>
 </dialog>

@@ -2,7 +2,6 @@ package repository
 
 import (
 	"context"
-	"errors"
 	"fmt"
 
 	"growlink/internal/domain/entity"
@@ -108,18 +107,17 @@ func (repo *PairingRepository) GetAll() ([]entity.Pairing, error) {
 	return pairing, nil
 }
 
-func (repo *PairingRepository) GetByMenteeID(menteeID uint) (*entity.Pairing, error) {
-	pairing, err := gorm.G[entity.Pairing](repo.db).
+func (repo *PairingRepository) GetByMenteeID(menteeID uint) ([]entity.Pairing, error) {
+	pairings, err := gorm.G[entity.Pairing](repo.db).
 		Where("mentee_id = ? AND is_temporary = ?", menteeID, false).
 		Order("id ASC").
-		First(repo.ctx)
-	if errors.Is(err, gorm.ErrRecordNotFound) {
-		return nil, nil
-	}
+		Preload("Mentee", nil).
+		Preload("Mentor", nil).
+		Find(repo.ctx)
 	if err != nil {
 		return nil, fmt.Errorf("メンティーID指定でのペアリング取得に失敗しました: %w", err)
 	}
-	return &pairing, nil
+	return pairings, nil
 }
 
 func (repo *PairingRepository) GetByMentorID(mentorID uint) ([]entity.Pairing, error) {

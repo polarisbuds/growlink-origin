@@ -131,7 +131,7 @@ func TestMeetingViewer_ListMeetingsByTeam(t *testing.T) {
 				m.teamMember.EXPECT().GetByTeamID(validTeamID).Return([]entity.TeamMember{
 					newTestTeamMember(1, validTeamID, validMemberID),
 				}, nil)
-				m.pairing.EXPECT().GetByMenteeID(validMemberID).Return(newTestPairing(pairingID1, validMemberID, validMentorID), nil)
+				m.pairing.EXPECT().GetByMenteeID(validMemberID).Return(testPairings(newTestPairing(pairingID1, validMemberID, validMentorID)), nil)
 				m.meeting.EXPECT().GetByPairingID(pairingID1).Return([]entity.Meeting{newTestMeeting(meetingID1, pairingID1)}, nil)
 			},
 			assertFn: func(t *testing.T, got []outputmodel.MeetingOutput) {
@@ -193,7 +193,7 @@ func TestMeetingViewer_ListMeetingsByTeam(t *testing.T) {
 				m.teamMember.EXPECT().GetByTeamID(validTeamID).Return([]entity.TeamMember{
 					newTestTeamMember(1, validTeamID, validMemberID),
 				}, nil)
-				m.pairing.EXPECT().GetByMenteeID(validMemberID).Return(newTestPairing(pairingID1, validMemberID, validMentorID), nil)
+				m.pairing.EXPECT().GetByMenteeID(validMemberID).Return(testPairings(newTestPairing(pairingID1, validMemberID, validMentorID)), nil)
 				m.meeting.EXPECT().GetByPairingID(pairingID1).Return(nil, errGetMeetingsFailed)
 			},
 		},
@@ -235,7 +235,7 @@ func TestMeetingViewer_ListMeetingsByDepartment(t *testing.T) {
 				m.user.EXPECT().GetByDepartmentID(validDepartmentID).Return([]entity.User{
 					*newTestUser(validMenteeID, "dept-user"),
 				}, nil)
-				m.pairing.EXPECT().GetByMenteeID(validMenteeID).Return(newTestPairing(pairingID1, validMenteeID, validMentorID), nil)
+				m.pairing.EXPECT().GetByMenteeID(validMenteeID).Return(testPairings(newTestPairing(pairingID1, validMenteeID, validMentorID)), nil)
 				m.meeting.EXPECT().GetByPairingID(pairingID1).Return([]entity.Meeting{newTestMeeting(meetingID1, pairingID1)}, nil)
 			},
 			assertFn: func(t *testing.T, got []outputmodel.MeetingOutput) {
@@ -297,7 +297,7 @@ func TestMeetingViewer_ListMeetingsByDepartment(t *testing.T) {
 				m.user.EXPECT().GetByDepartmentID(validDepartmentID).Return([]entity.User{
 					*newTestUser(validMenteeID, "dept-user"),
 				}, nil)
-				m.pairing.EXPECT().GetByMenteeID(validMenteeID).Return(newTestPairing(pairingID1, validMenteeID, validMentorID), nil)
+				m.pairing.EXPECT().GetByMenteeID(validMenteeID).Return(testPairings(newTestPairing(pairingID1, validMenteeID, validMentorID)), nil)
 				m.meeting.EXPECT().GetByPairingID(pairingID1).Return(nil, errGetMeetingsFailed)
 			},
 		},

@@ -2,9 +2,12 @@
     import { api } from "$lib/api";
     import { showToast } from "$lib/toast";
     import { formatDate, type MeetingUserRef } from "$lib/meeting-helpers";
-    import SharerSelectModal, {
-        type SharerPickerUser,
-    } from "$lib/components/SharerSelectModal.svelte";
+    import {
+        buildUserDepartmentMaps,
+        type PlanningDirectoryUser,
+    } from "$lib/planning-directory";
+    import SharerSelectModal from "$lib/components/SharerSelectModal.svelte";
+    import WorkspacePerson from "$lib/components/WorkspacePerson.svelte";
     import PanelRightClose from "lucide-svelte/icons/panel-right-close";
     import PanelRightOpen from "lucide-svelte/icons/panel-right-open";
 
@@ -18,7 +21,8 @@
         open = $bindable(true),
         uuid,
         implementedDate = $bindable(""),
-        menteeLabel,
+        mentor,
+        mentee,
         sharers = $bindable([] as MeetingUserRef[]),
         canEditSharers = false,
         canEditImplementedDate = false,
@@ -26,7 +30,8 @@
         open?: boolean;
         uuid: string | undefined;
         implementedDate?: string;
-        menteeLabel: string;
+        mentor?: { uuid?: string; name?: string };
+        mentee?: { uuid?: string; name?: string };
         sharers?: MeetingUserRef[];
         canEditSharers?: boolean;
         canEditImplementedDate?: boolean;
@@ -34,21 +39,27 @@
 
     let sharerModalOpen = $state(false);
     let directoryLoaded = $state(false);
-    let directoryUsers = $state<SharerPickerUser[]>([]);
+    let directoryUsers = $state<PlanningDirectoryUser[]>([]);
     let departments = $state<{ uuid: string; name: string }[]>([]);
     let teams = $state<DirectoryTeam[]>([]);
     let applyingSharers = $state(false);
 
     let sharerUserUuids = $derived(
-        (sharers || [])
-            .map((s) => s.uuid)
-            .filter((id): id is string => !!id),
+        (sharers || []).map((s) => s.uuid).filter((id): id is string => !!id),
     );
+
+    let deptMaps = $derived(buildUserDepartmentMaps(directoryUsers));
+
+    $effect(() => {
+        if (open) {
+            void loadDirectoryIfNeeded();
+        }
+    });
 
     async function loadDirectoryIfNeeded() {
         if (directoryLoaded) return;
         const dir = await api<{
-            users?: SharerPickerUser[];
+            users?: PlanningDirectoryUser[];
             departments?: { uuid: string; name: string }[];
             teams?: DirectoryTeam[];
         }>("GET", "/api/v1/planning/directory");
@@ -117,8 +128,24 @@
         </div>
         <dl class="mt-4 space-y-4 text-sm">
             <div>
-                <dt class="text-base-content/60">対象者</dt>
-                <dd class="mt-0.5 font-medium">{menteeLabel}</dd>
+                <dt class="text-base-content/60">メンター</dt>
+                <dd class="mt-1">
+                    <WorkspacePerson
+                        userUuid={mentor?.uuid}
+                        name={mentor?.name}
+                        {directoryUsers}
+                        {deptMaps} />
+                </dd>
+            </div>
+            <div>
+                <dt class="text-base-content/60">メンティー</dt>
+                <dd class="mt-1">
+                    <WorkspacePerson
+                        userUuid={mentee?.uuid}
+                        name={mentee?.name}
+                        {directoryUsers}
+                        {deptMaps} />
+                </dd>
             </div>
             <div>
                 <dt class="text-base-content/60">共有者</dt>
@@ -166,10 +193,10 @@
         </dl>
     </aside>
 {:else}
-    <div class="hidden lg:flex shrink-0">
+    <div class="hidden lg:flex shrink-0 top-4 p-5">
         <button
             type="button"
-            class="btn btn-ghost btn-sm btn-square sticky top-4 h-fit"
+            class="btn btn-ghost btn-sm btn-square sticky h-fit"
             aria-label="面談情報パネルを開く"
             onclick={() => (open = true)}>
             <PanelRightOpen class="h-4 w-4" />

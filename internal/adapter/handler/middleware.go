@@ -77,7 +77,7 @@ func SystemAdminAPI() echo.MiddlewareFunc {
 func ProgressPage() echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c *echo.Context) error {
-			if !authctx.CanViewProgress(c) {
+			if !authctx.CanViewProgress(c) && !authctx.IsSystemAdmin(c) && !authctx.IsAnalyst(c) {
 				return c.Redirect(http.StatusFound, "/")
 			}
 			return next(c)
@@ -88,7 +88,7 @@ func ProgressPage() echo.MiddlewareFunc {
 func ProgressAPI() echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c *echo.Context) error {
-			if !authctx.CanViewProgress(c) {
+			if !authctx.CanViewProgress(c) && !authctx.IsSystemAdmin(c) && !authctx.IsAnalyst(c) {
 				return c.JSON(http.StatusForbidden, map[string]string{"error": "forbidden"})
 			}
 			return next(c)

@@ -141,8 +141,11 @@ func RegisterRoutes(e *echo.Echo, deps Deps, auditLogger *slog.Logger) {
 	apiAuth.POST("/templates/:uuid/copy", ah.CopyTemplate, auditLogging(auditLogger, false))
 
 	apiAuth.GET("/planning/directory", ah.ListPlanningDirectory, auditLogging(auditLogger, false))
+
 	apiAuth.GET("/progress/summary", ah.ProgressSummary, ProgressAPI(), auditLogging(auditLogger, false))
 	apiAuth.GET("/progress/breakdown", ah.ProgressBreakdown, ProgressAPI(), auditLogging(auditLogger, false))
+	apiAuth.GET("/progress/departments", ah.ProgressDepartments, ProgressAPI(), auditLogging(auditLogger, false))
+	apiAuth.GET("/progress/done-trend", ah.ProgressDoneTrend, ProgressAPI(), auditLogging(auditLogger, false))
 
 	apiAuth.GET("/setting/profile", ah.GetProfile, auditLogging(auditLogger, false))
 	apiAuth.PUT("/setting", ah.UpdateSetting, auditLogging(auditLogger, false))

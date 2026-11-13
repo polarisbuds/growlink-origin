@@ -23,24 +23,24 @@
 
     let directoryUser = $derived(findDirectoryUser(directoryUsers, userUuid));
     let displayName = $derived(name || directoryUser?.name || "—");
-    let department = $derived(
-        departmentNameForUser(userUuid, deptMaps) || "—",
-    );
+    let department = $derived(departmentNameForUser(userUuid, deptMaps) || "—");
 </script>
 
-<div class="min-w-0">
-    <span class="flex gap-2 items-center">
+<div class="min-w-0 gap-2 flex flex-1 w-full">
+    <span class="flex items-center">
         <Icon
             url={avatarURL(directoryUser)}
             text={displayName}
             width={28}
             height={28}
             alt={displayName} />
-        <span class="truncate text-sm">{displayName}</span>
     </span>
-    {#if showDepartment}
-        <p class="mt-1 pl-9 text-xs text-base-content/60 truncate">
-            {department}
-        </p>
-    {/if}
+    <div class="flex flex-1 flex-col">
+        <span class="truncate text-sm">{displayName}</span>
+        {#if showDepartment}
+            <p class="text-xs text-base-content/60 truncate">
+                {department}
+            </p>
+        {/if}
+    </div>
 </div>

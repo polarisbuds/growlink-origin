@@ -40,15 +40,23 @@ func (uc *PlanningAccessUsecase) PairManagementScopeUserIDs(userID uint, authori
 		}
 	}
 
-	if !authority.IsBoss() && uc.pairingRepo != nil {
-		pairings, err := uc.pairingRepo.GetByMentorID(userID)
+	if uc.pairingRepo != nil {
+		mentorPairings, err := uc.pairingRepo.GetByMentorID(userID)
 		if err != nil {
 			return nil, err
 		}
-		for _, p := range pairings {
+		for _, p := range mentorPairings {
 			if p.MenteeID > 0 {
 				visible[p.MenteeID] = true
 			}
+		}
+
+		pairingsByMentee, err := uc.pairingRepo.GetByMenteeID(userID)
+		if err != nil {
+			return nil, err
+		}
+		if len(pairingsByMentee) > 0 {
+			visible[userID] = true
 		}
 	}
 	return visible, nil

@@ -4,12 +4,11 @@
     import { page } from "$app/state";
     import { api } from "$lib/api";
     import { showToast } from "$lib/toast";
-    import MeetingAnswerSidePanel from "$lib/components/MeetingAnswerSidePanel.svelte";
+    import MeetingSidePanel from "$lib/components/MeetingSidePanel.svelte";
     import {
         dualTopicRows,
         isMeetingDone,
         isMeetingSubmitted,
-        menteeTargetLabel,
         ownAnswerDrafts,
         shouldHideMeetingContentBeforeSubmit,
         type DualTopicRow,
@@ -194,7 +193,7 @@
         </div>
     </div>
 
-    <div class="mt-6 flex max-w-7xl flex-col gap-6 lg:flex-row lg:items-start">
+    <div class="mt-6 flex flex-col gap-6 lg:flex-row lg:items-start">
         <div class="min-w-0 flex-1 space-y-4">
             {#if hideContentBeforeSubmit}
                 <div
@@ -322,11 +321,12 @@
             {/if}
         </div>
 
-        <MeetingAnswerSidePanel
+        <MeetingSidePanel
             bind:open={panelOpen}
             {uuid}
             bind:implementedDate
-            menteeLabel={menteeTargetLabel(payload.meeting?.pairing)}
+            mentor={payload.meeting?.pairing?.mentor}
+            mentee={payload.meeting?.pairing?.mentee}
             bind:sharers
             canEditSharers={!!payload.canEditSharers}
             {canEditImplementedDate} />

@@ -110,18 +110,15 @@ func (uc *PairingViewer) ListPairingsByTeam(teamID uint) ([]outputmodel.PairingO
 		go func(teamMemberID uint, ec chan<- error) {
 			defer wg.Done()
 
-			pairing, err := uc.pairingRepo.GetByMenteeID(teamMemberID)
+			pairings, err := uc.pairingRepo.GetByMenteeID(teamMemberID)
 			if err != nil {
 				ec <- fmt.Errorf("メンバーID指定でのペアリング情報の取得に失敗しました: %w", err)
 				return
 			}
-			if pairing == nil {
-				return
-			}
-
-			outputPairing := converter.PairingEntityToOutput(*pairing)
 			mux.Lock()
-			result = append(result, outputPairing)
+			for _, pairing := range pairings {
+				result = append(result, converter.PairingEntityToOutput(pairing))
+			}
 			mux.Unlock()
 		}(teamMember.MemberID, errCh)
 	}
@@ -152,16 +149,14 @@ func (uc *PairingViewer) ListPairingsByDepartment(departmentID uint) ([]outputmo
 		wg.Add(1)
 		go func(menteeID uint) {
 			defer wg.Done()
-			pairing, err := uc.pairingRepo.GetByMenteeID(menteeID)
+			pairings, err := uc.pairingRepo.GetByMenteeID(menteeID)
 			if err != nil {
 				return
 			}
-			if pairing == nil {
-				return
-			}
-			outputPairing := converter.PairingEntityToOutput(*pairing)
 			mux.Lock()
-			result = append(result, outputPairing)
+			for _, pairing := range pairings {
+				result = append(result, converter.PairingEntityToOutput(pairing))
+			}
 			mux.Unlock()
 		}(user.ID)
 	}

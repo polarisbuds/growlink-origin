@@ -16,16 +16,18 @@ func NewPairingBreakerUsecase(pairingRepo repository_interface.PairingRepository
 	}
 }
 
-func (uc *PairingBreakerUsecase) BreakPair(menteeID uint) bool {
-	pairing, err := uc.pairingRepo.GetByMenteeID(menteeID)
+func (uc *PairingBreakerUsecase) BreakPairByMenteeID(menteeID uint) bool {
+	pairings, err := uc.pairingRepo.GetByMenteeID(menteeID)
 	if err != nil {
 		return false
 	}
-	if pairing == nil {
+	if len(pairings) == 0 {
 		return false
 	}
-	if err := uc.pairingRepo.BreakPairing(pairing.ID); err != nil {
-		return false
+	for _, pairing := range pairings {
+		if err := uc.pairingRepo.BreakPairing(pairing.ID); err != nil {
+			return false
+		}
 	}
 	return true
 }

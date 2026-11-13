@@ -316,10 +316,10 @@ func (c *MockPairingRepositoryGetAllCall) DoAndReturn(f func() ([]entity.Pairing
 }
 
 // GetByMenteeID mocks base method.
-func (m *MockPairingRepository) GetByMenteeID(menteeID uint) (*entity.Pairing, error) {
+func (m *MockPairingRepository) GetByMenteeID(menteeID uint) ([]entity.Pairing, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetByMenteeID", menteeID)
-	ret0, _ := ret[0].(*entity.Pairing)
+	ret0, _ := ret[0].([]entity.Pairing)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -337,19 +337,19 @@ type MockPairingRepositoryGetByMenteeIDCall struct {
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MockPairingRepositoryGetByMenteeIDCall) Return(arg0 *entity.Pairing, arg1 error) *MockPairingRepositoryGetByMenteeIDCall {
+func (c *MockPairingRepositoryGetByMenteeIDCall) Return(arg0 []entity.Pairing, arg1 error) *MockPairingRepositoryGetByMenteeIDCall {
 	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockPairingRepositoryGetByMenteeIDCall) Do(f func(uint) (*entity.Pairing, error)) *MockPairingRepositoryGetByMenteeIDCall {
+func (c *MockPairingRepositoryGetByMenteeIDCall) Do(f func(uint) ([]entity.Pairing, error)) *MockPairingRepositoryGetByMenteeIDCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockPairingRepositoryGetByMenteeIDCall) DoAndReturn(f func(uint) (*entity.Pairing, error)) *MockPairingRepositoryGetByMenteeIDCall {
+func (c *MockPairingRepositoryGetByMenteeIDCall) DoAndReturn(f func(uint) ([]entity.Pairing, error)) *MockPairingRepositoryGetByMenteeIDCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
@@ -376,8 +376,8 @@ type MockPairingRepositoryGetByMentorIDCall struct {
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MockPairingRepositoryGetByMentorIDCall) Return(arg0 []entity.Pairing, arg1 error) *MockPairingRepositoryGetByMentorIDCall {
-	c.Call = c.Call.Return(arg0, arg1)
+func (c *MockPairingRepositoryGetByMentorIDCall) Return(mentees []entity.Pairing, err error) *MockPairingRepositoryGetByMentorIDCall {
+	c.Call = c.Call.Return(mentees, err)
 	return c
 }
 

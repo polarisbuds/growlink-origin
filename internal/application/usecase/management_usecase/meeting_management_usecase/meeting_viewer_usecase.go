@@ -81,22 +81,21 @@ func (uc *MeetingViewer) ListMeetingsByTeam(teamID uint) ([]outputmodel.MeetingO
 		teamMebmer := teamMebmer
 		go func(memberID uint, ec chan<- error) {
 			defer wg.Done()
-			pairing, err := uc.pairingRepo.GetByMenteeID(memberID)
+			pairings, err := uc.pairingRepo.GetByMenteeID(memberID)
 			if err != nil {
 				ec <- fmt.Errorf("チームメンバーID指定でのペアリング情報の取得に失敗しました: %w", err)
 				return
 			}
-			if pairing == nil {
-				return
+			for _, pairing := range pairings {
+				meetings, err := uc.meetingRepo.GetByPairingID(pairing.ID)
+				if err != nil {
+					ec <- fmt.Errorf("ペアリングID指定でのミーティング情報の取得に失敗しました: %w", err)
+					return
+				}
+				mux.Lock()
+				resultMeetings = append(resultMeetings, converter.MeetingEntitiesToOutputs(meetings)...)
+				mux.Unlock()
 			}
-			meetings, err := uc.meetingRepo.GetByPairingID(pairing.ID)
-			if err != nil {
-				ec <- fmt.Errorf("ペアリングID指定でのミーティング情報の取得に失敗しました: %w", err)
-				return
-			}
-			mux.Lock()
-			resultMeetings = append(resultMeetings, converter.MeetingEntitiesToOutputs(meetings)...)
-			mux.Unlock()
 		}(teamMebmer.MemberID, errCh)
 	}
 	wg.Wait()
@@ -130,17 +129,16 @@ func (uc *MeetingViewer) ListMeetingsByDepartment(departmentID uint) ([]outputmo
 				ec <- fmt.Errorf("部署ID指定でのペアリング情報取得に失敗しました: %w", err)
 				return
 			}
-			if pairings == nil {
-				return
+			for _, pairing := range pairings {
+				meetings, err := uc.meetingRepo.GetByPairingID(pairing.ID)
+				if err != nil {
+					ec <- fmt.Errorf("ペアリングID指定でのミーティング情報取得に失敗しました: %w", err)
+					return
+				}
+				mux.Lock()
+				resultMeetings = append(resultMeetings, converter.MeetingEntitiesToOutputs(meetings)...)
+				mux.Unlock()
 			}
-			meetings, err := uc.meetingRepo.GetByPairingID(pairings.ID)
-			if err != nil {
-				ec <- fmt.Errorf("ペアリングID指定でのミーティング情報取得に失敗しました: %w", err)
-				return
-			}
-			mux.Lock()
-			resultMeetings = append(resultMeetings, converter.MeetingEntitiesToOutputs(meetings)...)
-			mux.Unlock()
 		}(user.ID, errCh)
 	}
 	wg.Wait()

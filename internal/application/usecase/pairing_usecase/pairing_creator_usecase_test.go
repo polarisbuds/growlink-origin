@@ -16,7 +16,6 @@ type pairingCreatorCaptures struct {
 	createMenteeID        uint
 	createMentorID        uint
 	createCreatedByUserID uint
-	breakPairingID        uint
 	created               *entity.Pairing
 }
 
@@ -45,12 +44,11 @@ func TestPairingCreatorUsecase_PairingCreator(t *testing.T) {
 		assertFn    pairingCreatorAssertFn
 	}{
 		{
-			name:     "通常系_旧ペアなし",
+			name:     "通常系_作成",
 			menteeID: validMenteeID,
 			mentorID: validMentorID,
 			wantErr:  false,
 			setup: func(_ *testing.T, pairing *repomock.MockPairingRepository, cap *pairingCreatorCaptures) {
-				pairing.EXPECT().GetByMenteeID(validMenteeID).Return(nil, nil)
 				pairing.EXPECT().CreatePairing(validMenteeID, validMentorID, uint(0)).DoAndReturn(
 					func(menteeID, mentorID, createdByUserID uint) (*entity.Pairing, error) {
 						cap.createMenteeID = menteeID
@@ -67,18 +65,15 @@ func TestPairingCreatorUsecase_PairingCreator(t *testing.T) {
 				assert.Equal(t, validMenteeID, cap.createMenteeID)
 				assert.Equal(t, validMentorID, cap.createMentorID)
 				assert.Equal(t, uint(0), cap.createCreatedByUserID)
-				assert.Equal(t, uint(0), cap.breakPairingID)
 				require.NotNil(t, cap.created)
 			},
 		},
 		{
-			name:     "通常系_旧ペアあり",
+			name:     "通常系_既存ペアがあっても追加のみ",
 			menteeID: validMenteeID,
 			mentorID: validMentorID,
 			wantErr:  false,
 			setup: func(_ *testing.T, pairing *repomock.MockPairingRepository, cap *pairingCreatorCaptures) {
-				old := newTestPairing(oldPairingID, validMenteeID, 99)
-				pairing.EXPECT().GetByMenteeID(validMenteeID).Return(old, nil)
 				pairing.EXPECT().CreatePairing(validMenteeID, validMentorID, uint(0)).DoAndReturn(
 					func(menteeID, mentorID, createdByUserID uint) (*entity.Pairing, error) {
 						cap.createMenteeID = menteeID
@@ -89,32 +84,11 @@ func TestPairingCreatorUsecase_PairingCreator(t *testing.T) {
 						return created, nil
 					},
 				)
-				pairing.EXPECT().BreakPairing(oldPairingID).DoAndReturn(func(id uint) error {
-					cap.breakPairingID = id
-					return nil
-				})
 			},
 			assertFn: func(t *testing.T, cap *pairingCreatorCaptures) {
 				t.Helper()
 				assert.Equal(t, validMenteeID, cap.createMenteeID)
 				assert.Equal(t, validMentorID, cap.createMentorID)
-				assert.Equal(t, uint(0), cap.createCreatedByUserID)
-				assert.Equal(t, oldPairingID, cap.breakPairingID)
-			},
-		},
-		{
-			name:        "異常系_旧ペア取得失敗",
-			menteeID:    validMenteeID,
-			mentorID:    validMentorID,
-			wantErr:     true,
-			errContains: "ペアリング（旧）の取得に失敗しました",
-			setup: func(_ *testing.T, pairing *repomock.MockPairingRepository, _ *pairingCreatorCaptures) {
-				pairing.EXPECT().GetByMenteeID(validMenteeID).Return(nil, errGetPairingFailed)
-			},
-			assertFn: func(t *testing.T, cap *pairingCreatorCaptures) {
-				t.Helper()
-				assert.Equal(t, uint(0), cap.createMenteeID)
-				assert.Equal(t, uint(0), cap.breakPairingID)
 			},
 		},
 		{
@@ -124,7 +98,6 @@ func TestPairingCreatorUsecase_PairingCreator(t *testing.T) {
 			wantErr:     true,
 			errContains: "ペアリングの作成に失敗しました",
 			setup: func(_ *testing.T, pairing *repomock.MockPairingRepository, cap *pairingCreatorCaptures) {
-				pairing.EXPECT().GetByMenteeID(validMenteeID).Return(nil, nil)
 				pairing.EXPECT().CreatePairing(validMenteeID, validMentorID, uint(0)).DoAndReturn(
 					func(menteeID, mentorID, createdByUserID uint) (*entity.Pairing, error) {
 						cap.createMenteeID = menteeID
@@ -138,27 +111,6 @@ func TestPairingCreatorUsecase_PairingCreator(t *testing.T) {
 				t.Helper()
 				assert.Equal(t, validMenteeID, cap.createMenteeID)
 				assert.Equal(t, uint(0), cap.createCreatedByUserID)
-				assert.Equal(t, uint(0), cap.breakPairingID)
-			},
-		},
-		{
-			name:        "異常系_旧ペア解消失敗",
-			menteeID:    validMenteeID,
-			mentorID:    validMentorID,
-			wantErr:     true,
-			errContains: "ペアリングの解消に失敗しました",
-			setup: func(_ *testing.T, pairing *repomock.MockPairingRepository, cap *pairingCreatorCaptures) {
-				old := newTestPairing(oldPairingID, validMenteeID, 99)
-				pairing.EXPECT().GetByMenteeID(validMenteeID).Return(old, nil)
-				pairing.EXPECT().CreatePairing(validMenteeID, validMentorID, uint(0)).Return(newTestPairing(203, validMenteeID, validMentorID), nil)
-				pairing.EXPECT().BreakPairing(oldPairingID).DoAndReturn(func(id uint) error {
-					cap.breakPairingID = id
-					return errBreakPairingFailed
-				})
-			},
-			assertFn: func(t *testing.T, cap *pairingCreatorCaptures) {
-				t.Helper()
-				assert.Equal(t, oldPairingID, cap.breakPairingID)
 			},
 		},
 	}

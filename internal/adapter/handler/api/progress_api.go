@@ -57,6 +57,30 @@ func (h *Handler) ProgressSummary(c *echo.Context) error {
 	return c.JSON(http.StatusOK, summary)
 }
 
+func (h *Handler) ProgressDepartments(c *echo.Context) error {
+	filter, err := progressFilterFromRequest(c)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "from / to は YYYY-MM-DD 形式で指定してください"})
+	}
+	table, err := h.deps.Management.Progress.DepartmentTable(filter)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+	}
+	return c.JSON(http.StatusOK, table)
+}
+
+func (h *Handler) ProgressDoneTrend(c *echo.Context) error {
+	filter, err := progressFilterFromRequest(c)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "from / to は YYYY-MM-DD 形式で指定してください"})
+	}
+	points, err := h.deps.Management.Progress.DoneTrendByMonth(filter)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+	}
+	return c.JSON(http.StatusOK, points)
+}
+
 func (h *Handler) ProgressBreakdown(c *echo.Context) error {
 	group := c.QueryParam("group")
 	if group != "department" && group != "team" {

@@ -52,10 +52,10 @@ func TestPairingRepository_CreatePairing(t *testing.T) {
 
 	got, err := repo.GetByMenteeID(mentee.ID)
 	assertions.NoError(t, err)
-	require.NotNil(t, got)
-	assert.Equal(t, created.ID, got.ID)
-	assert.Equal(t, mentor.ID, got.MentorID)
-	assert.Equal(t, mentee.ID, got.MenteeID)
+	require.Len(t, got, 1)
+	assert.Equal(t, created.ID, got[0].ID)
+	assert.Equal(t, mentor.ID, got[0].MentorID)
+	assert.Equal(t, mentee.ID, got[0].MenteeID)
 }
 
 func TestPairingRepository_CreatePairing_ForeignKey(t *testing.T) {
@@ -76,11 +76,28 @@ func TestPairingRepository_GetByMenteeID(t *testing.T) {
 
 	got, err := repo.GetByMenteeID(mentee.ID)
 	assertions.NoError(t, err)
-	require.NotNil(t, got)
-	assert.Equal(t, want.ID, got.ID)
-	assert.Equal(t, want.MentorID, got.MentorID)
-	assert.Equal(t, want.MenteeID, got.MenteeID)
-	assertions.NonZeroUUID(t, got.UUID)
+	require.Len(t, got, 1)
+	assert.Equal(t, want.ID, got[0].ID)
+	assert.Equal(t, want.MentorID, got[0].MentorID)
+	assert.Equal(t, want.MenteeID, got[0].MenteeID)
+	assertions.NonZeroUUID(t, got[0].UUID)
+}
+
+func TestPairingRepository_GetByMenteeID_MultipleMentors(t *testing.T) {
+	tx := testutils.Begin(t)
+	repo := newPairingRepo(t, tx)
+
+	mentor1 := fixtures.User(t, tx, "multi-mentor1")
+	mentor2 := fixtures.User(t, tx, "multi-mentor2")
+	mentee := fixtures.User(t, tx, "multi-mentee")
+	first := insertPairing(t, tx, mentor1, mentee)
+	second := insertPairing(t, tx, mentor2, mentee)
+
+	got, err := repo.GetByMenteeID(mentee.ID)
+	assertions.NoError(t, err)
+	require.Len(t, got, 2)
+	assert.Equal(t, first.ID, got[0].ID)
+	assert.Equal(t, second.ID, got[1].ID)
 }
 
 func TestPairingRepository_GetByMenteeID_NotFound(t *testing.T) {
@@ -89,7 +106,7 @@ func TestPairingRepository_GetByMenteeID_NotFound(t *testing.T) {
 
 	got, err := repo.GetByMenteeID(9_999_999)
 	assertions.NoError(t, err)
-	assert.Nil(t, got)
+	assert.Empty(t, got)
 }
 
 func TestPairingRepository_GetByMentorID(t *testing.T) {
@@ -143,7 +160,7 @@ func TestPairingRepository_BreakPairing(t *testing.T) {
 
 	got, err := repo.GetByMenteeID(mentee.ID)
 	assertions.NoError(t, err)
-	assert.Nil(t, got)
+	assert.Empty(t, got)
 }
 
 func TestPairingRepository_BreakAllMenteePairing(t *testing.T) {
@@ -164,16 +181,16 @@ func TestPairingRepository_BreakAllMenteePairing(t *testing.T) {
 
 	got1, err := repo.GetByMenteeID(mentee1.ID)
 	assertions.NoError(t, err)
-	assert.Nil(t, got1)
+	assert.Empty(t, got1)
 
 	got2, err := repo.GetByMenteeID(mentee2.ID)
 	assertions.NoError(t, err)
-	assert.Nil(t, got2)
+	assert.Empty(t, got2)
 
 	gotKept, err := repo.GetByMenteeID(mentee3.ID)
 	assertions.NoError(t, err)
-	require.NotNil(t, gotKept)
-	assert.Equal(t, kept.ID, gotKept.ID)
+	require.Len(t, gotKept, 1)
+	assert.Equal(t, kept.ID, gotKept[0].ID)
 }
 
 func TestPairingRepository_GetAll(t *testing.T) {

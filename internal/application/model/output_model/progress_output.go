@@ -23,3 +23,10 @@ type ProgressBreakdownRowOutput struct {
 	UsersSubmitted []string `json:"usersSubmitted"`
 	UsersDone      []string `json:"usersDone"`
 }
+
+type ProgressDoneMonthOutput struct {
+	Year  int    `json:"year"`
+	Month int    `json:"month"`
+	Label string `json:"label"`
+	Done  int    `json:"done"`
+}

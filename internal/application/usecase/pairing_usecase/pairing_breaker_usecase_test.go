@@ -11,7 +11,7 @@ import (
 )
 
 type pairingBreakerCaptures struct {
-	breakPairingID uint
+	breakPairingIDs []uint
 }
 
 type pairingBreakerSetupFn func(t *testing.T, pairing *repomock.MockPairingRepository, cap *pairingBreakerCaptures)
@@ -28,14 +28,15 @@ func newPairingBreakerUsecase(t *testing.T) (
 	return pairing_usecase.NewPairingBreakerUsecase(pairingRepo, userRepo), pairingRepo
 }
 
-func TestPairingBreakerUsecase_PairingCreator(t *testing.T) {
+func TestPairingBreakerUsecase_BreakPairByMenteeID(t *testing.T) {
+	const secondPairingID uint = 102
+
 	tests := []struct {
-		name        string
-		menteeID    uint
-		wantErr     bool
-		errContains string
-		setup       pairingBreakerSetupFn
-		assertFn    pairingBreakerAssertFn
+		name     string
+		menteeID uint
+		wantErr  bool
+		setup    pairingBreakerSetupFn
+		assertFn pairingBreakerAssertFn
 	}{
 		{
 			name:     "通常系_解消",
@@ -43,15 +44,33 @@ func TestPairingBreakerUsecase_PairingCreator(t *testing.T) {
 			wantErr:  false,
 			setup: func(_ *testing.T, pairing *repomock.MockPairingRepository, cap *pairingBreakerCaptures) {
 				found := newTestPairing(oldPairingID, validMenteeID, validMentorID)
-				pairing.EXPECT().GetByMenteeID(validMenteeID).Return(found, nil)
+				pairing.EXPECT().GetByMenteeID(validMenteeID).Return(testPairings(found), nil)
 				pairing.EXPECT().BreakPairing(oldPairingID).DoAndReturn(func(id uint) error {
-					cap.breakPairingID = id
+					cap.breakPairingIDs = append(cap.breakPairingIDs, id)
 					return nil
 				})
 			},
 			assertFn: func(t *testing.T, cap *pairingBreakerCaptures) {
 				t.Helper()
-				assert.Equal(t, oldPairingID, cap.breakPairingID)
+				assert.Equal(t, []uint{oldPairingID}, cap.breakPairingIDs)
+			},
+		},
+		{
+			name:     "通常系_複数ペアをすべて解消",
+			menteeID: validMenteeID,
+			wantErr:  false,
+			setup: func(_ *testing.T, pairing *repomock.MockPairingRepository, cap *pairingBreakerCaptures) {
+				first := newTestPairing(oldPairingID, validMenteeID, validMentorID)
+				second := newTestPairing(secondPairingID, validMenteeID, 99)
+				pairing.EXPECT().GetByMenteeID(validMenteeID).Return(testPairings(first, second), nil)
+				pairing.EXPECT().BreakPairing(gomock.Any()).Times(2).DoAndReturn(func(id uint) error {
+					cap.breakPairingIDs = append(cap.breakPairingIDs, id)
+					return nil
+				})
+			},
+			assertFn: func(t *testing.T, cap *pairingBreakerCaptures) {
+				t.Helper()
+				assert.ElementsMatch(t, []uint{oldPairingID, secondPairingID}, cap.breakPairingIDs)
 			},
 		},
 		{
@@ -63,38 +82,36 @@ func TestPairingBreakerUsecase_PairingCreator(t *testing.T) {
 			},
 			assertFn: func(t *testing.T, cap *pairingBreakerCaptures) {
 				t.Helper()
-				assert.Equal(t, uint(0), cap.breakPairingID)
+				assert.Empty(t, cap.breakPairingIDs)
 			},
 		},
 		{
-			name:        "異常系_取得失敗",
-			menteeID:    validMenteeID,
-			wantErr:     true,
-			errContains: "削除対象のペアリング情報の取得に失敗しました",
+			name:     "異常系_取得失敗",
+			menteeID: validMenteeID,
+			wantErr:  true,
 			setup: func(_ *testing.T, pairing *repomock.MockPairingRepository, _ *pairingBreakerCaptures) {
 				pairing.EXPECT().GetByMenteeID(validMenteeID).Return(nil, errGetPairingFailed)
 			},
 			assertFn: func(t *testing.T, cap *pairingBreakerCaptures) {
 				t.Helper()
-				assert.Equal(t, uint(0), cap.breakPairingID)
+				assert.Empty(t, cap.breakPairingIDs)
 			},
 		},
 		{
-			name:        "異常系_削除失敗",
-			menteeID:    validMenteeID,
-			wantErr:     true,
-			errContains: "ペアリングの削除に失敗しました",
+			name:     "異常系_削除失敗",
+			menteeID: validMenteeID,
+			wantErr:  true,
 			setup: func(_ *testing.T, pairing *repomock.MockPairingRepository, cap *pairingBreakerCaptures) {
 				found := newTestPairing(oldPairingID, validMenteeID, validMentorID)
-				pairing.EXPECT().GetByMenteeID(validMenteeID).Return(found, nil)
+				pairing.EXPECT().GetByMenteeID(validMenteeID).Return(testPairings(found), nil)
 				pairing.EXPECT().BreakPairing(oldPairingID).DoAndReturn(func(id uint) error {
-					cap.breakPairingID = id
+					cap.breakPairingIDs = append(cap.breakPairingIDs, id)
 					return errBreakPairingFailed
 				})
 			},
 			assertFn: func(t *testing.T, cap *pairingBreakerCaptures) {
 				t.Helper()
-				assert.Equal(t, oldPairingID, cap.breakPairingID)
+				assert.Equal(t, []uint{oldPairingID}, cap.breakPairingIDs)
 			},
 		},
 	}
@@ -107,7 +124,7 @@ func TestPairingBreakerUsecase_PairingCreator(t *testing.T) {
 				tt.setup(t, pairingRepo, cap)
 			}
 
-			got := uc.BreakPair(tt.menteeID)
+			got := uc.BreakPairByMenteeID(tt.menteeID)
 			if tt.wantErr {
 				assert.False(t, got)
 			} else {

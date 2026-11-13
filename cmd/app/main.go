@@ -154,7 +154,16 @@ func main() {
 		pairingRepo,
 	)
 
-	managementBundle.Progress = progress_mng_usecase.NewProgressViewer(meetingRepo, planningAccess)
+	managementBundle.Progress = progress_mng_usecase.NewProgressViewer(
+		meetingRepo,
+		planningAccess,
+		pairingRepo,
+		deptRepo,
+		deptHierarchyRepo,
+		deptMemberRepo,
+		teamRepo,
+		teamMemberRepo,
+	)
 
 	deps := handler.Deps{
 		Auth:           authUC,

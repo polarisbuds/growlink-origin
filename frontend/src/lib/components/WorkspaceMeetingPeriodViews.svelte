@@ -19,6 +19,7 @@
         type WorkspacePersonMode,
     } from "$lib/components/WorkspaceMeetingTable.svelte";
     import WorkspacePerson from "$lib/components/WorkspacePerson.svelte";
+    import ChevronRight from "lucide-svelte/icons/chevron-right";
 
     type PeriodKey = Exclude<WorkspaceTab, "all">;
 
@@ -100,24 +101,32 @@
 </div>
 
 {#snippet meetingCards(items: MeetingListItem[], empty: string)}
-    <div class="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+    <div class="mt-4 grid gap-4 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
         {#each items as item (item.uuid)}
             <div
                 class="group rounded-3xl border border-base-300 bg-base-100 p-5 shadow-sm hover:border-primary/40 transition-colors">
                 <div class="flex items-start justify-between gap-3">
                     <div class="min-w-0 flex-1">
                         {#if personMode === "both"}
-                            <div class="space-y-2">
-                                <WorkspacePerson
-                                    userUuid={item.pairing?.mentor?.uuid}
-                                    name={item.pairing?.mentor?.name}
-                                    {directoryUsers}
-                                    {deptMaps} />
-                                <WorkspacePerson
-                                    userUuid={item.pairing?.mentee?.uuid}
-                                    name={item.pairing?.mentee?.name}
-                                    {directoryUsers}
-                                    {deptMaps} />
+                            <div class="flex flex-1 w-full gap-5">
+                                <label>
+                                    <p class="label-text text-xs">メンター</p>
+                                    <WorkspacePerson
+                                        userUuid={item.pairing?.mentor?.uuid}
+                                        name={item.pairing?.mentor?.name}
+                                        {directoryUsers}
+                                        {deptMaps} />
+                                </label>
+                                <ChevronRight class="h-4 w-4 mt-4 self-center"
+                                ></ChevronRight>
+                                <label>
+                                    <p class="label-text text-xs">メンター</p>
+                                    <WorkspacePerson
+                                        userUuid={item.pairing?.mentee?.uuid}
+                                        name={item.pairing?.mentee?.name}
+                                        {directoryUsers}
+                                        {deptMaps} />
+                                </label>
                             </div>
                         {:else if personMode === "mentor"}
                             <WorkspacePerson

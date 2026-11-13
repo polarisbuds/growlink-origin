@@ -3,14 +3,13 @@
     import { page } from "$app/state";
     import { api } from "$lib/api";
     import { showToast } from "$lib/toast";
-    import MeetingAnswerSidePanel from "$lib/components/MeetingAnswerSidePanel.svelte";
+    import MeetingSidePanel from "$lib/components/MeetingSidePanel.svelte";
     import {
         formatDate,
         dualTopicRows,
         shouldHideMeetingContentBeforeSubmit,
         isMeetingDone,
         isMeetingSubmitted,
-        menteeTargetLabel,
         type MeetingPayload,
         type DualTopicRow,
         type MeetingUserRef,
@@ -88,7 +87,7 @@
 
 {#if payload && meeting}
     <div
-        class="flex max-w-7xl min-w-0 w-full flex-wrap items-start justify-between gap-4">
+        class="flex min-w-0 w-full flex-wrap items-start justify-between gap-4">
         <div class="min-w-0">
             <h1 class="truncate font-display text-2xl font-semibold">
                 {template?.title || "面談"}
@@ -129,8 +128,7 @@
             提出後に閲覧できます
         </div>
     {:else}
-        <div
-            class="mt-6 flex max-w-7xl flex-col gap-6 lg:flex-row lg:items-start">
+        <div class="mt-6 flex flex-col gap-6 lg:flex-row lg:items-start">
             <div class="min-w-0 flex-1 space-y-4">
                 {#each rows as row (rowKey(row))}
                     <div
@@ -259,11 +257,12 @@
                 {/if}
             </div>
 
-            <MeetingAnswerSidePanel
+            <MeetingSidePanel
                 bind:open={panelOpen}
                 {uuid}
                 bind:implementedDate
-                menteeLabel={menteeTargetLabel(meeting?.pairing)}
+                mentor={meeting?.pairing?.mentor}
+                mentee={meeting?.pairing?.mentee}
                 bind:sharers
                 canEditSharers={!!payload.canEditSharers}
                 {canEditImplementedDate} />

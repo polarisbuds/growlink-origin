@@ -51,18 +51,19 @@ func userIsMentorOrMenteeInPairing(userID uint, pairing entity.Pairing) bool {
 }
 
 func (uc *MeetingListUsecase) ListMyMeeting(userID uint) ([]outputmodel.MeetingOutput, error) {
-	pairing, err := uc.pairingRepo.GetByMenteeID(userID)
+	pairings, err := uc.pairingRepo.GetByMenteeID(userID)
 	if err != nil {
 		return []outputmodel.MeetingOutput{}, nil
 	}
-	if pairing != nil {
+	all := []outputmodel.MeetingOutput{}
+	for _, pairing := range pairings {
 		meetings, err := uc.meetingRepo.GetByPairingID(pairing.ID)
 		if err != nil {
 			return nil, fmt.Errorf("ミーティング一覧の取得に失敗しました: %w", err)
 		}
-		return converter.MeetingEntitiesToOutputs(meetings), nil
+		all = append(all, converter.MeetingEntitiesToOutputs(meetings)...)
 	}
-	return []outputmodel.MeetingOutput{}, nil
+	return dedupeMeetings(all), nil
 }
 
 func (uc *MeetingListUsecase) ListInvolvedMeetings(userID uint) ([]outputmodel.MeetingOutput, error) {

@@ -25,17 +25,35 @@ type ProgressFilter struct {
 }
 
 type ProgressViewer struct {
-	meetingRepo repository_interface.MeetingRepository
-	referable   ReferableUsers
+	meetingRepo    repository_interface.MeetingRepository
+	pairingRepo    repository_interface.PairingRepository
+	deptRepo       repository_interface.DepartmentRepository
+	hierarchyRepo  repository_interface.DepartmentHierarchyRepository
+	deptMemberRepo repository_interface.DepartmentMemberRepository
+	teamRepo       repository_interface.TeamRepository
+	teamMemberRepo repository_interface.TeamMemberRepository
+	referable      ReferableUsers
 }
 
 func NewProgressViewer(
 	meetingRepo repository_interface.MeetingRepository,
 	referable ReferableUsers,
+	pairingRepo repository_interface.PairingRepository,
+	deptRepo repository_interface.DepartmentRepository,
+	hierarchyRepo repository_interface.DepartmentHierarchyRepository,
+	deptMemberRepo repository_interface.DepartmentMemberRepository,
+	teamRepo repository_interface.TeamRepository,
+	teamMemberRepo repository_interface.TeamMemberRepository,
 ) *ProgressViewer {
 	return &ProgressViewer{
-		meetingRepo: meetingRepo,
-		referable:   referable,
+		meetingRepo:    meetingRepo,
+		referable:      referable,
+		pairingRepo:    pairingRepo,
+		deptRepo:       deptRepo,
+		hierarchyRepo:  hierarchyRepo,
+		deptMemberRepo: deptMemberRepo,
+		teamRepo:       teamRepo,
+		teamMemberRepo: teamMemberRepo,
 	}
 }
 
@@ -88,10 +106,10 @@ func (uc *ProgressViewer) Summary(filter ProgressFilter) (*outputmodel.ProgressS
 	if err != nil {
 		return nil, fmt.Errorf("面談一覧の取得に失敗しました: %w", err)
 	}
-	meetings, err = uc.filterMeetings(meetings, filter)
-	if err != nil {
-		return nil, err
-	}
+	// meetings, err = uc.filterMeetings(meetings, filter)
+	// if err != nil {
+	// 	return nil, err
+	// }
 	// TODO; GORMを用いて取得するものへと変更する
 	out := &outputmodel.ProgressSummaryOutput{}
 	for _, m := range meetings {
@@ -142,10 +160,10 @@ func (uc *ProgressViewer) Breakdown(group string, filter ProgressFilter) ([]outp
 	if err != nil {
 		return nil, fmt.Errorf("面談一覧の取得に失敗しました: %w", err)
 	}
-	meetings, err = uc.filterMeetings(meetings, filter)
-	if err != nil {
-		return nil, err
-	}
+	// meetings, err = uc.filterMeetings(meetings, filter)
+	// if err != nil {
+	// 	return nil, err
+	// }
 
 	buckets := map[uint]*progressBucket{}
 	addCount := func(id uint, rowUUID, name, deptName string, status valueobject.MeetingStatus, userName string) {

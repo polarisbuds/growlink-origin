@@ -1,3 +1,10 @@
+export type ProgressDoneMonthPoint = {
+	year: number;
+	month: number;
+	label: string;
+	done: number;
+};
+
 export type ProgressBreakdownRow = {
 	uuid: string;
 	name: string;
@@ -11,4 +18,37 @@ export type ProgressBreakdownRow = {
 	usersDraft?: string[];
 	usersSubmitted?: string[];
 	usersDone?: string[];
+};
+
+export type ProgressDepartmentRow = {
+	uuid: string;
+	name: string;
+	depth: number;
+	isTotal: boolean;
+	userCount: number;
+	pairCount: number;
+	notDoneCount: number;
+	submittedCount: number;
+	submittedPercent: number;
+	doneCount: number;
+	donePercent: number;
+	teams?: ProgressTeamRow[];
+};
+
+export type ProgressTeamRow = {
+	uuid: string;
+	name: string;
+	isTotal: boolean;
+	userCount: number;
+	pairCount: number;
+	notDoneCount: number;
+	submittedCount: number;
+	submittedPercent: number;
+	doneCount: number;
+	donePercent: number;
+	departments?: string[];
+};
+
+export type ProgressDepartmentTable = {
+	rows: ProgressDepartmentRow[];
 };
