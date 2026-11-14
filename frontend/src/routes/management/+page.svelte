@@ -16,6 +16,10 @@
     import { fade } from "svelte/transition";
     import Icon from "$lib/components/Icon.svelte";
     import Trash2 from "lucide-svelte/icons/trash-2";
+    import {
+        lastPageForTotal,
+        visiblePageNumbers,
+    } from "$lib/planning-meetings-pager";
 
     const AUTHORITY_OPTIONS = [
         { value: "general", label: "メンバー" },
@@ -157,6 +161,8 @@
     let selectedUserUuids = $state<string[]>([]);
     let userSearch = $state("");
     let userDeptFilter = $state<string[]>([]);
+    let currentUserPage = $state(1);
+    const USER_PAGE_SIZE = 20;
     let usersLoading = $state(true);
     let orgLoading = $state(true);
     let remind = $state({
@@ -503,10 +509,42 @@
         ];
     }
 
-    let allUsersSelected = $derived(
-        filteredUsers.length > 0 &&
-            filteredUsers.every((u) => selectedUserUuids.includes(u.uuid)),
+    let pagedFilteredUsers = $derived.by(() => {
+        const start = (currentUserPage - 1) * USER_PAGE_SIZE;
+        return filteredUsers.slice(start, start + USER_PAGE_SIZE);
+    });
+
+    let userListTotal = $derived(filteredUsers.length);
+    let userLastPage = $derived(lastPageForTotal(userListTotal, USER_PAGE_SIZE));
+    let userPagerPages = $derived(
+        visiblePageNumbers(currentUserPage, userLastPage),
     );
+
+    let allUsersSelected = $derived(
+        pagedFilteredUsers.length > 0 &&
+            pagedFilteredUsers.every((u) => selectedUserUuids.includes(u.uuid)),
+    );
+
+    let userFilterSignature = $derived(
+        JSON.stringify({
+            q: userSearch.trim(),
+            dept: userDeptFilter,
+        }),
+    );
+    let userFilterSignatureMounted = "";
+
+    $effect(() => {
+        const sig = userFilterSignature;
+        if (userFilterSignatureMounted === "") return;
+        if (sig === userFilterSignatureMounted) return;
+        userFilterSignatureMounted = sig;
+        currentUserPage = 1;
+    });
+
+    function goToUserPage(page: number) {
+        if (page < 1 || page > userLastPage) return;
+        currentUserPage = page;
+    }
 
     function authorityLabel(v: string) {
         return AUTHORITY_OPTIONS.find((o) => o.value === v)?.label || v;
@@ -781,7 +819,15 @@
     }
 
     function toggleAllUsers(checked: boolean) {
-        selectedUserUuids = checked ? filteredUsers.map((u) => u.uuid) : [];
+        const pageUuids = pagedFilteredUsers.map((u) => u.uuid);
+        if (checked) {
+            const set = new Set(selectedUserUuids);
+            for (const id of pageUuids) set.add(id);
+            selectedUserUuids = [...set];
+        } else {
+            const pageSet = new Set(pageUuids);
+            selectedUserUuids = selectedUserUuids.filter((id) => !pageSet.has(id));
+        }
     }
 
     function toggleOrgChild(uuid: string) {
@@ -1325,6 +1371,7 @@
             loadRemind(),
         ]);
         initExpandDept();
+        userFilterSignatureMounted = userFilterSignature;
     });
 </script>
 
@@ -1471,7 +1518,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        {#each filteredUsers as u (u.uuid)}
+                        {#each pagedFilteredUsers as u (u.uuid)}
                             {@const deptNames = departmentLabels(u)}
                             {@const teamNames = teamLabels(u)}
                             <tr
@@ -1562,6 +1609,42 @@
                 </table>
             {/if}
         </div>
+        {#if userListTotal > 0}
+            <div
+                class="mt-4 flex flex-wrap items-center justify-center gap-2 text-sm"
+            >
+                <button
+                    type="button"
+                    class="btn btn-sm btn-ghost"
+                    disabled={currentUserPage <= 1}
+                    onclick={() => goToUserPage(currentUserPage - 1)}
+                    >前へ</button
+                >
+                {#each userPagerPages as p (typeof p === "number" ? p : `e-${p}`)}
+                    {#if p === "ellipsis"}
+                        <span class="px-1 text-base-content/50">…</span>
+                    {:else}
+                        <button
+                            type="button"
+                            class="btn btn-sm {p === currentUserPage
+                                ? 'btn-primary'
+                                : 'btn-ghost'}"
+                            onclick={() => goToUserPage(p)}>{p}</button
+                        >
+                    {/if}
+                {/each}
+                <button
+                    type="button"
+                    class="btn btn-sm btn-ghost"
+                    disabled={currentUserPage >= userLastPage}
+                    onclick={() => goToUserPage(currentUserPage + 1)}
+                    >次へ</button
+                >
+                <span class="ml-2 text-base-content/60"
+                    >全 {userListTotal} 件</span
+                >
+            </div>
+        {/if}
     </div>
 {/if}
 
