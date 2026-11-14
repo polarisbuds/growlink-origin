@@ -346,9 +346,20 @@ func (h *Handler) ListMeetingsAll(c *echo.Context) error {
 	if claims == nil {
 		return c.JSON(http.StatusUnauthorized, map[string]string{"error": "unauthorized"})
 	}
-	list, err := h.deps.Planning.ListPlanningMeetings(claims.UserID, claims.Authority, authctx.SystemRole(c))
+	filter, page, dirDesc, err := parsePlanningMeetingsListQuery(c)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
+	}
+	out, err := h.deps.Planning.ListPlanningMeetingsPaged(
+		claims.UserID,
+		claims.Authority,
+		authctx.SystemRole(c),
+		filter,
+		page,
+		dirDesc,
+	)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
-	return c.JSON(http.StatusOK, list)
+	return c.JSON(http.StatusOK, out)
 }

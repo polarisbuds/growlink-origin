@@ -8,16 +8,17 @@
     import { statusBadge, statusLabel } from "$lib/status";
     import {
         buildUserDepartmentMaps,
-        departmentUuidForUser,
         departmentNameForUser,
         type PlanningDirectoryUser,
     } from "$lib/planning-directory";
     import {
-        compareJa,
-        sortIndicator,
-        toggleSortKey,
-        type SortDir,
-    } from "$lib/list-sort";
+        buildMeetingsAllQuery,
+        lastPageForTotal,
+        visiblePageNumbers,
+        type MeetingsPageResponse,
+        type MeetingListQuery,
+    } from "$lib/planning-meetings-pager";
+    import { sortIndicator, type SortDir } from "$lib/list-sort";
     import { goto } from "$app/navigation";
     import Icon from "$lib/components/Icon.svelte";
 
@@ -32,16 +33,8 @@
         };
     };
 
-    type SortKey =
-        | "mentor"
-        | "mentorDept"
-        | "mentee"
-        | "menteeDept"
-        | "template"
-        | "status"
-        | "date";
+    const PAGE_SIZE = 20;
 
-    let meetings = $state<Meeting[]>([]);
     let directoryUsers = $state<PlanningDirectoryUser[]>([]);
     let departments = $state<{ uuid: string; name: string }[]>([]);
 
@@ -51,10 +44,131 @@
     let filterStatus = $state("");
     let filterDateFrom = $state("");
     let filterDateTo = $state("");
-    let sortKey = $state<SortKey>("date");
-    let sortDir = $state<SortDir>("desc");
+    let dateDir = $state<SortDir>("desc");
+
+    let currentPage = $state(1);
+    let total = $state(0);
+    let pageCache = $state<Map<number, Meeting[]>>(new Map());
+    let listLoading = $state(false);
+    let loadGeneration = 0;
 
     let deptMaps = $derived(buildUserDepartmentMaps(directoryUsers));
+
+    let displayedMeetings = $derived(pageCache.get(currentPage) ?? []);
+    let lastPage = $derived(lastPageForTotal(total, PAGE_SIZE));
+    let pagerPages = $derived(visiblePageNumbers(currentPage, lastPage));
+
+    function listQuery(page: number): MeetingListQuery {
+        return {
+            page,
+            dir: dateDir,
+            mentorUuids: filterMentorUuids,
+            menteeUuids: filterMenteeUuids,
+            departmentUuids: filterDeptUuids,
+            status: filterStatus,
+            from: filterDateFrom,
+            to: filterDateTo,
+        };
+    }
+
+    function trimCache(around: number) {
+        const next = new Map<number, Meeting[]>();
+        for (const p of [around - 1, around, around + 1]) {
+            const rows = pageCache.get(p);
+            if (p >= 1 && rows) next.set(p, rows);
+        }
+        pageCache = next;
+    }
+
+    async function fetchPage(
+        page: number,
+        gen: number,
+    ): Promise<MeetingsPageResponse | null> {
+        const qs = buildMeetingsAllQuery(listQuery(page));
+        try {
+            const res = await api<MeetingsPageResponse>(
+                "GET",
+                `/api/v1/meetings/all?${qs}`,
+            );
+            if (gen !== loadGeneration) return null;
+            return res;
+        } catch {
+            if (gen !== loadGeneration) return null;
+            return null;
+        }
+    }
+
+    async function storePage(page: number, gen: number) {
+        const res = await fetchPage(page, gen);
+        if (!res || gen !== loadGeneration) return;
+        total = res.total;
+        const next = new Map(pageCache);
+        next.set(page, res.items as Meeting[]);
+        pageCache = next;
+    }
+
+    async function prefetchNeighbors(page: number, gen: number) {
+        const last = lastPageForTotal(total, PAGE_SIZE);
+        const tasks: Promise<void>[] = [];
+        if (page > 1) tasks.push(storePage(page - 1, gen));
+        if (page < last) tasks.push(storePage(page + 1, gen));
+        await Promise.all(tasks);
+        if (gen !== loadGeneration) return;
+        trimCache(page);
+    }
+
+    async function goToPage(page: number) {
+        if (page < 1 || page > lastPageForTotal(total, PAGE_SIZE)) return;
+        const gen = ++loadGeneration;
+        const cached = pageCache.get(page);
+        if (cached) {
+            currentPage = page;
+            void prefetchNeighbors(page, gen);
+            return;
+        }
+        listLoading = true;
+        currentPage = page;
+        await storePage(page, gen);
+        listLoading = false;
+        if (gen !== loadGeneration) return;
+        await prefetchNeighbors(page, gen);
+    }
+
+    async function reloadFromPageOne() {
+        const gen = ++loadGeneration;
+        pageCache = new Map();
+        currentPage = 1;
+        listLoading = true;
+        await storePage(1, gen);
+        listLoading = false;
+        if (gen !== loadGeneration) return;
+        await prefetchNeighbors(1, gen);
+    }
+
+    function toggleDateDir() {
+        dateDir = dateDir === "asc" ? "desc" : "asc";
+        void reloadFromPageOne();
+    }
+
+    let filterSignature = $derived(
+        JSON.stringify({
+            filterMentorUuids,
+            filterMenteeUuids,
+            filterDeptUuids,
+            filterStatus,
+            filterDateFrom,
+            filterDateTo,
+        }),
+    );
+    let filterSignatureMounted = "";
+
+    $effect(() => {
+        const sig = filterSignature;
+        if (filterSignatureMounted === "") return;
+        if (sig === filterSignatureMounted) return;
+        filterSignatureMounted = sig;
+        void reloadFromPageOne();
+    });
 
     function avatarURL(user: PlanningDirectoryUser | undefined) {
         if (!user?.imageUri) return "";
@@ -70,144 +184,15 @@
     }
 
     onMount(async () => {
-        const [meetingList, dir] = await Promise.all([
-            api<Meeting[]>("GET", "/api/v1/meetings/all"),
-            api<{
-                users?: PlanningDirectoryUser[];
-                departments?: { uuid: string; name: string }[];
-            }>("GET", "/api/v1/planning/directory"),
-        ]);
-        meetings = meetingList;
+        const dir = await api<{
+            users?: PlanningDirectoryUser[];
+            departments?: { uuid: string; name: string }[];
+        }>("GET", "/api/v1/planning/directory");
         directoryUsers = dir.users || [];
         departments = dir.departments || [];
+        filterSignatureMounted = filterSignature;
+        await reloadFromPageOne();
     });
-
-    let displayedMeetings = $derived.by(() => {
-        let list = [...meetings];
-        if (filterMentorUuids.length) {
-            const set = new Set(filterMentorUuids);
-            list = list.filter((m) => {
-                const uuid = m.pairing?.mentor?.uuid;
-                return uuid != null && set.has(uuid);
-            });
-        }
-        if (filterMenteeUuids.length) {
-            const set = new Set(filterMenteeUuids);
-            list = list.filter((m) => {
-                const uuid = m.pairing?.mentee?.uuid;
-                return uuid != null && set.has(uuid);
-            });
-        }
-        if (filterDeptUuids.length) {
-            const set = new Set(filterDeptUuids);
-            list = list.filter((m) => {
-                const mentorDept = departmentUuidForUser(
-                    m.pairing?.mentor?.uuid,
-                    deptMaps,
-                );
-                const menteeDept = departmentUuidForUser(
-                    m.pairing?.mentee?.uuid,
-                    deptMaps,
-                );
-                return (
-                    (mentorDept && set.has(mentorDept)) ||
-                    (menteeDept && set.has(menteeDept))
-                );
-            });
-        }
-        if (filterStatus !== "") {
-            const st = Number(filterStatus);
-            list = list.filter((m) => m.status === st);
-        }
-        if (filterDateFrom) {
-            const from = new Date(filterDateFrom);
-            list = list.filter((m) => {
-                const d = new Date(m.implementedAt || "");
-                return !Number.isNaN(d.getTime()) && d >= from;
-            });
-        }
-        if (filterDateTo) {
-            const to = new Date(filterDateTo);
-            to.setHours(23, 59, 59, 999);
-            list = list.filter((m) => {
-                const d = new Date(m.implementedAt || "");
-                return !Number.isNaN(d.getTime()) && d <= to;
-            });
-        }
-        const dir = sortDir === "asc" ? 1 : -1;
-        list.sort((a, b) => {
-            switch (sortKey) {
-                case "mentor":
-                    return (
-                        dir *
-                        compareJa(
-                            a.pairing?.mentor?.name || "",
-                            b.pairing?.mentor?.name || "",
-                        )
-                    );
-                case "mentorDept":
-                    return (
-                        dir *
-                        compareJa(
-                            departmentNameForUser(
-                                a.pairing?.mentor?.uuid,
-                                deptMaps,
-                            ),
-                            departmentNameForUser(
-                                b.pairing?.mentor?.uuid,
-                                deptMaps,
-                            ),
-                        )
-                    );
-                case "mentee":
-                    return (
-                        dir *
-                        compareJa(
-                            a.pairing?.mentee?.name || "",
-                            b.pairing?.mentee?.name || "",
-                        )
-                    );
-                case "menteeDept":
-                    return (
-                        dir *
-                        compareJa(
-                            departmentNameForUser(
-                                a.pairing?.mentee?.uuid,
-                                deptMaps,
-                            ),
-                            departmentNameForUser(
-                                b.pairing?.mentee?.uuid,
-                                deptMaps,
-                            ),
-                        )
-                    );
-                case "template":
-                    return (
-                        dir *
-                        compareJa(
-                            a.template?.title || "",
-                            b.template?.title || "",
-                        )
-                    );
-                case "status":
-                    return dir * ((a.status ?? 0) - (b.status ?? 0));
-                case "date": {
-                    const da = new Date(a.implementedAt || "").getTime() || 0;
-                    const db = new Date(b.implementedAt || "").getTime() || 0;
-                    return dir * (da - db);
-                }
-                default:
-                    return 0;
-            }
-        });
-        return list;
-    });
-
-    function toggleSort(key: SortKey) {
-        const next = toggleSortKey(sortKey, sortDir, key);
-        sortKey = next.sortKey;
-        sortDir = next.sortDir;
-    }
 </script>
 
 <svelte:head><title>全ての面談 - Growlink</title></svelte:head>
@@ -284,7 +269,9 @@
 
 <div
     class="mt-6 overflow-hidden rounded-3xl border border-base-300 bg-base-100 shadow-sm">
-    {#if displayedMeetings.length === 0}
+    {#if listLoading && displayedMeetings.length === 0}
+        <div class="p-12 text-center text-sm text-base-content/50">読み込み中…</div>
+    {:else if total === 0}
         <div class="p-12 text-center text-sm text-base-content/50">
             該当する面談がありません
         </div>
@@ -292,81 +279,21 @@
         <table class="table table-pin-rows max-h-full">
             <thead>
                 <tr class="text-base-content/70">
+                    <th class="font-semibold">部署</th>
+                    <th class="font-semibold">メンター</th>
+                    <th class="font-semibold">部署</th>
+                    <th class="font-semibold">メンティ</th>
+                    <th class="font-semibold">テンプレート</th>
+                    <th class="font-semibold">状態</th>
                     <th>
                         <button
                             type="button"
                             class="font-semibold hover:text-primary"
-                            onclick={() => toggleSort("mentorDept")}
-                            >部署{sortIndicator(
-                                "mentorDept",
-                                sortKey,
-                                sortDir,
-                            )}</button>
-                    </th>
-                    <th>
-                        <button
-                            type="button"
-                            class="font-semibold hover:text-primary"
-                            onclick={() => toggleSort("mentor")}
-                            >メンター{sortIndicator(
-                                "mentor",
-                                sortKey,
-                                sortDir,
-                            )}</button>
-                    </th>
-                    <th>
-                        <button
-                            type="button"
-                            class="font-semibold hover:text-primary"
-                            onclick={() => toggleSort("menteeDept")}
-                            >部署{sortIndicator(
-                                "menteeDept",
-                                sortKey,
-                                sortDir,
-                            )}</button>
-                    </th>
-                    <th>
-                        <button
-                            type="button"
-                            class="font-semibold hover:text-primary"
-                            onclick={() => toggleSort("mentee")}
-                            >メンティ{sortIndicator(
-                                "mentee",
-                                sortKey,
-                                sortDir,
-                            )}</button>
-                    </th>
-                    <th>
-                        <button
-                            type="button"
-                            class="font-semibold hover:text-primary"
-                            onclick={() => toggleSort("template")}
-                            >テンプレート{sortIndicator(
-                                "template",
-                                sortKey,
-                                sortDir,
-                            )}</button>
-                    </th>
-                    <th>
-                        <button
-                            type="button"
-                            class="font-semibold hover:text-primary"
-                            onclick={() => toggleSort("status")}
-                            >状態{sortIndicator(
-                                "status",
-                                sortKey,
-                                sortDir,
-                            )}</button>
-                    </th>
-                    <th>
-                        <button
-                            type="button"
-                            class="font-semibold hover:text-primary"
-                            onclick={() => toggleSort("date")}
+                            onclick={toggleDateDir}
                             >実施日{sortIndicator(
                                 "date",
-                                sortKey,
-                                sortDir,
+                                "date",
+                                dateDir,
                             )}</button>
                     </th>
                     <th></th>
@@ -429,3 +356,32 @@
         </table>
     {/if}
 </div>
+
+{#if total > 0}
+    <div
+        class="mt-4 flex flex-wrap items-center justify-center gap-2 text-sm">
+        <button
+            type="button"
+            class="btn btn-sm btn-ghost"
+            disabled={currentPage <= 1}
+            onclick={() => goToPage(currentPage - 1)}>前へ</button>
+        {#each pagerPages as p (typeof p === "number" ? p : `e-${p}`)}
+            {#if p === "ellipsis"}
+                <span class="px-1 text-base-content/50">…</span>
+            {:else}
+                <button
+                    type="button"
+                    class="btn btn-sm {p === currentPage
+                        ? 'btn-primary'
+                        : 'btn-ghost'}"
+                    onclick={() => goToPage(p)}>{p}</button>
+            {/if}
+        {/each}
+        <button
+            type="button"
+            class="btn btn-sm btn-ghost"
+            disabled={currentPage >= lastPage}
+            onclick={() => goToPage(currentPage + 1)}>次へ</button>
+        <span class="ml-2 text-base-content/60">全 {total} 件</span>
+    </div>
+{/if}

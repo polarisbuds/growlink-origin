@@ -15,6 +15,7 @@ import (
 
 type PlanningAccessUsecase struct {
 	meetingRepo    repository_interface.MeetingRepository
+	deptRepo       repository_interface.DepartmentRepository
 	deptMemberRepo repository_interface.DepartmentMemberRepository
 	hierarchyRepo  repository_interface.DepartmentHierarchyRepository
 	teamRepo       repository_interface.TeamRepository
@@ -27,6 +28,7 @@ type PlanningAccessUsecase struct {
 
 func NewPlanningAccessUsecase(
 	meetingRepo repository_interface.MeetingRepository,
+	deptRepo repository_interface.DepartmentRepository,
 	deptMemberRepo repository_interface.DepartmentMemberRepository,
 	hierarchyRepo repository_interface.DepartmentHierarchyRepository,
 	teamRepo repository_interface.TeamRepository,
@@ -38,6 +40,7 @@ func NewPlanningAccessUsecase(
 ) *PlanningAccessUsecase {
 	return &PlanningAccessUsecase{
 		meetingRepo:    meetingRepo,
+		deptRepo:       deptRepo,
 		deptMemberRepo: deptMemberRepo,
 		hierarchyRepo:  hierarchyRepo,
 		teamRepo:       teamRepo,

@@ -144,6 +144,7 @@ func main() {
 
 	planningAccess := planning_usecase.NewPlanningAccessUsecase(
 		meetingRepo,
+		deptRepo,
 		deptMemberRepo,
 		deptHierarchyRepo,
 		teamRepo,
