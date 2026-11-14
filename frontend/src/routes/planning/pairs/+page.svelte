@@ -12,45 +12,29 @@
     import {
         buildUserDepartmentMaps,
         departmentNameForUser,
-        teamNameForUser,
-        buildUserTeamMaps,
         type PlanningDirectoryUser,
     } from "$lib/planning-directory";
+    import { compareJa } from "$lib/list-sort";
     import {
-        compareJa,
-        sortIndicator,
-        toggleSortKey,
-        type SortDir,
-    } from "$lib/list-sort";
-    import PickOptionList from "$lib/components/PickOptionList.svelte";
-    import SearchableSelect from "$lib/components/SearchableSelect.svelte";
+        buildPairingsQuery,
+        lastPageForTotal,
+        visiblePageNumbers,
+        type PairingsPageResponse,
+        type PairingListQuery,
+    } from "$lib/planning-pairings-pager";
 
-    type SortKey =
-        | "mentor"
-        | "mentorDept"
-        | "mentee"
-        | "menteeDept"
-        | "menteeTeam";
     type ViewMode = "individual" | "department";
-    type DeptSortState = { sortKey: SortKey; sortDir: SortDir };
 
     type Dept = { uuid: string; name: string };
     type Team = { uuid: string; name: string };
 
-    const DEFAULT_DEPT_SORT: DeptSortState = {
-        sortKey: "mentor",
-        sortDir: "asc",
-    };
+    const PAGE_SIZE = 20;
 
-    let pairings = $state<PairingListItem[]>([]);
     let directoryUsers = $state<PlanningDirectoryUser[]>([]);
 
     let filterMentorUuids = $state<string[]>([]);
     let filterMenteeUuids = $state<string[]>([]);
     let viewMode = $state<ViewMode>("individual");
-    let sortKey = $state<SortKey>("mentor");
-    let sortDir = $state<SortDir>("asc");
-    let deptSorts = $state<Record<string, DeptSortState>>({});
     let selected = $state<PairingListItem | null>(null);
     let deleteOpen = $state(false);
     let isSystemAdmin = $state(false);
@@ -59,114 +43,131 @@
     let teams = $state<Team[]>([]);
     let selectTeamUuids = $state<string[]>([]);
 
-    let deptMaps = $derived(buildUserDepartmentMaps(directoryUsers));
-    let teamMaps = $derived(buildUserTeamMaps(directoryUsers));
-
-    let displayRows = $derived(expandUserPairings(pairings));
-
-    function avatarURL(user: PlanningDirectoryUser | undefined) {
-        if (!user?.imageUri) return "";
-        return `/uploads/${user.imageUri}`;
-    }
-
-    function userOptionLabel(u: PlanningDirectoryUser) {
-        return `${u.name} (${u.email})`;
-    }
-
-    function sortRows(
-        rows: ReturnType<typeof expandUserPairings>,
-        key: SortKey,
-        dir: SortDir,
-    ) {
-        const list = [...rows];
-        const mult = dir === "asc" ? 1 : -1;
-        list.sort((a, b) => {
-            let av = "";
-            let bv = "";
-            switch (key) {
-                case "mentor":
-                    av = a.mentorName;
-                    bv = b.mentorName;
-                    break;
-                case "mentorDept":
-                    av = departmentNameForUser(a.mentorUserUuid, deptMaps);
-                    bv = departmentNameForUser(b.mentorUserUuid, deptMaps);
-                    break;
-                case "mentee":
-                    av = a.menteeName;
-                    bv = b.menteeName;
-                    break;
-                case "menteeDept":
-                    av = departmentNameForUser(a.menteeUserUuid, deptMaps);
-                    bv = departmentNameForUser(b.menteeUserUuid, deptMaps);
-                    break;
-                case "menteeTeam":
-                    av = teamNameForUser(a.menteeUserUuid, teamMaps);
-                    bv = teamNameForUser(b.menteeUserUuid, teamMaps);
-                    break;
-            }
-            return mult * compareJa(av, bv);
-        });
-        return list;
-    }
-
-    let filteredRowsUnsorted = $derived.by(() => {
-        let rows = displayRows;
-        if (isSystemAdmin) {
-            if (filterMentorUuids.length) {
-                const set = new Set(filterMentorUuids);
-                rows = rows.filter((r) => set.has(r.mentorUserUuid));
-            }
-            if (filterMenteeUuids.length) {
-                const set = new Set(filterMenteeUuids);
-                rows = rows.filter((r) => set.has(r.menteeUserUuid));
-            }
-        }
-        if (selectDepartmentUuids.length) {
-            const nameSet = new Set(
-                departments
-                    .filter((d) => selectDepartmentUuids.includes(d.uuid))
-                    .map((d) => d.name),
-            );
-            rows = rows.filter((r) => {
-                const mentorDept = departmentNameForUser(
-                    r.mentorUserUuid,
-                    deptMaps,
-                );
-                const menteeDept = departmentNameForUser(
-                    r.menteeUserUuid,
-                    deptMaps,
-                );
-                return [...nameSet].some(
-                    (n) => mentorDept.includes(n) || menteeDept.includes(n),
-                );
-            });
-        }
-        if (selectTeamUuids.length) {
-            const nameSet = new Set(
-                teams
-                    .filter((t) => selectTeamUuids.includes(t.uuid))
-                    .map((t) => t.name),
-            );
-            rows = rows.filter((r) => {
-                const mentorTeam = teamNameForUser(r.mentorUserUuid, teamMaps);
-                const menteeTeam = teamNameForUser(r.menteeUserUuid, teamMaps);
-                return [...nameSet].some(
-                    (n) => mentorTeam.includes(n) || menteeTeam.includes(n),
-                );
-            });
-        }
-
-        return rows;
-    });
-
-    let filteredRows = $derived(
-        sortRows(filteredRowsUnsorted, sortKey, sortDir),
+    let currentPage = $state(1);
+    let total = $state(0);
+    let pageCache = $state<Map<number, ReturnType<typeof expandUserPairings>>>(
+        new Map(),
     );
+    let listLoading = $state(false);
+    let loadGeneration = 0;
+
+    let departmentRows = $state<ReturnType<typeof expandUserPairings>>([]);
+    let departmentLoading = $state(false);
+
+    let deptMaps = $derived(buildUserDepartmentMaps(directoryUsers));
+
+    let displayedRows = $derived(pageCache.get(currentPage) ?? []);
+    let lastPage = $derived(lastPageForTotal(total, PAGE_SIZE));
+    let pagerPages = $derived(visiblePageNumbers(currentPage, lastPage));
+
+    function filterQueryBase(): Omit<PairingListQuery, "page"> {
+        return {
+            mentorUuids: isSystemAdmin ? filterMentorUuids : [],
+            menteeUuids: isSystemAdmin ? filterMenteeUuids : [],
+            departmentUuids: isSystemAdmin ? selectDepartmentUuids : [],
+            teamUuids: isSystemAdmin ? selectTeamUuids : [],
+        };
+    }
+
+    function listQuery(page: number): PairingListQuery {
+        return { ...filterQueryBase(), page };
+    }
+
+    function trimCache(around: number) {
+        const next = new Map<number, ReturnType<typeof expandUserPairings>>();
+        for (const p of [around - 1, around, around + 1]) {
+            const rows = pageCache.get(p);
+            if (p >= 1 && rows) next.set(p, rows);
+        }
+        pageCache = next;
+    }
+
+    async function fetchPaged(
+        page: number,
+        gen: number,
+    ): Promise<PairingsPageResponse | null> {
+        const qs = buildPairingsQuery(listQuery(page));
+        try {
+            const res = await api<PairingsPageResponse>(
+                "GET",
+                `/api/v1/pairings?${qs}`,
+            );
+            if (gen !== loadGeneration) return null;
+            return res;
+        } catch {
+            if (gen !== loadGeneration) return null;
+            return null;
+        }
+    }
+
+    async function storePage(page: number, gen: number) {
+        const res = await fetchPaged(page, gen);
+        if (!res || gen !== loadGeneration) return;
+        total = res.total;
+        const next = new Map(pageCache);
+        next.set(page, expandUserPairings(res.items as PairingListItem[]));
+        pageCache = next;
+    }
+
+    async function prefetchNeighbors(page: number, gen: number) {
+        const last = lastPageForTotal(total, PAGE_SIZE);
+        const tasks: Promise<void>[] = [];
+        if (page > 1) tasks.push(storePage(page - 1, gen));
+        if (page < last) tasks.push(storePage(page + 1, gen));
+        await Promise.all(tasks);
+        if (gen !== loadGeneration) return;
+        trimCache(page);
+    }
+
+    async function goToPage(page: number) {
+        if (page < 1 || page > lastPageForTotal(total, PAGE_SIZE)) return;
+        const gen = ++loadGeneration;
+        const cached = pageCache.get(page);
+        if (cached) {
+            currentPage = page;
+            void prefetchNeighbors(page, gen);
+            return;
+        }
+        listLoading = true;
+        currentPage = page;
+        await storePage(page, gen);
+        listLoading = false;
+        if (gen !== loadGeneration) return;
+        await prefetchNeighbors(page, gen);
+    }
+
+    async function reloadFromPageOne() {
+        const gen = ++loadGeneration;
+        pageCache = new Map();
+        currentPage = 1;
+        listLoading = true;
+        await storePage(1, gen);
+        listLoading = false;
+        if (gen !== loadGeneration) return;
+        await prefetchNeighbors(1, gen);
+    }
+
+    async function reloadDepartmentView() {
+        const gen = ++loadGeneration;
+        departmentLoading = true;
+        const qs = buildPairingsQuery(filterQueryBase());
+        try {
+            const res = await api<PairingListItem[]>(
+                "GET",
+                qs ? `/api/v1/pairings?${qs}` : "/api/v1/pairings",
+            );
+            if (gen !== loadGeneration) return;
+            departmentRows = expandUserPairings(res);
+        } catch {
+            if (gen === loadGeneration) departmentRows = [];
+        } finally {
+            if (gen === loadGeneration) departmentLoading = false;
+        }
+    }
 
     let departmentGroups = $derived.by(() => {
         const groups = new Map<string, ReturnType<typeof expandUserPairings>>();
-        for (const row of filteredRowsUnsorted) {
+        for (const row of departmentRows) {
             const label =
                 departmentNameForUser(row.menteeUserUuid, deptMaps) || "";
             if (!groups.has(label)) groups.set(label, []);
@@ -177,49 +178,57 @@
             if (!b) return -1;
             return compareJa(a, b);
         });
-        return keys.map((label) => {
-            const sort = deptSorts[label] ?? DEFAULT_DEPT_SORT;
-            return {
-                label,
-                sortKey: sort.sortKey,
-                sortDir: sort.sortDir,
-                rows: sortRows(
-                    groups.get(label) || [],
-                    sort.sortKey,
-                    sort.sortDir,
-                ),
-            };
-        });
+        return keys.map((label) => ({
+            label,
+            rows: groups.get(label) || [],
+        }));
     });
+
+    let filterSignature = $derived(
+        JSON.stringify({
+            filterMentorUuids,
+            filterMenteeUuids,
+            selectDepartmentUuids,
+            selectTeamUuids,
+            viewMode,
+        }),
+    );
+    let filterSignatureMounted = "";
+
+    $effect(() => {
+        const sig = filterSignature;
+        if (filterSignatureMounted === "") return;
+        if (sig === filterSignatureMounted) return;
+        filterSignatureMounted = sig;
+        if (viewMode === "individual") {
+            void reloadFromPageOne();
+        } else {
+            void reloadDepartmentView();
+        }
+    });
+
+    function avatarURL(user: PlanningDirectoryUser | undefined) {
+        if (!user?.imageUri) return "";
+        return `/uploads/${user.imageUri}`;
+    }
+
+    function userOptionLabel(u: PlanningDirectoryUser) {
+        return `${u.name} (${u.email})`;
+    }
 
     onMount(async () => {
         isSystemAdmin = getAvatar()?.isSystemAdmin ?? false;
-        const [pairingList, dir] = await Promise.all([
-            api<PairingListItem[]>("GET", "/api/v1/pairings"),
-            api<{
-                users?: PlanningDirectoryUser[];
-                departments?: Dept[];
-                teams?: Team[];
-            }>("GET", "/api/v1/planning/directory"),
-        ]);
-        console.log(dir);
-        pairings = pairingList;
+        const dir = await api<{
+            users?: PlanningDirectoryUser[];
+            departments?: Dept[];
+            teams?: Team[];
+        }>("GET", "/api/v1/planning/directory");
         directoryUsers = dir.users || [];
         departments = dir.departments || [];
         teams = dir.teams || [];
+        filterSignatureMounted = filterSignature;
+        await reloadFromPageOne();
     });
-
-    function toggleSort(key: SortKey) {
-        const next = toggleSortKey(sortKey, sortDir, key);
-        sortKey = next.sortKey;
-        sortDir = next.sortDir;
-    }
-
-    function toggleDeptSort(deptLabel: string, key: SortKey) {
-        const current = deptSorts[deptLabel] ?? DEFAULT_DEPT_SORT;
-        const next = toggleSortKey(current.sortKey, current.sortDir, key);
-        deptSorts = { ...deptSorts, [deptLabel]: next };
-    }
 
     function askDelete(p: PairingListItem) {
         selected = p;
@@ -231,10 +240,18 @@
             await api("DELETE", `/api/v1/pairings/${selected.uuid}`);
             deleteOpen = false;
             showToast("ペアを削除しました");
-            pairings = await api<PairingListItem[]>("GET", "/api/v1/pairings");
+            if (viewMode === "individual") {
+                await reloadFromPageOne();
+            } else {
+                await reloadDepartmentView();
+            }
         } catch {
             showToast("削除に失敗しました", "error");
         }
+    }
+
+    function setViewMode(mode: ViewMode) {
+        viewMode = mode;
     }
 </script>
 
@@ -251,13 +268,13 @@
             class="btn btn-sm join-item"
             class:btn-primary={viewMode === "individual"}
             class:btn-outline={viewMode !== "individual"}
-            onclick={() => (viewMode = "individual")}>個人</button>
+            onclick={() => setViewMode("individual")}>個人</button>
         <button
             type="button"
             class="btn btn-sm join-item"
             class:btn-primary={viewMode === "department"}
             class:btn-outline={viewMode !== "department"}
-            onclick={() => (viewMode = "department")}>部署</button>
+            onclick={() => setViewMode("department")}>部署</button>
     </div>
 </div>
 
@@ -302,68 +319,14 @@
     </div>
 {/if}
 
-{#snippet tableHead(
-    activeKey: SortKey,
-    activeDir: SortDir,
-    onToggle: (key: SortKey) => void,
-)}
+{#snippet tableHead()}
     <thead>
         <tr class="text-base-content/70">
-            <th>
-                <button
-                    type="button"
-                    class="font-semibold hover:text-primary"
-                    onclick={() => onToggle("mentorDept")}
-                    >部署{sortIndicator(
-                        "mentorDept",
-                        activeKey,
-                        activeDir,
-                    )}</button>
-            </th>
-            <th>
-                <button
-                    type="button"
-                    class="font-semibold hover:text-primary"
-                    onclick={() => onToggle("mentor")}
-                    >メンター{sortIndicator(
-                        "mentor",
-                        activeKey,
-                        activeDir,
-                    )}</button>
-            </th>
-            <th>
-                <button
-                    type="button"
-                    class="font-semibold hover:text-primary"
-                    onclick={() => onToggle("menteeDept")}
-                    >部署{sortIndicator(
-                        "menteeDept",
-                        activeKey,
-                        activeDir,
-                    )}</button>
-            </th>
-            <th>
-                <button
-                    type="button"
-                    class="font-semibold hover:text-primary"
-                    onclick={() => onToggle("mentee")}
-                    >メンティ{sortIndicator(
-                        "mentee",
-                        activeKey,
-                        activeDir,
-                    )}</button>
-            </th>
-            <th>
-                <button
-                    type="button"
-                    class="font-semibold hover:text-primary"
-                    onclick={() => onToggle("menteeTeam")}
-                    >チーム{sortIndicator(
-                        "menteeTeam",
-                        activeKey,
-                        activeDir,
-                    )}</button>
-            </th>
+            <th class="font-semibold">部署</th>
+            <th class="font-semibold">メンター</th>
+            <th class="font-semibold">部署</th>
+            <th class="font-semibold">メンティ</th>
+            <th class="font-semibold">チーム</th>
             <th></th>
         </tr>
     </thead>
@@ -417,18 +380,61 @@
     </tbody>
 {/snippet}
 
-{#if filteredRowsUnsorted.length === 0}
+{#if viewMode === "individual"}
+    {#if listLoading && displayedRows.length === 0}
+        <div
+            class="mt-6 overflow-hidden rounded-3xl border border-base-300 bg-base-100 p-12 text-center text-sm text-base-content/50 shadow-sm">
+            読み込み中…
+        </div>
+    {:else if total === 0}
+        <div
+            class="mt-6 overflow-hidden rounded-3xl border border-base-300 bg-base-100 p-12 text-center text-sm text-base-content/50 shadow-sm">
+            該当するペアがありません
+        </div>
+    {:else}
+        <div
+            class="mt-6 overflow-hidden rounded-3xl border border-base-300 bg-base-100 shadow-sm">
+            <table class="table">
+                {@render tableHead()}
+                {@render tableBody(displayedRows)}
+            </table>
+        </div>
+        <div
+            class="mt-4 flex flex-wrap items-center justify-center gap-2 text-sm">
+            <button
+                type="button"
+                class="btn btn-sm btn-ghost"
+                disabled={currentPage <= 1}
+                onclick={() => goToPage(currentPage - 1)}>前へ</button>
+            {#each pagerPages as p (typeof p === "number" ? p : `e-${p}`)}
+                {#if p === "ellipsis"}
+                    <span class="px-1 text-base-content/50">…</span>
+                {:else}
+                    <button
+                        type="button"
+                        class="btn btn-sm {p === currentPage
+                            ? 'btn-primary'
+                            : 'btn-ghost'}"
+                        onclick={() => goToPage(p)}>{p}</button>
+                {/if}
+            {/each}
+            <button
+                type="button"
+                class="btn btn-sm btn-ghost"
+                disabled={currentPage >= lastPage}
+                onclick={() => goToPage(currentPage + 1)}>次へ</button>
+            <span class="ml-2 text-base-content/60">全 {total} 件</span>
+        </div>
+    {/if}
+{:else if departmentLoading}
+    <div
+        class="mt-6 overflow-hidden rounded-3xl border border-base-300 bg-base-100 p-12 text-center text-sm text-base-content/50 shadow-sm">
+        読み込み中…
+    </div>
+{:else if departmentRows.length === 0}
     <div
         class="mt-6 overflow-hidden rounded-3xl border border-base-300 bg-base-100 p-12 text-center text-sm text-base-content/50 shadow-sm">
         該当するペアがありません
-    </div>
-{:else if viewMode === "individual"}
-    <div
-        class="mt-6 overflow-hidden rounded-3xl border border-base-300 bg-base-100 shadow-sm">
-        <table class="table">
-            {@render tableHead(sortKey, sortDir, toggleSort)}
-            {@render tableBody(filteredRows)}
-        </table>
     </div>
 {:else}
     <div class="mt-6 space-y-6">
@@ -447,9 +453,7 @@
                     </div>
                 {/if}
                 <table class="table">
-                    {@render tableHead(group.sortKey, group.sortDir, (key) =>
-                        toggleDeptSort(group.label, key),
-                    )}
+                    {@render tableHead()}
                     {@render tableBody(group.rows)}
                 </table>
             </section>

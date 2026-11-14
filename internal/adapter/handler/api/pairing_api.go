@@ -31,8 +31,41 @@ func (h *Handler) ListPairings(c *echo.Context) error {
 	if claims == nil {
 		return c.JSON(http.StatusUnauthorized, map[string]string{"error": "unauthorized"})
 	}
-	list, err := h.deps.Planning.ListPairingsForManagement(claims.UserID, claims.Authority, authctx.SystemRole(c))
-
+	systemRole := authctx.SystemRole(c)
+	page, hasPage, err := parsePairingsListPage(c)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
+	}
+	filter, err := parsePlanningPairingsListFilter(c)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
+	}
+	if hasPage {
+		out, err := h.deps.Planning.ListPairingsForManagementPaged(
+			claims.UserID,
+			claims.Authority,
+			systemRole,
+			filter,
+			page,
+		)
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		}
+		return c.JSON(http.StatusOK, out)
+	}
+	if pairingsListQueryHasFilters(c) || !planningPairingsFilterEmpty(filter) {
+		list, err := h.deps.Planning.ListPairingsForManagementFiltered(
+			claims.UserID,
+			claims.Authority,
+			systemRole,
+			filter,
+		)
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		}
+		return c.JSON(http.StatusOK, list)
+	}
+	list, err := h.deps.Planning.ListPairingsForManagement(claims.UserID, claims.Authority, systemRole)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}

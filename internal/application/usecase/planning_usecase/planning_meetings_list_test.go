@@ -41,16 +41,16 @@ func TestSortPlanningMeetings_DateDescAndZeroLast(t *testing.T) {
 func TestSortPlanningMeetings_SameDateByMentorMenteeNameAsc(t *testing.T) {
 	d := time.Date(2025, 1, 10, 12, 0, 0, 0, time.UTC)
 	list := []outputmodel.MeetingOutput{
-		meetingOut(1, d, "山田", "あ"),
-		meetingOut(2, d, "佐藤", "あ"),
-		meetingOut(3, d, "佐藤", "い"),
+		meetingOut(1, d, "alpha", "m1"),
+		meetingOut(2, d, "beta", "m1"),
+		meetingOut(3, d, "beta", "m2"),
 	}
 	sortPlanningMeetings(list, true)
-	require.Equal(t, "山田", list[0].Pairing.Mentor.Name)
-	require.Equal(t, "佐藤", list[1].Pairing.Mentor.Name)
-	require.Equal(t, "い", list[1].Pairing.Mentee.Name)
-	require.Equal(t, uint(3), list[1].ID)
-	require.Equal(t, uint(2), list[2].ID)
+	require.Equal(t, "alpha", list[0].Pairing.Mentor.Name)
+	require.Equal(t, "beta", list[1].Pairing.Mentor.Name)
+	require.Equal(t, "m1", list[1].Pairing.Mentee.Name)
+	require.Equal(t, uint(2), list[1].ID)
+	require.Equal(t, uint(3), list[2].ID)
 }
 
 func TestSortPlanningMeetings_TieBreakByIDDESC(t *testing.T) {
@@ -111,7 +111,7 @@ func TestSlicePlanningMeetingsPage_OutOfRange(t *testing.T) {
 	for i := range list {
 		list[i] = meetingOut(uint(i+1), time.Now(), "a", "b")
 	}
-	page := slicePlanningMeetingsPage(list, 3, PlanningMeetingsPageSize)
+	page := slicePlanningMeetingsPage(list, 2, PlanningMeetingsPageSize)
 	require.Len(t, page, 5)
 	empty := slicePlanningMeetingsPage(list, 10, PlanningMeetingsPageSize)
 	require.Empty(t, empty)
