@@ -5,6 +5,7 @@
     import PlanningTabs from "$lib/components/PlanningTabs.svelte";
     import { validateTemplateForm } from "$lib/template-validation";
     import { ensureSession } from "$lib/session";
+    import Search from "lucide-svelte/icons/search";
 
     type Topic = {
         uuid?: string;
@@ -26,6 +27,7 @@
     };
 
     let templates = $state<Template[]>([]);
+    let titleSearch = $state("");
     let currentUserName = $state("");
     let isSystemAdmin = $state(false);
     let modalOpen = $state(false);
@@ -46,10 +48,20 @@
         return [...list].sort((a, b) => {
             const aTime = a.createdAt ? Date.parse(a.createdAt) : 0;
             const bTime = b.createdAt ? Date.parse(b.createdAt) : 0;
-            if (aTime !== bTime) return aTime - bTime;
+            if (aTime !== bTime) return bTime - aTime;
+            const titleCmp = (a.title || "").localeCompare(b.title || "", "ja");
+            if (titleCmp !== 0) return titleCmp;
             return a.uuid.localeCompare(b.uuid);
         });
     }
+
+    let displayedTemplates = $derived.by(() => {
+        const q = titleSearch.trim().toLowerCase();
+        if (!q) return templates;
+        return templates.filter((t) =>
+            (t.title || "").toLowerCase().includes(q),
+        );
+    });
 
     async function reloadTemplates() {
         const list = await api<Template[]>("GET", "/api/v1/templates");
@@ -237,7 +249,7 @@
             行をクリックして内容を確認できます
         </p>
     </div>
-    <dir class="flex flex-1 justify-end items-end">
+    <dir class="flex flex-1 justify-end items-end mb-0">
         <a href="/planning/templates/new" class="btn btn-primary btn-sm"
             >新規作成</a>
     </dir>
@@ -245,14 +257,31 @@
 
 <PlanningTabs active="templates" />
 
+<label
+    class="input input-bordered mt-4 flex max-w-md items-center gap-2"
+>
+    <Search class="h-4 w-4 shrink-0 opacity-50" />
+    <input
+        type="search"
+        class="grow"
+        placeholder="タイトルで検索"
+        bind:value={titleSearch}
+    />
+</label>
+
 <div class="mt-6 space-y-2">
     {#if templates.length === 0}
         <div
             class="rounded-3xl border border-base-300 bg-base-100 p-12 text-center text-sm text-base-content/50">
             テンプレートがありません
         </div>
+    {:else if displayedTemplates.length === 0}
+        <div
+            class="rounded-3xl border border-base-300 bg-base-100 p-12 text-center text-sm text-base-content/50">
+            該当するテンプレートがありません
+        </div>
     {:else}
-        {#each templates.entries() as [idx, t] (t.uuid)}
+        {#each displayedTemplates.entries() as [idx, t] (t.uuid)}
             <div
                 role="button"
                 tabindex="0"
