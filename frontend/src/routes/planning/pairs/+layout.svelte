@@ -36,12 +36,12 @@
                     メンターとメンティの 1:1 ペア
                 </p>
             </div>
-            <dir class="flex justify-end">
+            <div class="flex justify-end items-center">
                 <a class="btn btn-primary btn-sm" href="/planning/pairs/new">
                     <Plus></Plus>
                     新規作成
                 </a>
-            </dir>
+            </div>
         </div>
     {/if}
     {#if showTabs}

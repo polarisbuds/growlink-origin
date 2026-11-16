@@ -206,7 +206,7 @@
         <h1 class="font-display text-2xl font-semibold">面談一覧</h1>
         <p class="mt-1 text-sm text-base-content/60">組織内の面談を一覧表示</p>
     </div>
-    <div class="flex justify-end">
+    <div class="flex justify-end items-center">
         <a href="/planning/meetings/new" class="btn btn-sm btn-primary">
             <Plus></Plus>
             新規作成

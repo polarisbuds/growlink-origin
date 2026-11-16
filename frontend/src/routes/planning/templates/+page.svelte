@@ -250,12 +250,12 @@
             行をクリックして内容を確認できます
         </p>
     </div>
-    <dir class="flex justify-end">
+    <div class="flex justify-end items-center">
         <a href="/planning/templates/new" class="btn btn-primary btn-sm">
             <Plus></Plus>
             新規作成
         </a>
-    </dir>
+    </div>
 </div>
 
 <PlanningTabs active="templates" />
