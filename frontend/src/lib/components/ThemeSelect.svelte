@@ -72,7 +72,7 @@
     aria-modal="true"
     aria-labelledby="theme-modal-title">
     <div
-        class="modal-box relative flex max-h-[85vh] max-w-5xl flex-col rounded-2xl bg-base-100 shadow-2xl">
+        class="modal-box relative flex min-h-[40vh] max-h-[85vh] max-w-5xl flex-col !overflow-hidden rounded-2xl bg-base-100 shadow-2xl">
         <button
             type="button"
             class="btn btn-sm btn-circle btn-ghost absolute right-3 top-3"

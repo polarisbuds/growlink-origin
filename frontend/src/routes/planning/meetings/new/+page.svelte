@@ -938,6 +938,7 @@
 </main>
 
 <UserSelectModal
+    class="min-h-[60vh]"
     open={mentorModalOpen}
     title="メンターを選択"
     multiple={false}
@@ -955,6 +956,7 @@
     }} />
 
 <UserSelectModal
+    class="min-h-[60vh]"
     open={menteeModalOpen}
     title="メンティを選択"
     users={pickableUsers}
@@ -971,6 +973,7 @@
     }} />
 
 <UserSelectModal
+    class="min-h-[60vh]"
     open={sharerModalOpen}
     title="共有者を選択"
     users={target === "pair" ? users : pickableUsers}
@@ -987,6 +990,7 @@
     }} />
 
 <PairSelectModal
+    class="min-h-[60vh]"
     open={pairModalOpen}
     rows={pairTableRows}
     {users}
@@ -1003,8 +1007,8 @@
     }} />
 
 <dialog class="modal" class:modal-open={departmentModalOpen}>
-    <div class="modal-box max-w-lg">
-        <h3 class="text-lg font-bold">部署指定</h3>
+    <div class="modal-box flex min-h-80 max-h-[85vh] max-w-lg flex-col !overflow-hidden">
+        <h3 class="text-lg font-bold shrink-0">部署指定</h3>
         <p class="mt-1 text-sm text-base-content/60">
             部署を選ぶと、その所属ユーザがメンティに追加されます。
         </p>
@@ -1034,8 +1038,8 @@
 </dialog>
 
 <dialog class="modal" class:modal-open={teamPickModalOpen}>
-    <div class="modal-box max-w-lg">
-        <h3 class="text-lg font-bold">チーム指定</h3>
+    <div class="modal-box flex min-h-80 max-h-[85vh] max-w-lg flex-col !overflow-hidden">
+        <h3 class="text-lg font-bold shrink-0">チーム指定</h3>
         <p class="mt-1 text-sm text-base-content/60">
             チームを選ぶと、そのメンバーがメンティに追加されます。
         </p>
@@ -1065,8 +1069,8 @@
 </dialog>
 
 <dialog class="modal" class:modal-open={managedTeamModalOpen}>
-    <div class="modal-box max-w-lg">
-        <h3 class="text-lg font-bold">管理チーム選択</h3>
+    <div class="modal-box flex min-h-80 max-h-[85vh] max-w-lg flex-col !overflow-hidden">
+        <h3 class="text-lg font-bold shrink-0">管理チーム選択</h3>
         <p class="mt-1 text-sm text-base-content/60">
             あなたがリーダーのチームを選ぶと、そのメンバーがメンティに追加されます。
         </p>

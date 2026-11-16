@@ -865,6 +865,7 @@
 </main>
 
 <MenteeSelectModal
+    class="min-h-[60vh]"
     open={menteeModalOpen}
     users={pickableUsers}
     {departments}
@@ -881,6 +882,7 @@
 />
 
 <MenteeSelectModal
+    class="min-h-[60vh]"
     open={sharerModalOpen}
     title="共有者を選択"
     users={pickableUsers}

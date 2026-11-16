@@ -30,6 +30,7 @@
     } = $props();
 
     let open = $state(false);
+    let fieldEl = $state<HTMLDivElement | null>(null);
 
     function itemLabel(item: T): string {
         if (labelOf) return labelOf(item);
@@ -56,7 +57,9 @@
             if (!t.closest(`[data-pick-root="${pickRootId}"]`)) open = false;
         };
         const onKeyDown = (ev: KeyboardEvent) => {
-            if (ev.key === "Escape") open = false;
+            if (ev.key !== "Escape" || !open) return;
+            open = false;
+            ev.stopPropagation();
         };
         window.addEventListener("mousedown", onMouseDown);
         window.addEventListener("keydown", onKeyDown);
@@ -69,6 +72,7 @@
 
 <div class="relative" data-pick-root={pickRootId}>
     <div
+        bind:this={fieldEl}
         class="flex min-h-11 w-full flex-wrap items-center gap-1.5 rounded-lg border border-base-300 bg-base-100 px-3 py-2 focus-within:border-primary {className}">
         {#each chips as chip (chip.uuid)}
             <span
@@ -92,6 +96,11 @@
             oninput={() => (open = true)} />
     </div>
     {#if open}
-        <PickOptionList items={filtered} labelOf={itemLabel} onSelect={pick} />
+        <PickOptionList
+            items={filtered}
+            labelOf={itemLabel}
+            onSelect={pick}
+            {pickRootId}
+            getTrigger={() => fieldEl} />
     {/if}
 </div>

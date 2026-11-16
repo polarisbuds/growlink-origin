@@ -329,7 +329,7 @@
 </div>
 
 <dialog class="modal" class:modal-open={modalOpen}>
-    <div class="modal-box flex max-h-[85vh] max-w-2xl flex-col p-0">
+    <div class="modal-box flex min-h-[50vh] max-h-[85vh] max-w-2xl flex-col !overflow-hidden p-0">
         <div
             class="flex shrink-0 items-start justify-between gap-2 border-b border-base-200 p-6 pb-2">
             <div class="min-w-0">

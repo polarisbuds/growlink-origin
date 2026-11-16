@@ -1,6 +1,7 @@
 <script lang="ts" generics="T extends { uuid: string }">
     import { onMount } from "svelte";
     import { filterItems } from "$lib/searchable-select";
+    import { floating, portal } from "$lib/floating-panel";
 
     let {
         items,
@@ -20,6 +21,7 @@
 
     let open = $state(false);
     let query = $state("");
+    let triggerEl = $state<HTMLButtonElement | null>(null);
 
     let filtered = $derived(filterItems(items, query, labelOf));
     let selectedSet = $derived(new Set(selectedUuids));
@@ -77,7 +79,9 @@
             if (!t.closest(`[data-pick-root="${pickRootId}"]`)) open = false;
         };
         const onKeyDown = (ev: KeyboardEvent) => {
-            if (ev.key === "Escape") open = false;
+            if (ev.key !== "Escape" || !open) return;
+            open = false;
+            ev.stopPropagation();
         };
         window.addEventListener("mousedown", onMouseDown);
         window.addEventListener("keydown", onKeyDown);
@@ -90,6 +94,7 @@
 
 <div class="relative h-full" data-pick-root={pickRootId}>
     <button
+        bind:this={triggerEl}
         type="button"
         class="{inputClass} flex min-h-9 items-center justify-between gap-2 h-full"
         aria-haspopup="listbox"
@@ -103,7 +108,11 @@
     </button>
     {#if open}
         <div
-            class="absolute left-0 top-full z-20 mt-1 w-full overflow-hidden rounded-2xl border border-base-300 bg-base-100 shadow-lg">
+            use:portal
+            use:floating={{ getTrigger: () => triggerEl }}
+            data-pick-root={pickRootId}
+            data-pick-panel=""
+            class="fixed z-[1300] overflow-hidden rounded-2xl border border-base-300 bg-base-100 shadow-lg">
             <div class="border-b border-base-300 p-2">
                 <input
                     type="search"

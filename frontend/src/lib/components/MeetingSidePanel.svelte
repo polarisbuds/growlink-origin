@@ -102,6 +102,7 @@
 </script>
 
 <SharerSelectModal
+    class="min-h-[60vh]"
     open={sharerModalOpen}
     users={directoryUsers}
     {departments}

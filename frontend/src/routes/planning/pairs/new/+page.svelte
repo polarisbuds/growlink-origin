@@ -279,6 +279,7 @@
 </main>
 
 <UserSelectModal
+    class="min-h-[60vh]"
     open={mentorModalOpen}
     title="メンターを選択"
     multiple={false}
@@ -297,6 +298,7 @@
 />
 
 <UserSelectModal
+    class="min-h-[60vh]"
     open={menteeModalOpen}
     title="メンティを選択"
     users={pickableUsers}

@@ -31,6 +31,7 @@
 
     let open = $state(false);
     let query = $state("");
+    let inputEl = $state<HTMLInputElement | null>(null);
 
     let filtered = $derived(filterItems(items, query, labelOf));
 
@@ -66,7 +67,9 @@
             if (!t.closest(`[data-pick-root="${pickRootId}"]`)) open = false;
         };
         const onKeyDown = (ev: KeyboardEvent) => {
-            if (ev.key === "Escape") open = false;
+            if (ev.key !== "Escape" || !open) return;
+            open = false;
+            ev.stopPropagation();
         };
         window.addEventListener("mousedown", onMouseDown);
         window.addEventListener("keydown", onKeyDown);
@@ -79,6 +82,7 @@
 
 <div class="relative" data-pick-root={pickRootId}>
     <input
+        bind:this={inputEl}
         type="text"
         class="{inputClass} {inputSize} {allowClear && value && !clearOnSelect ? 'pr-10' : ''}"
         autocomplete="off"
@@ -100,6 +104,11 @@
             onclick={clear}>×</button>
     {/if}
     {#if open}
-        <PickOptionList items={filtered} {labelOf} onSelect={pick} />
+        <PickOptionList
+            items={filtered}
+            {labelOf}
+            onSelect={pick}
+            {pickRootId}
+            getTrigger={() => inputEl} />
     {/if}
 </div>

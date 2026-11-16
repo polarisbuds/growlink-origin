@@ -17,6 +17,7 @@
         selectedUuids = [],
         excludeUuids = [],
         multiple = true,
+        class: boxClass = "min-h-[24rem]",
         onApply,
         onClose,
     }: {
@@ -26,6 +27,7 @@
         selectedUuids?: string[];
         excludeUuids?: string[];
         multiple?: boolean;
+        class?: string;
         onApply: (uuids: string[]) => void;
         onClose: () => void;
     } = $props();
@@ -144,7 +146,7 @@
 <svelte:window onkeydown={onWindowKeydown} />
 
 <dialog bind:this={dialogEl} class="modal z-[1100]" class:modal-open={open}>
-    <div class="modal-box flex max-h-[85vh] max-w-3xl flex-col p-0">
+    <div class="modal-box flex max-h-[85vh] max-w-3xl flex-col !overflow-hidden p-0 {boxClass}">
         <div
             class="flex shrink-0 items-center justify-between gap-2 border-b border-base-200 px-6 py-4">
             <h3 class="text-lg font-bold">{title}</h3>

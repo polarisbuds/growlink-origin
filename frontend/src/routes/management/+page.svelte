@@ -1885,7 +1885,7 @@
 {/if}
 
 <dialog class="modal" class:modal-open={userModalOpen}>
-    <div class="modal-box max-w-3xl flex flex-col p-0">
+    <div class="modal-box flex min-h-[50vh] max-h-[85vh] max-w-3xl flex-col !overflow-hidden p-0">
         <div
             class="flex justify-between items-start gap-2 p-6 pb-2 border-b border-base-200 shrink-0">
             <div>
@@ -1900,7 +1900,7 @@
         </div>
         {#if userForm}
             <div
-                class="overflow-y-auto px-6 py-4 space-y-5 flex justify-around gap-2">
+                class="min-h-0 flex-1 overflow-y-auto px-6 py-4 space-y-5 flex justify-around gap-2">
                 <div class="flex flex-col w-1/3 items-around gap-2 h-full">
                     <div class="flex justify-center w-full">
                         <Icon
@@ -2122,7 +2122,7 @@
 {/snippet}
 
 <dialog class="modal" class:modal-open={orgModalOpen}>
-    <div class="modal-box max-w-3xl flex flex-col p-0">
+    <div class="modal-box flex min-h-[50vh] max-h-[85vh] max-w-3xl flex-col !overflow-hidden p-0">
         <div
             class="flex justify-between items-start gap-2 p-6 pb-2 border-b border-base-200 shrink-0">
             <div>
@@ -2146,7 +2146,7 @@
             </div>
         </div>
         {#if !orgEditMode}
-            <div class="overflow-y-auto px-6 py-4 flex-1 space-y-4">
+            <div class="min-h-0 flex-1 overflow-y-auto px-6 py-4 space-y-4">
                 {#if orgDetail?.kind === "department"}
                     <div
                         class="rounded-xl border border-base-300 bg-base-200/30 px-3 py-2 text-sm">
@@ -2192,7 +2192,7 @@
             </div>
         {/if}
         {#if orgEditMode}
-            <div class="overflow-y-auto px-6 py-4 space-y-4 flex-1">
+            <div class="min-h-0 flex-1 overflow-y-auto px-6 py-4 space-y-4">
                 <label class="form-control"
                     ><span class="label-text font-medium">名前</span><input
                         class="input input-bordered"
@@ -2335,14 +2335,14 @@
 </dialog>
 
 <dialog class="modal" class:modal-open={createUserOpen}>
-    <div class="modal-box max-w-lg flex flex-col p-0">
+    <div class="modal-box flex min-h-[40vh] max-h-[85vh] max-w-lg flex-col !overflow-hidden p-0">
         <div class="p-6 pb-2 border-b border-base-200 shrink-0">
             <h3 class="font-bold text-lg">ユーザを追加</h3>
             <p class="text-sm text-base-content/60 mt-0.5">
                 権限はメンバー、ロールはなしで作成されます
             </p>
         </div>
-        <div class="overflow-y-auto px-6 py-4 space-y-4 flex-1">
+        <div class="min-h-0 flex-1 overflow-y-auto px-6 py-4 space-y-4">
             <label class="form-control"
                 ><span class="label-text font-medium">氏名</span><input
                     class="input input-bordered"
@@ -2442,11 +2442,11 @@
 </dialog>
 
 <dialog class="modal" class:modal-open={createDeptOpen}>
-    <div class="modal-box max-w-3xl flex flex-col p-0">
+    <div class="modal-box flex min-h-[50vh] max-h-[85vh] max-w-3xl flex-col !overflow-hidden p-0">
         <div class="p-6 pb-2 border-b border-base-200 shrink-0">
             <h3 class="font-bold text-lg">部署を追加</h3>
         </div>
-        <div class="overflow-y-auto px-6 py-4 space-y-4 flex-1">
+        <div class="min-h-0 flex-1 overflow-y-auto px-6 py-4 space-y-4">
             <label class="form-control"
                 ><span class="label-text font-medium">部署名</span><input
                     class="input input-bordered"
@@ -2526,11 +2526,11 @@
 </dialog>
 
 <dialog class="modal" class:modal-open={createTeamOpen}>
-    <div class="modal-box max-w-3xl flex flex-col p-0">
+    <div class="modal-box flex min-h-[50vh] max-h-[85vh] max-w-3xl flex-col !overflow-hidden p-0">
         <div class="p-6 pb-2 border-b border-base-200 shrink-0">
             <h3 class="font-bold text-lg">チームを追加</h3>
         </div>
-        <div class="overflow-y-auto px-6 py-4 space-y-4 flex-1">
+        <div class="min-h-0 flex-1 overflow-y-auto px-6 py-4 space-y-4">
             <label class="form-control">
                 <span class="label-text font-medium">部署</span>
                 <select
@@ -2634,6 +2634,7 @@
 </dialog>
 
 <MemberPickModal
+    class="min-h-[60vh]"
     open={orgMemberPickOpen}
     title={orgMemberPickTitle}
     users={orgMemberPickUsers}
