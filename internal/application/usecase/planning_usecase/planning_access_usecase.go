@@ -298,44 +298,37 @@ func (uc *PlanningAccessUsecase) departmentScopeUserIDs(userID uint) ([]uint, er
 	if err != nil {
 		return nil, err
 	}
-	roots := make([]uint, 0)
+	headRoots := make([]uint, 0)
+	managerRoots := make([]uint, 0)
 	for _, membership := range memberships {
-		if membership.IsHead || membership.IsManager {
-			roots = append(roots, membership.DepartmentID)
+		if membership.IsHead {
+			headRoots = append(headRoots, membership.DepartmentID)
+			continue
+		}
+		if membership.IsManager {
+			managerRoots = append(managerRoots, membership.DepartmentID)
 		}
 	}
-	if len(roots) == 0 {
+	if len(headRoots) == 0 && len(managerRoots) == 0 {
 		return nil, nil
 	}
 	hierarchies, err := uc.hierarchyRepo.GetAll()
 	if err != nil {
 		return nil, err
 	}
-	deptIDs := descendantDepartmentIDs(roots, hierarchies)
 	seen := map[uint]struct{}{}
-	for _, deptID := range deptIDs {
-		members, err := uc.deptMemberRepo.GetByDepartmentID(deptID)
-		if err != nil {
+	if len(headRoots) > 0 {
+		if err := uc.mergeDepartmentTreeUsers(seen, headRoots, hierarchies, nil); err != nil {
 			return nil, err
 		}
-		for _, member := range members {
-			seen[member.UserID] = struct{}{}
+	}
+	if len(managerRoots) > 0 {
+		skipHeadInDept := make(map[uint]struct{}, len(managerRoots))
+		for _, deptID := range managerRoots {
+			skipHeadInDept[deptID] = struct{}{}
 		}
-		if uc.teamRepo == nil || uc.teamMemberRepo == nil {
-			continue
-		}
-		teams, err := uc.teamRepo.GetByDepartmentID(deptID)
-		if err != nil {
+		if err := uc.mergeDepartmentTreeUsers(seen, managerRoots, hierarchies, skipHeadInDept); err != nil {
 			return nil, err
-		}
-		for _, team := range teams {
-			teamMembers, err := uc.teamMemberRepo.GetByTeamID(team.ID)
-			if err != nil {
-				return nil, err
-			}
-			for _, teamMember := range teamMembers {
-				seen[teamMember.MemberID] = struct{}{}
-			}
 		}
 	}
 	ids := make([]uint, 0, len(seen))
@@ -343,6 +336,63 @@ func (uc *PlanningAccessUsecase) departmentScopeUserIDs(userID uint) ([]uint, er
 		ids = append(ids, id)
 	}
 	return ids, nil
+}
+
+// skipHeadInDept: for listed department IDs only, members with IsHead are omitted (manager scope).
+func (uc *PlanningAccessUsecase) mergeDepartmentTreeUsers(
+	seen map[uint]struct{},
+	roots []uint,
+	hierarchies []entity.DepartmentHierarchy,
+	skipHeadInDept map[uint]struct{},
+) error {
+	deptIDs := descendantDepartmentIDs(roots, hierarchies)
+	headUserIDsInRoot := map[uint]struct{}{}
+	if skipHeadInDept != nil {
+		for deptID := range skipHeadInDept {
+			members, err := uc.deptMemberRepo.GetByDepartmentID(deptID)
+			if err != nil {
+				return err
+			}
+			for _, member := range members {
+				if member.IsHead {
+					headUserIDsInRoot[member.UserID] = struct{}{}
+				}
+			}
+		}
+	}
+	for _, deptID := range deptIDs {
+		members, err := uc.deptMemberRepo.GetByDepartmentID(deptID)
+		if err != nil {
+			return err
+		}
+		_, skipHeadsHere := skipHeadInDept[deptID]
+		for _, member := range members {
+			if skipHeadsHere && member.IsHead {
+				continue
+			}
+			seen[member.UserID] = struct{}{}
+		}
+		if uc.teamRepo == nil || uc.teamMemberRepo == nil {
+			continue
+		}
+		teams, err := uc.teamRepo.GetByDepartmentID(deptID)
+		if err != nil {
+			return err
+		}
+		for _, team := range teams {
+			teamMembers, err := uc.teamMemberRepo.GetByTeamID(team.ID)
+			if err != nil {
+				return err
+			}
+			for _, teamMember := range teamMembers {
+				if _, isHead := headUserIDsInRoot[teamMember.MemberID]; isHead {
+					continue
+				}
+				seen[teamMember.MemberID] = struct{}{}
+			}
+		}
+	}
+	return nil
 }
 
 func descendantDepartmentIDs(rootIDs []uint, hierarchies []entity.DepartmentHierarchy) []uint {
