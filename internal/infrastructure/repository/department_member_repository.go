@@ -82,7 +82,7 @@ func (repo *DepartmentMemberRepository) ReplaceByDepartment(departmentID uint, m
 
 		for userID, row := range byUser {
 			if _, ok := want[userID]; !ok {
-				if err := tx.Unscoped().Delete(&row).Error; err != nil {
+				if err := tx.Delete(&row).Error; err != nil {
 					return err
 				}
 			}

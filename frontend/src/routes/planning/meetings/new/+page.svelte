@@ -207,7 +207,10 @@
         return item.title || "";
     }
     function managedTeamLabelOf(item: ManagedTeam) {
-        return `${item.name}（${item.members?.length ?? 0}人）`;
+        if (!item.members) return `${item.name}`;
+        if (item.members.length > 0)
+            return `${item.name}（${item.members.length - 1}人）`;
+        return `${item.name}（0人）`;
     }
     function pickManagedTeamFromSelect(item: ManagedTeam) {
         pickManagedTeam(item);

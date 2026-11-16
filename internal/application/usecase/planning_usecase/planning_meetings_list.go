@@ -25,6 +25,7 @@ type PlanningMeetingsListFilter struct {
 	From            *time.Time // start of day JST inclusive
 	To              *time.Time // end of day JST inclusive
 	DateRangeEmpty  bool       // from after to
+	IncludeDeleted  bool       // include meetings whose pairing is soft-deleted
 }
 
 func JSTDayStart(dateYYYYMMDD string) (time.Time, error) {
@@ -40,7 +41,7 @@ func JSTDayEnd(dateYYYYMMDD string) (time.Time, error) {
 	if err != nil {
 		return time.Time{}, err
 	}
-	return start.Add(24*time.Hour).Add(-time.Nanosecond), nil
+	return start.Add(24 * time.Hour).Add(-time.Nanosecond), nil
 }
 
 func filterPlanningMeetings(
@@ -80,6 +81,9 @@ func filterPlanningMeetings(
 			}
 		}
 		if f.Status != nil && m.Status != *f.Status {
+			continue
+		}
+		if !f.IncludeDeleted && m.Pairing.Deleted {
 			continue
 		}
 		if hasDateFilter {

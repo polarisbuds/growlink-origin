@@ -88,15 +88,17 @@
     });
 </script>
 
-<div class="relative" data-pick-root={pickRootId}>
+<div class="relative h-full" data-pick-root={pickRootId}>
     <button
         type="button"
-        class="{inputClass} flex min-h-9 items-center justify-between gap-2"
+        class="{inputClass} flex min-h-9 items-center justify-between gap-2 h-full"
         aria-haspopup="listbox"
         aria-expanded={open}
         onclick={() => (open = !open)}>
-        <span class="truncate {selectedUuids.length === 0 ? 'text-base-content/50' : ''}"
-            >{summaryLabel}</span>
+        <span
+            class="truncate {selectedUuids.length === 0
+                ? 'text-base-content/50'
+                : ''}">{summaryLabel}</span>
         <span class="text-base-content/40" aria-hidden="true">▾</span>
     </button>
     {#if open}

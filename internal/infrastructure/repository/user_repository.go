@@ -13,13 +13,13 @@ import (
 )
 
 type UserRepository struct {
-	ctx       context.Context
-	db        *gorm.DB
-	uploadDir string
+	ctx          context.Context
+	db, unscoped *gorm.DB
+	uploadDir    string
 }
 
 func NewUserRepository(ctx context.Context, dp *gorm.DB, uploadDir string) *UserRepository {
-	return &UserRepository{ctx: ctx, db: dp, uploadDir: uploadDir}
+	return &UserRepository{ctx: ctx, db: dp, unscoped: dp.Session(&gorm.Session{PropagateUnscoped: true}), uploadDir: uploadDir}
 }
 
 func (repo *UserRepository) AttachImageBase64(user *entity.User) {
@@ -56,7 +56,7 @@ func (repo *UserRepository) Create(user *entity.User) error {
 }
 
 func (repo *UserRepository) GetByID(id uint) (*entity.User, error) {
-	user, err := gorm.G[entity.User](repo.db).Where("id = ?", id).Order("id ASC").First(repo.ctx)
+	user, err := gorm.G[entity.User](repo.unscoped).Where("id = ?", id).Scopes(func(stmt *gorm.Statement) { stmt.Unscoped = true }).Order("id ASC").First(repo.ctx)
 	if err != nil {
 		return nil, fmt.Errorf("指定されたユーザIDは存在しませんでした: %w", err)
 	}
@@ -64,7 +64,7 @@ func (repo *UserRepository) GetByID(id uint) (*entity.User, error) {
 }
 
 func (repo *UserRepository) GetByUUID(userUUID uuid.UUID) (*entity.User, error) {
-	user, err := gorm.G[entity.User](repo.db).Where("uuid = ?", userUUID.String()).Order("id ASC").First(repo.ctx)
+	user, err := gorm.G[entity.User](repo.unscoped).Where("uuid = ?", userUUID.String()).Scopes(func(stmt *gorm.Statement) { stmt.Unscoped = true }).Order("id ASC").First(repo.ctx)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, gorm.ErrRecordNotFound

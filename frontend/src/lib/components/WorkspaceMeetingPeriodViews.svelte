@@ -15,9 +15,7 @@
         buildUserDepartmentMaps,
         type PlanningDirectoryUser,
     } from "$lib/planning-directory";
-    import WorkspaceMeetingTable, {
-        type WorkspacePersonMode,
-    } from "$lib/components/WorkspaceMeetingTable.svelte";
+    import WorkspaceMeetingTable from "$lib/components/WorkspaceMeetingTable.svelte";
     import WorkspacePerson from "$lib/components/WorkspacePerson.svelte";
     import ChevronRight from "lucide-svelte/icons/chevron-right";
 
@@ -28,13 +26,15 @@
         viewMode,
         currentUserUuid,
         directoryUsers,
-        personMode,
+        canIncludeMenteeMeetings = false,
+        includeMenteeMeetings = $bindable(false),
     }: {
         meetings: MeetingListItem[];
         viewMode: "card" | "table";
         currentUserUuid?: string;
         directoryUsers: PlanningDirectoryUser[];
-        personMode: WorkspacePersonMode;
+        canIncludeMenteeMeetings?: boolean;
+        includeMenteeMeetings?: boolean;
     } = $props();
 
     let deptMaps = $derived(buildUserDepartmentMaps(directoryUsers));
@@ -56,16 +56,16 @@
             empty: "今月の面談はありません",
         },
         {
-            key: "past",
-            tabLabel: "これまで",
-            sectionTitle: "これまでの面談",
-            empty: "面談の履歴はありません",
-        },
-        {
             key: "planned",
             tabLabel: "これから",
-            sectionTitle: "計画済みの面談",
-            empty: "計画済みの面談はありません",
+            sectionTitle: "予定済みの面談",
+            empty: "予定されている面談はありません",
+        },
+        {
+            key: "past",
+            tabLabel: "これまで",
+            sectionTitle: "過去の面談",
+            empty: "面談の履歴はありません",
         },
     ];
 
@@ -100,47 +100,45 @@
     {/each}
 </div>
 
+{#if canIncludeMenteeMeetings}
+    <div class="flex flex-1 w-full justify-end items-center">
+        <label class="label cursor-pointer mt-4 flex w-fit gap-3 p-0">
+            <input
+                type="checkbox"
+                class="checkbox checkbox-sm checkbox-primary"
+                bind:checked={includeMenteeMeetings} />
+            <span class="label-text text-sm">メンティーの面談も表示</span>
+        </label>
+    </div>
+{/if}
+
 {#snippet meetingCards(items: MeetingListItem[], empty: string)}
-    <div class="mt-4 grid gap-4 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
+    <div class="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {#each items as item (item.uuid)}
             <div
                 class="group rounded-3xl border border-base-300 bg-base-100 p-5 shadow-sm hover:border-primary/40 transition-colors">
                 <div class="flex items-start justify-between gap-3">
                     <div class="min-w-0 flex-1">
-                        {#if personMode === "both"}
-                            <div class="flex flex-1 w-full gap-5">
-                                <label>
-                                    <p class="label-text text-xs">メンター</p>
-                                    <WorkspacePerson
-                                        userUuid={item.pairing?.mentor?.uuid}
-                                        name={item.pairing?.mentor?.name}
-                                        {directoryUsers}
-                                        {deptMaps} />
-                                </label>
-                                <ChevronRight class="h-4 w-4 mt-4 self-center"
-                                ></ChevronRight>
-                                <label>
-                                    <p class="label-text text-xs">メンター</p>
-                                    <WorkspacePerson
-                                        userUuid={item.pairing?.mentee?.uuid}
-                                        name={item.pairing?.mentee?.name}
-                                        {directoryUsers}
-                                        {deptMaps} />
-                                </label>
-                            </div>
-                        {:else if personMode === "mentor"}
-                            <WorkspacePerson
-                                userUuid={item.pairing?.mentor?.uuid}
-                                name={item.pairing?.mentor?.name}
-                                {directoryUsers}
-                                {deptMaps} />
-                        {:else}
-                            <WorkspacePerson
-                                userUuid={item.pairing?.mentee?.uuid}
-                                name={item.pairing?.mentee?.name}
-                                {directoryUsers}
-                                {deptMaps} />
-                        {/if}
+                        <div class="flex flex-1 w-full gap-5">
+                            <label>
+                                <p class="label-text text-xs">メンター</p>
+                                <WorkspacePerson
+                                    userUuid={item.pairing?.mentor?.uuid}
+                                    name={item.pairing?.mentor?.name}
+                                    {directoryUsers}
+                                    {deptMaps} />
+                            </label>
+                            <ChevronRight class="h-4 w-4 mt-4 self-center"
+                            ></ChevronRight>
+                            <label>
+                                <p class="label-text text-xs">メンター</p>
+                                <WorkspacePerson
+                                    userUuid={item.pairing?.mentee?.uuid}
+                                    name={item.pairing?.mentee?.name}
+                                    {directoryUsers}
+                                    {deptMaps} />
+                            </label>
+                        </div>
                         <h3 class="mt-3 font-semibold">
                             {item.template?.title || "1on1"}
                         </h3>
@@ -188,7 +186,6 @@
                         {items}
                         {currentUserUuid}
                         {directoryUsers}
-                        {personMode}
                         emptyMessage={section.empty} />
                 </div>
             {:else}
@@ -202,7 +199,6 @@
             items={singleItems}
             {currentUserUuid}
             {directoryUsers}
-            {personMode}
             emptyMessage={activeSection?.empty ?? "面談はありません"} />
     </div>
 {:else}

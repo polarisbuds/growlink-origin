@@ -217,7 +217,7 @@
     </section>
 {:else}
     <section
-        class="mt-10 rounded-3xl border border-base-300 bg-base-100 p-6 shadow-sm">
+        class="mt-3 rounded-3xl border border-base-300 bg-base-100 p-6 shadow-sm">
         <div>
             <h2 class="text-lg font-semibold">完了件数</h2>
             <p class="mt-1 text-sm text-base-content/60">

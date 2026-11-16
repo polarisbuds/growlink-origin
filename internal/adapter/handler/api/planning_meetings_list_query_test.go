@@ -49,6 +49,22 @@ func TestParsePlanningMeetingsListQuery_InvalidUUID(t *testing.T) {
 	require.Error(t, err)
 }
 
+func TestParsePlanningMeetingsListQuery_Deleted(t *testing.T) {
+	c := newEchoGET("/api/v1/meetings/all?deleted=1")
+	filter, _, _, err := parsePlanningMeetingsListQuery(c)
+	require.NoError(t, err)
+	require.True(t, filter.IncludeDeleted)
+
+	c = newEchoGET("/api/v1/meetings/all")
+	filter, _, _, err = parsePlanningMeetingsListQuery(c)
+	require.NoError(t, err)
+	require.False(t, filter.IncludeDeleted)
+
+	c = newEchoGET("/api/v1/meetings/all?deleted=yes")
+	_, _, _, err = parsePlanningMeetingsListQuery(c)
+	require.Error(t, err)
+}
+
 func TestParsePlanningMeetingsListQuery_DateRangeInverted(t *testing.T) {
 	c := newEchoGET("/api/v1/meetings/all?from=2025-02-01&to=2025-01-01")
 	filter, _, _, err := parsePlanningMeetingsListQuery(c)

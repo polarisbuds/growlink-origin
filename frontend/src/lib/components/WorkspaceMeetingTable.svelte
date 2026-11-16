@@ -13,19 +13,15 @@
     } from "$lib/planning-directory";
     import WorkspacePerson from "$lib/components/WorkspacePerson.svelte";
 
-    export type WorkspacePersonMode = "mentor" | "mentee" | "both";
-
     let {
         items,
         currentUserUuid,
         directoryUsers,
-        personMode,
         emptyMessage = "面談はありません",
     }: {
         items: MeetingListItem[];
         currentUserUuid?: string;
         directoryUsers: PlanningDirectoryUser[];
-        personMode: WorkspacePersonMode;
         emptyMessage?: string;
     } = $props();
 
@@ -37,18 +33,10 @@
     <table class="table">
         <thead>
             <tr class="text-base-content/70">
-                {#if personMode === "both"}
-                    <th>メンター部署</th>
-                    <th>メンター</th>
-                    <th>メンティー部署</th>
-                    <th>メンティー</th>
-                {:else if personMode === "mentor"}
-                    <th>部署</th>
-                    <th>メンター</th>
-                {:else}
-                    <th>部署</th>
-                    <th>メンティー</th>
-                {/if}
+                <th>部署</th>
+                <th>メンター</th>
+                <th>部署</th>
+                <th>メンティー</th>
                 <th>テンプレート</th>
                 <th>状態</th>
                 <th>実施予定日</th>
@@ -58,62 +46,32 @@
         <tbody>
             {#each items as item (item.uuid)}
                 <tr class="hover:bg-base-200/40">
-                    {#if personMode === "both"}
-                        <td class="text-sm whitespace-nowrap"
-                            >{departmentNameForUser(
-                                item.pairing?.mentor?.uuid,
-                                deptMaps,
-                            ) || "—"}</td>
-                        <td>
-                            <WorkspacePerson
-                                userUuid={item.pairing?.mentor?.uuid}
-                                name={item.pairing?.mentor?.name}
-                                {directoryUsers}
-                                {deptMaps}
-                                showDepartment={false} />
-                        </td>
-                        <td class="text-sm whitespace-nowrap"
-                            >{departmentNameForUser(
-                                item.pairing?.mentee?.uuid,
-                                deptMaps,
-                            ) || "—"}</td>
-                        <td>
-                            <WorkspacePerson
-                                userUuid={item.pairing?.mentee?.uuid}
-                                name={item.pairing?.mentee?.name}
-                                {directoryUsers}
-                                {deptMaps}
-                                showDepartment={false} />
-                        </td>
-                    {:else if personMode === "mentor"}
-                        <td class="text-sm whitespace-nowrap"
-                            >{departmentNameForUser(
-                                item.pairing?.mentor?.uuid,
-                                deptMaps,
-                            ) || "—"}</td>
-                        <td>
-                            <WorkspacePerson
-                                userUuid={item.pairing?.mentor?.uuid}
-                                name={item.pairing?.mentor?.name}
-                                {directoryUsers}
-                                {deptMaps}
-                                showDepartment={false} />
-                        </td>
-                    {:else}
-                        <td class="text-sm whitespace-nowrap"
-                            >{departmentNameForUser(
-                                item.pairing?.mentee?.uuid,
-                                deptMaps,
-                            ) || "—"}</td>
-                        <td>
-                            <WorkspacePerson
-                                userUuid={item.pairing?.mentee?.uuid}
-                                name={item.pairing?.mentee?.name}
-                                {directoryUsers}
-                                {deptMaps}
-                                showDepartment={false} />
-                        </td>
-                    {/if}
+                    <td class="text-sm whitespace-nowrap"
+                        >{departmentNameForUser(
+                            item.pairing?.mentor?.uuid,
+                            deptMaps,
+                        ) || "—"}</td>
+                    <td>
+                        <WorkspacePerson
+                            userUuid={item.pairing?.mentor?.uuid}
+                            name={item.pairing?.mentor?.name}
+                            {directoryUsers}
+                            {deptMaps}
+                            showDepartment={false} />
+                    </td>
+                    <td class="text-sm whitespace-nowrap"
+                        >{departmentNameForUser(
+                            item.pairing?.mentee?.uuid,
+                            deptMaps,
+                        ) || "—"}</td>
+                    <td>
+                        <WorkspacePerson
+                            userUuid={item.pairing?.mentee?.uuid}
+                            name={item.pairing?.mentee?.name}
+                            {directoryUsers}
+                            {deptMaps}
+                            showDepartment={false} />
+                    </td>
                     <td>{item.template?.title || "1on1"}</td>
                     <td>
                         <span

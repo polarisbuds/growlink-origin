@@ -14,6 +14,7 @@ export type MeetingListQuery = {
 	status: string;
 	from: string;
 	to: string;
+	deleted: boolean;
 };
 
 export function buildMeetingsAllQuery(q: MeetingListQuery): string {
@@ -27,6 +28,7 @@ export function buildMeetingsAllQuery(q: MeetingListQuery): string {
 	if (q.status) params.set('status', q.status);
 	if (q.from) params.set('from', q.from);
 	if (q.to) params.set('to', q.to);
+	if (q.deleted) params.set('deleted', '1');
 	return params.toString();
 }
 

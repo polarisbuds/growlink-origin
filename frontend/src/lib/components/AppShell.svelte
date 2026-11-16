@@ -25,3 +25,9 @@
         </main>
     </div>
 </div>
+
+<style>
+    main {
+        scrollbar-width: none;
+    }
+</style>

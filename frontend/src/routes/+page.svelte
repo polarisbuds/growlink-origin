@@ -10,14 +10,22 @@
     import LayoutGrid from "lucide-svelte/icons/layout-grid";
     import Table from "lucide-svelte/icons/table";
 
-    let tab = $state<"own" | "mentor" | "shared">("own");
+    let tab = $state<"own" | "shared">("own");
     let viewMode = $state<"card" | "table">("card");
     let ownMeetings = $state<MeetingListItem[]>([]);
     let mentorMeetings = $state<MeetingListItem[]>([]);
-    let showMentorTab = $state(false);
+    let includeMenteeMeetings = $state(true);
     let sharedMeetings = $state<MeetingListItem[]>([]);
     let currentUserUuid = $state("");
     let directoryUsers = $state<PlanningDirectoryUser[]>([]);
+
+    let ownVisibleMeetings = $derived(
+        includeMenteeMeetings
+            ? [...ownMeetings, ...mentorMeetings]
+            : ownMeetings,
+    );
+
+    let canIncludeMenteeMeetings = $derived(mentorMeetings.length > 0);
 
     onMount(async () => {
         const [own, shared, profile, directory] = await Promise.all([
@@ -35,11 +43,7 @@
         const split = splitInvolvedMeetingsForWorkspace(own, currentUserUuid);
         ownMeetings = split.own;
         mentorMeetings = split.asMentor;
-        showMentorTab = split.showMentorTab;
         sharedMeetings = shared;
-        if (tab === "mentor" && !showMentorTab) {
-            tab = "own";
-        }
     });
 </script>
 
@@ -83,16 +87,6 @@
         onclick={() => (tab = "own")}>
         あなたの1on1
     </button>
-    {#if showMentorTab}
-        <button
-            type="button"
-            role="tab"
-            class="tab"
-            class:tab-active={tab === "mentor"}
-            onclick={() => (tab = "mentor")}>
-            メンティーとの面談
-        </button>
-    {/if}
     <button
         type="button"
         role="tab"
@@ -105,23 +99,16 @@
 
 {#if tab === "own"}
     <WorkspaceMeetingPeriodViews
-        meetings={ownMeetings}
+        meetings={ownVisibleMeetings}
         {viewMode}
         {currentUserUuid}
         {directoryUsers}
-        personMode="mentor" />
-{:else if tab === "mentor"}
-    <WorkspaceMeetingPeriodViews
-        meetings={mentorMeetings}
-        {viewMode}
-        {currentUserUuid}
-        {directoryUsers}
-        personMode="mentee" />
+        {canIncludeMenteeMeetings}
+        bind:includeMenteeMeetings />
 {:else}
     <WorkspaceMeetingPeriodViews
         meetings={sharedMeetings}
         {viewMode}
         {currentUserUuid}
-        {directoryUsers}
-        personMode="both" />
+        {directoryUsers} />
 {/if}

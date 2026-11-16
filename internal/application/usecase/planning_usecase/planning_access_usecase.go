@@ -84,13 +84,66 @@ func dedupePairings(pairings []outputmodel.PairingOutput) []outputmodel.PairingO
 	return out
 }
 
+func applyPairingsToMeetings(meetings []outputmodel.MeetingOutput, pairings []entity.Pairing) []outputmodel.MeetingOutput {
+	byID := make(map[uint]outputmodel.PairingOutput, len(pairings))
+	for _, p := range pairings {
+		byID[p.ID] = converter.PairingEntityToOutput(p)
+	}
+	for i := range meetings {
+		pid := meetings[i].Pairing.ID
+		if out, ok := byID[pid]; ok {
+			meetings[i].Pairing = out
+		}
+	}
+	return meetings
+}
+
+func deletedPairingsInPlanningScope(pairings []entity.Pairing, userID uint, referable map[uint]bool) []entity.Pairing {
+	out := make([]entity.Pairing, 0)
+	for _, p := range pairings {
+		if !p.DeletedAt.Valid || p.IsTemporary {
+			continue
+		}
+		if p.MentorID == userID || p.MenteeID == userID {
+			out = append(out, p)
+			continue
+		}
+		if referable != nil && referable[p.MenteeID] {
+			out = append(out, p)
+		}
+	}
+	return out
+}
+
+func (uc *PlanningAccessUsecase) meetingsForPairings(pairings []entity.Pairing) ([]outputmodel.MeetingOutput, error) {
+	var merged []outputmodel.MeetingOutput
+	for _, pairing := range pairings {
+		meetings, err := uc.meetingRepo.GetByPairingID(pairing.ID)
+		if err != nil {
+			return nil, err
+		}
+		for i := range meetings {
+			p := pairing
+			meetings[i].Pairing = &p
+		}
+		merged = append(merged, converter.MeetingEntitiesToOutputs(meetings)...)
+	}
+	return merged, nil
+}
+
 func (uc *PlanningAccessUsecase) ListPlanningMeetings(userID uint, authority valueobject.Authority, systemRole valueobject.SystemRole) ([]outputmodel.MeetingOutput, error) {
+	pairings, err := uc.pairingRepo.GetAllContainDeleted()
+	if err != nil {
+		return []outputmodel.MeetingOutput{}, fmt.Errorf("ペアリング一覧の取得に失敗しました: %w", err)
+	}
+
 	if fullPlanningAccess(systemRole) || authority.IsOwner() {
 		meetings, err := uc.meetingRepo.GetAll()
 		if err != nil {
 			return []outputmodel.MeetingOutput{}, fmt.Errorf("ミーティング一覧の取得に失敗しました: %w", err)
 		}
-		return converter.MeetingEntitiesToOutputs(meetings), nil
+		outs := converter.MeetingEntitiesToOutputs(meetings)
+		return applyPairingsToMeetings(outs, pairings), nil
 	}
 	merged := []outputmodel.MeetingOutput{}
 
@@ -120,7 +173,17 @@ func (uc *PlanningAccessUsecase) ListPlanningMeetings(userID uint, authority val
 	}
 	merged = append(merged, shared...)
 
-	return dedupeMeetings(merged), nil
+	deletedScoped := deletedPairingsInPlanningScope(pairings, userID, referable)
+	if len(deletedScoped) > 0 {
+		fromDeleted, err := uc.meetingsForPairings(deletedScoped)
+		if err != nil {
+			return []outputmodel.MeetingOutput{}, err
+		}
+		merged = append(merged, fromDeleted...)
+	}
+
+	merged = dedupeMeetings(merged)
+	return applyPairingsToMeetings(merged, pairings), nil
 }
 
 func (uc *PlanningAccessUsecase) CanViewPlanningMeeting(userID uint, authority valueobject.Authority, systemRole valueobject.SystemRole, meetingID uint) (bool, error) {

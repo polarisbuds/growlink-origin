@@ -4,6 +4,7 @@
     import PlanningTabs from "$lib/components/PlanningTabs.svelte";
     import { ensureSession, getAvatar } from "$lib/session";
     import { page } from "$app/state";
+    import { Plus } from "lucide-svelte";
 
     let { children } = $props();
 
@@ -28,16 +29,18 @@
 
 {#if allowed}
     {#if showListHeader}
-        <div class="flex flex-wrap items-start justify-between gap-3">
+        <div class="flex flex-wrap items-start justify-between gap-2">
             <div>
                 <h1 class="font-display text-2xl font-semibold">ペア一覧</h1>
                 <p class="mt-1 text-sm text-base-content/60">
                     メンターとメンティの 1:1 ペア
                 </p>
             </div>
-            <dir class="flex flex-1 justify-end mb-0">
-                <a class="btn btn-primary btn-sm" href="/planning/pairs/new"
-                    >+ 作成</a>
+            <dir class="flex justify-end">
+                <a class="btn btn-primary btn-sm" href="/planning/pairs/new">
+                    <Plus></Plus>
+                    新規作成
+                </a>
             </dir>
         </div>
     {/if}

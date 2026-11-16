@@ -13,8 +13,8 @@ type DepartmentMember struct {
 	IsHead    bool `gorm:"not null;default:false"`
 	IsManager bool `gorm:"not null;default:false"`
 
-	DepartmentID uint `gorm:"not null;uniqueIndex:idx_department_member"`
-	UserID       uint `gorm:"not null;uniqueIndex:idx_department_member"`
+	DepartmentID uint `gorm:"not null;uniqueIndex:idx_department_member,where:deleted_at IS NULL"`
+	UserID       uint `gorm:"not null;uniqueIndex:idx_department_member,where:deleted_at IS NULL"`
 	RoleID       uint `gorm:"not null;"`
 
 	Department *Department `gorm:"foreignKey:DepartmentID;references:ID"`

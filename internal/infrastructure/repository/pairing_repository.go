@@ -11,12 +11,12 @@ import (
 )
 
 type PairingRepository struct {
-	ctx context.Context
-	db  *gorm.DB
+	ctx          context.Context
+	db, unscoped *gorm.DB
 }
 
 func NewPairingRepository(ctx context.Context, dp *gorm.DB) *PairingRepository {
-	return &PairingRepository{ctx: ctx, db: dp}
+	return &PairingRepository{ctx: ctx, db: dp, unscoped: dp.Session(&gorm.Session{PropagateUnscoped: true})}
 }
 
 func (repo *PairingRepository) CreatePairing(menteeID, mentorID, createdByUserID uint) (*entity.Pairing, error) {
@@ -94,6 +94,21 @@ func (repo *PairingRepository) GetByUUID(pairingUUID uuid.UUID) (*entity.Pairing
 
 func (repo *PairingRepository) GetAll() ([]entity.Pairing, error) {
 	pairing, err := gorm.G[entity.Pairing](repo.db).Order("id ASC").
+		Preload("Mentor", nil).
+		Preload("Mentor.DepartmentMembers", nil).
+		Preload("Mentor.TeamMembers", nil).
+		Preload("Mentee", nil).
+		Preload("Mentee.DepartmentMembers", nil).
+		Preload("Mentee.TeamMembers", nil).
+		Find(repo.ctx)
+	if err != nil {
+		return nil, fmt.Errorf("全てのペアリング情報の取得に失敗しました: %w", err)
+	}
+	return pairing, nil
+}
+
+func (repo *PairingRepository) GetAllContainDeleted() ([]entity.Pairing, error) {
+	pairing, err := gorm.G[entity.Pairing](repo.unscoped).Scopes(func(stmt *gorm.Statement) { stmt.Unscoped = true }).Order("id ASC").
 		Preload("Mentor", nil).
 		Preload("Mentor.DepartmentMembers", nil).
 		Preload("Mentor.TeamMembers", nil).

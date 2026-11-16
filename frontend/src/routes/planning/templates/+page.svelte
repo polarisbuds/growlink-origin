@@ -6,6 +6,7 @@
     import { validateTemplateForm } from "$lib/template-validation";
     import { ensureSession } from "$lib/session";
     import Search from "lucide-svelte/icons/search";
+    import { Plus } from "lucide-svelte";
 
     type Topic = {
         uuid?: string;
@@ -242,31 +243,30 @@
 <svelte:window
     onkeydown={(e: KeyboardEvent) => e.key === "Escape" && closeModal()} />
 
-<div class="flex flex-wrap items-center justify-between gap-2">
+<div class="flex flex-wrap items-start justify-between gap-2">
     <div>
         <h1 class="font-display text-2xl font-semibold">テンプレート一覧</h1>
         <p class="mt-1 text-sm text-base-content/60">
             行をクリックして内容を確認できます
         </p>
     </div>
-    <dir class="flex flex-1 justify-end items-end mb-0">
-        <a href="/planning/templates/new" class="btn btn-primary btn-sm"
-            >新規作成</a>
+    <dir class="flex justify-end">
+        <a href="/planning/templates/new" class="btn btn-primary btn-sm">
+            <Plus></Plus>
+            新規作成
+        </a>
     </dir>
 </div>
 
 <PlanningTabs active="templates" />
 
-<label
-    class="input input-bordered mt-4 flex max-w-md items-center gap-2"
->
+<label class="input input-bordered mt-4 flex max-w-md items-center gap-2">
     <Search class="h-4 w-4 shrink-0 opacity-50" />
     <input
         type="search"
         class="grow"
         placeholder="タイトルで検索"
-        bind:value={titleSearch}
-    />
+        bind:value={titleSearch} />
 </label>
 
 <div class="mt-6 space-y-2">

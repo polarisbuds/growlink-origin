@@ -83,6 +83,23 @@ func TestFilterPlanningMeetings_ExcludeZeroDateWhenFromSet(t *testing.T) {
 	require.Equal(t, uint(2), out[0].ID)
 }
 
+func TestFilterPlanningMeetings_ExcludeDeletedPairing(t *testing.T) {
+	m := meetingOut(1, time.Now(), "a", "b")
+	m.Pairing.Deleted = true
+	m2 := meetingOut(2, time.Now(), "c", "d")
+	out := filterPlanningMeetings([]outputmodel.MeetingOutput{m, m2}, PlanningMeetingsListFilter{}, nil)
+	require.Len(t, out, 1)
+	require.Equal(t, uint(2), out[0].ID)
+}
+
+func TestFilterPlanningMeetings_IncludeDeletedPairing(t *testing.T) {
+	m := meetingOut(1, time.Now(), "a", "b")
+	m.Pairing.Deleted = true
+	f := PlanningMeetingsListFilter{IncludeDeleted: true}
+	out := filterPlanningMeetings([]outputmodel.MeetingOutput{m}, f, nil)
+	require.Len(t, out, 1)
+}
+
 func TestFilterPlanningMeetings_Status(t *testing.T) {
 	st := valueobject.MeetingStatusDone
 	f := PlanningMeetingsListFilter{Status: &st}

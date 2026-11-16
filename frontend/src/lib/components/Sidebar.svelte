@@ -37,9 +37,7 @@
 
 {#snippet sidebarBody(expanded: boolean)}
     <div
-        class="flex h-16 shrink-0 items-center gap-3 border-b border-base-300 px-5 {!expanded
-            ? 'justify-center'
-            : ''}">
+        class="flex h-16 shrink-0 items-center gap-3 border-b border-base-300 px-6">
         <div class="grid h-8 w-8 place-items-center rounded-xl">
             <Logo />
         </div>
@@ -62,9 +60,9 @@
         {#each navigation as item}
             {@const Icon = icons[item.icon] ?? Home}
             <button
-                class="flex h-11 w-full items-center gap-3 rounded-xl px-3 text-sm font-medium transition whitespace-nowrap {!expanded
-                    ? 'justify-center'
-                    : ''} {navLinkClass(item.active)}"
+                class="flex h-11 w-full items-center gap-3 rounded-xl px-4 text-sm font-medium transition whitespace-nowrap {navLinkClass(
+                    item.active,
+                )}"
                 onclick={() => {
                     onNavClick();
                     goto(item.href);

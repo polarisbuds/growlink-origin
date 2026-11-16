@@ -38,9 +38,6 @@ export const themeOptions: ThemeOption[] = [
 	{ value: 'dim', label: 'Dim' },
 	{ value: 'nord', label: 'Nord' },
 	{ value: 'sunset', label: 'Sunset' },
-	{ value: 'caramellatte', label: 'Caramellatte' },
-	{ value: 'abyss', label: 'Abyss' },
-	{ value: 'silk', label: 'Silk' }
 ];
 
 export function applyTheme(theme: string) {

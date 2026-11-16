@@ -4,6 +4,7 @@
     import PlanningTabs from "$lib/components/PlanningTabs.svelte";
     import MultiCheckSelect from "$lib/components/MultiCheckSelect.svelte";
     import ChevronRight from "lucide-svelte/icons/chevron-right";
+    import Plus from "lucide-svelte/icons/plus";
     import { formatDate } from "$lib/meeting-helpers";
     import { statusBadge, statusLabel } from "$lib/status";
     import {
@@ -44,6 +45,7 @@
     let filterStatus = $state("");
     let filterDateFrom = $state("");
     let filterDateTo = $state("");
+    let includeDeleted = $state(false);
     let dateDir = $state<SortDir>("desc");
 
     let currentPage = $state(1);
@@ -68,6 +70,7 @@
             status: filterStatus,
             from: filterDateFrom,
             to: filterDateTo,
+            deleted: includeDeleted,
         };
     }
 
@@ -158,6 +161,7 @@
             filterStatus,
             filterDateFrom,
             filterDateTo,
+            includeDeleted,
         }),
     );
     let filterSignatureMounted = "";
@@ -202,9 +206,11 @@
         <h1 class="font-display text-2xl font-semibold">面談一覧</h1>
         <p class="mt-1 text-sm text-base-content/60">組織内の面談を一覧表示</p>
     </div>
-    <div class="flex justify-end items-end">
-        <a href="/planning/meetings/new" class="btn btn-sm btn-primary"
-            >1on1を追加</a>
+    <div class="flex justify-end">
+        <a href="/planning/meetings/new" class="btn btn-sm btn-primary">
+            <Plus></Plus>
+            新規作成
+        </a>
     </div>
 </div>
 
@@ -238,18 +244,18 @@
             labelOf={departmentOptionLabel}
             placeholder="すべて" />
     </label>
-    <label class="form-control">
-        <span class="label-text text-xs">状態</span>
-        <select
-            class="select select-bordered select-sm"
-            bind:value={filterStatus}>
-            <option value="">すべて</option>
-            <option value="1">未着手</option>
-            <option value="2">下書き</option>
-            <option value="3">完了</option>
-        </select>
-    </label>
-    <div class="grid grid-cols-2 gap-2 sm:col-span-2">
+    <div class="grid grid-cols-4 gap-2 sm:col-span-3 items-center">
+        <label class="form-control">
+            <span class="label-text text-xs">状態</span>
+            <select
+                class="select select-bordered select-sm"
+                bind:value={filterStatus}>
+                <option value="">すべて</option>
+                <option value="1">未着手</option>
+                <option value="2">下書き</option>
+                <option value="3">完了</option>
+            </select>
+        </label>
         <label class="form-control">
             <span class="label-text text-xs">実施日（から）</span>
             <input
@@ -264,13 +270,23 @@
                 class="input input-bordered input-sm"
                 bind:value={filterDateTo} />
         </label>
+        <label
+            class="form-control cursor-pointer flex flex-col gap-1 h-12 items-center">
+            <span class="label-text text-xs">削除済ペアを含む</span>
+            <input
+                type="checkbox"
+                class="checkbox checkbox-sm self-center"
+                bind:checked={includeDeleted} />
+        </label>
     </div>
 </div>
 
 <div
     class="mt-6 overflow-hidden rounded-3xl border border-base-300 bg-base-100 shadow-sm">
     {#if listLoading && displayedMeetings.length === 0}
-        <div class="p-12 text-center text-sm text-base-content/50">読み込み中…</div>
+        <div class="p-12 text-center text-sm text-base-content/50">
+            読み込み中…
+        </div>
     {:else if total === 0}
         <div class="p-12 text-center text-sm text-base-content/50">
             該当する面談がありません
@@ -358,8 +374,7 @@
 </div>
 
 {#if total > 0}
-    <div
-        class="mt-4 flex flex-wrap items-center justify-center gap-2 text-sm">
+    <div class="mt-4 flex flex-wrap items-center justify-center gap-2 text-sm">
         <button
             type="button"
             class="btn btn-sm btn-ghost"

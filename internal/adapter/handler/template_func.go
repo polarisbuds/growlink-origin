@@ -41,9 +41,6 @@ func ThemeOptions() []ThemeOption {
 		{Value: "dim", Label: "Dim"},
 		{Value: "nord", Label: "Nord"},
 		{Value: "sunset", Label: "Sunset"},
-		{Value: "caramellatte", Label: "Caramellatte"},
-		{Value: "abyss", Label: "Abyss"},
-		{Value: "silk", Label: "Silk"},
 	}
 }
 

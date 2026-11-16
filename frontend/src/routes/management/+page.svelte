@@ -515,7 +515,9 @@
     });
 
     let userListTotal = $derived(filteredUsers.length);
-    let userLastPage = $derived(lastPageForTotal(userListTotal, USER_PAGE_SIZE));
+    let userLastPage = $derived(
+        lastPageForTotal(userListTotal, USER_PAGE_SIZE),
+    );
     let userPagerPages = $derived(
         visiblePageNumbers(currentUserPage, userLastPage),
     );
@@ -826,7 +828,9 @@
             selectedUserUuids = [...set];
         } else {
             const pageSet = new Set(pageUuids);
-            selectedUserUuids = selectedUserUuids.filter((id) => !pageSet.has(id));
+            selectedUserUuids = selectedUserUuids.filter(
+                (id) => !pageSet.has(id),
+            );
         }
     }
 
@@ -1390,8 +1394,7 @@
         role="tab"
         class="tab gap-2"
         class:tab-active={tab === "users"}
-        onclick={() => switchTab("users")}
-    >
+        onclick={() => switchTab("users")}>
         <Users class="h-4 w-4" />ユーザ一覧
     </button>
     <button
@@ -1399,8 +1402,7 @@
         role="tab"
         class="tab gap-2"
         class:tab-active={tab === "departments"}
-        onclick={() => switchTab("departments")}
-    >
+        onclick={() => switchTab("departments")}>
         <Building2 class="h-4 w-4" />組織一覧
     </button>
     <button
@@ -1408,8 +1410,7 @@
         role="tab"
         class="tab gap-2"
         class:tab-active={tab === "roles"}
-        onclick={() => switchTab("roles")}
-    >
+        onclick={() => switchTab("roles")}>
         <Briefcase class="h-4 w-4" />役職
     </button>
     <button
@@ -1417,8 +1418,7 @@
         role="tab"
         class="tab gap-2"
         class:tab-active={tab === "remind"}
-        onclick={() => switchTab("remind")}
-    >
+        onclick={() => switchTab("remind")}>
         <Bell class="h-4 w-4" />1on1通知
     </button>
 </div>
@@ -1426,19 +1426,16 @@
 {#if tab === "users"}
     <div class="mt-6">
         <div
-            class="flex flex-col sm:flex-row sm:items-center gap-3 mb-4 justify-between"
-        >
+            class="flex flex-col sm:flex-row sm:items-center gap-3 mb-4 justify-between">
             <div class="flex flex-1 flex-col sm:flex-row gap-3 max-w-2xl">
                 <label
-                    class="input input-bordered flex items-center gap-2 flex-1"
-                >
+                    class="input input-bordered flex items-center gap-2 flex-1">
                     <Search class="h-4 w-4 opacity-50" />
                     <input
                         type="search"
                         class="grow placeholder-current"
                         placeholder="氏名・メールで検索"
-                        bind:value={userSearch}
-                    />
+                        bind:value={userSearch} />
                 </label>
                 <div class="w-full sm:w-52 shrink-0">
                     <MultiCheckSelect
@@ -1446,42 +1443,36 @@
                         items={options.departments}
                         bind:selectedUuids={userDeptFilter}
                         labelOf={(d) => d.name}
-                        placeholder="すべての部署"
-                    />
+                        placeholder="すべての部署" />
                 </div>
             </div>
             <div class="flex justify-end gap-3">
                 {#if selectedUserUuids.length > 0}
                     <div class="flex items-center gap-2" transition:fade>
                         <span class="text-sm text-base-content/60"
-                            >{selectedUserUuids.length} 件選択中</span
-                        >
+                            >{selectedUserUuids.length} 件選択中</span>
                         {#if users.some((u) => selectedUserUuids.indexOf(u.uuid) !== -1 && !u.suspended)}
                             <button
                                 type="button"
                                 class="btn btn-error btn-sm"
-                                onclick={askSuspend}>アカウント停止</button
-                            >
+                                onclick={askSuspend}>アカウント停止</button>
                         {/if}
                         {#if users.some((u) => selectedUserUuids.indexOf(u.uuid) !== -1 && u.suspended)}
                             <button
                                 type="button"
                                 class="btn btn-success btn-sm"
-                                onclick={askUnsuspend}>停止解除</button
-                            >
+                                onclick={askUnsuspend}>停止解除</button>
                         {/if}
                     </div>
                 {/if}
                 <button
                     type="button"
                     class="btn btn-primary btn-sm shrink-0"
-                    onclick={openCreateUserModal}>ユーザを追加</button
-                >
+                    onclick={openCreateUserModal}>ユーザを追加</button>
             </div>
         </div>
         <div
-            class="overflow-hidden rounded-3xl border border-base-300 bg-base-100 shadow-sm"
-        >
+            class="overflow-hidden rounded-3xl border border-base-300 bg-base-100 shadow-sm">
             {#if usersLoading}
                 <div class="p-6 space-y-3">
                     {#each Array(5) as _, i (i)}
@@ -1506,8 +1497,7 @@
                                             (
                                                 e.currentTarget as HTMLInputElement
                                             ).checked,
-                                        )}
-                                />
+                                        )} />
                             </th>
                             <th>部署</th>
                             <th>チーム</th>
@@ -1523,24 +1513,21 @@
                             {@const teamNames = teamLabels(u)}
                             <tr
                                 class="hover:bg-base-200/50 cursor-pointer"
-                                onclick={() => openUserModal(u)}
-                            >
+                                onclick={() => openUserModal(u)}>
                                 <!-- svelte-ignore a11y_no_static_element_interactions -->
                                 <td onclick={(e) => e.stopPropagation()}>
                                     <input
                                         type="checkbox"
                                         class="checkbox checkbox-sm"
                                         value={u.uuid}
-                                        bind:group={selectedUserUuids}
-                                    />
+                                        bind:group={selectedUserUuids} />
                                 </td>
                                 <td>
                                     <span title={deptNames.join("、")}>
                                         {deptNames[0] || ""}
                                         {#if deptNames.length > 1}
                                             <span class="text-base-content/50"
-                                                >+{deptNames.length - 1}</span
-                                            >
+                                                >+{deptNames.length - 1}</span>
                                         {/if}
                                     </span>
                                 </td>
@@ -1549,8 +1536,7 @@
                                         {teamNames[0] || ""}
                                         {#if teamNames.length > 1}
                                             <span class="text-base-content/50"
-                                                >+{teamNames.length - 1}</span
-                                            >
+                                                >+{teamNames.length - 1}</span>
                                         {/if}
                                     </span>
                                 </td>
@@ -1560,21 +1546,18 @@
                                             <img
                                                 src={userAvatar(u)!}
                                                 alt=""
-                                                class="h-9 w-9 rounded-full object-cover border border-base-300"
-                                            />
+                                                class="h-9 w-9 rounded-full object-cover border border-base-300" />
                                         {:else}
                                             <span
                                                 class="grid h-9 w-9 place-items-center rounded-full bg-primary text-sm font-semibold text-primary-content"
-                                                >{userInitial(u)}</span
-                                            >
+                                                >{userInitial(u)}</span>
                                         {/if}
                                         <div>
                                             <div class="font-medium">
                                                 {u.name}
                                             </div>
                                             <div
-                                                class="text-xs text-base-content/50"
-                                            >
+                                                class="text-xs text-base-content/50">
                                                 {u.email}
                                             </div>
                                         </div>
@@ -1582,27 +1565,22 @@
                                 </td>
                                 <td>
                                     <span class="badge badge-outline badge-sm"
-                                        >{authorityLabel(u.authority)}</span
-                                    >
+                                        >{authorityLabel(u.authority)}</span>
                                 </td>
                                 <td
                                     ><span class="badge badge-ghost badge-sm"
                                         >{systemRoleLabel(u.systemRole)}</span
-                                    ></td
-                                >
+                                    ></td>
                                 <td>
                                     <span
                                         class="badge badge-sm"
                                         class:badge-error={u.suspended}
                                         class:badge-success={!u.suspended}
-                                        >{u.suspended ? "停止" : "有効"}</span
-                                    >
+                                        >{u.suspended ? "停止" : "有効"}</span>
                                 </td>
                                 <td
                                     ><ChevronRight
-                                        class="h-4 w-4 opacity-40"
-                                    /></td
-                                >
+                                        class="h-4 w-4 opacity-40" /></td>
                             </tr>
                         {/each}
                     </tbody>
@@ -1611,15 +1589,13 @@
         </div>
         {#if userListTotal > 0}
             <div
-                class="mt-4 flex flex-wrap items-center justify-center gap-2 text-sm"
-            >
+                class="mt-4 flex flex-wrap items-center justify-center gap-2 text-sm">
                 <button
                     type="button"
                     class="btn btn-sm btn-ghost"
                     disabled={currentUserPage <= 1}
                     onclick={() => goToUserPage(currentUserPage - 1)}
-                    >前へ</button
-                >
+                    >前へ</button>
                 {#each userPagerPages as p (typeof p === "number" ? p : `e-${p}`)}
                     {#if p === "ellipsis"}
                         <span class="px-1 text-base-content/50">…</span>
@@ -1629,8 +1605,7 @@
                             class="btn btn-sm {p === currentUserPage
                                 ? 'btn-primary'
                                 : 'btn-ghost'}"
-                            onclick={() => goToUserPage(p)}>{p}</button
-                        >
+                            onclick={() => goToUserPage(p)}>{p}</button>
                     {/if}
                 {/each}
                 <button
@@ -1638,11 +1613,9 @@
                     class="btn btn-sm btn-ghost"
                     disabled={currentUserPage >= userLastPage}
                     onclick={() => goToUserPage(currentUserPage + 1)}
-                    >次へ</button
-                >
+                    >次へ</button>
                 <span class="ml-2 text-base-content/60"
-                    >全 {userListTotal} 件</span
-                >
+                    >全 {userListTotal} 件</span>
             </div>
         {/if}
     </div>
@@ -1657,13 +1630,11 @@
                         type="button"
                         class="btn btn-ghost btn-xs btn-square shrink-0 btn-outline"
                         aria-label="部署を展開"
-                        onclick={() => toggleExpandAllDept()}
-                    >
+                        onclick={() => toggleExpandAllDept()}>
                         <ChevronsDownUp
                             class="h-4 w-4 transition-transform {expandedAllDept
                                 ? 'rotate-180'
-                                : ''}"
-                        />
+                                : ''}" />
                     </button>
                     閉じる
                 {:else}
@@ -1671,13 +1642,11 @@
                         type="button"
                         class="btn btn-ghost btn-xs btn-square shrink-0 btn-outline"
                         aria-label="部署を展開"
-                        onclick={() => toggleExpandAllDept()}
-                    >
+                        onclick={() => toggleExpandAllDept()}>
                         <ChevronsUpDown
                             class="h-4 w-4 transition-transform {expandedAllDept
                                 ? 'rotate-180'
-                                : ''}"
-                        />
+                                : ''}" />
                     </button>
                     全て展開
                 {/if}
@@ -1686,18 +1655,15 @@
                 <button
                     type="button"
                     class="btn btn-primary btn-sm"
-                    onclick={() => openCreateDeptModal()}>部署を追加</button
-                >
+                    onclick={() => openCreateDeptModal()}>部署を追加</button>
                 <button
                     type="button"
                     class="btn btn-outline btn-sm"
-                    onclick={() => openCreateTeamModal()}>チームを追加</button
-                >
+                    onclick={() => openCreateTeamModal()}>チームを追加</button>
             </div>
         </div>
         <div
-            class="rounded-3xl border border-base-300 bg-base-100 shadow-sm overflow-hidden"
-        >
+            class="rounded-3xl border border-base-300 bg-base-100 shadow-sm overflow-hidden">
             {#if orgLoading}
                 <div class="p-6 space-y-3">
                     {#each Array(6) as _, i (i)}
@@ -1713,81 +1679,63 @@
                     {#each visibleOrgNodes.entries() as [idx, n] (n.kind + "-" + n.uuid + "-" + idx)}
                         <div
                             class="flex items-center gap-2 px-4 py-3 hover:bg-base-200/40 transition-colors"
-                            style="padding-left: {1 + n.depth * 1.2}rem"
-                        >
+                            style="padding-left: {1 + n.depth * 1.2}rem">
                             {#if n.kind === "department"}
                                 {#if (n.departmentCount && n.departmentCount > 0) || (n.teamCount && n.teamCount > 0)}
                                     <button
                                         type="button"
                                         class="btn btn-ghost btn-xs btn-square shrink-0"
                                         aria-label="チームを展開"
-                                        onclick={() => toggleDeptExpand(n.uuid)}
-                                    >
+                                        onclick={() =>
+                                            toggleDeptExpand(n.uuid)}>
                                         <ChevronRight
                                             class="h-4 w-4 transition-transform {expandedDeptUuids.has(
                                                 n.uuid,
                                             )
                                                 ? 'rotate-90'
-                                                : ''}"
-                                        />
+                                                : ''}" />
                                     </button>
                                 {:else}
                                     <span class="w-6 shrink-0"></span>
                                 {/if}
                                 <Building2
-                                    class="h-4 w-4 shrink-0 text-primary/80"
-                                />
+                                    class="h-4 w-4 shrink-0 text-primary/80" />
                                 <button
                                     type="button"
                                     class="min-w-0 flex-1 text-left"
-                                    onclick={() => openOrgModal(n)}
-                                >
+                                    onclick={() => openOrgModal(n)}>
                                     <span class="font-medium">{n.name}</span>
-                                    <span
-                                        class="ml-2 text-sm text-base-content/60"
-                                        >{n.headUserName || ""}
-                                        {n.headUserRole || ""}</span
-                                    >
                                 </button>
                                 <button
                                     type="button"
                                     class="btn btn-ghost btn-xs"
                                     onclick={() => openCreateDeptModal(n.uuid)}
-                                    >部署を追加</button
-                                >
+                                    >部署を追加</button>
                                 <button
                                     type="button"
                                     class="btn btn-ghost btn-xs"
                                     onclick={() => openCreateTeamModal(n.uuid)}
-                                    >チームを追加</button
-                                >
+                                    >チームを追加</button>
                                 <button
                                     type="button"
                                     class="btn btn-ghost btn-xs"
-                                    onclick={() => openOrgModal(n)}>編集</button
-                                >
+                                    onclick={() => openOrgModal(n)}
+                                    >編集</button>
                             {:else}
                                 <span class="w-6 shrink-0"></span>
                                 <Users
-                                    class="h-4 w-4 shrink-0 text-primary/80"
-                                />
+                                    class="h-4 w-4 shrink-0 text-primary/80" />
                                 <button
                                     type="button"
                                     class="min-w-0 flex-1 text-left"
-                                    onclick={() => openOrgModal(n)}
-                                >
+                                    onclick={() => openOrgModal(n)}>
                                     <span class="font-medium">{n.name}</span>
-                                    <span
-                                        class="ml-2 text-sm text-base-content/60"
-                                        >{n.leaderName || ""}
-                                        {n.leaderRole || ""}</span
-                                    >
                                 </button>
                                 <button
                                     type="button"
                                     class="btn btn-ghost btn-xs"
-                                    onclick={() => openOrgModal(n)}>編集</button
-                                >
+                                    onclick={() => openOrgModal(n)}
+                                    >編集</button>
                             {/if}
                         </div>
                     {/each}
@@ -1803,12 +1751,10 @@
             <button
                 type="button"
                 class="btn btn-primary btn-sm"
-                onclick={openCreateRoleModal}>役職を追加</button
-            >
+                onclick={openCreateRoleModal}>役職を追加</button>
         </div>
         <div
-            class="overflow-hidden rounded-3xl border border-base-300 bg-base-100 shadow-sm"
-        >
+            class="overflow-hidden rounded-3xl border border-base-300 bg-base-100 shadow-sm">
             {#if rolesLoading}
                 <div class="p-6 space-y-3">
                     {#each Array(3) as _, i (i)}
@@ -1838,14 +1784,12 @@
                                             class="btn btn-ghost btn-sm"
                                             onclick={() =>
                                                 openEditRoleModal(role)}
-                                            >名称変更</button
-                                        >
+                                            >名称変更</button>
                                         <button
                                             type="button"
                                             class="btn btn-ghost btn-sm text-error"
                                             onclick={() => askDeleteRole(role)}
-                                            aria-label="削除"
-                                        >
+                                            aria-label="削除">
                                             <Trash2 class="h-4 w-4" />
                                         </button>
                                     </div>
@@ -1862,51 +1806,42 @@
 {#if tab === "remind"}
     <div class="mt-6 max-w-xl">
         <div
-            class="rounded-3xl border border-base-300 bg-base-100 p-6 shadow-sm space-y-5"
-        >
+            class="rounded-3xl border border-base-300 bg-base-100 p-6 shadow-sm space-y-5">
             <div role="alert" class="alert alert-info text-sm">
                 <Info class="h-5 w-5 shrink-0" />
                 <span
-                    >設定の保存のみ行います。実際の通知送信はバックエンドジョブで別途実装されます。</span
-                >
+                    >設定の保存のみ行います。実際の通知送信はバックエンドジョブで別途実装されます。</span>
             </div>
             <label
-                class="label cursor-pointer justify-start gap-3 rounded-2xl border border-base-300 px-4 py-3"
-            >
+                class="label cursor-pointer justify-start gap-3 rounded-2xl border border-base-300 px-4 py-3">
                 <input
                     type="checkbox"
                     class="toggle toggle-primary"
-                    bind:checked={remind.remindAutoSend}
-                />
+                    bind:checked={remind.remindAutoSend} />
                 <span class="label-text font-medium"
-                    >1on1の通知を自動送信する</span
-                >
+                    >1on1の通知を自動送信する</span>
             </label>
             <div>
                 <span class="label-text font-medium">通知タイミング</span>
                 <div class="flex flex-col gap-2 mt-2">
                     <label
-                        class="label cursor-pointer justify-start gap-3 rounded-2xl border border-base-300 px-4 py-3"
-                    >
+                        class="label cursor-pointer justify-start gap-3 rounded-2xl border border-base-300 px-4 py-3">
                         <input
                             type="radio"
                             name="remindMode"
                             class="radio radio-primary"
                             value="days_before"
-                            bind:group={remind.remindMode}
-                        />
+                            bind:group={remind.remindMode} />
                         <span class="label-text">実施予定日の N 日前</span>
                     </label>
                     <label
-                        class="label cursor-pointer justify-start gap-3 rounded-2xl border border-base-300 px-4 py-3"
-                    >
+                        class="label cursor-pointer justify-start gap-3 rounded-2xl border border-base-300 px-4 py-3">
                         <input
                             type="radio"
                             name="remindMode"
                             class="radio radio-primary"
                             value="prev_weekday"
-                            bind:group={remind.remindMode}
-                        />
+                            bind:group={remind.remindMode} />
                         <span class="label-text">前の週の指定曜日</span>
                     </label>
                 </div>
@@ -1919,8 +1854,7 @@
                         min="1"
                         max="30"
                         class="input input-bordered"
-                        bind:value={remind.remindDaysBefore}
-                    />
+                        bind:value={remind.remindDaysBefore} />
                 </label>
             {/if}
             {#if remind.remindMode === "prev_weekday"}
@@ -1928,8 +1862,7 @@
                     <span class="label-text font-medium">曜日</span>
                     <select
                         class="select select-bordered"
-                        bind:value={remind.remindWeekday}
-                    >
+                        bind:value={remind.remindWeekday}>
                         {#each WEEKDAYS as w (w.value)}
                             <option value={w.value}>{w.label}</option>
                         {/each}
@@ -1941,14 +1874,12 @@
                 <input
                     type="time"
                     class="input input-bordered"
-                    bind:value={remind.remindTime}
-                />
+                    bind:value={remind.remindTime} />
             </label>
             <button
                 type="button"
                 class="btn btn-primary w-full sm:w-auto"
-                onclick={saveRemind}>保存</button
-            >
+                onclick={saveRemind}>保存</button>
         </div>
     </div>
 {/if}
@@ -1956,8 +1887,7 @@
 <dialog class="modal" class:modal-open={userModalOpen}>
     <div class="modal-box max-w-3xl flex flex-col p-0">
         <div
-            class="flex justify-between items-start gap-2 p-6 pb-2 border-b border-base-200 shrink-0"
-        >
+            class="flex justify-between items-start gap-2 p-6 pb-2 border-b border-base-200 shrink-0">
             <div>
                 <h3 class="font-bold text-lg">{userForm?.name}</h3>
                 <p class="text-sm text-base-content/60 mt-0.5">権限・所属</p>
@@ -1966,13 +1896,11 @@
                 type="button"
                 class="btn btn-sm btn-circle btn-ghost"
                 aria-label="閉じる"
-                onclick={() => (userModalOpen = false)}>×</button
-            >
+                onclick={() => (userModalOpen = false)}>×</button>
         </div>
         {#if userForm}
             <div
-                class="overflow-y-auto px-6 py-4 space-y-5 flex justify-around gap-2"
-            >
+                class="overflow-y-auto px-6 py-4 space-y-5 flex justify-around gap-2">
                 <div class="flex flex-col w-1/3 items-around gap-2 h-full">
                     <div class="flex justify-center w-full">
                         <Icon
@@ -1980,15 +1908,13 @@
                             text={userForm.name}
                             height="200px"
                             width="200px"
-                            alt={userForm.name}
-                        ></Icon>
+                            alt={userForm.name}></Icon>
                     </div>
                     <div class="pt-4 flex flex-wrap gap-2 justify-around">
                         <button
                             type="button"
                             class="btn btn-ghost btn-sm text-error hover:bg-error/10"
-                            onclick={deleteUserIcon}
-                        >
+                            onclick={deleteUserIcon}>
                             <Trash2 class="h-4 w-4" />
                             アイコンを削除
                         </button>
@@ -1997,16 +1923,14 @@
                                 type="button"
                                 class="btn btn-warning btn-sm"
                                 onclick={() => toggleSuspendInModal(false)}
-                                >アカウント停止</button
-                            >
+                                >アカウント停止</button>
                         {/if}
                         {#if userForm.suspended}
                             <button
                                 type="button"
                                 class="btn btn-success btn-sm"
                                 onclick={() => toggleSuspendInModal(true)}
-                                >停止解除</button
-                            >
+                                >停止解除</button>
                         {/if}
                     </div>
                 </div>
@@ -2017,12 +1941,10 @@
                             <select
                                 class="select select-bordered select-sm mt-1"
                                 bind:value={authoritySelect}
-                                onchange={onAuthoritySelectChange}
-                            >
+                                onchange={onAuthoritySelectChange}>
                                 {#each AUTHORITY_OPTIONS as opt (opt.value)}
                                     <option value={opt.value}
-                                        >{opt.label}</option
-                                    >
+                                        >{opt.label}</option>
                                 {/each}
                             </select>
                         </label>
@@ -2031,12 +1953,10 @@
                             <select
                                 class="select select-bordered select-sm mt-1"
                                 bind:value={systemRoleSelect}
-                                onchange={onSystemRoleSelectChange}
-                            >
+                                onchange={onSystemRoleSelectChange}>
                                 {#each SYSTEM_ROLE_OPTIONS as opt (opt.value)}
                                     <option value={opt.value}
-                                        >{opt.label}</option
-                                    >
+                                        >{opt.label}</option>
                                 {/each}
                             </select>
                         </label>
@@ -2047,16 +1967,14 @@
                             <button
                                 type="button"
                                 class="btn btn-outline btn-xs"
-                                onclick={addUserDepartmentRow}>行を追加</button
-                            >
+                                onclick={addUserDepartmentRow}>行を追加</button>
                         </div>
                         {#each userForm.departments as row, i (`user-dept-${i}`)}
                             <div class="flex items-center gap-1">
                                 <select
                                     class="select select-bordered select-sm flex-1"
                                     bind:value={row.departmentUuid}
-                                    onchange={onUserDepartmentChange}
-                                >
+                                    onchange={onUserDepartmentChange}>
                                     <option value="">部署を選択</option>
                                     {#each departmentChoices(userForm.departments, i) as d (`user-dept-opt-${i}-${d.uuid}`)}
                                         <option value={d.uuid}>{d.name}</option>
@@ -2064,8 +1982,7 @@
                                 </select>
                                 <select
                                     class="select select-bordered select-sm flex-1"
-                                    bind:value={row.roleUuid}
-                                >
+                                    bind:value={row.roleUuid}>
                                     <option value="">役職を選択</option>
                                     {#each options.roles as r (`user-role-opt-${i}-${r.uuid}`)}
                                         <option value={r.uuid}>{r.name}</option>
@@ -2075,46 +1992,38 @@
                                     type="button"
                                     class="btn btn-ghost btn-sm"
                                     onclick={() => removeUserDepartmentRow(i)}
-                                    >削除</button
-                                >
+                                    >削除</button>
                             </div>
                         {/each}
                     </div>
                     {#if departmentsHaveTeams(userForm.departments)}
                         <div class="flex flex-col gap-1 mt-4">
                             <div
-                                class="flex items-center justify-between gap-2"
-                            >
+                                class="flex items-center justify-between gap-2">
                                 <span class="label-text font-medium"
-                                    >所属チーム</span
-                                >
+                                    >所属チーム</span>
                                 <button
                                     type="button"
                                     class="btn btn-outline btn-xs"
-                                    onclick={addUserTeamRow}>行を追加</button
-                                >
+                                    onclick={addUserTeamRow}>行を追加</button>
                             </div>
                             {#each userForm.teams as row, i (`user-team-${i}`)}
                                 <div class="flex items-center gap-2">
                                     <select
                                         class="select select-bordered select-sm flex-1"
-                                        bind:value={row.teamUuid}
-                                    >
+                                        bind:value={row.teamUuid}>
                                         <option value={0} selected
-                                            >チームを選択</option
-                                        >
+                                            >チームを選択</option>
                                         {#each teamChoices(userForm.departments, userForm.teams, i) as t (`user-team-opt-${i}-${t.uuid}`)}
                                             <option value={t.uuid}
-                                                >{`${t.departmentName} ${t.name}`}</option
-                                            >
+                                                >{`${t.departmentName} ${t.name}`}</option>
                                         {/each}
                                     </select>
                                     <button
                                         type="button"
                                         class="btn btn-ghost btn-sm"
                                         onclick={() => removeUserTeamRow(i)}
-                                        >削除</button
-                                    >
+                                        >削除</button>
                                 </div>
                             {/each}
                         </div>
@@ -2126,17 +2035,14 @@
             <button
                 type="button"
                 class="btn btn-ghost"
-                onclick={() => (userModalOpen = false)}>閉じる</button
-            >
+                onclick={() => (userModalOpen = false)}>閉じる</button>
             <button type="button" class="btn btn-primary" onclick={saveUser}
-                >保存</button
-            >
+                >保存</button>
         </div>
     </div>
     <form method="dialog" class="modal-backdrop">
         <button type="button" onclick={() => (userModalOpen = false)}
-            >close</button
-        >
+            >close</button>
     </form>
 </dialog>
 
@@ -2159,22 +2065,19 @@
                 {heading}
                 {#if uuids.length > 0}
                     <span class="text-base-content/60 font-normal ml-1"
-                        >{visibleUuids.length}人</span
-                    >
+                        >{visibleUuids.length}人</span>
                 {/if}
             </span>
             {#if editable}
                 <button
                     type="button"
                     class="btn btn-outline btn-xs"
-                    onclick={onPick}>{pickButtonLabel}</button
-                >
+                    onclick={onPick}>{pickButtonLabel}</button>
             {/if}
         </div>
         {#if uuids.length === 0}
             <div
-                class="rounded-xl border border-base-300 bg-base-200/30 px-3 py-2 text-sm text-base-content/50"
-            >
+                class="rounded-xl border border-base-300 bg-base-200/30 px-3 py-2 text-sm text-base-content/50">
                 未設定
             </div>
         {:else}
@@ -2184,38 +2087,32 @@
                     class="input input-bordered input-sm w-full placeholder-current"
                     placeholder="氏名で検索"
                     bind:value={orgManagerSearch}
-                    autocomplete="off"
-                />
+                    autocomplete="off" />
             {:else}
                 <input
                     type="search"
                     class="input input-bordered input-sm w-full placeholder-current"
                     placeholder="氏名で検索"
                     bind:value={orgMemberSearch}
-                    autocomplete="off"
-                />
+                    autocomplete="off" />
             {/if}
             <div
-                class="border border-base-300 rounded-2xl max-h-44 overflow-y-auto p-2"
-            >
+                class="border border-base-300 rounded-2xl max-h-44 overflow-y-auto p-2">
                 {#each visibleUuids as uid (`org-${searchKind}-${uid}`)}
                     {@const u = userByUuid(uid)}
                     <div
-                        class="flex items-center gap-2 px-2 py-1.5 rounded-lg text-sm"
-                    >
+                        class="flex items-center gap-2 px-2 py-1.5 rounded-lg text-sm">
                         <Icon
                             url={u ? userAvatar(u) : null}
                             text={u?.name ?? userName(uid)}
                             width={28}
                             height={28}
-                            alt={u?.name ?? ""}
-                        ></Icon>
+                            alt={u?.name ?? ""}></Icon>
                         <span class="truncate">{u?.name ?? userName(uid)}</span>
                     </div>
                 {:else}
                     <p
-                        class="px-2 py-3 text-center text-sm text-base-content/50"
-                    >
+                        class="px-2 py-3 text-center text-sm text-base-content/50">
                         該当するユーザがありません
                     </p>
                 {/each}
@@ -2227,8 +2124,7 @@
 <dialog class="modal" class:modal-open={orgModalOpen}>
     <div class="modal-box max-w-3xl flex flex-col p-0">
         <div
-            class="flex justify-between items-start gap-2 p-6 pb-2 border-b border-base-200 shrink-0"
-        >
+            class="flex justify-between items-start gap-2 p-6 pb-2 border-b border-base-200 shrink-0">
             <div>
                 <h3 class="font-bold text-lg">{orgDetail?.name}</h3>
                 <p class="text-sm text-base-content/60">
@@ -2240,37 +2136,31 @@
                     <button
                         type="button"
                         class="btn btn-sm btn-outline"
-                        onclick={() => (orgEditMode = true)}>編集</button
-                    >
+                        onclick={() => (orgEditMode = true)}>編集</button>
                 {/if}
                 <button
                     type="button"
                     class="btn btn-sm btn-circle btn-ghost"
                     aria-label="閉じる"
-                    onclick={() => (orgModalOpen = false)}>×</button
-                >
+                    onclick={() => (orgModalOpen = false)}>×</button>
             </div>
         </div>
         {#if !orgEditMode}
             <div class="overflow-y-auto px-6 py-4 flex-1 space-y-4">
                 {#if orgDetail?.kind === "department"}
                     <div
-                        class="rounded-xl border border-base-300 bg-base-200/30 px-3 py-2 text-sm"
-                    >
+                        class="rounded-xl border border-base-300 bg-base-200/30 px-3 py-2 text-sm">
                         <span class="text-base-content/60">責任者</span>
                         <span class="ml-2 font-medium"
                             >{orgDetail.headUserUuid
                                 ? userName(orgDetail.headUserUuid)
-                                : "未設定"}</span
-                        >
+                                : "未設定"}</span>
                     </div>
                     <div
-                        class="rounded-xl border border-base-300 bg-base-200/30 px-3 py-2 text-sm"
-                    >
+                        class="rounded-xl border border-base-300 bg-base-200/30 px-3 py-2 text-sm">
                         <span class="text-base-content/60">管理職</span>
                         <span class="ml-2 font-medium"
-                            >{managerNames(orgDetail.managerUserUuids)}</span
-                        >
+                            >{managerNames(orgDetail.managerUserUuids)}</span>
                     </div>
                     {@render orgUserListBlock(
                         "メンバー",
@@ -2283,14 +2173,12 @@
                 {/if}
                 {#if orgDetail?.kind === "team"}
                     <div
-                        class="rounded-xl border border-base-300 bg-base-200/30 px-3 py-2 text-sm"
-                    >
+                        class="rounded-xl border border-base-300 bg-base-200/30 px-3 py-2 text-sm">
                         <span class="text-base-content/60">チームリーダー</span>
                         <span class="ml-2 font-medium"
                             >{orgDetail.leaderUuid
                                 ? userName(orgDetail.leaderUuid)
-                                : "未設定"}</span
-                        >
+                                : "未設定"}</span>
                     </div>
                     {@render orgUserListBlock(
                         "メンバー",
@@ -2308,25 +2196,20 @@
                 <label class="form-control"
                     ><span class="label-text font-medium">名前</span><input
                         class="input input-bordered"
-                        bind:value={orgEdit.name}
-                    /></label
-                >
+                        bind:value={orgEdit.name} /></label>
                 {#if orgDetail?.kind === "department"}
                     <div class="space-y-2">
                         <span class="label-text font-medium">子部署</span>
                         <input
                             class="input input-bordered input-sm w-full placeholder-current"
                             placeholder="検索"
-                            bind:value={orgChildSearch}
-                        />
+                            bind:value={orgChildSearch} />
                         <div
-                            class="border border-base-300 rounded-2xl max-h-44 overflow-y-auto p-2"
-                        >
+                            class="border border-base-300 rounded-2xl max-h-44 overflow-y-auto p-2">
                             {#each filteredOrgDepartments() as d (`c-${d.uuid}`)}
                                 {#if d.uuid !== orgDetail?.uuid && !d.isRoot}
                                     <label
-                                        class="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-base-200 cursor-pointer"
-                                    >
+                                        class="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-base-200 cursor-pointer">
                                         <input
                                             type="checkbox"
                                             class="checkbox checkbox-sm"
@@ -2335,8 +2218,7 @@
                                                 d.uuid,
                                             )}
                                             onchange={() =>
-                                                toggleOrgChild(d.uuid)}
-                                        />
+                                                toggleOrgChild(d.uuid)} />
                                         <span>{d.name}</span>
                                     </label>
                                 {/if}
@@ -2375,15 +2257,12 @@
                             <input
                                 class="input input-bordered input-sm w-full placeholder-current"
                                 placeholder="検索"
-                                bind:value={orgTeamSearch}
-                            />
+                                bind:value={orgTeamSearch} />
                             <div
-                                class="border border-base-300 rounded-2xl max-h-36 overflow-y-auto p-2"
-                            >
+                                class="border border-base-300 rounded-2xl max-h-36 overflow-y-auto p-2">
                                 {#each filteredOrgTeams() as t (`t-${t.uuid}`)}
                                     <label
-                                        class="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-base-200 cursor-pointer"
-                                    >
+                                        class="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-base-200 cursor-pointer">
                                         <input
                                             type="checkbox"
                                             class="checkbox checkbox-sm"
@@ -2392,8 +2271,7 @@
                                                 t.uuid,
                                             )}
                                             onchange={() =>
-                                                toggleOrgTeam(t.uuid)}
-                                        />
+                                                toggleOrgTeam(t.uuid)} />
                                         <span>{t.name}</span>
                                     </label>
                                 {/each}
@@ -2423,8 +2301,7 @@
                     <button
                         type="button"
                         class="btn btn-error btn-outline btn-sm"
-                        onclick={askDeleteOrg}>削除</button
-                    >
+                        onclick={askDeleteOrg}>削除</button>
                 </div>
             </div>
         {/if}
@@ -2433,13 +2310,11 @@
                 <button
                     type="button"
                     class="btn btn-error btn-outline btn-sm mr-auto"
-                    onclick={askDeleteOrg}>削除</button
-                >
+                    onclick={askDeleteOrg}>削除</button>
                 <button
                     type="button"
                     class="btn btn-ghost"
-                    onclick={() => (orgModalOpen = false)}>閉じる</button
-                >
+                    onclick={() => (orgModalOpen = false)}>閉じる</button>
             </div>
         {/if}
         {#if orgEditMode}
@@ -2447,18 +2322,15 @@
                 <button
                     type="button"
                     class="btn btn-ghost"
-                    onclick={() => (orgModalOpen = false)}>閉じる</button
-                >
+                    onclick={() => (orgModalOpen = false)}>閉じる</button>
                 <button type="button" class="btn btn-primary" onclick={saveOrg}
-                    >保存</button
-                >
+                    >保存</button>
             </div>
         {/if}
     </div>
     <form method="dialog" class="modal-backdrop">
         <button type="button" onclick={() => (orgModalOpen = false)}
-            >close</button
-        >
+            >close</button>
     </form>
 </dialog>
 
@@ -2474,32 +2346,26 @@
             <label class="form-control"
                 ><span class="label-text font-medium">氏名</span><input
                     class="input input-bordered"
-                    bind:value={createUserForm.name}
-                /></label
-            >
+                    bind:value={createUserForm.name} /></label>
             <label class="form-control"
                 ><span class="label-text font-medium">メール</span><input
                     type="email"
                     class="input input-bordered"
-                    bind:value={createUserForm.email}
-                /></label
-            >
+                    bind:value={createUserForm.email} /></label>
             <div class="space-y-3">
                 <div class="flex items-center justify-between gap-2">
                     <span class="label-text font-medium">部署</span>
                     <button
                         type="button"
                         class="btn btn-outline btn-xs"
-                        onclick={addCreateDepartmentRow}>行を追加</button
-                    >
+                        onclick={addCreateDepartmentRow}>行を追加</button>
                 </div>
                 {#each createUserForm.departments as row, i (`new-user-dept-${i}`)}
                     <div class="flex items-center gap-2">
                         <select
                             class="select select-bordered select-sm flex-1"
                             bind:value={row.departmentUuid}
-                            onchange={onCreateDepartmentChange}
-                        >
+                            onchange={onCreateDepartmentChange}>
                             <option value="">部署を選択</option>
                             {#each departmentChoices(createUserForm.departments, i) as d (`new-dept-opt-${i}-${d.uuid}`)}
                                 <option value={d.uuid}>{d.name}</option>
@@ -2507,8 +2373,7 @@
                         </select>
                         <select
                             class="select select-bordered select-sm flex-1"
-                            bind:value={row.roleUuid}
-                        >
+                            bind:value={row.roleUuid}>
                             <option value="">役職を選択</option>
                             {#each options.roles as r (`new-role-opt-${i}-${r.uuid}`)}
                                 <option value={r.uuid}>{r.name}</option>
@@ -2518,8 +2383,7 @@
                             type="button"
                             class="btn btn-ghost btn-sm"
                             onclick={() => removeCreateDepartmentRow(i)}
-                            >削除</button
-                        >
+                            >削除</button>
                     </div>
                 {/each}
             </div>
@@ -2530,15 +2394,13 @@
                         <button
                             type="button"
                             class="btn btn-outline btn-xs"
-                            onclick={addCreateTeamRow}>行を追加</button
-                        >
+                            onclick={addCreateTeamRow}>行を追加</button>
                     </div>
                     {#each createUserForm.teams as row, i (`new-user-team-${i}`)}
                         <div class="flex items-center gap-2">
                             <select
                                 class="select select-bordered select-sm flex-1"
-                                bind:value={row.teamUuid}
-                            >
+                                bind:value={row.teamUuid}>
                                 <option value={0} selected>チームを選択</option>
                                 {#each teamChoices(createUserForm.departments, createUserForm.teams, i) as t (`new-team-opt-${i}-${t.uuid}`)}
                                     <option value={t.uuid}>{t.name}</option>
@@ -2548,8 +2410,7 @@
                                 type="button"
                                 class="btn btn-ghost btn-sm"
                                 onclick={() => removeCreateTeamRow(i)}
-                                >削除</button
-                            >
+                                >削除</button>
                         </div>
                     {/each}
                 </div>
@@ -2561,27 +2422,22 @@
                     type="password"
                     class="input input-bordered"
                     bind:value={createUserForm.password}
-                    autocomplete="new-password"
-                /></label
-            >
+                    autocomplete="new-password" /></label>
         </div>
         <div class="modal-action border-t border-base-200 p-4 shrink-0">
             <button
                 type="button"
                 class="btn btn-ghost"
-                onclick={() => (createUserOpen = false)}>キャンセル</button
-            >
+                onclick={() => (createUserOpen = false)}>キャンセル</button>
             <button
                 type="button"
                 class="btn btn-primary"
-                onclick={submitCreateUser}>作成</button
-            >
+                onclick={submitCreateUser}>作成</button>
         </div>
     </div>
     <form method="dialog" class="modal-backdrop">
         <button type="button" onclick={() => (createUserOpen = false)}
-            >close</button
-        >
+            >close</button>
     </form>
 </dialog>
 
@@ -2594,15 +2450,12 @@
             <label class="form-control"
                 ><span class="label-text font-medium">部署名</span><input
                     class="input input-bordered"
-                    bind:value={createDeptForm.name}
-                /></label
-            >
+                    bind:value={createDeptForm.name} /></label>
             <label class="form-control"
                 ><span class="label-text font-medium">親部署（任意）</span>
                 <select
                     class="select select-bordered"
-                    bind:value={createDeptForm.parentDepartmentUuid}
-                >
+                    bind:value={createDeptForm.parentDepartmentUuid}>
                     <option value="">なし（ルート）</option>
                     {#each options.departments as d (`parent-${d.uuid}`)}
                         <option value={d.uuid}>{d.name}</option>
@@ -2638,19 +2491,16 @@
             <button
                 type="button"
                 class="btn btn-ghost"
-                onclick={() => (createDeptOpen = false)}>キャンセル</button
-            >
+                onclick={() => (createDeptOpen = false)}>キャンセル</button>
             <button
                 type="button"
                 class="btn btn-primary"
-                onclick={submitCreateDept}>作成</button
-            >
+                onclick={submitCreateDept}>作成</button>
         </div>
     </div>
     <form method="dialog" class="modal-backdrop">
         <button type="button" onclick={() => (createDeptOpen = false)}
-            >close</button
-        >
+            >close</button>
     </form>
 </dialog>
 
@@ -2660,16 +2510,14 @@
         <p class="py-4 text-sm text-base-content/80">{confirmMessage}</p>
         <div class="modal-action">
             <button type="button" class="btn btn-ghost" onclick={cancelConfirm}
-                >キャンセル</button
-            >
+                >キャンセル</button>
             <button
                 type="button"
                 class="btn"
                 class:btn-error={confirmDanger}
                 class:btn-primary={!confirmDanger}
                 onclick={runConfirm}
-                >{confirmDanger ? "確定" : "変更する"}</button
-            >
+                >{confirmDanger ? "確定" : "変更する"}</button>
         </div>
     </div>
     <form method="dialog" class="modal-backdrop">
@@ -2688,8 +2536,7 @@
                 <select
                     class="select select-bordered"
                     value={createTeamForm.departmentUuid}
-                    onchange={onCreateTeamDepartmentChange}
-                >
+                    onchange={onCreateTeamDepartmentChange}>
                     <option value="" disabled>部署を選択</option>
                     {#each options.departments as d (`create-team-dept-${d.uuid}`)}
                         <option value={d.uuid}>{d.name}</option>
@@ -2700,8 +2547,7 @@
                 <span class="label-text font-medium">チーム名</span>
                 <input
                     class="input input-bordered"
-                    bind:value={createTeamForm.name}
-                />
+                    bind:value={createTeamForm.name} />
             </label>
             {@render orgUserListBlock(
                 "チームリーダー",
@@ -2724,19 +2570,16 @@
             <button
                 type="button"
                 class="btn btn-ghost"
-                onclick={() => (createTeamOpen = false)}>キャンセル</button
-            >
+                onclick={() => (createTeamOpen = false)}>キャンセル</button>
             <button
                 type="button"
                 class="btn btn-primary"
-                onclick={saveCreateTeam}>作成</button
-            >
+                onclick={saveCreateTeam}>作成</button>
         </div>
     </div>
     <form method="dialog" class="modal-backdrop">
         <button type="button" onclick={() => (createTeamOpen = false)}
-            >close</button
-        >
+            >close</button>
     </form>
 </dialog>
 
@@ -2747,26 +2590,22 @@
             <span class="label-text font-medium">役職名</span>
             <input
                 class="input input-bordered"
-                bind:value={createRoleForm.name}
-            />
+                bind:value={createRoleForm.name} />
         </label>
         <div class="modal-action">
             <button
                 type="button"
                 class="btn btn-ghost"
-                onclick={() => (createRoleOpen = false)}>キャンセル</button
-            >
+                onclick={() => (createRoleOpen = false)}>キャンセル</button>
             <button
                 type="button"
                 class="btn btn-primary"
-                onclick={saveCreateRole}>追加</button
-            >
+                onclick={saveCreateRole}>追加</button>
         </div>
     </div>
     <form method="dialog" class="modal-backdrop">
         <button type="button" onclick={() => (createRoleOpen = false)}
-            >close</button
-        >
+            >close</button>
     </form>
 </dialog>
 
@@ -2777,24 +2616,20 @@
             <span class="label-text font-medium">役職名</span>
             <input
                 class="input input-bordered"
-                bind:value={editRoleForm.name}
-            />
+                bind:value={editRoleForm.name} />
         </label>
         <div class="modal-action">
             <button
                 type="button"
                 class="btn btn-ghost"
-                onclick={() => (editRoleOpen = false)}>キャンセル</button
-            >
+                onclick={() => (editRoleOpen = false)}>キャンセル</button>
             <button type="button" class="btn btn-primary" onclick={saveEditRole}
-                >保存</button
-            >
+                >保存</button>
         </div>
     </div>
     <form method="dialog" class="modal-backdrop">
         <button type="button" onclick={() => (editRoleOpen = false)}
-            >close</button
-        >
+            >close</button>
     </form>
 </dialog>
 
@@ -2806,5 +2641,4 @@
     selectedUuids={orgMemberPickSelectedUuids}
     excludeUuids={orgMemberPickExcludeUuids}
     onApply={applyOrgMemberPick}
-    onClose={() => (orgMemberPickOpen = false)}
-/>
+    onClose={() => (orgMemberPickOpen = false)} />

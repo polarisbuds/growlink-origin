@@ -229,7 +229,7 @@
                             ペア以外への共有や限定公開が選べます
                         </p>
                         <textarea
-                            class="textarea textarea-bordered mt-3 w-full"
+                            class="textarea textarea-bordered mt-3 w-full placeholder-current"
                             rows="2"
                             bind:value={comment}
                             placeholder="コメント"></textarea>

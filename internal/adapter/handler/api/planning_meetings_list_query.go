@@ -99,5 +99,16 @@ func parsePlanningMeetingsListQuery(c *echo.Context) (planning_usecase.PlanningM
 		filter.DateRangeEmpty = true
 	}
 
+	if del := strings.TrimSpace(c.QueryParam("deleted")); del != "" {
+		switch del {
+		case "1", "true":
+			filter.IncludeDeleted = true
+		case "0", "false":
+			filter.IncludeDeleted = false
+		default:
+			return filter, 0, false, fmt.Errorf("invalid deleted")
+		}
+	}
+
 	return filter, page, dirDesc, nil
 }

@@ -15,6 +15,7 @@ type PairingRepository interface {
 	BreakPairings(pairingID ...uint) error
 	BreakAllMenteePairing(mentorID uint) error
 	GetAll() ([]entity.Pairing, error)
+	GetAllContainDeleted() ([]entity.Pairing, error)
 	Get(pairingID uint) (*entity.Pairing, error)
 	GetByUUID(pairingUUID uuid.UUID) (*entity.Pairing, error)
 	GetByMenteeID(menteeID uint) ([]entity.Pairing, error)
