@@ -13,6 +13,7 @@ import (
 )
 
 // genSeed inserts development verification data when the database has no roles yet.
+// Login: *@example.com / password — see inline user comments for roles and pairing scenarios.
 func genSeed(db *gorm.DB) error {
 	var count int64
 	if err := db.Model(&entity.Role{}).Count(&count).Error; err != nil {
@@ -44,52 +45,97 @@ func genSeed(db *gorm.DB) error {
 		}
 
 		owner := &entity.User{
-			Name:      "オーナー",
-			Email:     "owner@example.com",
-			Password:  password,
+			Name: "オーナー", Email: "owner@example.com", Password: password,
 			Authority: valueobject.AuthorityOwner,
 		}
-		boss := &entity.User{
-			Name:      "上司",
-			Email:     "boss@example.com",
-			Password:  password,
-			Authority: valueobject.AuthorityBoss,
+		admin := &entity.User{
+			Name: "システム管理者", Email: "admin@example.com", Password: password,
+			Authority: valueobject.AuthorityGeneral, SystemRole: valueobject.SystemRoleAdmin,
 		}
-		mentor := &entity.User{
-			Name:      "メンター",
-			Email:     "mentor@example.com",
-			Password:  password,
-			Authority: valueobject.AuthorityGeneral,
-		}
-		mentee := &entity.User{
-			Name:      "メンティ",
-			Email:     "mentee@example.com",
-			Password:  password,
-			Authority: valueobject.AuthorityGeneral,
+		analyst := &entity.User{
+			Name: "分析者", Email: "analyst@example.com", Password: password,
+			Authority: valueobject.AuthorityGeneral, SystemRole: valueobject.SystemRoleAnalyst,
 		}
 		sharer := &entity.User{
-			Name:      "共有者",
-			Email:     "sharer@example.com",
-			Password:  password,
+			Name: "共有者", Email: "sharer@example.com", Password: password,
 			Authority: valueobject.AuthorityGeneral,
 		}
-		mentee2 := &entity.User{
-			Name:      "メンティ2",
-			Email:     "mentee2@example.com",
-			Password:  password,
+		hqHead := &entity.User{
+			Name: "本社責任者", Email: "hq-head@example.com", Password: password,
+			Authority: valueobject.AuthorityBoss,
+		}
+		devHead := &entity.User{
+			Name: "開発責任者", Email: "dev-head@example.com", Password: password,
+			Authority: valueobject.AuthorityBoss,
+		}
+		devManager := &entity.User{
+			Name: "開発管理職", Email: "dev-manager@example.com", Password: password,
+			Authority: valueobject.AuthorityBoss,
+		}
+		salesHead := &entity.User{
+			Name: "営業責任者", Email: "sales-head@example.com", Password: password,
+			Authority: valueobject.AuthorityBoss,
+		}
+		teamLeader := &entity.User{
+			Name: "チームリーダー", Email: "leader@example.com", Password: password,
+			Authority: valueobject.AuthorityBoss,
+		}
+		crossMentor := &entity.User{
+			Name: "他部署メンター", Email: "cross@example.com", Password: password,
 			Authority: valueobject.AuthorityGeneral,
 		}
-		if err := tx.Create([]*entity.User{owner, boss, mentor, mentee, sharer, mentee2}).Error; err != nil {
+		mentor1 := &entity.User{Name: "メンター1", Email: "mentor1@example.com", Password: password, Authority: valueobject.AuthorityGeneral}
+		mentor2 := &entity.User{Name: "メンター2", Email: "mentor2@example.com", Password: password, Authority: valueobject.AuthorityGeneral}
+		mentor3 := &entity.User{Name: "メンター3", Email: "mentor3@example.com", Password: password, Authority: valueobject.AuthorityGeneral}
+		mentor4 := &entity.User{Name: "メンター4", Email: "mentor4@example.com", Password: password, Authority: valueobject.AuthorityGeneral}
+		mentor5 := &entity.User{Name: "メンター5", Email: "mentor5@example.com", Password: password, Authority: valueobject.AuthorityGeneral}
+		salesMentee := &entity.User{
+			Name: "営業メンティー", Email: "sales-mentee@example.com", Password: password,
+			Authority: valueobject.AuthorityGeneral,
+		}
+		team1 := &entity.User{Name: "チームメンバー1", Email: "team1@example.com", Password: password, Authority: valueobject.AuthorityGeneral}
+		team2 := &entity.User{Name: "チームメンバー2", Email: "team2@example.com", Password: password, Authority: valueobject.AuthorityGeneral}
+		team3 := &entity.User{Name: "チームメンバー3", Email: "team3@example.com", Password: password, Authority: valueobject.AuthorityGeneral}
+		team4 := &entity.User{Name: "チームメンバー4", Email: "team4@example.com", Password: password, Authority: valueobject.AuthorityGeneral}
+		pure1 := &entity.User{Name: "メンティー（純）1", Email: "pure1@example.com", Password: password, Authority: valueobject.AuthorityGeneral}
+		pure2 := &entity.User{Name: "メンティー（純）2", Email: "pure2@example.com", Password: password, Authority: valueobject.AuthorityGeneral}
+
+		users := []*entity.User{
+			owner, admin, analyst, sharer,
+			hqHead, devHead, devManager, salesHead, teamLeader,
+			crossMentor,
+			mentor1, mentor2, mentor3, mentor4, mentor5,
+			salesMentee, team1, team2, team3, team4, pure1, pure2,
+		}
+		if err := tx.Create(users).Error; err != nil {
 			return err
 		}
-		if err := tx.Create([]*entity.DepartmentMember{
+
+		deptMembers := []*entity.DepartmentMember{
 			{DepartmentID: deptHQ.ID, UserID: owner.ID, RoleID: roleOwner.ID},
-			{DepartmentID: deptDev.ID, UserID: boss.ID, RoleID: roleBoss.ID},
-			{DepartmentID: deptDev.ID, UserID: mentor.ID, RoleID: roleGeneral.ID},
-			{DepartmentID: deptDev.ID, UserID: mentee.ID, RoleID: roleGeneral.ID},
+			{DepartmentID: deptHQ.ID, UserID: admin.ID, RoleID: roleGeneral.ID},
+			{DepartmentID: deptHQ.ID, UserID: analyst.ID, RoleID: roleGeneral.ID},
+			{DepartmentID: deptHQ.ID, UserID: hqHead.ID, RoleID: roleBoss.ID, IsHead: true, IsManager: true},
+			{DepartmentID: deptDev.ID, UserID: devHead.ID, RoleID: roleBoss.ID, IsHead: true, IsManager: true},
+			{DepartmentID: deptDev.ID, UserID: devManager.ID, RoleID: roleBoss.ID, IsManager: true},
+			{DepartmentID: deptDev.ID, UserID: teamLeader.ID, RoleID: roleBoss.ID},
+			{DepartmentID: deptDev.ID, UserID: crossMentor.ID, RoleID: roleGeneral.ID},
+			{DepartmentID: deptDev.ID, UserID: mentor1.ID, RoleID: roleGeneral.ID},
+			{DepartmentID: deptDev.ID, UserID: mentor2.ID, RoleID: roleGeneral.ID},
+			{DepartmentID: deptDev.ID, UserID: mentor3.ID, RoleID: roleGeneral.ID},
+			{DepartmentID: deptDev.ID, UserID: mentor4.ID, RoleID: roleGeneral.ID},
+			{DepartmentID: deptDev.ID, UserID: mentor5.ID, RoleID: roleGeneral.ID},
+			{DepartmentID: deptDev.ID, UserID: team1.ID, RoleID: roleGeneral.ID},
+			{DepartmentID: deptDev.ID, UserID: team2.ID, RoleID: roleGeneral.ID},
+			{DepartmentID: deptDev.ID, UserID: team3.ID, RoleID: roleGeneral.ID},
+			{DepartmentID: deptDev.ID, UserID: team4.ID, RoleID: roleGeneral.ID},
+			{DepartmentID: deptDev.ID, UserID: pure1.ID, RoleID: roleGeneral.ID},
+			{DepartmentID: deptDev.ID, UserID: pure2.ID, RoleID: roleGeneral.ID},
+			{DepartmentID: deptSales.ID, UserID: salesHead.ID, RoleID: roleBoss.ID, IsHead: true, IsManager: true},
 			{DepartmentID: deptSales.ID, UserID: sharer.ID, RoleID: roleGeneral.ID},
-			{DepartmentID: deptDev.ID, UserID: mentee2.ID, RoleID: roleGeneral.ID},
-		}).Error; err != nil {
+			{DepartmentID: deptSales.ID, UserID: salesMentee.ID, RoleID: roleGeneral.ID},
+		}
+		if err := tx.Create(deptMembers).Error; err != nil {
 			return err
 		}
 
@@ -100,12 +146,13 @@ func genSeed(db *gorm.DB) error {
 			return err
 		}
 
-		if err := tx.Model(&entity.Department{}).Where("id = ?", deptDev.ID).Update("head_user_id", boss.ID).Error; err != nil {
+		if err := tx.Model(&entity.Department{}).Where("id = ?", deptHQ.ID).Update("head_user_id", hqHead.ID).Error; err != nil {
 			return err
 		}
-		if err := tx.Model(&entity.DepartmentMember{}).
-			Where("department_id = ? AND user_id = ?", deptDev.ID, boss.ID).
-			Updates(map[string]any{"is_head": true, "is_manager": true}).Error; err != nil {
+		if err := tx.Model(&entity.Department{}).Where("id = ?", deptDev.ID).Update("head_user_id", devHead.ID).Error; err != nil {
+			return err
+		}
+		if err := tx.Model(&entity.Department{}).Where("id = ?", deptSales.ID).Update("head_user_id", salesHead.ID).Error; err != nil {
 			return err
 		}
 
@@ -113,10 +160,13 @@ func genSeed(db *gorm.DB) error {
 		if err := tx.Create(team).Error; err != nil {
 			return err
 		}
-
 		if err := tx.Create([]*entity.TeamMember{
-			{TeamID: team.ID, MemberID: mentor.ID, IsReader: true},
-			{TeamID: team.ID, MemberID: mentee.ID, IsReader: false},
+			{TeamID: team.ID, MemberID: teamLeader.ID, IsReader: true},
+			{TeamID: team.ID, MemberID: crossMentor.ID, IsReader: false},
+			{TeamID: team.ID, MemberID: team1.ID, IsReader: false},
+			{TeamID: team.ID, MemberID: team2.ID, IsReader: false},
+			{TeamID: team.ID, MemberID: team3.ID, IsReader: false},
+			{TeamID: team.ID, MemberID: team4.ID, IsReader: false},
 		}).Error; err != nil {
 			return err
 		}
@@ -131,19 +181,8 @@ func genSeed(db *gorm.DB) error {
 		if err := tx.Create(template).Error; err != nil {
 			return err
 		}
-
-		topicRequired := &entity.Topic{
-			DisplayNo:  1,
-			Question:   "今月の成果",
-			IsRequire:  true,
-			TemplateID: template.ID,
-		}
-		topicOptional := &entity.Topic{
-			DisplayNo:  2,
-			Question:   "困っていること",
-			IsRequire:  false,
-			TemplateID: template.ID,
-		}
+		topicRequired := &entity.Topic{DisplayNo: 1, Question: "今月の成果", IsRequire: true, TemplateID: template.ID}
+		topicOptional := &entity.Topic{DisplayNo: 2, Question: "困っていること", IsRequire: false, TemplateID: template.ID}
 		if err := tx.Create([]*entity.Topic{topicRequired, topicOptional}).Error; err != nil {
 			return err
 		}
@@ -152,23 +191,13 @@ func genSeed(db *gorm.DB) error {
 			Title:       "週次チェックイン",
 			Description: "週の目標とブロッカーを短時間で確認するためのテンプレートです。",
 			IsSample:    false,
-			UserID:      boss.ID,
+			UserID:      devHead.ID,
 		}
 		if err := tx.Create(templateCheckin).Error; err != nil {
 			return err
 		}
-		topicCheckinGoal := &entity.Topic{
-			DisplayNo:  1,
-			Question:   "今週の目標",
-			IsRequire:  true,
-			TemplateID: templateCheckin.ID,
-		}
-		topicCheckinBlocker := &entity.Topic{
-			DisplayNo:  2,
-			Question:   "ブロッカーはありますか",
-			IsRequire:  false,
-			TemplateID: templateCheckin.ID,
-		}
+		topicCheckinGoal := &entity.Topic{DisplayNo: 1, Question: "今週の目標", IsRequire: true, TemplateID: templateCheckin.ID}
+		topicCheckinBlocker := &entity.Topic{DisplayNo: 2, Question: "ブロッカーはありますか", IsRequire: false, TemplateID: templateCheckin.ID}
 		if err := tx.Create([]*entity.Topic{topicCheckinGoal, topicCheckinBlocker}).Error; err != nil {
 			return err
 		}
@@ -186,198 +215,123 @@ func genSeed(db *gorm.DB) error {
 			return err
 		}
 
-		pairing := &entity.Pairing{
-			MentorID:        mentor.ID,
-			MenteeID:        mentee.ID,
-			CreatedByUserID: mentor.ID,
+		type pairDef struct {
+			mentor, mentee *entity.User
 		}
-		if err := tx.Create(pairing).Error; err != nil {
+		pairDefs := []pairDef{
+			{hqHead, devHead},
+			{devHead, devManager},
+			{devManager, crossMentor},
+			{crossMentor, salesMentee},
+			{teamLeader, team1},
+			{mentor1, team2},
+			{mentor2, team3},
+			{mentor3, team4},
+			{mentor4, pure1},
+			{mentor5, pure2},
+		}
+		pairings := make([]*entity.Pairing, 0, len(pairDefs))
+		for _, p := range pairDefs {
+			pairings = append(pairings, &entity.Pairing{
+				MentorID:        p.mentor.ID,
+				MenteeID:        p.mentee.ID,
+				CreatedByUserID: p.mentor.ID,
+			})
+		}
+		if err := tx.Create(pairings).Error; err != nil {
 			return err
 		}
-		if err := tx.Create(&entity.PairingSharer{
-			PairingID: pairing.ID,
+
+		now := time.Now()
+		pastDoneAt := now.AddDate(0, 0, -14)
+		futurePendingAt := now.AddDate(0, 0, 7)
+
+		doneMeetings := make([]*entity.Meeting, 0, 4)
+		for i := 0; i < 4; i++ {
+			at := pastDoneAt.AddDate(0, 0, -i)
+			doneMeetings = append(doneMeetings, &entity.Meeting{
+				ImplementedAt:   &at,
+				Status:          valueobject.MeetingStatusDone,
+				TemplateID:      template.ID,
+				PairingID:       pairings[i].ID,
+				CreatedByUserID: pairDefs[i].mentor.ID,
+			})
+		}
+		if err := tx.Create(doneMeetings).Error; err != nil {
+			return err
+		}
+
+		pendingMeetings := make([]*entity.Meeting, 0, 6)
+		for i := 4; i < 10; i++ {
+			at := futurePendingAt.AddDate(0, 0, i-4)
+			tpl := template.ID
+			if i%2 == 0 {
+				tpl = templateCheckin.ID
+			}
+			pendingMeetings = append(pendingMeetings, &entity.Meeting{
+				ImplementedAt:   &at,
+				Status:          valueobject.MeetingStatusPending,
+				TemplateID:      tpl,
+				PairingID:       pairings[i].ID,
+				CreatedByUserID: pairDefs[i].mentor.ID,
+			})
+		}
+		if err := tx.Create(pendingMeetings).Error; err != nil {
+			return err
+		}
+
+		// 開発責任者の面談（本社責任者→開発責任者）を共有者へ
+		if err := tx.Create(&entity.MeetingSharer{
+			MeetingID: doneMeetings[0].ID,
 			UserID:    sharer.ID,
 		}).Error; err != nil {
 			return err
 		}
 
-		pairingBoss := &entity.Pairing{
-			MentorID:        boss.ID,
-			MenteeID:        mentee2.ID,
-			CreatedByUserID: boss.ID,
+		answers := make([]*entity.Answer, 0, 8)
+		for i, m := range doneMeetings {
+			mentee := pairDefs[i].mentee
+			answers = append(answers,
+				&entity.Answer{
+					Content:   fmt.Sprintf("（ペア%d）今月の成果の回答", i+1),
+					MeetingID: m.ID,
+					TopicID:   topicRequired.ID,
+					UserID:    mentee.ID,
+				},
+				&entity.Answer{
+					Content:   fmt.Sprintf("（ペア%d）困っていることの回答", i+1),
+					MeetingID: m.ID,
+					TopicID:   topicOptional.ID,
+					UserID:    mentee.ID,
+				},
+			)
 		}
-		if err := tx.Create(pairingBoss).Error; err != nil {
-			return err
-		}
-
-		now := time.Now()
-		pastDoneAt := now.AddDate(0, -1, 0)
-		todayDoneAt := now
-		todayPendingAt := now
-		draftAt := now.AddDate(0, 0, -3)
-		futurePendingAt := now.AddDate(0, 0, 14)
-		bossPastDoneAt := now.AddDate(0, 0, -14)
-		bossFuturePendingAt := now.AddDate(0, 0, 7)
-
-		meetingPastDone := &entity.Meeting{
-			ImplementedAt:   &pastDoneAt,
-			Status:          valueobject.MeetingStatusDone,
-			TemplateID:      template.ID,
-			PairingID:       pairing.ID,
-			CreatedByUserID: mentor.ID,
-		}
-		meetingTodaySubmitted := &entity.Meeting{
-			ImplementedAt:   &todayDoneAt,
-			Status:          valueobject.MeetingStatusSubmitted,
-			TemplateID:      template.ID,
-			PairingID:       pairing.ID,
-			CreatedByUserID: mentor.ID,
-		}
-		meetingTodayPending := &entity.Meeting{
-			ImplementedAt:   &todayPendingAt,
-			Status:          valueobject.MeetingStatusPending,
-			TemplateID:      templateCheckin.ID,
-			PairingID:       pairing.ID,
-			CreatedByUserID: mentor.ID,
-		}
-		meetingDraft := &entity.Meeting{
-			ImplementedAt:   &draftAt,
-			Status:          valueobject.MeetingStatusDraft,
-			TemplateID:      template.ID,
-			PairingID:       pairing.ID,
-			CreatedByUserID: mentor.ID,
-		}
-		meetingFuturePending := &entity.Meeting{
-			ImplementedAt:   &futurePendingAt,
-			Status:          valueobject.MeetingStatusPending,
-			TemplateID:      template.ID,
-			PairingID:       pairing.ID,
-			CreatedByUserID: mentor.ID,
-		}
-		meetingBossPastDone := &entity.Meeting{
-			ImplementedAt:   &bossPastDoneAt,
-			Status:          valueobject.MeetingStatusDone,
-			TemplateID:      templateCheckin.ID,
-			PairingID:       pairingBoss.ID,
-			CreatedByUserID: boss.ID,
-		}
-		meetingBossFuturePending := &entity.Meeting{
-			ImplementedAt:   &bossFuturePendingAt,
-			Status:          valueobject.MeetingStatusPending,
-			TemplateID:      templateCheckin.ID,
-			PairingID:       pairingBoss.ID,
-			CreatedByUserID: boss.ID,
-		}
-		if err := tx.Create([]*entity.Meeting{
-			meetingPastDone,
-			meetingTodaySubmitted,
-			meetingTodayPending,
-			meetingDraft,
-			meetingFuturePending,
-			meetingBossPastDone,
-			meetingBossFuturePending,
-		}).Error; err != nil {
-			return err
-		}
-		if err := tx.Create([]*entity.MeetingSharer{
-			{MeetingID: meetingPastDone.ID, UserID: sharer.ID},
-			{MeetingID: meetingTodaySubmitted.ID, UserID: sharer.ID},
-			{MeetingID: meetingDraft.ID, UserID: sharer.ID},
-			{MeetingID: meetingBossPastDone.ID, UserID: mentor.ID},
-		}).Error; err != nil {
-			return err
-		}
-
-		doneMeetingAnswers := []*entity.Answer{
-			{
-				Content:   "先月はリリースを完了しました。",
-				MeetingID: meetingPastDone.ID,
-				TopicID:   topicRequired.ID,
-				UserID:    mentee.ID,
-			},
-			{
-				Content:   "チーム内の連携がスムーズでした。",
-				MeetingID: meetingPastDone.ID,
-				TopicID:   topicOptional.ID,
-				UserID:    mentee.ID,
-			},
-			{
-				Content:   "目標を達成しました。",
-				MeetingID: meetingTodaySubmitted.ID,
-				TopicID:   topicRequired.ID,
-				UserID:    mentee.ID,
-			},
-			{
-				Content:   "特にありません。",
-				MeetingID: meetingTodaySubmitted.ID,
-				TopicID:   topicOptional.ID,
-				UserID:    mentee.ID,
-			},
-			{
-				Content:   "下書き中の回答です。",
-				MeetingID: meetingDraft.ID,
-				TopicID:   topicRequired.ID,
-				UserID:    mentee.ID,
-			},
-			{
-				Content:   "週次の目標を達成しました。",
-				MeetingID: meetingBossPastDone.ID,
-				TopicID:   topicCheckinGoal.ID,
-				UserID:    mentee2.ID,
-			},
-			{
-				Content:   "特になし",
-				MeetingID: meetingBossPastDone.ID,
-				TopicID:   topicCheckinBlocker.ID,
-				UserID:    mentee2.ID,
-			},
-		}
-		if err := tx.Create(doneMeetingAnswers).Error; err != nil {
+		if err := tx.Create(answers).Error; err != nil {
 			return err
 		}
 
 		if err := tx.Create([]*entity.MeetingComment{
 			{
-				Content:   "着実に成長しています。",
+				Content:   "責任者として期待に沿っています。",
 				IsLimited: false,
-				MeetingID: meetingPastDone.ID,
-				UserID:    mentor.ID,
+				MeetingID: doneMeetings[0].ID,
+				UserID:    hqHead.ID,
 			},
 			{
-				Content:   "次回までにブロッカーを整理してください。",
+				Content:   "管理職としての成長を続けてください。",
 				IsLimited: false,
-				MeetingID: meetingBossPastDone.ID,
-				UserID:    boss.ID,
+				MeetingID: doneMeetings[1].ID,
+				UserID:    devHead.ID,
 			},
 		}).Error; err != nil {
 			return err
 		}
 
-		pastRequiredComment := "進捗は順調です。次は品質改善に注力しましょう。"
-		pastOptionalComment := "コードレビューの頻度を上げたいです。"
-		todayRequiredComment := "具体的で良いですね。"
-		bossGoalComment := "来週はレビュー体制を整えましょう。"
+		c0 := "良い進捗です。"
+		c1 := "課題共有ありがとうございます。"
 		if err := tx.Create([]*entity.AnswerComment{
-			{
-				Content:  &pastRequiredComment,
-				AnswerID: doneMeetingAnswers[0].ID,
-				UserID:   mentor.ID,
-			},
-			{
-				Content:  &pastOptionalComment,
-				AnswerID: doneMeetingAnswers[1].ID,
-				UserID:   mentor.ID,
-			},
-			{
-				Content:  &todayRequiredComment,
-				AnswerID: doneMeetingAnswers[2].ID,
-				UserID:   mentor.ID,
-			},
-			{
-				Content:  &bossGoalComment,
-				AnswerID: doneMeetingAnswers[5].ID,
-				UserID:   boss.ID,
-			},
+			{Content: &c0, AnswerID: answers[0].ID, UserID: hqHead.ID},
+			{Content: &c1, AnswerID: answers[2].ID, UserID: devHead.ID},
 		}).Error; err != nil {
 			return err
 		}
