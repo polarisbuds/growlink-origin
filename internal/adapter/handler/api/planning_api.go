@@ -24,13 +24,14 @@ func stringsJoinUnique(items []string) string {
 }
 
 type planningDirectoryUser struct {
-	UUID            string  `json:"uuid"`
-	Name            string  `json:"name"`
-	Email           string  `json:"email"`
-	ImageURI        *string `json:"imageUri,omitempty"`
-	RoleName        string  `json:"roleName"`
-	DepartmentNames string  `json:"departmentNames"`
-	TeamNames       string  `json:"teamNames"`
+	UUID              string   `json:"uuid"`
+	Name              string   `json:"name"`
+	Email             string   `json:"email"`
+	ImageURI          *string  `json:"imageUri,omitempty"`
+	RoleName          string   `json:"roleName"`
+	DepartmentNames   string   `json:"departmentNames"`
+	DepartmentUuids   []string `json:"departmentUuids,omitempty"`
+	TeamNames         string   `json:"teamNames"`
 }
 
 type planningDirectoryResponse struct {
@@ -77,9 +78,11 @@ func (h *Handler) ListPlanningDirectory(c *echo.Context) error {
 		}
 		roleName := ""
 		deptNames := make([]string, 0, len(u.DepartmentMembers))
+		deptUuids := make([]string, 0, len(u.DepartmentMembers))
 		for _, link := range u.DepartmentMembers {
 			if link.Department != nil && link.Department.Name != "" {
 				deptNames = append(deptNames, link.Department.Name)
+				deptUuids = append(deptUuids, link.Department.UUID.String())
 			}
 			if roleName == "" && link.Role != nil {
 				roleName = link.Role.Name
@@ -93,13 +96,14 @@ func (h *Handler) ListPlanningDirectory(c *echo.Context) error {
 			}
 		}
 		userOuts = append(userOuts, planningDirectoryUser{
-			UUID:            u.UUID.String(),
-			Name:            u.Name,
-			Email:           u.Email,
-			ImageURI:        u.ImageURI,
-			RoleName:        roleName,
-			DepartmentNames: deptName,
-			TeamNames:       stringsJoinUnique(teamNames),
+			UUID:              u.UUID.String(),
+			Name:              u.Name,
+			Email:             u.Email,
+			ImageURI:          u.ImageURI,
+			RoleName:          roleName,
+			DepartmentNames:   deptName,
+			DepartmentUuids:   deptUuids,
+			TeamNames:         stringsJoinUnique(teamNames),
 		})
 	}
 	teams, err := h.deps.TeamRepo.GetAll()

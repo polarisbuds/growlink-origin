@@ -24,10 +24,12 @@
         name: string;
         email: string;
         departmentNames?: string;
+        departmentUuids?: string[];
         teamNames?: string;
         imageUri?: string;
     };
     type ManagedTeam = { uuid: string; name: string; members?: User[] };
+    type Dept = { uuid: string; name: string };
     type DirectoryTeam = {
         uuid: string;
         name: string;
@@ -53,11 +55,14 @@
     let selectedPairTablePage = $state(1);
     let templates = $state<Template[]>([]);
     let users = $state<User[]>([]);
-    let departments = $state<{ uuid: string; name: string }[]>([]);
+    let departments = $state<Dept[]>([]);
     let teams = $state<DirectoryTeam[]>([]);
+    let teamsWithMembers = $state<ManagedTeam[]>([]);
     let mentorModalOpen = $state(false);
     let menteeModalOpen = $state(false);
     let managedTeamModalOpen = $state(false);
+    let departmentModalOpen = $state(false);
+    let teamPickModalOpen = $state(false);
     let sharerModalOpen = $state(false);
     let selectedMenteeTablePage = $state(1);
     let selectedSharerTablePage = $state(1);
@@ -155,6 +160,8 @@
     });
 
     let managedTeamPickValue = $state("");
+    let departmentPickValue = $state("");
+    let teamPickValue = $state("");
 
     let deptMaps = $derived(buildUserDepartmentMaps(users));
     let teamMaps = $derived(buildUserTeamMaps(users));
@@ -206,15 +213,35 @@
     function templateLabelOf(item: Template) {
         return item.title || "";
     }
+    function addableMemberCount(members?: User[]) {
+        if (!members?.length) return 0;
+        return members.filter(
+            (m) => m?.uuid && m.uuid !== currentUserUuid,
+        ).length;
+    }
     function managedTeamLabelOf(item: ManagedTeam) {
-        if (!item.members) return `${item.name}`;
-        if (item.members.length > 0)
-            return `${item.name}（${item.members.length - 1}人）`;
-        return `${item.name}（0人）`;
+        const n = addableMemberCount(item.members);
+        return `${item.name}（${n}人）`;
+    }
+    function departmentLabelOf(item: Dept) {
+        const n = users.filter(
+            (u) =>
+                u.uuid !== currentUserUuid &&
+                (u.departmentUuids || []).includes(item.uuid),
+        ).length;
+        return `${item.name}（${n}人）`;
     }
     function pickManagedTeamFromSelect(item: ManagedTeam) {
         pickManagedTeam(item);
         managedTeamModalOpen = false;
+    }
+    function pickTeamFromSelect(item: ManagedTeam) {
+        pickManagedTeam(item);
+        teamPickModalOpen = false;
+    }
+    function pickDepartmentFromSelect(item: Dept) {
+        pickDepartment(item);
+        departmentModalOpen = false;
     }
     function pickManagedTeam(team: ManagedTeam) {
         const next = new Set(menteeUuids);
@@ -222,6 +249,15 @@
             if (!m?.uuid) continue;
             if (currentUserUuid && m.uuid === currentUserUuid) continue;
             next.add(m.uuid);
+        }
+        menteeUuids = [...next];
+    }
+    function pickDepartment(dept: Dept) {
+        const next = new Set(menteeUuids);
+        for (const u of users) {
+            if (!u.uuid) continue;
+            if (currentUserUuid && u.uuid === currentUserUuid) continue;
+            if ((u.departmentUuids || []).includes(dept.uuid)) next.add(u.uuid);
         }
         menteeUuids = [...next];
     }
@@ -287,14 +323,19 @@
             api<{
                 users?: User[];
                 managedTeams?: ManagedTeam[];
-                departments?: { uuid: string; name: string }[];
-                teams?: DirectoryTeam[];
+                departments?: Dept[];
+                teams?: (DirectoryTeam & { members?: User[] })[];
             }>("GET", "/api/v1/planning/directory"),
             api<{ email?: string }>("GET", "/api/v1/setting/profile"),
         ]);
         templates = t;
         users = dir.users || [];
         departments = dir.departments || [];
+        teamsWithMembers = (dir.teams || []).map((t) => ({
+            uuid: t.uuid,
+            name: t.name,
+            members: t.members,
+        }));
         teams = (dir.teams || []).map((t) => ({
             uuid: t.uuid,
             name: t.name,
@@ -640,6 +681,22 @@
                                     class="btn btn-outline btn-xs mt-1 w-fit"
                                     onclick={() => (menteeModalOpen = true)}
                                     >メンティを選択</button>
+                                {#if departments.length > 0}
+                                    <button
+                                        type="button"
+                                        class="btn btn-outline btn-xs"
+                                        onclick={() =>
+                                            (departmentModalOpen = true)}
+                                        >部署指定</button>
+                                {/if}
+                                {#if teamsWithMembers.length > 0}
+                                    <button
+                                        type="button"
+                                        class="btn btn-outline btn-xs"
+                                        onclick={() =>
+                                            (teamPickModalOpen = true)}
+                                        >チーム指定</button>
+                                {/if}
                                 {#if managedTeams.length > 0}
                                     <button
                                         type="button"
@@ -945,11 +1002,73 @@
         pairModalOpen = false;
     }} />
 
+<dialog class="modal" class:modal-open={departmentModalOpen}>
+    <div class="modal-box max-w-lg">
+        <h3 class="text-lg font-bold">部署指定</h3>
+        <p class="mt-1 text-sm text-base-content/60">
+            部署を選ぶと、その所属ユーザがメンティに追加されます。
+        </p>
+        <div class="mt-4">
+            <SearchableSelect
+                pickRootId="meeting-new-department"
+                items={departments}
+                bind:value={departmentPickValue}
+                labelOf={departmentLabelOf}
+                placeholder="部署名で検索"
+                clearOnSelect={true}
+                onSelect={pickDepartmentFromSelect} />
+        </div>
+        <div class="modal-action">
+            <button
+                type="button"
+                class="btn"
+                onclick={() => (departmentModalOpen = false)}>閉じる</button>
+        </div>
+    </div>
+    <form method="dialog" class="modal-backdrop">
+        <button
+            type="button"
+            aria-label="閉じる"
+            onclick={() => (departmentModalOpen = false)}></button>
+    </form>
+</dialog>
+
+<dialog class="modal" class:modal-open={teamPickModalOpen}>
+    <div class="modal-box max-w-lg">
+        <h3 class="text-lg font-bold">チーム指定</h3>
+        <p class="mt-1 text-sm text-base-content/60">
+            チームを選ぶと、そのメンバーがメンティに追加されます。
+        </p>
+        <div class="mt-4">
+            <SearchableSelect
+                pickRootId="meeting-new-team"
+                items={teamsWithMembers}
+                bind:value={teamPickValue}
+                labelOf={managedTeamLabelOf}
+                placeholder="チーム名で検索"
+                clearOnSelect={true}
+                onSelect={pickTeamFromSelect} />
+        </div>
+        <div class="modal-action">
+            <button
+                type="button"
+                class="btn"
+                onclick={() => (teamPickModalOpen = false)}>閉じる</button>
+        </div>
+    </div>
+    <form method="dialog" class="modal-backdrop">
+        <button
+            type="button"
+            aria-label="閉じる"
+            onclick={() => (teamPickModalOpen = false)}></button>
+    </form>
+</dialog>
+
 <dialog class="modal" class:modal-open={managedTeamModalOpen}>
     <div class="modal-box max-w-lg">
         <h3 class="text-lg font-bold">管理チーム選択</h3>
         <p class="mt-1 text-sm text-base-content/60">
-            チームを選ぶと、そのメンバーがメンティに追加されます。
+            あなたがリーダーのチームを選ぶと、そのメンバーがメンティに追加されます。
         </p>
         <div class="mt-4">
             <SearchableSelect
