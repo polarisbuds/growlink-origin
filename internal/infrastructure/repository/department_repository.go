@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"growlink/internal/domain/entity"
+	logutils "growlink/internal/shared/logUtils"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -20,7 +21,12 @@ func NewDepartementRepository(ctx context.Context, dp *gorm.DB) *DepartmentRepos
 	return &DepartmentRepository{ctx: ctx, db: dp}
 }
 
-func (repo *DepartmentRepository) GetByID(id uint) (*entity.Department, error) {
+func (repo *DepartmentRepository) GetByID(id uint) (ret0 *entity.Department, err error) {
+	const op = "department_repository.GetByID"
+	done := logutils.Begin(repo.ctx, logutils.LayerRepository, op)
+	defer func() {
+		done(err)
+	}()
 	dept, err := gorm.G[entity.Department](repo.db).Where("id = ?", id).Order("id ASC").First(repo.ctx)
 	if err != nil {
 		return nil, fmt.Errorf("部署の取得に失敗しました: %w", err)
@@ -28,7 +34,12 @@ func (repo *DepartmentRepository) GetByID(id uint) (*entity.Department, error) {
 	return &dept, nil
 }
 
-func (repo *DepartmentRepository) GetByName(name string) (*entity.Department, error) {
+func (repo *DepartmentRepository) GetByName(name string) (ret0 *entity.Department, err error) {
+	const op = "department_repository.GetByName"
+	done := logutils.Begin(repo.ctx, logutils.LayerRepository, op)
+	defer func() {
+		done(err)
+	}()
 	dept, err := gorm.G[entity.Department](repo.db).Where("name = ?", name).Order("id ASC").First(repo.ctx)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -39,7 +50,12 @@ func (repo *DepartmentRepository) GetByName(name string) (*entity.Department, er
 	return &dept, nil
 }
 
-func (repo *DepartmentRepository) GetByUUID(deptUUID uuid.UUID) (*entity.Department, error) {
+func (repo *DepartmentRepository) GetByUUID(deptUUID uuid.UUID) (ret0 *entity.Department, err error) {
+	const op = "department_repository.GetByUUID"
+	done := logutils.Begin(repo.ctx, logutils.LayerRepository, op)
+	defer func() {
+		done(err)
+	}()
 	dept, err := gorm.G[entity.Department](repo.db).Where("uuid = ?", deptUUID.String()).Order("id ASC").First(repo.ctx)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -50,7 +66,12 @@ func (repo *DepartmentRepository) GetByUUID(deptUUID uuid.UUID) (*entity.Departm
 	return &dept, nil
 }
 
-func (repo *DepartmentRepository) GetAll() ([]entity.Department, error) {
+func (repo *DepartmentRepository) GetAll() (ret0 []entity.Department, err error) {
+	const op = "department_repository.GetAll"
+	done := logutils.Begin(repo.ctx, logutils.LayerRepository, op)
+	defer func() {
+		done(err)
+	}()
 	depts, err := gorm.G[entity.Department](repo.db).Order("name ASC").Find(repo.ctx)
 	if err != nil {
 		return nil, fmt.Errorf("部署の全取得に失敗しました: %w", err)
@@ -58,35 +79,55 @@ func (repo *DepartmentRepository) GetAll() ([]entity.Department, error) {
 	return depts, nil
 }
 
-func (repo *DepartmentRepository) Create(department *entity.Department) error {
+func (repo *DepartmentRepository) Create(department *entity.Department) (err error) {
+	const op = "department_repository.Create"
+	done := logutils.Begin(repo.ctx, logutils.LayerRepository, op)
+	defer func() {
+		done(err)
+	}()
 	if department == nil {
 		return fmt.Errorf("作成対象の部署が空です")
 	}
-	if err := gorm.G[entity.Department](repo.db).Create(repo.ctx, department); err != nil {
+	if err = gorm.G[entity.Department](repo.db).Create(repo.ctx, department); err != nil {
 		return fmt.Errorf("部署の作成に失敗しました: %w", err)
 	}
 	return nil
 }
 
-func (repo *DepartmentRepository) UpdateByID(department *entity.Department) error {
+func (repo *DepartmentRepository) UpdateByID(department *entity.Department) (err error) {
+	const op = "department_repository.UpdateByID"
+	done := logutils.Begin(repo.ctx, logutils.LayerRepository, op)
+	defer func() {
+		done(err)
+	}()
 	if department == nil {
 		return nil
 	}
-	if _, err := gorm.G[entity.Department](repo.db).Where("id = ?", department.ID).Omit(clause.Associations).Updates(repo.ctx, *department); err != nil {
+	if _, err = gorm.G[entity.Department](repo.db).Where("id = ?", department.ID).Omit(clause.Associations).Updates(repo.ctx, *department); err != nil {
 		return fmt.Errorf("部署の更新に失敗しました: %w", err)
 	}
 	return nil
 }
 
-func (repo *DepartmentRepository) UpdateHeadUserID(id, headUserID uint) error {
-	if err := repo.db.WithContext(repo.ctx).Model(&entity.Department{}).Where("id = ?", id).Update("head_user_id", headUserID).Error; err != nil {
+func (repo *DepartmentRepository) UpdateHeadUserID(id, headUserID uint) (err error) {
+	const op = "department_repository.UpdateHeadUserID"
+	done := logutils.Begin(repo.ctx, logutils.LayerRepository, op)
+	defer func() {
+		done(err)
+	}()
+	if err = repo.db.WithContext(repo.ctx).Model(&entity.Department{}).Where("id = ?", id).Update("head_user_id", headUserID).Error; err != nil {
 		return fmt.Errorf("部署長の更新に失敗しました: %w", err)
 	}
 	return nil
 }
 
-func (repo *DepartmentRepository) Delete(id uint) error {
-	if _, err := gorm.G[entity.Department](repo.db).Where("id = ?", id).Delete(repo.ctx); err != nil {
+func (repo *DepartmentRepository) Delete(id uint) (err error) {
+	const op = "department_repository.Delete"
+	done := logutils.Begin(repo.ctx, logutils.LayerRepository, op)
+	defer func() {
+		done(err)
+	}()
+	if _, err = gorm.G[entity.Department](repo.db).Where("id = ?", id).Delete(repo.ctx); err != nil {
 		return fmt.Errorf("部署の削除に失敗しました: %w", err)
 	}
 	return nil

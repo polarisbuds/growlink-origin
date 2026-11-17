@@ -1,12 +1,14 @@
 package meeting_usecase
 
 import (
+	"context"
 	"fmt"
 
 	"growlink/internal/application/converter"
 	outputmodel "growlink/internal/application/model/output_model"
 	repository_interface "growlink/internal/domain/interface/repository"
 	"growlink/internal/domain/valueobject"
+	logutils "growlink/internal/shared/logUtils"
 )
 
 type DraftSaverUsecase struct {
@@ -21,8 +23,13 @@ func NewDraftSaverUsecase(meetingRepo repository_interface.MeetingRepository, an
 	}
 }
 
-func (uc *DraftSaverUsecase) SaveDraft(meetingID uint, answers []outputmodel.AnswerOutput, keepMeetingStatus bool) error {
-	if _, err := uc.answerRepo.Submits(converter.AnswerOutputsToEntities(answers)); err != nil {
+func (uc *DraftSaverUsecase) SaveDraft(meetingID uint, answers []outputmodel.AnswerOutput, keepMeetingStatus bool) (err error) {
+	const op = "meeting_usecase.SaveDraft"
+	done := logutils.Begin(context.Background(), logutils.LayerUsecase, op)
+	defer func() {
+		done(err)
+	}()
+	if _, err = uc.answerRepo.Submits(converter.AnswerOutputsToEntities(answers)); err != nil {
 		return fmt.Errorf("回答の下書き保存に失敗しました: %w", err)
 	}
 
@@ -30,7 +37,7 @@ func (uc *DraftSaverUsecase) SaveDraft(meetingID uint, answers []outputmodel.Ans
 		return nil
 	}
 
-	if err := uc.meetingRepo.UpdateStatus(meetingID, valueobject.MeetingStatusDraft); err != nil {
+	if err = uc.meetingRepo.UpdateStatus(meetingID, valueobject.MeetingStatusDraft); err != nil {
 		return fmt.Errorf("下書き保存へのステータス更新に失敗しました: %w", err)
 	}
 	return nil

@@ -1,12 +1,14 @@
 package meeting_mng_usecase
 
 import (
+	"context"
 	"fmt"
 	"growlink/internal/application/converter"
 	outputmodel "growlink/internal/application/model/output_model"
 	"growlink/internal/domain/entity"
 	repository_interface "growlink/internal/domain/interface/repository"
 	"growlink/internal/domain/valueobject"
+	logutils "growlink/internal/shared/logUtils"
 	"growlink/internal/shared/utils"
 	"sync"
 	"time"
@@ -72,7 +74,12 @@ func excludeTemporaryPairings(pairings []entity.Pairing) []entity.Pairing {
 	return out
 }
 
-func (uc *MeetingCreator) CreatePlannedMeetings(mentorID, templateID uint, menteeIDs []uint, implementDate time.Time, createdByUserID uint, sharerUserIDs []uint) ([]outputmodel.MeetingOutput, error) {
+func (uc *MeetingCreator) CreatePlannedMeetings(mentorID, templateID uint, menteeIDs []uint, implementDate time.Time, createdByUserID uint, sharerUserIDs []uint) (ret0 []outputmodel.MeetingOutput, err error) {
+	const op = "meeting_mng_usecase.CreatePlannedMeetings"
+	done := logutils.Begin(context.Background(), logutils.LayerUsecase, op)
+	defer func() {
+		done(err)
+	}()
 	if mentorID == 0 {
 		return nil, fmt.Errorf("メンターが指定されていません")
 	}
@@ -101,7 +108,7 @@ func (uc *MeetingCreator) CreatePlannedMeetings(mentorID, templateID uint, mente
 		if err != nil {
 			return nil, fmt.Errorf("ミーティングの作成に失敗しました: %w", err)
 		}
-		if err := uc.saveSharers(meeting.ID, sharerUserIDs); err != nil {
+		if err = uc.saveSharers(meeting.ID, sharerUserIDs); err != nil {
 			return nil, err
 		}
 		result = append(result, *meeting)
@@ -109,7 +116,12 @@ func (uc *MeetingCreator) CreatePlannedMeetings(mentorID, templateID uint, mente
 	return converter.MeetingEntitiesToOutputs(result), nil
 }
 
-func (uc *MeetingCreator) CreateMeetingEveryMonth(mentorID, templateID uint, menteeIDs []uint, from, to time.Time, createdByUserID uint, sharerUserIDs []uint) ([]outputmodel.MeetingOutput, error) {
+func (uc *MeetingCreator) CreateMeetingEveryMonth(mentorID, templateID uint, menteeIDs []uint, from, to time.Time, createdByUserID uint, sharerUserIDs []uint) (ret0 []outputmodel.MeetingOutput, err error) {
+	const op = "meeting_mng_usecase.CreateMeetingEveryMonth"
+	done := logutils.Begin(context.Background(), logutils.LayerUsecase, op)
+	defer func() {
+		done(err)
+	}()
 	if mentorID == 0 {
 		return nil, fmt.Errorf("メンターが指定されていません")
 	}
@@ -159,7 +171,7 @@ func (uc *MeetingCreator) CreateMeetingEveryMonth(mentorID, templateID uint, men
 					ec <- fmt.Errorf("定期ミーティングのペアリングのミーティング作成に失敗しました: %w", err)
 					return
 				}
-				if err := uc.saveSharers(meeting.ID, sharerUserIDs); err != nil {
+				if err = uc.saveSharers(meeting.ID, sharerUserIDs); err != nil {
 					ec <- err
 					return
 				}
@@ -179,7 +191,12 @@ func (uc *MeetingCreator) CreateMeetingEveryMonth(mentorID, templateID uint, men
 	return converter.MeetingEntitiesToOutputs(result), nil
 }
 
-func (uc *MeetingCreator) CreateMeetingEveryMonthWeekday(mentorID, templateID uint, menteeIDs []uint, from, to time.Time, week int, weekday time.Weekday, createdByUserID uint, sharerUserIDs []uint) ([]outputmodel.MeetingOutput, error) {
+func (uc *MeetingCreator) CreateMeetingEveryMonthWeekday(mentorID, templateID uint, menteeIDs []uint, from, to time.Time, week int, weekday time.Weekday, createdByUserID uint, sharerUserIDs []uint) (ret0 []outputmodel.MeetingOutput, err error) {
+	const op = "meeting_mng_usecase.CreateMeetingEveryMonthWeekday"
+	done := logutils.Begin(context.Background(), logutils.LayerUsecase, op)
+	defer func() {
+		done(err)
+	}()
 	if mentorID == 0 {
 		return nil, fmt.Errorf("メンターが指定されていません")
 	}
@@ -229,7 +246,7 @@ func (uc *MeetingCreator) CreateMeetingEveryMonthWeekday(mentorID, templateID ui
 					ec <- fmt.Errorf("定期ミーティングのペアリングのミーティング作成に失敗しました: %w", err)
 					return
 				}
-				if err := uc.saveSharers(meeting.ID, sharerUserIDs); err != nil {
+				if err = uc.saveSharers(meeting.ID, sharerUserIDs); err != nil {
 					ec <- err
 					return
 				}
@@ -249,7 +266,12 @@ func (uc *MeetingCreator) CreateMeetingEveryMonthWeekday(mentorID, templateID ui
 	return converter.MeetingEntitiesToOutputs(result), nil
 }
 
-func (uc *MeetingCreator) CreateMeetingEveryMonthByPairings(templateID uint, from, to time.Time, week int, weekday time.Weekday, createdByUserID uint, sharerUserIDs []uint, pairingIDs []uint) ([]outputmodel.MeetingOutput, error) {
+func (uc *MeetingCreator) CreateMeetingEveryMonthByPairings(templateID uint, from, to time.Time, week int, weekday time.Weekday, createdByUserID uint, sharerUserIDs []uint, pairingIDs []uint) (ret0 []outputmodel.MeetingOutput, err error) {
+	const op = "meeting_mng_usecase.CreateMeetingEveryMonthByPairings"
+	done := logutils.Begin(context.Background(), logutils.LayerUsecase, op)
+	defer func() {
+		done(err)
+	}()
 	if len(pairingIDs) == 0 {
 		return nil, fmt.Errorf("ペアが指定されていません")
 	}
@@ -290,7 +312,7 @@ func (uc *MeetingCreator) CreateMeetingEveryMonthByPairings(templateID uint, fro
 					ec <- fmt.Errorf("定期ミーティングのペアリングのミーティング作成に失敗しました: %w", err)
 					return
 				}
-				if err := uc.saveSharers(meeting.ID, sharerUserIDs); err != nil {
+				if err = uc.saveSharers(meeting.ID, sharerUserIDs); err != nil {
 					ec <- err
 					return
 				}
@@ -310,7 +332,12 @@ func (uc *MeetingCreator) CreateMeetingEveryMonthByPairings(templateID uint, fro
 	return converter.MeetingEntitiesToOutputs(result), nil
 }
 
-func (uc *MeetingCreator) CreateMeeting(pairingID, templateID uint, implementDate time.Time, createdByUserID uint, sharerUserIDs []uint) (*outputmodel.MeetingOutput, error) {
+func (uc *MeetingCreator) CreateMeeting(pairingID, templateID uint, implementDate time.Time, createdByUserID uint, sharerUserIDs []uint) (ret0 *outputmodel.MeetingOutput, err error) {
+	const op = "meeting_mng_usecase.CreateMeeting"
+	done := logutils.Begin(context.Background(), logutils.LayerUsecase, op)
+	defer func() {
+		done(err)
+	}()
 	meeting, err := uc.meetingRepo.Create(&entity.Meeting{
 		Status:          valueobject.MeetingStatusPending,
 		ImplementedAt:   implementedAtPtr(implementDate),
@@ -321,13 +348,18 @@ func (uc *MeetingCreator) CreateMeeting(pairingID, templateID uint, implementDat
 	if err != nil {
 		return nil, fmt.Errorf("ミーティングの作成に失敗しました: %w", err)
 	}
-	if err := uc.saveSharers(meeting.ID, sharerUserIDs); err != nil {
+	if err = uc.saveSharers(meeting.ID, sharerUserIDs); err != nil {
 		return nil, err
 	}
 	return converter.MeetingEntityToOutputPtr(meeting), nil
 }
 
-func (uc *MeetingCreator) CreateMeetingByAll(templateID uint, implementDate time.Time, createdByUserID uint, sharerUserIDs []uint, pairingIDs []uint) ([]outputmodel.MeetingOutput, error) {
+func (uc *MeetingCreator) CreateMeetingByAll(templateID uint, implementDate time.Time, createdByUserID uint, sharerUserIDs []uint, pairingIDs []uint) (ret0 []outputmodel.MeetingOutput, err error) {
+	const op = "meeting_mng_usecase.CreateMeetingByAll"
+	done := logutils.Begin(context.Background(), logutils.LayerUsecase, op)
+	defer func() {
+		done(err)
+	}()
 	pairings, err := uc.pairingRepo.GetAll()
 	if err != nil {
 		return nil, fmt.Errorf("ミーティング作成時に全てのペアリング情報の取得に失敗しました: %w", err)
@@ -355,7 +387,7 @@ func (uc *MeetingCreator) CreateMeetingByAll(templateID uint, implementDate time
 				ec <- fmt.Errorf("全ペアリングのミーティング作成に失敗しました: %w", err)
 				return
 			}
-			if err := uc.saveSharers(meeting.ID, sharerUserIDs); err != nil {
+			if err = uc.saveSharers(meeting.ID, sharerUserIDs); err != nil {
 				ec <- err
 				return
 			}

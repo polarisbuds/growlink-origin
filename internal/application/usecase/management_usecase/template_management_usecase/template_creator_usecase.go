@@ -1,11 +1,13 @@
 package template_mng_usecase
 
 import (
+	"context"
 	"fmt"
 	"growlink/internal/application/converter"
 	inputmodel "growlink/internal/application/model/input_model"
 	"growlink/internal/domain/entity"
 	repository_interface "growlink/internal/domain/interface/repository"
+	logutils "growlink/internal/shared/logUtils"
 )
 
 type TemplateCreator struct {
@@ -21,9 +23,14 @@ func NewTemplateCreator(templateRepo repository_interface.TemplateRepository,
 	}
 }
 
-func (uc *TemplateCreator) CreateTemplate(input inputmodel.TemplateInput, userID uint) error {
+func (uc *TemplateCreator) CreateTemplate(input inputmodel.TemplateInput, userID uint) (err error) {
+	const op = "template_mng_usecase.CreateTemplate"
+	done := logutils.Begin(context.Background(), logutils.LayerUsecase, op)
+	defer func() {
+		done(err)
+	}()
 	input.Topics = normalizeTopicInputs(input.Topics)
-	if err := validateTemplateInput(input); err != nil {
+	if err = validateTemplateInput(input); err != nil {
 		return err
 	}
 
@@ -32,14 +39,14 @@ func (uc *TemplateCreator) CreateTemplate(input inputmodel.TemplateInput, userID
 		Description: input.Description,
 		UserID:      userID,
 	}
-	if err := uc.templateRepo.Create(template); err != nil {
+	if err = uc.templateRepo.Create(template); err != nil {
 		return fmt.Errorf("テンプレートの新規作成に失敗しました: %w", err)
 	}
 
 	for _, inputTopic := range input.Topics {
 		topic := converter.TopicInputToEntity(inputTopic)
 		topic.TemplateID = template.ID
-		if err := uc.topicRepo.Create(topic); err != nil {
+		if err = uc.topicRepo.Create(topic); err != nil {
 			return fmt.Errorf("トピックの作成に失敗しました: %w", err)
 		}
 	}

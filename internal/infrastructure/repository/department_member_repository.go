@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"growlink/internal/domain/entity"
+	logutils "growlink/internal/shared/logUtils"
 
 	"gorm.io/gorm"
 )
@@ -31,7 +32,12 @@ func (repo *DepartmentMemberRepository) preloadWhere(query string, args ...any) 
 	return members, nil
 }
 
-func (repo *DepartmentMemberRepository) GetAll() ([]entity.DepartmentMember, error) {
+func (repo *DepartmentMemberRepository) GetAll() (ret0 []entity.DepartmentMember, err error) {
+	const op = "department_member_repository.GetAll"
+	done := logutils.Begin(repo.ctx, logutils.LayerRepository, op)
+	defer func() {
+		done(err)
+	}()
 	members, err := gorm.G[entity.DepartmentMember](repo.db).Order("id ASC").Find(repo.ctx)
 	if err != nil {
 		return nil, fmt.Errorf("部署メンバーの全取得に失敗しました: %w", err)
@@ -39,7 +45,12 @@ func (repo *DepartmentMemberRepository) GetAll() ([]entity.DepartmentMember, err
 	return members, nil
 }
 
-func (repo *DepartmentMemberRepository) GetByDepartmentID(departmentID uint) ([]entity.DepartmentMember, error) {
+func (repo *DepartmentMemberRepository) GetByDepartmentID(departmentID uint) (ret0 []entity.DepartmentMember, err error) {
+	const op = "department_member_repository.GetByDepartmentID"
+	done := logutils.Begin(repo.ctx, logutils.LayerRepository, op)
+	defer func() {
+		done(err)
+	}()
 	members, err := repo.preloadWhere("department_id = ?", departmentID)
 	if err != nil {
 		return nil, fmt.Errorf("部署ID指定での部署メンバー取得に失敗しました: %w", err)
@@ -47,7 +58,12 @@ func (repo *DepartmentMemberRepository) GetByDepartmentID(departmentID uint) ([]
 	return members, nil
 }
 
-func (repo *DepartmentMemberRepository) GetByUserID(userID uint) ([]entity.DepartmentMember, error) {
+func (repo *DepartmentMemberRepository) GetByUserID(userID uint) (ret0 []entity.DepartmentMember, err error) {
+	const op = "department_member_repository.GetByUserID"
+	done := logutils.Begin(repo.ctx, logutils.LayerRepository, op)
+	defer func() {
+		done(err)
+	}()
 	members, err := repo.preloadWhere("user_id = ?", userID)
 	if err != nil {
 		return nil, fmt.Errorf("ユーザID指定での部署メンバー取得に失敗しました: %w", err)
@@ -55,7 +71,12 @@ func (repo *DepartmentMemberRepository) GetByUserID(userID uint) ([]entity.Depar
 	return members, nil
 }
 
-func (repo *DepartmentMemberRepository) ReplaceByDepartment(departmentID uint, members []entity.DepartmentMember) error {
+func (repo *DepartmentMemberRepository) ReplaceByDepartment(departmentID uint, members []entity.DepartmentMember) (err error) {
+	const op = "department_member_repository.ReplaceByDepartment"
+	done := logutils.Begin(repo.ctx, logutils.LayerRepository, op)
+	defer func() {
+		done(err)
+	}()
 	want := map[uint]entity.DepartmentMember{}
 	for _, member := range members {
 		if member.UserID == 0 {
@@ -70,9 +91,9 @@ func (repo *DepartmentMemberRepository) ReplaceByDepartment(departmentID uint, m
 		}
 	}
 
-	err := repo.db.WithContext(repo.ctx).Transaction(func(tx *gorm.DB) error {
+	err = repo.db.WithContext(repo.ctx).Transaction(func(tx *gorm.DB) error {
 		var existing []entity.DepartmentMember
-		if err := tx.Where("department_id = ?", departmentID).Find(&existing).Error; err != nil {
+		if err = tx.Where("department_id = ?", departmentID).Find(&existing).Error; err != nil {
 			return err
 		}
 		byUser := map[uint]entity.DepartmentMember{}
@@ -82,7 +103,7 @@ func (repo *DepartmentMemberRepository) ReplaceByDepartment(departmentID uint, m
 
 		for userID, row := range byUser {
 			if _, ok := want[userID]; !ok {
-				if err := tx.Delete(&row).Error; err != nil {
+				if err = tx.Delete(&row).Error; err != nil {
 					return err
 				}
 			}
@@ -90,7 +111,7 @@ func (repo *DepartmentMemberRepository) ReplaceByDepartment(departmentID uint, m
 		for userID, desired := range want {
 			current, ok := byUser[userID]
 			if !ok {
-				if err := tx.Create(&desired).Error; err != nil {
+				if err = tx.Create(&desired).Error; err != nil {
 					return err
 				}
 				continue
@@ -98,7 +119,7 @@ func (repo *DepartmentMemberRepository) ReplaceByDepartment(departmentID uint, m
 			if current.RoleID == desired.RoleID && current.IsHead == desired.IsHead && current.IsManager == desired.IsManager {
 				continue
 			}
-			if err := tx.Model(&entity.DepartmentMember{}).
+			if err = tx.Model(&entity.DepartmentMember{}).
 				Where("id = ?", current.ID).
 				Select("RoleID", "IsHead", "IsManager").
 				Updates(map[string]any{
@@ -117,15 +138,20 @@ func (repo *DepartmentMemberRepository) ReplaceByDepartment(departmentID uint, m
 	return nil
 }
 
-func (repo *DepartmentMemberRepository) ReplaceByUser(userID uint, member entity.DepartmentMember) error {
+func (repo *DepartmentMemberRepository) ReplaceByUser(userID uint, member entity.DepartmentMember) (err error) {
+	const op = "department_member_repository.ReplaceByUser"
+	done := logutils.Begin(repo.ctx, logutils.LayerRepository, op)
+	defer func() {
+		done(err)
+	}()
 	member.UserID = userID
 	member.Department = nil
 	member.User = nil
 	member.Role = nil
 
-	err := repo.db.WithContext(repo.ctx).Transaction(func(tx *gorm.DB) error {
+	err = repo.db.WithContext(repo.ctx).Transaction(func(tx *gorm.DB) error {
 		var existing []entity.DepartmentMember
-		if err := tx.Where("user_id = ?", userID).Find(&existing).Error; err != nil {
+		if err = tx.Where("user_id = ?", userID).Find(&existing).Error; err != nil {
 			return err
 		}
 
@@ -136,7 +162,7 @@ func (repo *DepartmentMemberRepository) ReplaceByUser(userID uint, member entity
 				current = &row
 				continue
 			}
-			if err := tx.Delete(&existing[i]).Error; err != nil {
+			if err = tx.Delete(&existing[i]).Error; err != nil {
 				return err
 			}
 		}

@@ -1,11 +1,13 @@
 package template_mng_usecase
 
 import (
+	"context"
 	"fmt"
 	"growlink/internal/application/converter"
 	inputmodel "growlink/internal/application/model/input_model"
 	"growlink/internal/domain/entity"
 	repository_interface "growlink/internal/domain/interface/repository"
+	logutils "growlink/internal/shared/logUtils"
 
 	"github.com/google/uuid"
 )
@@ -22,7 +24,12 @@ func NewTemplateUpdater(templateRepo repository_interface.TemplateRepository, to
 	}
 }
 
-func (uc *TemplateUpdater) UpdateTemplate(templateID uint, input inputmodel.TemplateInput) error {
+func (uc *TemplateUpdater) UpdateTemplate(templateID uint, input inputmodel.TemplateInput) (err error) {
+	const op = "template_mng_usecase.UpdateTemplate"
+	done := logutils.Begin(context.Background(), logutils.LayerUsecase, op)
+	defer func() {
+		done(err)
+	}()
 	tpl, err := uc.templateRepo.Get(templateID)
 	if err != nil {
 		return fmt.Errorf("テンプレートの取得に失敗しました: %w", err)
@@ -31,14 +38,14 @@ func (uc *TemplateUpdater) UpdateTemplate(templateID uint, input inputmodel.Temp
 		return ErrTemplateLocked
 	}
 	input.Topics = normalizeTopicInputs(input.Topics)
-	if err := validateTemplateInput(input); err != nil {
+	if err = validateTemplateInput(input); err != nil {
 		return err
 	}
 	newTemplate := converter.TemplateInputToEntity(input)
-	if err := ensureTopicsBelongToTemplate(tpl.Topics, newTemplate.Topics); err != nil {
+	if err = ensureTopicsBelongToTemplate(tpl.Topics, newTemplate.Topics); err != nil {
 		return err
 	}
-	if err := uc.templateRepo.Update(templateID, newTemplate); err != nil {
+	if err = uc.templateRepo.Update(templateID, newTemplate); err != nil {
 		return fmt.Errorf("テンプレートの情報更新に失敗しました: %w", err)
 	}
 	return nil
@@ -60,15 +67,25 @@ func ensureTopicsBelongToTemplate(existing []entity.Topic, incoming []entity.Top
 	return nil
 }
 
-func (uc *TemplateUpdater) UpdateTemplateLock(templateID uint, isLock bool) error {
-	if err := uc.templateRepo.UpdateIsLock(templateID, isLock); err != nil {
+func (uc *TemplateUpdater) UpdateTemplateLock(templateID uint, isLock bool) (err error) {
+	const op = "template_mng_usecase.UpdateTemplateLock"
+	done := logutils.Begin(context.Background(), logutils.LayerUsecase, op)
+	defer func() {
+		done(err)
+	}()
+	if err = uc.templateRepo.UpdateIsLock(templateID, isLock); err != nil {
 		return fmt.Errorf("テンプレートのロック状態の更新に失敗しました: %w", err)
 	}
 	return nil
 }
 
-func (uc *TemplateUpdater) UpdateTemplateDefault(templateID uint, isDefault bool) error {
-	if err := uc.templateRepo.UpdateIsDefault(templateID, isDefault); err != nil {
+func (uc *TemplateUpdater) UpdateTemplateDefault(templateID uint, isDefault bool) (err error) {
+	const op = "template_mng_usecase.UpdateTemplateDefault"
+	done := logutils.Begin(context.Background(), logutils.LayerUsecase, op)
+	defer func() {
+		done(err)
+	}()
+	if err = uc.templateRepo.UpdateIsDefault(templateID, isDefault); err != nil {
 		return fmt.Errorf("テンプレートの初期フラグの更新に失敗しました: %w", err)
 	}
 	return nil

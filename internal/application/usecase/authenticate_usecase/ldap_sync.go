@@ -13,8 +13,12 @@ import (
 	logutils "growlink/internal/shared/logUtils"
 )
 
-func (uc *AuthUsecase) SyncDirectory(ctx context.Context) error {
+func (uc *AuthUsecase) SyncDirectory(ctx context.Context) (err error) {
 	const op = opAuth + ".SyncDirectory"
+	done := logutils.Begin(ctx, logutils.LayerUsecase, op)
+	defer func() {
+		done(err)
+	}()
 	if uc.ldapClient == nil {
 		logutils.Warn(ctx, logutils.LayerUsecase, op, "LDAPクライアントが無いため同期をスキップ")
 		return nil
@@ -68,7 +72,7 @@ func (uc *AuthUsecase) SyncDirectory(ctx context.Context) error {
 		if userHasPassword(user) {
 			continue
 		}
-		if err := uc.refreshLDAPUser(ctx, user, ldapUser); err != nil {
+		if err = uc.refreshLDAPUser(ctx, user, ldapUser); err != nil {
 			return err
 		}
 	}
@@ -87,7 +91,7 @@ func (uc *AuthUsecase) SyncDirectory(ctx context.Context) error {
 	if len(suspendIDs) == 0 {
 		return nil
 	}
-	if err := uc.userRepo.SetSuspendedByIDs(suspendIDs, true); err != nil {
+	if err = uc.userRepo.SetSuspendedByIDs(suspendIDs, true); err != nil {
 		return err
 	}
 	logutils.Info(ctx, logutils.LayerUsecase, op, "LDAPに存在しないユーザを停止", slog.Int("count", len(suspendIDs)))

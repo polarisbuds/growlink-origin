@@ -1,11 +1,13 @@
 package planning_usecase
 
 import (
+	"context"
 	"slices"
 	"time"
 
 	outputmodel "growlink/internal/application/model/output_model"
 	"growlink/internal/domain/valueobject"
+	logutils "growlink/internal/shared/logUtils"
 
 	"github.com/google/uuid"
 	"golang.org/x/text/collate"
@@ -217,7 +219,12 @@ func (uc *PlanningAccessUsecase) ListPlanningMeetingsPaged(
 	filter PlanningMeetingsListFilter,
 	page int,
 	dirDesc bool,
-) (outputmodel.PlanningMeetingsPageOutput, error) {
+) (ret0 outputmodel.PlanningMeetingsPageOutput, err error) {
+	const op = "planning_usecase.ListPlanningMeetingsPaged"
+	done := logutils.Begin(context.Background(), logutils.LayerUsecase, op)
+	defer func() {
+		done(err)
+	}()
 	all, err := uc.ListPlanningMeetings(userID, authority, systemRole)
 	if err != nil {
 		return outputmodel.PlanningMeetingsPageOutput{}, err

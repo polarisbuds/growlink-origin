@@ -1,8 +1,10 @@
 package pairing_usecase
 
 import (
+	"context"
 	"fmt"
 	repository_interface "growlink/internal/domain/interface/repository"
+	logutils "growlink/internal/shared/logUtils"
 )
 
 type PairingCreatorUsecase struct {
@@ -17,8 +19,13 @@ func NewPairingCreatorUsecase(pairingRepo repository_interface.PairingRepository
 	}
 }
 
-func (uc *PairingCreatorUsecase) PairingCreator(menteeID, mentorID uint) error {
-	_, err := uc.pairingRepo.CreatePairing(menteeID, mentorID, 0)
+func (uc *PairingCreatorUsecase) PairingCreator(menteeID, mentorID uint) (err error) {
+	const op = "pairing_usecase.PairingCreator"
+	done := logutils.Begin(context.Background(), logutils.LayerUsecase, op)
+	defer func() {
+		done(err)
+	}()
+	_, err = uc.pairingRepo.CreatePairing(menteeID, mentorID, 0)
 	if err != nil {
 		return fmt.Errorf("ペアリングの作成に失敗しました: %w", err)
 	}

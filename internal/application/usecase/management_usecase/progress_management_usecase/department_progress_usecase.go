@@ -1,12 +1,14 @@
 package progress_mng_usecase
 
 import (
+	"context"
 	"fmt"
 	"slices"
 
 	outputmodel "growlink/internal/application/model/output_model"
 	"growlink/internal/domain/entity"
 	"growlink/internal/domain/valueobject"
+	logutils "growlink/internal/shared/logUtils"
 )
 
 type deptProgressStats struct {
@@ -345,7 +347,12 @@ func buildTeamRowsForDepartment(
 	return out
 }
 
-func (uc *ProgressViewer) DepartmentTable(filter ProgressFilter) (*outputmodel.ProgressDepartmentTableOutput, error) {
+func (uc *ProgressViewer) DepartmentTable(filter ProgressFilter) (ret0 *outputmodel.ProgressDepartmentTableOutput, err error) {
+	const op = "progress_mng_usecase.DepartmentTable"
+	done := logutils.Begin(context.Background(), logutils.LayerUsecase, op)
+	defer func() {
+		done(err)
+	}()
 	if uc.deptRepo == nil || uc.hierarchyRepo == nil || uc.deptMemberRepo == nil ||
 		uc.teamRepo == nil || uc.teamMemberRepo == nil || uc.pairingRepo == nil {
 		return nil, fmt.Errorf("部署進捗の集計に必要なリポジトリが設定されていません")

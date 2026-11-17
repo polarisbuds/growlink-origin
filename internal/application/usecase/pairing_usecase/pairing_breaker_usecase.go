@@ -1,7 +1,9 @@
 package pairing_usecase
 
 import (
+	"context"
 	repository_interface "growlink/internal/domain/interface/repository"
+	"growlink/internal/shared/logUtils"
 )
 
 type PairingBreakerUsecase struct {
@@ -17,6 +19,11 @@ func NewPairingBreakerUsecase(pairingRepo repository_interface.PairingRepository
 }
 
 func (uc *PairingBreakerUsecase) BreakPairByMenteeID(menteeID uint) bool {
+	const op = "pairing_usecase.BreakPairByMenteeID"
+	done := logutils.Begin(context.Background(), logutils.LayerUsecase, op)
+	defer func() {
+		done(nil)
+	}()
 	pairings, err := uc.pairingRepo.GetByMenteeID(menteeID)
 	if err != nil {
 		return false

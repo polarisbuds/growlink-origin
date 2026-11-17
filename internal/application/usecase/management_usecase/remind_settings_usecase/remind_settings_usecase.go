@@ -1,9 +1,11 @@
 package remind_settings_usecase
 
 import (
+	"context"
 	"fmt"
 	outputmodel "growlink/internal/application/model/output_model"
 	repository_interface "growlink/internal/domain/interface/repository"
+	logutils "growlink/internal/shared/logUtils"
 	"strings"
 )
 
@@ -15,7 +17,12 @@ func NewRemindSettings(settingsRepo repository_interface.SystemSettingsRepositor
 	return &RemindSettings{settingsRepo: settingsRepo}
 }
 
-func (uc *RemindSettings) Get() (*outputmodel.RemindSettingsOutput, error) {
+func (uc *RemindSettings) Get() (ret0 *outputmodel.RemindSettingsOutput, err error) {
+	const op = "remind_settings_usecase.Get"
+	done := logutils.Begin(context.Background(), logutils.LayerUsecase, op)
+	defer func() {
+		done(err)
+	}()
 	s, err := uc.settingsRepo.GetSingleton()
 	if err != nil {
 		return nil, err
@@ -45,7 +52,12 @@ type UpdateRemindInput struct {
 	RemindTime       string `json:"remindTime"`
 }
 
-func (uc *RemindSettings) Update(input UpdateRemindInput) error {
+func (uc *RemindSettings) Update(input UpdateRemindInput) (err error) {
+	const op = "remind_settings_usecase.Update"
+	done := logutils.Begin(context.Background(), logutils.LayerUsecase, op)
+	defer func() {
+		done(err)
+	}()
 	if !strings.Contains(input.RemindTime, ":") {
 		return fmt.Errorf("時刻の形式が不正です")
 	}

@@ -1,11 +1,13 @@
 package pairing_mng_usecase
 
 import (
+	"context"
 	"fmt"
 
 	inputmodel "growlink/internal/application/model/input_model"
 	"growlink/internal/domain/entity"
 	repository_interface "growlink/internal/domain/interface/repository"
+	logutils "growlink/internal/shared/logUtils"
 )
 
 type PairingUpdater struct {
@@ -18,7 +20,12 @@ func NewPairingUpdater(pairingRepo repository_interface.PairingRepository) *Pair
 	}
 }
 
-func (uc *PairingUpdater) UpdatePairing(pairingID uint, input inputmodel.PairingInput) error {
+func (uc *PairingUpdater) UpdatePairing(pairingID uint, input inputmodel.PairingInput) (err error) {
+	const op = "pairing_mng_usecase.UpdatePairing"
+	done := logutils.Begin(context.Background(), logutils.LayerUsecase, op)
+	defer func() {
+		done(err)
+	}()
 	targets := input.ResolvedTargets()
 	if len(targets) == 0 {
 		return fmt.Errorf("対象が指定されていません")
@@ -34,11 +41,11 @@ func (uc *PairingUpdater) UpdatePairing(pairingID uint, input inputmodel.Pairing
 	if err != nil {
 		return fmt.Errorf("ペアリング情報の取得に失敗しました: %w", err)
 	}
-	if err := uc.pairingRepo.UpdatePairing(pairingID, input.MentorID, menteeIDs[0]); err != nil {
+	if err = uc.pairingRepo.UpdatePairing(pairingID, input.MentorID, menteeIDs[0]); err != nil {
 		return fmt.Errorf("ペアリング情報の更新に失敗しました: %w", err)
 	}
 	for _, menteeID := range menteeIDs[1:] {
-		if _, err := uc.pairingRepo.CreatePairing(menteeID, input.MentorID, existing.CreatedByUserID); err != nil {
+		if _, err = uc.pairingRepo.CreatePairing(menteeID, input.MentorID, existing.CreatedByUserID); err != nil {
 			return fmt.Errorf("ペアリングの作成に失敗しました: %w", err)
 		}
 	}

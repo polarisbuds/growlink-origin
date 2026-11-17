@@ -1,8 +1,10 @@
 package setting_usecase
 
 import (
+	"context"
 	"fmt"
 	repository_interface "growlink/internal/domain/interface/repository"
+	logutils "growlink/internal/shared/logUtils"
 	"log/slog"
 )
 
@@ -20,7 +22,13 @@ func NewIconRemoverUsecase(
 	}
 }
 
-func (uc *IconRemoverUsecase) RemoveIcon(userID uint) error {
+func (uc *IconRemoverUsecase) RemoveIcon(userID uint) (err error) {
+	const op = "setting_usecase.RemoveIcon"
+	ctx := context.Background()
+	done := logutils.Begin(ctx, logutils.LayerUsecase, op)
+	defer func() {
+		done(err)
+	}()
 	user, err := uc.userRepository.GetByID(userID)
 	if err != nil {
 		return fmt.Errorf("ユーザアイコンの削除処理で存在しないユーザIDが指定されました: %w", err)
@@ -28,20 +36,20 @@ func (uc *IconRemoverUsecase) RemoveIcon(userID uint) error {
 
 	if filename := user.ImageURI; filename != nil {
 		name := *filename
-		slog.Info("ユーザアイコンの削除を実施します。", slog.String("filename", name))
+		logutils.Info(ctx, logutils.LayerUsecase, op, "ユーザアイコンの削除を実施します。", slog.String("filename", name))
 
 		isExists, err := uc.uploadFileRepository.Exists(name)
 		if err != nil {
 			return fmt.Errorf("削除対象のイメージファイルの存在チェックに失敗しました: %w", err)
 		}
 		if isExists {
-			if err := uc.uploadFileRepository.DeleteFile(name); err != nil {
+			if err = uc.uploadFileRepository.DeleteFile(name); err != nil {
 				return fmt.Errorf("削除対象のイメージファイルの削除に失敗しました: %w", err)
 			}
 		}
 	}
 
-	if err := uc.userRepository.UpdateColumns(userID, map[string]any{"image_uri": nil}); err != nil {
+	if err = uc.userRepository.UpdateColumns(userID, map[string]any{"image_uri": nil}); err != nil {
 		return fmt.Errorf("ユーザアイコンの削除に失敗しました: %w", err)
 	}
 

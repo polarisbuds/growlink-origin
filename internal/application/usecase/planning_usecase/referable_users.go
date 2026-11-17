@@ -1,7 +1,9 @@
 package planning_usecase
 
 import (
+	"context"
 	"growlink/internal/domain/valueobject"
+	logutils "growlink/internal/shared/logUtils"
 )
 
 func fullPlanningAccess(systemRole valueobject.SystemRole) bool {
@@ -10,7 +12,12 @@ func fullPlanningAccess(systemRole valueobject.SystemRole) bool {
 
 // ReferableUserIDs returns user IDs whose meetings may count toward progress and org-scoped 1:1 access.
 // nil map means unrestricted (system admin / analyst).
-func (uc *PlanningAccessUsecase) ReferableUserIDs(userID uint, systemRole valueobject.SystemRole) (map[uint]bool, error) {
+func (uc *PlanningAccessUsecase) ReferableUserIDs(userID uint, systemRole valueobject.SystemRole) (ret0 map[uint]bool, err error) {
+	const op = "planning_usecase.ReferableUserIDs"
+	done := logutils.Begin(context.Background(), logutils.LayerUsecase, op)
+	defer func() {
+		done(err)
+	}()
 	if fullPlanningAccess(systemRole) {
 		return nil, nil
 	}
@@ -56,6 +63,11 @@ func (uc *PlanningAccessUsecase) ReferableUserIDs(userID uint, systemRole valueo
 }
 
 // LeaderTeamIDs returns teams where the user is team leader (IsReader).
-func (uc *PlanningAccessUsecase) LeaderTeamIDs(userID uint) ([]uint, error) {
+func (uc *PlanningAccessUsecase) LeaderTeamIDs(userID uint) (ret0 []uint, err error) {
+	const op = "planning_usecase.LeaderTeamIDs"
+	done := logutils.Begin(context.Background(), logutils.LayerUsecase, op)
+	defer func() {
+		done(err)
+	}()
 	return uc.readerTeamIDs(userID)
 }

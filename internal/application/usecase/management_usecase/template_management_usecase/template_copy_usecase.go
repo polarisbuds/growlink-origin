@@ -1,10 +1,12 @@
 package template_mng_usecase
 
 import (
+	"context"
 	"fmt"
 
 	inputmodel "growlink/internal/application/model/input_model"
 	repository_interface "growlink/internal/domain/interface/repository"
+	logutils "growlink/internal/shared/logUtils"
 )
 
 type TemplateCopier struct {
@@ -21,7 +23,12 @@ func NewTemplateCopier(templateRepo repository_interface.TemplateRepository, top
 	}
 }
 
-func (uc *TemplateCopier) CopyTemplate(sourceID uint, newTitle string, newCreatorID uint) error {
+func (uc *TemplateCopier) CopyTemplate(sourceID uint, newTitle string, newCreatorID uint) (err error) {
+	const op = "template_mng_usecase.CopyTemplate"
+	done := logutils.Begin(context.Background(), logutils.LayerUsecase, op)
+	defer func() {
+		done(err)
+	}()
 	src, err := uc.templateRepo.Get(sourceID)
 	if err != nil {
 		return fmt.Errorf("テンプレートの取得に失敗しました: %w", err)

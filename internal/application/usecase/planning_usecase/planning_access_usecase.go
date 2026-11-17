@@ -1,6 +1,7 @@
 package planning_usecase
 
 import (
+	"context"
 	"fmt"
 
 	"growlink/internal/application/converter"
@@ -11,6 +12,7 @@ import (
 	"growlink/internal/domain/entity"
 	repository_interface "growlink/internal/domain/interface/repository"
 	"growlink/internal/domain/valueobject"
+	logutils "growlink/internal/shared/logUtils"
 )
 
 type PlanningAccessUsecase struct {
@@ -131,7 +133,12 @@ func (uc *PlanningAccessUsecase) meetingsForPairings(pairings []entity.Pairing) 
 	return merged, nil
 }
 
-func (uc *PlanningAccessUsecase) ListPlanningMeetings(userID uint, authority valueobject.Authority, systemRole valueobject.SystemRole) ([]outputmodel.MeetingOutput, error) {
+func (uc *PlanningAccessUsecase) ListPlanningMeetings(userID uint, authority valueobject.Authority, systemRole valueobject.SystemRole) (ret0 []outputmodel.MeetingOutput, err error) {
+	const op = "planning_usecase.ListPlanningMeetings"
+	done := logutils.Begin(context.Background(), logutils.LayerUsecase, op)
+	defer func() {
+		done(err)
+	}()
 	pairings, err := uc.pairingRepo.GetAllContainDeleted()
 	if err != nil {
 		return []outputmodel.MeetingOutput{}, fmt.Errorf("ペアリング一覧の取得に失敗しました: %w", err)
@@ -186,7 +193,12 @@ func (uc *PlanningAccessUsecase) ListPlanningMeetings(userID uint, authority val
 	return applyPairingsToMeetings(merged, pairings), nil
 }
 
-func (uc *PlanningAccessUsecase) CanViewPlanningMeeting(userID uint, authority valueobject.Authority, systemRole valueobject.SystemRole, meetingID uint) (bool, error) {
+func (uc *PlanningAccessUsecase) CanViewPlanningMeeting(userID uint, authority valueobject.Authority, systemRole valueobject.SystemRole, meetingID uint) (ret0 bool, err error) {
+	const op = "planning_usecase.CanViewPlanningMeeting"
+	done := logutils.Begin(context.Background(), logutils.LayerUsecase, op)
+	defer func() {
+		done(err)
+	}()
 	if fullPlanningAccess(systemRole) || authority.IsOwner() {
 		return true, nil
 	}
@@ -202,7 +214,12 @@ func (uc *PlanningAccessUsecase) CanViewPlanningMeeting(userID uint, authority v
 	return false, nil
 }
 
-func (uc *PlanningAccessUsecase) HasPairManagementAccess(userID uint, authority valueobject.Authority, systemRole valueobject.SystemRole) (bool, error) {
+func (uc *PlanningAccessUsecase) HasPairManagementAccess(userID uint, authority valueobject.Authority, systemRole valueobject.SystemRole) (ret0 bool, err error) {
+	const op = "planning_usecase.HasPairManagementAccess"
+	done := logutils.Begin(context.Background(), logutils.LayerUsecase, op)
+	defer func() {
+		done(err)
+	}()
 	if fullPlanningAccess(systemRole) || authority.IsOwner() {
 		return true, nil
 	}
@@ -213,7 +230,12 @@ func (uc *PlanningAccessUsecase) HasPairManagementAccess(userID uint, authority 
 	return len(scope) > 0, nil
 }
 
-func (uc *PlanningAccessUsecase) ListPairingsForManagement(userID uint, authority valueobject.Authority, systemRole valueobject.SystemRole) ([]outputmodel.PairingOutput, error) {
+func (uc *PlanningAccessUsecase) ListPairingsForManagement(userID uint, authority valueobject.Authority, systemRole valueobject.SystemRole) (ret0 []outputmodel.PairingOutput, err error) {
+	const op = "planning_usecase.ListPairingsForManagement"
+	done := logutils.Begin(context.Background(), logutils.LayerUsecase, op)
+	defer func() {
+		done(err)
+	}()
 	if fullPlanningAccess(systemRole) || authority.IsOwner() {
 		return uc.pairingViewer.ListPairingsByAll()
 	}
@@ -232,7 +254,12 @@ func (uc *PlanningAccessUsecase) listPairManagementScopedPairings(userID uint, a
 	return uc.listPairingsByMenteeIDs(menteeIDs)
 }
 
-func (uc *PlanningAccessUsecase) ListPairingsForMeeting(userID uint, authority valueobject.Authority, systemRole valueobject.SystemRole) ([]outputmodel.PairingOutput, error) {
+func (uc *PlanningAccessUsecase) ListPairingsForMeeting(userID uint, authority valueobject.Authority, systemRole valueobject.SystemRole) (ret0 []outputmodel.PairingOutput, err error) {
+	const op = "planning_usecase.ListPairingsForMeeting"
+	done := logutils.Begin(context.Background(), logutils.LayerUsecase, op)
+	defer func() {
+		done(err)
+	}()
 	if fullPlanningAccess(systemRole) || authority.IsOwner() {
 		return uc.pairingViewer.ListPairingsByAll()
 	}
@@ -457,7 +484,12 @@ func (uc *PlanningAccessUsecase) listPairingsByMenteeIDs(ids []uint) ([]outputmo
 	return merged, nil
 }
 
-func (uc *PlanningAccessUsecase) CanSpecifyPairMeeting(userID uint, systemRole valueobject.SystemRole, authority valueobject.Authority) (bool, error) {
+func (uc *PlanningAccessUsecase) CanSpecifyPairMeeting(userID uint, systemRole valueobject.SystemRole, authority valueobject.Authority) (ret0 bool, err error) {
+	const op = "planning_usecase.CanSpecifyPairMeeting"
+	done := logutils.Begin(context.Background(), logutils.LayerUsecase, op)
+	defer func() {
+		done(err)
+	}()
 	if fullPlanningAccess(systemRole) || authority.IsOwner() {
 		return true, nil
 	}

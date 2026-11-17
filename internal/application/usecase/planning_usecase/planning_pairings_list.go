@@ -1,10 +1,12 @@
 package planning_usecase
 
 import (
+	"context"
 	"slices"
 
 	outputmodel "growlink/internal/application/model/output_model"
 	"growlink/internal/domain/valueobject"
+	logutils "growlink/internal/shared/logUtils"
 
 	"github.com/google/uuid"
 	"golang.org/x/text/collate"
@@ -154,7 +156,12 @@ func (uc *PlanningAccessUsecase) ListPairingsForManagementFiltered(
 	authority valueobject.Authority,
 	systemRole valueobject.SystemRole,
 	filter PlanningPairingsListFilter,
-) ([]outputmodel.PairingOutput, error) {
+) (ret0 []outputmodel.PairingOutput, err error) {
+	const op = "planning_usecase.ListPairingsForManagementFiltered"
+	done := logutils.Begin(context.Background(), logutils.LayerUsecase, op)
+	defer func() {
+		done(err)
+	}()
 	return uc.listFilteredSortedPairings(userID, authority, systemRole, filter)
 }
 
@@ -164,7 +171,12 @@ func (uc *PlanningAccessUsecase) ListPairingsForManagementPaged(
 	systemRole valueobject.SystemRole,
 	filter PlanningPairingsListFilter,
 	page int,
-) (outputmodel.PlanningPairingsPageOutput, error) {
+) (ret0 outputmodel.PlanningPairingsPageOutput, err error) {
+	const op = "planning_usecase.ListPairingsForManagementPaged"
+	done := logutils.Begin(context.Background(), logutils.LayerUsecase, op)
+	defer func() {
+		done(err)
+	}()
 	filtered, err := uc.listFilteredSortedPairings(userID, authority, systemRole, filter)
 	if err != nil {
 		return outputmodel.PlanningPairingsPageOutput{}, err

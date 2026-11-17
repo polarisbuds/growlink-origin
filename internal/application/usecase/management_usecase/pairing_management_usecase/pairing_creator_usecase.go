@@ -1,11 +1,13 @@
 package pairing_mng_usecase
 
 import (
+	"context"
 	"fmt"
 
 	inputmodel "growlink/internal/application/model/input_model"
 	"growlink/internal/domain/entity"
 	repository_interface "growlink/internal/domain/interface/repository"
+	logutils "growlink/internal/shared/logUtils"
 )
 
 type PairingCreator struct {
@@ -18,14 +20,24 @@ func NewPairingCreator(pairingRepo repository_interface.PairingRepository) *Pair
 	}
 }
 
-func (uc PairingCreator) CreatePairing(menteeID, mentorID uint) error {
+func (uc PairingCreator) CreatePairing(menteeID, mentorID uint) (err error) {
+	const op = "pairing_mng_usecase.CreatePairing"
+	done := logutils.Begin(context.Background(), logutils.LayerUsecase, op)
+	defer func() {
+		done(err)
+	}()
 	return uc.CreatePairingFromInput(inputmodel.PairingInput{
 		MentorID: mentorID,
 		Targets:  []inputmodel.PairingTargetInput{{Kind: entity.PairingTargetKindUser, TargetID: menteeID}},
 	}, 0)
 }
 
-func (uc PairingCreator) CreatePairingFromInput(input inputmodel.PairingInput, createdByUserID uint) error {
+func (uc PairingCreator) CreatePairingFromInput(input inputmodel.PairingInput, createdByUserID uint) (err error) {
+	const op = "pairing_mng_usecase.CreatePairingFromInput"
+	done := logutils.Begin(context.Background(), logutils.LayerUsecase, op)
+	defer func() {
+		done(err)
+	}()
 	targets := input.ResolvedTargets()
 	if len(targets) == 0 {
 		return fmt.Errorf("対象が指定されていません")
@@ -34,7 +46,7 @@ func (uc PairingCreator) CreatePairingFromInput(input inputmodel.PairingInput, c
 		if t.Kind != entity.PairingTargetKindUser {
 			return fmt.Errorf("ユーザ以外の対象はサポートされていません")
 		}
-		if _, err := uc.pairingRepo.CreatePairing(t.TargetID, input.MentorID, createdByUserID); err != nil {
+		if _, err = uc.pairingRepo.CreatePairing(t.TargetID, input.MentorID, createdByUserID); err != nil {
 			return fmt.Errorf("ペアリングの作成に失敗しました: %w", err)
 		}
 	}

@@ -1,8 +1,10 @@
 package meeting_mng_usecase
 
 import (
+	"context"
 	"fmt"
 	repository_interface "growlink/internal/domain/interface/repository"
+	logutils "growlink/internal/shared/logUtils"
 )
 
 type MeetingDeleter struct {
@@ -15,8 +17,13 @@ func NewMeetingDeleter(meetingRepo repository_interface.MeetingRepository) *Meet
 	}
 }
 
-func (uc *MeetingDeleter) DeleteMeeting(meetingIDs ...uint) (bool, error) {
-	if err := uc.meetingRepo.Delete(meetingIDs...); err != nil {
+func (uc *MeetingDeleter) DeleteMeeting(meetingIDs ...uint) (ret0 bool, err error) {
+	const op = "meeting_mng_usecase.DeleteMeeting"
+	done := logutils.Begin(context.Background(), logutils.LayerUsecase, op)
+	defer func() {
+		done(err)
+	}()
+	if err = uc.meetingRepo.Delete(meetingIDs...); err != nil {
 		return false, fmt.Errorf("ミーティングの削除に失敗しました: %w", err)
 	}
 	return true, nil

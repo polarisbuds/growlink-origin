@@ -1,9 +1,11 @@
 package meeting_usecase
 
 import (
+	"context"
 	"fmt"
 	"growlink/internal/domain/entity"
 	repository_interface "growlink/internal/domain/interface/repository"
+	logutils "growlink/internal/shared/logUtils"
 )
 
 type AnswerCommenterUsecase struct {
@@ -16,7 +18,12 @@ func NewAnswerCommenterUsecase(answerCommentRepo repository_interface.AnswerComm
 	}
 }
 
-func (uc *AnswerCommenterUsecase) GetComment(commentID uint) (*entity.AnswerComment, error) {
+func (uc *AnswerCommenterUsecase) GetComment(commentID uint) (ret0 *entity.AnswerComment, err error) {
+	const op = "meeting_usecase.GetComment"
+	done := logutils.Begin(context.Background(), logutils.LayerUsecase, op)
+	defer func() {
+		done(err)
+	}()
 	comment, err := uc.answerCommentRepo.GetComment(commentID)
 	if err != nil {
 		return nil, fmt.Errorf("回答へのコメントの取得に失敗しました: %w", err)
@@ -27,11 +34,21 @@ func (uc *AnswerCommenterUsecase) GetComment(commentID uint) (*entity.AnswerComm
 	return comment, nil
 }
 
-func (uc *AnswerCommenterUsecase) PostComment(answerID, userID uint, content string) error {
+func (uc *AnswerCommenterUsecase) PostComment(answerID, userID uint, content string) (err error) {
+	const op = "meeting_usecase.PostComment"
+	done := logutils.Begin(context.Background(), logutils.LayerUsecase, op)
+	defer func() {
+		done(err)
+	}()
 	return uc.SaveComment(answerID, userID, content)
 }
 
-func (uc *AnswerCommenterUsecase) SaveComment(answerID, userID uint, content string) error {
+func (uc *AnswerCommenterUsecase) SaveComment(answerID, userID uint, content string) (err error) {
+	const op = "meeting_usecase.SaveComment"
+	done := logutils.Begin(context.Background(), logutils.LayerUsecase, op)
+	defer func() {
+		done(err)
+	}()
 	if userID == 0 {
 		return fmt.Errorf("回答へのコメントの保存に失敗しました: ユーザIDが不正です")
 	}
@@ -40,12 +57,12 @@ func (uc *AnswerCommenterUsecase) SaveComment(answerID, userID uint, content str
 		return fmt.Errorf("回答へのコメントの保存に失敗しました: %w", err)
 	}
 	if existing != nil {
-		if err := uc.answerCommentRepo.UpdateComment(existing.ID, content); err != nil {
+		if err = uc.answerCommentRepo.UpdateComment(existing.ID, content); err != nil {
 			return fmt.Errorf("回答へのコメントの保存に失敗しました: %w", err)
 		}
 		return nil
 	}
-	if err := uc.answerCommentRepo.PostComment(&entity.AnswerComment{
+	if err = uc.answerCommentRepo.PostComment(&entity.AnswerComment{
 		AnswerID: answerID,
 		UserID:   userID,
 		Content:  &content,
@@ -55,15 +72,25 @@ func (uc *AnswerCommenterUsecase) SaveComment(answerID, userID uint, content str
 	return nil
 }
 
-func (uc *AnswerCommenterUsecase) EditComment(commentID uint, content string) error {
-	if err := uc.answerCommentRepo.UpdateComment(commentID, content); err != nil {
+func (uc *AnswerCommenterUsecase) EditComment(commentID uint, content string) (err error) {
+	const op = "meeting_usecase.EditComment"
+	done := logutils.Begin(context.Background(), logutils.LayerUsecase, op)
+	defer func() {
+		done(err)
+	}()
+	if err = uc.answerCommentRepo.UpdateComment(commentID, content); err != nil {
 		return fmt.Errorf("回答へのコメントの編集に失敗しました: %w", err)
 	}
 	return nil
 }
 
-func (uc *AnswerCommenterUsecase) DeleteComment(commentID uint) error {
-	if err := uc.answerCommentRepo.DeleteComment(commentID); err != nil {
+func (uc *AnswerCommenterUsecase) DeleteComment(commentID uint) (err error) {
+	const op = "meeting_usecase.DeleteComment"
+	done := logutils.Begin(context.Background(), logutils.LayerUsecase, op)
+	defer func() {
+		done(err)
+	}()
+	if err = uc.answerCommentRepo.DeleteComment(commentID); err != nil {
 		return fmt.Errorf("回答へのコメントの削除に失敗しました: %w", err)
 	}
 	return nil

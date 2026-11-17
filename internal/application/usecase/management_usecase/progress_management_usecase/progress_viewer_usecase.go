@@ -1,6 +1,7 @@
 package progress_mng_usecase
 
 import (
+	"context"
 	"fmt"
 	"slices"
 	"time"
@@ -9,6 +10,7 @@ import (
 	"growlink/internal/domain/entity"
 	repository_interface "growlink/internal/domain/interface/repository"
 	"growlink/internal/domain/valueobject"
+	logutils "growlink/internal/shared/logUtils"
 )
 
 const (
@@ -101,7 +103,12 @@ func (uc *ProgressViewer) filterMeetings(meetings []entity.Meeting, filter Progr
 	return out, nil
 }
 
-func (uc *ProgressViewer) Summary(filter ProgressFilter) (*outputmodel.ProgressSummaryOutput, error) {
+func (uc *ProgressViewer) Summary(filter ProgressFilter) (ret0 *outputmodel.ProgressSummaryOutput, err error) {
+	const op = "progress_mng_usecase.Summary"
+	done := logutils.Begin(context.Background(), logutils.LayerUsecase, op)
+	defer func() {
+		done(err)
+	}()
 	meetings, err := uc.meetingRepo.GetAll()
 	if err != nil {
 		return nil, fmt.Errorf("面談一覧の取得に失敗しました: %w", err)
@@ -152,7 +159,12 @@ func menteeName(m *entity.Meeting) string {
 	return m.Pairing.Mentee.Name
 }
 
-func (uc *ProgressViewer) Breakdown(group string, filter ProgressFilter) ([]outputmodel.ProgressBreakdownRowOutput, error) {
+func (uc *ProgressViewer) Breakdown(group string, filter ProgressFilter) (ret0 []outputmodel.ProgressBreakdownRowOutput, err error) {
+	const op = "progress_mng_usecase.Breakdown"
+	done := logutils.Begin(context.Background(), logutils.LayerUsecase, op)
+	defer func() {
+		done(err)
+	}()
 	if group != progressGroupDepartment && group != progressGroupTeam {
 		return nil, fmt.Errorf("不正な group です: %s", group)
 	}

@@ -1,10 +1,12 @@
 package meeting_mng_usecase
 
 import (
+	"context"
 	"fmt"
 	"growlink/internal/application/converter"
 	outputmodel "growlink/internal/application/model/output_model"
 	repository_interface "growlink/internal/domain/interface/repository"
+	logutils "growlink/internal/shared/logUtils"
 	"sync"
 )
 
@@ -29,7 +31,12 @@ func NewMeetingViewer(
 	}
 }
 
-func (uc *MeetingViewer) ListMeetingsByMentor(mentorID uint) ([]outputmodel.MeetingOutput, error) {
+func (uc *MeetingViewer) ListMeetingsByMentor(mentorID uint) (ret0 []outputmodel.MeetingOutput, err error) {
+	const op = "meeting_mng_usecase.ListMeetingsByMentor"
+	done := logutils.Begin(context.Background(), logutils.LayerUsecase, op)
+	defer func() {
+		done(err)
+	}()
 	pairings, err := uc.pairingRepo.GetByMentorID(mentorID)
 	if err != nil {
 		return nil, fmt.Errorf("ミーティングリストのメンターID指定取得に失敗しました: %w", err)
@@ -65,7 +72,12 @@ func (uc *MeetingViewer) ListMeetingsByMentor(mentorID uint) ([]outputmodel.Meet
 	return resultMeetings, nil
 }
 
-func (uc *MeetingViewer) ListMeetingsByTeam(teamID uint) ([]outputmodel.MeetingOutput, error) {
+func (uc *MeetingViewer) ListMeetingsByTeam(teamID uint) (ret0 []outputmodel.MeetingOutput, err error) {
+	const op = "meeting_mng_usecase.ListMeetingsByTeam"
+	done := logutils.Begin(context.Background(), logutils.LayerUsecase, op)
+	defer func() {
+		done(err)
+	}()
 	teamMembers, err := uc.teamMemberRepo.GetByTeamID(teamID)
 	if err != nil {
 		return nil, fmt.Errorf("チームID指定でのチームメンバー情報取得に失敗しました: %w", err)
@@ -108,7 +120,12 @@ func (uc *MeetingViewer) ListMeetingsByTeam(teamID uint) ([]outputmodel.MeetingO
 	return resultMeetings, nil
 }
 
-func (uc *MeetingViewer) ListMeetingsByDepartment(departmentID uint) ([]outputmodel.MeetingOutput, error) {
+func (uc *MeetingViewer) ListMeetingsByDepartment(departmentID uint) (ret0 []outputmodel.MeetingOutput, err error) {
+	const op = "meeting_mng_usecase.ListMeetingsByDepartment"
+	done := logutils.Begin(context.Background(), logutils.LayerUsecase, op)
+	defer func() {
+		done(err)
+	}()
 	users, err := uc.userRepo.GetByDepartmentID(departmentID)
 	if err != nil {
 		return nil, fmt.Errorf("部署ID指定でのユーザ取得に失敗しました: %w", err)

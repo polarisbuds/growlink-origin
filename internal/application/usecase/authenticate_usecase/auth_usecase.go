@@ -37,9 +37,12 @@ func NewAuthUsecase(ldapClient ldap_interface.LDAPClient, userRepo repository_in
 	return &AuthUsecase{ldapClient: ldapClient, userRepo: userRepo, deptRepo: deptRepo, deptMemberRepo: deptMemberRepo}
 }
 
-func (uc *AuthUsecase) LoginLDAP(ctx context.Context, email, password string) (string, outputmodel.UserOutput, error) {
+func (uc *AuthUsecase) LoginLDAP(ctx context.Context, email, password string) (ret0 string, ret1 outputmodel.UserOutput, err error) {
 	const op = opAuth + ".LoginLDAP"
-	logutils.Debug(ctx, logutils.LayerUsecase, op, "処理開始", slog.String("email", email))
+	done := logutils.Begin(ctx, logutils.LayerUsecase, op)
+	defer func() {
+		done(err)
+	}()
 	if uc.ldapClient == nil {
 		return "", outputmodel.UserOutput{}, fmt.Errorf("LDAP認証は設定されていません")
 	}
@@ -51,7 +54,7 @@ func (uc *AuthUsecase) LoginLDAP(ctx context.Context, email, password string) (s
 		return "", outputmodel.UserOutput{}, fmt.Errorf("LDAP認証に失敗しました: %w", err)
 	}
 
-	if _, err := uc.ensureDepartmentFromLDAP(ctx, ldapUser.Department); err != nil {
+	if _, err = uc.ensureDepartmentFromLDAP(ctx, ldapUser.Department); err != nil {
 		return "", outputmodel.UserOutput{}, err
 	}
 
@@ -65,7 +68,7 @@ func (uc *AuthUsecase) LoginLDAP(ctx context.Context, email, password string) (s
 			Email:     ldapUser.Mail,
 			Authority: valueobject.AuthorityGeneral,
 		}
-		if err := uc.userRepo.Create(user); err != nil {
+		if err = uc.userRepo.Create(user); err != nil {
 			return "", outputmodel.UserOutput{}, err
 		}
 		deptID, err := uc.departmentIDForNewLDAPUser(ldapUser.Department)
@@ -82,12 +85,12 @@ func (uc *AuthUsecase) LoginLDAP(ctx context.Context, email, password string) (s
 			UserID:       user.ID,
 			RoleID:       roleID,
 		})
-		if err := uc.deptMemberRepo.ReplaceByDepartment(deptID, members); err != nil {
+		if err = uc.deptMemberRepo.ReplaceByDepartment(deptID, members); err != nil {
 			return "", outputmodel.UserOutput{}, err
 		}
 	} else {
 		user.Name = ldapUser.Name
-		if err := uc.userRepo.UpdateByID(user); err != nil {
+		if err = uc.userRepo.UpdateByID(user); err != nil {
 			return "", outputmodel.UserOutput{}, err
 		}
 	}
@@ -103,9 +106,12 @@ func (uc *AuthUsecase) LoginLDAP(ctx context.Context, email, password string) (s
 	return token, converter.UserEntityToOutput(*user), nil
 }
 
-func (uc *AuthUsecase) LoginBasic(ctx context.Context, email, password string) (string, outputmodel.UserOutput, error) {
+func (uc *AuthUsecase) LoginBasic(ctx context.Context, email, password string) (ret0 string, ret1 outputmodel.UserOutput, err error) {
 	const op = opAuth + ".LoginBasic"
-	logutils.Debug(ctx, logutils.LayerUsecase, op, "処理開始", slog.String("email", email))
+	done := logutils.Begin(ctx, logutils.LayerUsecase, op)
+	defer func() {
+		done(err)
+	}()
 	user, err := uc.userRepo.GetByEmail(email)
 	if err != nil {
 		return "", outputmodel.UserOutput{}, fmt.Errorf("アカウントが存在しません")

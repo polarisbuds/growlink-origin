@@ -1,8 +1,10 @@
 package setting_usecase
 
 import (
+	"context"
 	"fmt"
 	repository_interface "growlink/internal/domain/interface/repository"
+	logutils "growlink/internal/shared/logUtils"
 	"io"
 	"log/slog"
 	"path/filepath"
@@ -25,7 +27,12 @@ func NewIconRegisterUsecase(
 	}
 }
 
-func (uc *IconRegisterUsecase) RegistIcon(userID uint, name string, content io.Reader) error {
+func (uc *IconRegisterUsecase) RegistIcon(userID uint, name string, content io.Reader) (err error) {
+	const op = "setting_usecase.RegistIcon"
+	done := logutils.Begin(context.Background(), logutils.LayerUsecase, op)
+	defer func() {
+		done(err)
+	}()
 	user, err := uc.userRepository.GetByID(userID)
 	if err != nil {
 		return fmt.Errorf("ユーザアイコンのアップロードで存在しないユーザIDが指定されました: %w", err)
@@ -46,12 +53,12 @@ func (uc *IconRegisterUsecase) RegistIcon(userID uint, name string, content io.R
 		oldFilename = &old
 	}
 
-	if err := uc.uploadFileRepository.NewFile(filename, content); err != nil {
+	if err = uc.uploadFileRepository.NewFile(filename, content); err != nil {
 		return fmt.Errorf("ユーザアイコンの新規作成処理に失敗しました: %w", err)
 	}
 
 	user.ImageURI = &filename
-	if err := uc.userRepository.UpdateByID(user); err != nil {
+	if err = uc.userRepository.UpdateByID(user); err != nil {
 		return fmt.Errorf("ユーザデータの更新（ユーザアイコン）に失敗しました: %w", err)
 	}
 
@@ -64,7 +71,7 @@ func (uc *IconRegisterUsecase) RegistIcon(userID uint, name string, content io.R
 			return fmt.Errorf("アップロード済みのイメージファイルの存在チェックに失敗しました: %w", err)
 		}
 		if isExists {
-			if err := uc.uploadFileRepository.DeleteFile(name); err != nil {
+			if err = uc.uploadFileRepository.DeleteFile(name); err != nil {
 				return fmt.Errorf("アップロード済みのイメージファイルの削除に失敗しました: %w", err)
 			}
 		}

@@ -1,6 +1,7 @@
 package user_admin_usecase
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	outputmodel "growlink/internal/application/model/output_model"
@@ -9,6 +10,7 @@ import (
 	"growlink/internal/domain/valueobject"
 	"growlink/internal/shared/config"
 	"growlink/internal/shared/crypto"
+	logutils "growlink/internal/shared/logUtils"
 	"strings"
 
 	"github.com/google/uuid"
@@ -42,7 +44,12 @@ func NewUserAdmin(
 	}
 }
 
-func (uc *UserAdmin) ListUsers() ([]outputmodel.ManagementUserOutput, error) {
+func (uc *UserAdmin) ListUsers() (ret0 []outputmodel.ManagementUserOutput, err error) {
+	const op = "user_admin_usecase.ListUsers"
+	done := logutils.Begin(context.Background(), logutils.LayerUsecase, op)
+	defer func() {
+		done(err)
+	}()
 	users, err := uc.userRepo.GetAll()
 	if err != nil {
 		return nil, err
@@ -173,7 +180,12 @@ type CreateUserInput struct {
 	Password    string                      `json:"password"`
 }
 
-func (uc *UserAdmin) CreateUser(input CreateUserInput) (*outputmodel.ManagementUserOutput, error) {
+func (uc *UserAdmin) CreateUser(input CreateUserInput) (ret0 *outputmodel.ManagementUserOutput, err error) {
+	const op = "user_admin_usecase.CreateUser"
+	done := logutils.Begin(context.Background(), logutils.LayerUsecase, op)
+	defer func() {
+		done(err)
+	}()
 	name := strings.TrimSpace(input.Name)
 	email := strings.TrimSpace(input.Email)
 	if name == "" {
@@ -214,10 +226,10 @@ func (uc *UserAdmin) CreateUser(input CreateUserInput) (*outputmodel.ManagementU
 		}
 		user.Password = &hashed
 	}
-	if err := uc.userRepo.Create(user); err != nil {
+	if err = uc.userRepo.Create(user); err != nil {
 		return nil, err
 	}
-	if err := uc.syncAffiliations(user.ID, departments, teamsResolved); err != nil {
+	if err = uc.syncAffiliations(user.ID, departments, teamsResolved); err != nil {
 		return nil, err
 	}
 	teams, err := uc.loadTeamAssignments(user.ID)
@@ -251,7 +263,12 @@ type UpdateUserInput struct {
 	Suspended   *bool                       `json:"suspended"`
 }
 
-func (uc *UserAdmin) UpdateUser(userID uint, input UpdateUserInput) error {
+func (uc *UserAdmin) UpdateUser(userID uint, input UpdateUserInput) (err error) {
+	const op = "user_admin_usecase.UpdateUser"
+	done := logutils.Begin(context.Background(), logutils.LayerUsecase, op)
+	defer func() {
+		done(err)
+	}()
 	user, err := uc.userRepo.GetByID(userID)
 	if err != nil {
 		return err
@@ -272,7 +289,7 @@ func (uc *UserAdmin) UpdateUser(userID uint, input UpdateUserInput) error {
 		return err
 	}
 	if len(columns) > 0 {
-		if err := uc.userRepo.UpdateColumns(user.ID, columns); err != nil {
+		if err = uc.userRepo.UpdateColumns(user.ID, columns); err != nil {
 			return err
 		}
 	}
@@ -525,7 +542,12 @@ func (uc *UserAdmin) syncTeamMemberships(userID uint, teams []teamAssignmentReso
 	return nil
 }
 
-func (uc *UserAdmin) SetUsersSuspended(uuids []string, suspended bool) error {
+func (uc *UserAdmin) SetUsersSuspended(uuids []string, suspended bool) (err error) {
+	const op = "user_admin_usecase.SetUsersSuspended"
+	done := logutils.Begin(context.Background(), logutils.LayerUsecase, op)
+	defer func() {
+		done(err)
+	}()
 	if len(uuids) == 0 {
 		return fmt.Errorf("対象のユーザが選択されていません")
 	}

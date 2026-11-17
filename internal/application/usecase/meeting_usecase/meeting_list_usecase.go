@@ -1,12 +1,14 @@
 package meeting_usecase
 
 import (
+	"context"
 	"fmt"
 
 	"growlink/internal/application/converter"
 	outputmodel "growlink/internal/application/model/output_model"
 	"growlink/internal/domain/entity"
 	repository_interface "growlink/internal/domain/interface/repository"
+	logutils "growlink/internal/shared/logUtils"
 )
 
 type MeetingListUsecase struct {
@@ -50,7 +52,12 @@ func userIsMentorOrMenteeInPairing(userID uint, pairing entity.Pairing) bool {
 	return false
 }
 
-func (uc *MeetingListUsecase) ListMyMeeting(userID uint) ([]outputmodel.MeetingOutput, error) {
+func (uc *MeetingListUsecase) ListMyMeeting(userID uint) (ret0 []outputmodel.MeetingOutput, err error) {
+	const op = "meeting_usecase.ListMyMeeting"
+	done := logutils.Begin(context.Background(), logutils.LayerUsecase, op)
+	defer func() {
+		done(err)
+	}()
 	pairings, err := uc.pairingRepo.GetByMenteeID(userID)
 	if err != nil {
 		return []outputmodel.MeetingOutput{}, nil
@@ -66,7 +73,12 @@ func (uc *MeetingListUsecase) ListMyMeeting(userID uint) ([]outputmodel.MeetingO
 	return dedupeMeetings(all), nil
 }
 
-func (uc *MeetingListUsecase) ListInvolvedMeetings(userID uint) ([]outputmodel.MeetingOutput, error) {
+func (uc *MeetingListUsecase) ListInvolvedMeetings(userID uint) (ret0 []outputmodel.MeetingOutput, err error) {
+	const op = "meeting_usecase.ListInvolvedMeetings"
+	done := logutils.Begin(context.Background(), logutils.LayerUsecase, op)
+	defer func() {
+		done(err)
+	}()
 	pairings, err := uc.pairingRepo.GetAll()
 	if err != nil {
 		return nil, fmt.Errorf("ペアリング一覧の取得に失敗しました: %w", err)
@@ -87,7 +99,12 @@ func (uc *MeetingListUsecase) ListInvolvedMeetings(userID uint) ([]outputmodel.M
 	return dedupeMeetings(all), nil
 }
 
-func (uc *MeetingListUsecase) ListSharedMeetings(userID uint) ([]outputmodel.MeetingOutput, error) {
+func (uc *MeetingListUsecase) ListSharedMeetings(userID uint) (ret0 []outputmodel.MeetingOutput, err error) {
+	const op = "meeting_usecase.ListSharedMeetings"
+	done := logutils.Begin(context.Background(), logutils.LayerUsecase, op)
+	defer func() {
+		done(err)
+	}()
 	involved, err := uc.ListInvolvedMeetings(userID)
 	if err != nil {
 		return nil, err

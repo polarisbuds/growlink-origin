@@ -1,10 +1,12 @@
 package progress_mng_usecase
 
 import (
+	"context"
 	"fmt"
 	"time"
 
 	outputmodel "growlink/internal/application/model/output_model"
+	logutils "growlink/internal/shared/logUtils"
 )
 
 type monthWindow struct {
@@ -55,7 +57,12 @@ func enumerateMonthWindows(rangeFrom, rangeTo time.Time) []monthWindow {
 	return out
 }
 
-func (uc *ProgressViewer) DoneTrendByMonth(filter ProgressFilter) ([]outputmodel.ProgressDoneMonthOutput, error) {
+func (uc *ProgressViewer) DoneTrendByMonth(filter ProgressFilter) (ret0 []outputmodel.ProgressDoneMonthOutput, err error) {
+	const op = "progress_mng_usecase.DoneTrendByMonth"
+	done := logutils.Begin(context.Background(), logutils.LayerUsecase, op)
+	defer func() {
+		done(err)
+	}()
 	if filter.From == nil || filter.To == nil {
 		return []outputmodel.ProgressDoneMonthOutput{}, nil
 	}

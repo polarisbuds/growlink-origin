@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"growlink/internal/domain/entity"
+	logutils "growlink/internal/shared/logUtils"
 	"log/slog"
 
 	"github.com/google/uuid"
@@ -23,18 +24,28 @@ func NewUserRepository(ctx context.Context, dp *gorm.DB, uploadDir string) *User
 }
 
 func (repo *UserRepository) AttachImageBase64(user *entity.User) {
+	const op = "user_repository.AttachImageBase64"
+	done := logutils.Begin(repo.ctx, logutils.LayerRepository, op)
+	defer func() {
+		done(nil)
+	}()
 	if user == nil || user.ImageURI == nil || *user.ImageURI == "" {
 		return
 	}
 	dataURL, err := readImageDataURL(repo.uploadDir, *user.ImageURI)
 	if err != nil {
-		slog.Warn("ユーザアイコンのBase64変換に失敗しました", "filename", *user.ImageURI, "err", err)
+		logutils.Warn(repo.ctx, logutils.LayerRepository, op, "ユーザアイコンのBase64変換に失敗しました", slog.String("filename", *user.ImageURI), slog.String("err", err.Error()))
 		return
 	}
 	user.ImageBase64 = dataURL
 }
 
-func (repo *UserRepository) GetByEmail(email string) (*entity.User, error) {
+func (repo *UserRepository) GetByEmail(email string) (ret0 *entity.User, err error) {
+	const op = "user_repository.GetByEmail"
+	done := logutils.Begin(repo.ctx, logutils.LayerRepository, op)
+	defer func() {
+		done(err)
+	}()
 	user, err := gorm.G[entity.User](repo.db).Where("email = ?", email).Order("id ASC").First(repo.ctx)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -45,17 +56,27 @@ func (repo *UserRepository) GetByEmail(email string) (*entity.User, error) {
 	return &user, nil
 }
 
-func (repo *UserRepository) Create(user *entity.User) error {
+func (repo *UserRepository) Create(user *entity.User) (err error) {
+	const op = "user_repository.Create"
+	done := logutils.Begin(repo.ctx, logutils.LayerRepository, op)
+	defer func() {
+		done(err)
+	}()
 	if user == nil {
 		return fmt.Errorf("作成対象のユーザが空です")
 	}
-	if err := gorm.G[entity.User](repo.db).Create(repo.ctx, user); err != nil {
+	if err = gorm.G[entity.User](repo.db).Create(repo.ctx, user); err != nil {
 		return fmt.Errorf("ユーザの作成に失敗しました: %w", err)
 	}
 	return nil
 }
 
-func (repo *UserRepository) GetByID(id uint) (*entity.User, error) {
+func (repo *UserRepository) GetByID(id uint) (ret0 *entity.User, err error) {
+	const op = "user_repository.GetByID"
+	done := logutils.Begin(repo.ctx, logutils.LayerRepository, op)
+	defer func() {
+		done(err)
+	}()
 	user, err := gorm.G[entity.User](repo.unscoped).Where("id = ?", id).Scopes(func(stmt *gorm.Statement) { stmt.Unscoped = true }).Order("id ASC").First(repo.ctx)
 	if err != nil {
 		return nil, fmt.Errorf("指定されたユーザIDは存在しませんでした: %w", err)
@@ -63,7 +84,12 @@ func (repo *UserRepository) GetByID(id uint) (*entity.User, error) {
 	return &user, nil
 }
 
-func (repo *UserRepository) GetByUUID(userUUID uuid.UUID) (*entity.User, error) {
+func (repo *UserRepository) GetByUUID(userUUID uuid.UUID) (ret0 *entity.User, err error) {
+	const op = "user_repository.GetByUUID"
+	done := logutils.Begin(repo.ctx, logutils.LayerRepository, op)
+	defer func() {
+		done(err)
+	}()
 	user, err := gorm.G[entity.User](repo.unscoped).Where("uuid = ?", userUUID.String()).Scopes(func(stmt *gorm.Statement) { stmt.Unscoped = true }).Order("id ASC").First(repo.ctx)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -75,7 +101,12 @@ func (repo *UserRepository) GetByUUID(userUUID uuid.UUID) (*entity.User, error) 
 	return &user, nil
 }
 
-func (repo *UserRepository) GetByIDs(ids []uint) ([]entity.User, error) {
+func (repo *UserRepository) GetByIDs(ids []uint) (ret0 []entity.User, err error) {
+	const op = "user_repository.GetByIDs"
+	done := logutils.Begin(repo.ctx, logutils.LayerRepository, op)
+	defer func() {
+		done(err)
+	}()
 	if len(ids) == 0 {
 		return []entity.User{}, nil
 	}
@@ -86,9 +117,14 @@ func (repo *UserRepository) GetByIDs(ids []uint) ([]entity.User, error) {
 	return users, nil
 }
 
-func (repo *UserRepository) GetByDepartmentID(departmentID uint) ([]entity.User, error) {
+func (repo *UserRepository) GetByDepartmentID(departmentID uint) (ret0 []entity.User, err error) {
+	const op = "user_repository.GetByDepartmentID"
+	done := logutils.Begin(repo.ctx, logutils.LayerRepository, op)
+	defer func() {
+		done(err)
+	}()
 	var memberUserIDs []uint
-	if err := repo.db.WithContext(repo.ctx).
+	if err = repo.db.WithContext(repo.ctx).
 		Model(&entity.DepartmentMember{}).
 		Where("department_id = ?", departmentID).
 		Pluck("user_id", &memberUserIDs).Error; err != nil {
@@ -111,7 +147,12 @@ func (repo *UserRepository) GetByDepartmentID(departmentID uint) ([]entity.User,
 	return users, nil
 }
 
-func (repo *UserRepository) GetAll() ([]entity.User, error) {
+func (repo *UserRepository) GetAll() (ret0 []entity.User, err error) {
+	const op = "user_repository.GetAll"
+	done := logutils.Begin(repo.ctx, logutils.LayerRepository, op)
+	defer func() {
+		done(err)
+	}()
 	users, err := gorm.G[entity.User](repo.db).Order("id ASC").
 		Preload("DepartmentMembers", nil).
 		Preload("DepartmentMembers.Department", nil).
@@ -125,33 +166,48 @@ func (repo *UserRepository) GetAll() ([]entity.User, error) {
 	return users, nil
 }
 
-func (repo *UserRepository) SetSuspendedByIDs(ids []uint, suspended bool) error {
+func (repo *UserRepository) SetSuspendedByIDs(ids []uint, suspended bool) (err error) {
+	const op = "user_repository.SetSuspendedByIDs"
+	done := logutils.Begin(repo.ctx, logutils.LayerRepository, op)
+	defer func() {
+		done(err)
+	}()
 	if len(ids) == 0 {
 		return nil
 	}
-	if _, err := gorm.G[entity.User](repo.db).Where("id IN ?", ids).Update(repo.ctx, "suspended", suspended); err != nil {
+	if _, err = gorm.G[entity.User](repo.db).Where("id IN ?", ids).Update(repo.ctx, "suspended", suspended); err != nil {
 		return fmt.Errorf("ユーザの停止状態の更新に失敗しました: %w", err)
 	}
 	return nil
 }
 
-func (repo *UserRepository) UpdateByID(user *entity.User) error {
+func (repo *UserRepository) UpdateByID(user *entity.User) (err error) {
+	const op = "user_repository.UpdateByID"
+	done := logutils.Begin(repo.ctx, logutils.LayerRepository, op)
+	defer func() {
+		done(err)
+	}()
 	if user == nil {
-		slog.Warn("アップデート対象のデータが空データ（nil）です。")
+		logutils.Warn(repo.ctx, logutils.LayerRepository, op, "アップデート対象のデータが空データ（nil）です。")
 		return nil
 	}
 
-	if _, err := gorm.G[entity.User](repo.db).Where("id = ?", user.ID).Omit(clause.Associations).Updates(repo.ctx, *user); err != nil {
+	if _, err = gorm.G[entity.User](repo.db).Where("id = ?", user.ID).Omit(clause.Associations).Updates(repo.ctx, *user); err != nil {
 		return fmt.Errorf("ユーザ情報の更新に失敗しました: %w", err)
 	}
 	return nil
 }
 
-func (repo *UserRepository) UpdateColumns(id uint, columns map[string]any) error {
+func (repo *UserRepository) UpdateColumns(id uint, columns map[string]any) (err error) {
+	const op = "user_repository.UpdateColumns"
+	done := logutils.Begin(repo.ctx, logutils.LayerRepository, op)
+	defer func() {
+		done(err)
+	}()
 	if len(columns) == 0 {
 		return nil
 	}
-	if err := repo.db.WithContext(repo.ctx).Model(&entity.User{}).Where("id = ?", id).Updates(columns).Error; err != nil {
+	if err = repo.db.WithContext(repo.ctx).Model(&entity.User{}).Where("id = ?", id).Updates(columns).Error; err != nil {
 		return fmt.Errorf("ユーザ情報の更新に失敗しました: %w", err)
 	}
 	return nil

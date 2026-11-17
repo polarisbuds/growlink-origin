@@ -1,10 +1,12 @@
 package meeting_usecase
 
 import (
+	"context"
 	"fmt"
 
 	repository_interface "growlink/internal/domain/interface/repository"
 	"growlink/internal/domain/valueobject"
+	logutils "growlink/internal/shared/logUtils"
 
 	"github.com/google/uuid"
 )
@@ -15,9 +17,9 @@ type MentorTopicCommentInput struct {
 }
 
 type MentorMeetingCompleterUsecase struct {
-	meetingRepo       repository_interface.MeetingRepository
-	answerRepo        repository_interface.AnswerRepository
-	answerCommenter   *AnswerCommenterUsecase
+	meetingRepo     repository_interface.MeetingRepository
+	answerRepo      repository_interface.AnswerRepository
+	answerCommenter *AnswerCommenterUsecase
 }
 
 func NewMentorMeetingCompleterUsecase(
@@ -35,7 +37,12 @@ func NewMentorMeetingCompleterUsecase(
 func (uc *MentorMeetingCompleterUsecase) Complete(
 	meetingID, mentorUserID, menteeUserID uint,
 	comments []MentorTopicCommentInput,
-) error {
+) (err error) {
+	const op = "meeting_usecase.Complete"
+	done := logutils.Begin(context.Background(), logutils.LayerUsecase, op)
+	defer func() {
+		done(err)
+	}()
 	for _, item := range comments {
 		if item.AnswerUUID == "" {
 			continue
@@ -57,11 +64,11 @@ func (uc *MentorMeetingCompleterUsecase) Complete(
 		if answer.UserID != menteeUserID {
 			return fmt.Errorf("メンティーの回答ではありません")
 		}
-		if err := uc.answerCommenter.SaveComment(answer.ID, mentorUserID, item.Content); err != nil {
+		if err = uc.answerCommenter.SaveComment(answer.ID, mentorUserID, item.Content); err != nil {
 			return err
 		}
 	}
-	if err := uc.meetingRepo.UpdateStatus(meetingID, valueobject.MeetingStatusDone); err != nil {
+	if err = uc.meetingRepo.UpdateStatus(meetingID, valueobject.MeetingStatusDone); err != nil {
 		return fmt.Errorf("面談の完了更新に失敗しました: %w", err)
 	}
 	return nil

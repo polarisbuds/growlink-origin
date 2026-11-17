@@ -1,11 +1,13 @@
 package meeting_usecase
 
 import (
+	"context"
 	"fmt"
 
 	"growlink/internal/application/converter"
 	outputmodel "growlink/internal/application/model/output_model"
 	repository_interface "growlink/internal/domain/interface/repository"
+	logutils "growlink/internal/shared/logUtils"
 )
 
 type AnswerReaderUsecase struct {
@@ -18,7 +20,12 @@ func NewAnswerReaderUsecase(answerRepo repository_interface.AnswerRepository) *A
 	}
 }
 
-func (uc *AnswerReaderUsecase) GetAnswer(answerID uint) (*outputmodel.AnswerOutput, error) {
+func (uc *AnswerReaderUsecase) GetAnswer(answerID uint) (ret0 *outputmodel.AnswerOutput, err error) {
+	const op = "meeting_usecase.GetAnswer"
+	done := logutils.Begin(context.Background(), logutils.LayerUsecase, op)
+	defer func() {
+		done(err)
+	}()
 	answer, err := uc.answerRepo.GetByID(answerID)
 	if err != nil {
 		return nil, fmt.Errorf("回答情報の取得に失敗しました: %w", err)
@@ -30,7 +37,12 @@ func (uc *AnswerReaderUsecase) GetAnswer(answerID uint) (*outputmodel.AnswerOutp
 	return &out, nil
 }
 
-func (uc *AnswerReaderUsecase) ListAnswersByMeeting(meetingID uint) ([]outputmodel.AnswerOutput, error) {
+func (uc *AnswerReaderUsecase) ListAnswersByMeeting(meetingID uint) (ret0 []outputmodel.AnswerOutput, err error) {
+	const op = "meeting_usecase.ListAnswersByMeeting"
+	done := logutils.Begin(context.Background(), logutils.LayerUsecase, op)
+	defer func() {
+		done(err)
+	}()
 	answers, err := uc.answerRepo.GetByMeetingID(meetingID)
 	if err != nil {
 		return nil, fmt.Errorf("回答情報の取得に失敗しました: %w", err)

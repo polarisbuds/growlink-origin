@@ -1,11 +1,13 @@
 package org_admin_usecase
 
 import (
+	"context"
 	"fmt"
 	outputmodel "growlink/internal/application/model/output_model"
 	"growlink/internal/domain/entity"
 	repository_interface "growlink/internal/domain/interface/repository"
 	"growlink/internal/domain/valueobject"
+	logutils "growlink/internal/shared/logUtils"
 	"strings"
 )
 
@@ -36,7 +38,12 @@ func NewOrgAdmin(
 	}
 }
 
-func (uc *OrgAdmin) ListTree() ([]outputmodel.OrgTreeNodeOutput, error) {
+func (uc *OrgAdmin) ListTree() (ret0 []outputmodel.OrgTreeNodeOutput, err error) {
+	const op = "org_admin_usecase.ListTree"
+	done := logutils.Begin(context.Background(), logutils.LayerUsecase, op)
+	defer func() {
+		done(err)
+	}()
 	depts, err := uc.deptRepo.GetAll()
 	if err != nil {
 		return nil, err
@@ -188,7 +195,12 @@ func (uc *OrgAdmin) ListTree() ([]outputmodel.OrgTreeNodeOutput, error) {
 	return nodes, nil
 }
 
-func (uc *OrgAdmin) GetDepartmentDetail(id uint) (*outputmodel.OrgDetailOutput, error) {
+func (uc *OrgAdmin) GetDepartmentDetail(id uint) (ret0 *outputmodel.OrgDetailOutput, err error) {
+	const op = "org_admin_usecase.GetDepartmentDetail"
+	done := logutils.Begin(context.Background(), logutils.LayerUsecase, op)
+	defer func() {
+		done(err)
+	}()
 	dept, err := uc.deptRepo.GetByID(id)
 	if err != nil {
 		return nil, err
@@ -286,7 +298,12 @@ func (uc *OrgAdmin) departmentMeta(id uint) (isRoot bool, childIDs []uint, err e
 	return isRoot, childIDs, nil
 }
 
-func (uc *OrgAdmin) GetTeamDetail(id uint) (*outputmodel.OrgDetailOutput, error) {
+func (uc *OrgAdmin) GetTeamDetail(id uint) (ret0 *outputmodel.OrgDetailOutput, err error) {
+	const op = "org_admin_usecase.GetTeamDetail"
+	done := logutils.Begin(context.Background(), logutils.LayerUsecase, op)
+	defer func() {
+		done(err)
+	}()
 	team, err := uc.teamRepo.GetByID(id)
 	if err != nil {
 		return nil, err
@@ -339,14 +356,19 @@ type UpdateDepartmentInput struct {
 	ManagerUserUUIDs     []string `json:"managerUserUuids"`
 }
 
-func (uc *OrgAdmin) UpdateDepartment(id uint, input UpdateDepartmentInput) error {
+func (uc *OrgAdmin) UpdateDepartment(id uint, input UpdateDepartmentInput) (err error) {
+	const op = "org_admin_usecase.UpdateDepartment"
+	done := logutils.Begin(context.Background(), logutils.LayerUsecase, op)
+	defer func() {
+		done(err)
+	}()
 	dept, err := uc.deptRepo.GetByID(id)
 	if err != nil {
 		return err
 	}
 	if input.Name != "" {
 		dept.Name = input.Name
-		if err := uc.deptRepo.UpdateByID(dept); err != nil {
+		if err = uc.deptRepo.UpdateByID(dept); err != nil {
 			return err
 		}
 	}
@@ -388,7 +410,7 @@ func (uc *OrgAdmin) UpdateDepartment(id uint, input UpdateDepartmentInput) error
 		}
 		for childID, hierarchyID := range have {
 			if !want[childID] {
-				if err := uc.hierarchyRepo.Delete(hierarchyID); err != nil {
+				if err = uc.hierarchyRepo.Delete(hierarchyID); err != nil {
 					return err
 				}
 			}
@@ -402,11 +424,11 @@ func (uc *OrgAdmin) UpdateDepartment(id uint, input UpdateDepartmentInput) error
 				return err
 			}
 			for _, p := range parents {
-				if err := uc.hierarchyRepo.Delete(p.ID); err != nil {
+				if err = uc.hierarchyRepo.Delete(p.ID); err != nil {
 					return err
 				}
 			}
-			if err := uc.hierarchyRepo.Create(id, childID); err != nil {
+			if err = uc.hierarchyRepo.Create(id, childID); err != nil {
 				return err
 			}
 		}
@@ -421,7 +443,7 @@ func (uc *OrgAdmin) UpdateDepartment(id uint, input UpdateDepartmentInput) error
 			return err
 		}
 		team.DepartmentID = id
-		if err := uc.teamRepo.UpdateByID(team); err != nil {
+		if err = uc.teamRepo.UpdateByID(team); err != nil {
 			return err
 		}
 	}
@@ -437,14 +459,14 @@ func (uc *OrgAdmin) UpdateDepartment(id uint, input UpdateDepartmentInput) error
 	if err != nil {
 		return err
 	}
-	if err := uc.validateDepartmentLeaderCandidate(headUserID); err != nil {
+	if err = uc.validateDepartmentLeaderCandidate(headUserID); err != nil {
 		return err
 	}
 	for _, managerID := range managerUserIDs {
 		if managerID == headUserID {
 			continue
 		}
-		if err := uc.validateDepartmentLeaderCandidate(managerID); err != nil {
+		if err = uc.validateDepartmentLeaderCandidate(managerID); err != nil {
 			return err
 		}
 	}
@@ -575,7 +597,12 @@ type CreateTeamInput struct {
 	MemberUUIDs    []string `json:"memberUuids"`
 }
 
-func (uc *OrgAdmin) CreateTeam(input CreateTeamInput) (*outputmodel.TeamOptionOutput, error) {
+func (uc *OrgAdmin) CreateTeam(input CreateTeamInput) (ret0 *outputmodel.TeamOptionOutput, err error) {
+	const op = "org_admin_usecase.CreateTeam"
+	done := logutils.Begin(context.Background(), logutils.LayerUsecase, op)
+	defer func() {
+		done(err)
+	}()
 	name := strings.TrimSpace(input.Name)
 	if name == "" {
 		return nil, fmt.Errorf("チーム名を入力してください")
@@ -592,12 +619,12 @@ func (uc *OrgAdmin) CreateTeam(input CreateTeamInput) (*outputmodel.TeamOptionOu
 		return nil, err
 	}
 	if leaderID != 0 {
-		if _, err := uc.userRepo.GetByID(leaderID); err != nil {
+		if _, err = uc.userRepo.GetByID(leaderID); err != nil {
 			return nil, fmt.Errorf("チームリーダーが見つかりません")
 		}
 	}
 	team := &entity.Team{Name: name, DepartmentID: departmentID}
-	if err := uc.teamRepo.Create(team); err != nil {
+	if err = uc.teamRepo.Create(team); err != nil {
 		return nil, err
 	}
 	memberIDs, err := uc.resolveUserUUIDs(input.MemberUUIDs)
@@ -607,12 +634,12 @@ func (uc *OrgAdmin) CreateTeam(input CreateTeamInput) (*outputmodel.TeamOptionOu
 	if memberIDs != nil {
 		for _, memberID := range memberIDs {
 			isReader := memberID == leaderID
-			if err := uc.teamMemberRepo.Create(team.ID, memberID, isReader); err != nil {
+			if err = uc.teamMemberRepo.Create(team.ID, memberID, isReader); err != nil {
 				return nil, err
 			}
 		}
 	} else if leaderID != 0 {
-		if err := uc.applyTeamLeaderOnly(team.ID, leaderID); err != nil {
+		if err = uc.applyTeamLeaderOnly(team.ID, leaderID); err != nil {
 			return nil, err
 		}
 	}
@@ -626,14 +653,19 @@ type UpdateTeamInput struct {
 	LeaderUUID  string   `json:"leaderUuid"`
 }
 
-func (uc *OrgAdmin) UpdateTeam(id uint, input UpdateTeamInput) error {
+func (uc *OrgAdmin) UpdateTeam(id uint, input UpdateTeamInput) (err error) {
+	const op = "org_admin_usecase.UpdateTeam"
+	done := logutils.Begin(context.Background(), logutils.LayerUsecase, op)
+	defer func() {
+		done(err)
+	}()
 	team, err := uc.teamRepo.GetByID(id)
 	if err != nil {
 		return err
 	}
 	if input.Name != "" {
 		team.Name = input.Name
-		if err := uc.teamRepo.UpdateByID(team); err != nil {
+		if err = uc.teamRepo.UpdateByID(team); err != nil {
 			return err
 		}
 	}
@@ -661,7 +693,7 @@ func (uc *OrgAdmin) UpdateTeam(id uint, input UpdateTeamInput) error {
 		for i := range existing {
 			m := &existing[i]
 			if prev, ok := byMember[m.MemberID]; ok {
-				if err := uc.teamMemberRepo.Delete(prev.ID); err != nil {
+				if err = uc.teamMemberRepo.Delete(prev.ID); err != nil {
 					return err
 				}
 			}
@@ -669,7 +701,7 @@ func (uc *OrgAdmin) UpdateTeam(id uint, input UpdateTeamInput) error {
 		}
 		for memberID, m := range byMember {
 			if _, keep := want[memberID]; !keep {
-				if err := uc.teamMemberRepo.Delete(m.ID); err != nil {
+				if err = uc.teamMemberRepo.Delete(m.ID); err != nil {
 					return err
 				}
 				delete(byMember, memberID)
@@ -680,13 +712,13 @@ func (uc *OrgAdmin) UpdateTeam(id uint, input UpdateTeamInput) error {
 			if m, ok := byMember[memberID]; ok {
 				if m.IsReader != isReader {
 					m.IsReader = isReader
-					if err := uc.teamMemberRepo.Update(m.ID, m); err != nil {
+					if err = uc.teamMemberRepo.Update(m.ID, m); err != nil {
 						return err
 					}
 				}
 				continue
 			}
-			if err := uc.teamMemberRepo.Create(id, memberID, isReader); err != nil {
+			if err = uc.teamMemberRepo.Create(id, memberID, isReader); err != nil {
 				return err
 			}
 		}
@@ -720,7 +752,12 @@ func (uc *OrgAdmin) applyTeamLeaderOnly(teamID uint, leaderID uint) error {
 	return nil
 }
 
-func (uc *OrgAdmin) DeleteDepartment(id uint) error {
+func (uc *OrgAdmin) DeleteDepartment(id uint) (err error) {
+	const op = "org_admin_usecase.DeleteDepartment"
+	done := logutils.Begin(context.Background(), logutils.LayerUsecase, op)
+	defer func() {
+		done(err)
+	}()
 	isRoot, childIDs, err := uc.departmentMeta(id)
 	if err != nil {
 		return err
@@ -742,11 +779,11 @@ func (uc *OrgAdmin) DeleteDepartment(id uint) error {
 	if len(users) > 0 {
 		return fmt.Errorf("所属ユーザが存在するため削除できません")
 	}
-	if err := uc.deptMemberRepo.ReplaceByDepartment(id, nil); err != nil {
+	if err = uc.deptMemberRepo.ReplaceByDepartment(id, nil); err != nil {
 		return err
 	}
 	if isRoot {
-		if err := uc.hierarchyRepo.DeleteByParentDepartmentID(id); err != nil {
+		if err = uc.hierarchyRepo.DeleteByParentDepartmentID(id); err != nil {
 			return err
 		}
 	} else {
@@ -755,7 +792,7 @@ func (uc *OrgAdmin) DeleteDepartment(id uint) error {
 			return err
 		}
 		for _, p := range parents {
-			if err := uc.hierarchyRepo.Delete(p.ID); err != nil {
+			if err = uc.hierarchyRepo.Delete(p.ID); err != nil {
 				return err
 			}
 		}
@@ -763,13 +800,18 @@ func (uc *OrgAdmin) DeleteDepartment(id uint) error {
 	return uc.deptRepo.Delete(id)
 }
 
-func (uc *OrgAdmin) DeleteTeam(id uint) error {
+func (uc *OrgAdmin) DeleteTeam(id uint) (err error) {
+	const op = "org_admin_usecase.DeleteTeam"
+	done := logutils.Begin(context.Background(), logutils.LayerUsecase, op)
+	defer func() {
+		done(err)
+	}()
 	members, err := uc.teamMemberRepo.GetByTeamID(id)
 	if err != nil {
 		return err
 	}
 	for _, m := range members {
-		if err := uc.teamMemberRepo.Delete(m.ID); err != nil {
+		if err = uc.teamMemberRepo.Delete(m.ID); err != nil {
 			return err
 		}
 	}
@@ -784,7 +826,12 @@ type CreateDepartmentInput struct {
 	UserUUIDs            []string `json:"userUuids"`
 }
 
-func (uc *OrgAdmin) CreateDepartment(input CreateDepartmentInput) (*outputmodel.DepartmentOptionOutput, error) {
+func (uc *OrgAdmin) CreateDepartment(input CreateDepartmentInput) (ret0 *outputmodel.DepartmentOptionOutput, err error) {
+	const op = "org_admin_usecase.CreateDepartment"
+	done := logutils.Begin(context.Background(), logutils.LayerUsecase, op)
+	defer func() {
+		done(err)
+	}()
 	name := strings.TrimSpace(input.Name)
 	if name == "" {
 		return nil, fmt.Errorf("部署名を入力してください")
@@ -794,7 +841,7 @@ func (uc *OrgAdmin) CreateDepartment(input CreateDepartmentInput) (*outputmodel.
 		return nil, err
 	}
 	if headUserID != 0 {
-		if err := uc.validateDepartmentLeaderCandidate(headUserID); err != nil {
+		if err = uc.validateDepartmentLeaderCandidate(headUserID); err != nil {
 			return nil, err
 		}
 	}
@@ -803,17 +850,17 @@ func (uc *OrgAdmin) CreateDepartment(input CreateDepartmentInput) (*outputmodel.
 		return nil, err
 	}
 	dept := &entity.Department{Name: name}
-	if err := uc.deptRepo.Create(dept); err != nil {
+	if err = uc.deptRepo.Create(dept); err != nil {
 		return nil, err
 	}
 	if parentDepartmentID > 0 {
-		if _, err := uc.deptRepo.GetByID(parentDepartmentID); err != nil {
+		if _, err = uc.deptRepo.GetByID(parentDepartmentID); err != nil {
 			return nil, fmt.Errorf("親部署が見つかりません")
 		}
 		if parentDepartmentID == dept.ID {
 			return nil, fmt.Errorf("自分自身を親部署に指定できません")
 		}
-		if err := uc.hierarchyRepo.Create(parentDepartmentID, dept.ID); err != nil {
+		if err = uc.hierarchyRepo.Create(parentDepartmentID, dept.ID); err != nil {
 			return nil, err
 		}
 	}
@@ -825,7 +872,7 @@ func (uc *OrgAdmin) CreateDepartment(input CreateDepartmentInput) (*outputmodel.
 		if managerID == headUserID {
 			continue
 		}
-		if err := uc.validateDepartmentLeaderCandidate(managerID); err != nil {
+		if err = uc.validateDepartmentLeaderCandidate(managerID); err != nil {
 			return nil, err
 		}
 	}
@@ -834,18 +881,23 @@ func (uc *OrgAdmin) CreateDepartment(input CreateDepartmentInput) (*outputmodel.
 		return nil, err
 	}
 	if userIDs != nil {
-		if err := uc.syncDepartmentMemberFlags(dept.ID, userIDs, headUserID, managerUserIDs); err != nil {
+		if err = uc.syncDepartmentMemberFlags(dept.ID, userIDs, headUserID, managerUserIDs); err != nil {
 			return nil, err
 		}
 	} else if headUserID != 0 || len(managerUserIDs) > 0 {
-		if err := uc.applyDepartmentHeadOnly(dept.ID, headUserID, managerUserIDs); err != nil {
+		if err = uc.applyDepartmentHeadOnly(dept.ID, headUserID, managerUserIDs); err != nil {
 			return nil, err
 		}
 	}
 	return &outputmodel.DepartmentOptionOutput{UUID: dept.UUID.String(), Name: dept.Name}, nil
 }
 
-func (uc *OrgAdmin) ListDepartmentOptions() ([]outputmodel.DepartmentOptionOutput, error) {
+func (uc *OrgAdmin) ListDepartmentOptions() (ret0 []outputmodel.DepartmentOptionOutput, err error) {
+	const op = "org_admin_usecase.ListDepartmentOptions"
+	done := logutils.Begin(context.Background(), logutils.LayerUsecase, op)
+	defer func() {
+		done(err)
+	}()
 	depts, err := uc.deptRepo.GetAll()
 	if err != nil {
 		return nil, err
@@ -869,7 +921,12 @@ func (uc *OrgAdmin) ListDepartmentOptions() ([]outputmodel.DepartmentOptionOutpu
 	return out, nil
 }
 
-func (uc *OrgAdmin) ListTeamOptions() ([]outputmodel.TeamOptionOutput, error) {
+func (uc *OrgAdmin) ListTeamOptions() (ret0 []outputmodel.TeamOptionOutput, err error) {
+	const op = "org_admin_usecase.ListTeamOptions"
+	done := logutils.Begin(context.Background(), logutils.LayerUsecase, op)
+	defer func() {
+		done(err)
+	}()
 	teams, err := uc.teamRepo.GetAll()
 	if err != nil {
 		return nil, err

@@ -1,12 +1,19 @@
 package planning_usecase
 
 import (
+	"context"
 	"growlink/internal/domain/valueobject"
+	logutils "growlink/internal/shared/logUtils"
 )
 
 // PairManagementScopeUserIDs returns user IDs whose pairings may be viewed or managed
 // (boss dept scope, team leader scope, and mentor mentees for general users).
-func (uc *PlanningAccessUsecase) PairManagementScopeUserIDs(userID uint, authority valueobject.Authority, systemRole valueobject.SystemRole) (map[uint]bool, error) {
+func (uc *PlanningAccessUsecase) PairManagementScopeUserIDs(userID uint, authority valueobject.Authority, systemRole valueobject.SystemRole) (ret0 map[uint]bool, err error) {
+	const op = "planning_usecase.PairManagementScopeUserIDs"
+	done := logutils.Begin(context.Background(), logutils.LayerUsecase, op)
+	defer func() {
+		done(err)
+	}()
 	if systemRole == valueobject.SystemRoleAdmin || authority.IsOwner() {
 		return nil, nil
 	}
@@ -62,7 +69,12 @@ func (uc *PlanningAccessUsecase) PairManagementScopeUserIDs(userID uint, authori
 	return visible, nil
 }
 
-func (uc *PlanningAccessUsecase) CanManagePairingMentee(userID uint, authority valueobject.Authority, systemRole valueobject.SystemRole, menteeID uint) (bool, error) {
+func (uc *PlanningAccessUsecase) CanManagePairingMentee(userID uint, authority valueobject.Authority, systemRole valueobject.SystemRole, menteeID uint) (ret0 bool, err error) {
+	const op = "planning_usecase.CanManagePairingMentee"
+	done := logutils.Begin(context.Background(), logutils.LayerUsecase, op)
+	defer func() {
+		done(err)
+	}()
 	if systemRole == valueobject.SystemRoleAdmin || authority.IsOwner() {
 		return true, nil
 	}
@@ -73,7 +85,12 @@ func (uc *PlanningAccessUsecase) CanManagePairingMentee(userID uint, authority v
 	return scope[menteeID], nil
 }
 
-func (uc *PlanningAccessUsecase) CanBreakPairing(userID uint, authority valueobject.Authority, systemRole valueobject.SystemRole, createdByUserID, menteeID uint) (bool, error) {
+func (uc *PlanningAccessUsecase) CanBreakPairing(userID uint, authority valueobject.Authority, systemRole valueobject.SystemRole, createdByUserID, menteeID uint) (ret0 bool, err error) {
+	const op = "planning_usecase.CanBreakPairing"
+	done := logutils.Begin(context.Background(), logutils.LayerUsecase, op)
+	defer func() {
+		done(err)
+	}()
 	if systemRole == valueobject.SystemRoleAdmin || authority.IsOwner() {
 		return true, nil
 	}
