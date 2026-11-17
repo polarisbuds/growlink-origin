@@ -20,6 +20,7 @@
         lastPageForTotal,
         visiblePageNumbers,
     } from "$lib/planning-meetings-pager";
+    import SearchableSelect from "$lib/components/SearchableSelect.svelte";
 
     const AUTHORITY_OPTIONS = [
         { value: "general", label: "メンバー" },
@@ -1385,7 +1386,7 @@
 
 <h1 class="font-display text-2xl font-semibold">管理</h1>
 <p class="mt-1 text-sm text-base-content/60">
-    ユーザ・組織・通知の設定を行います
+    ユーザ・組織・通知・役職名の設定を行います
 </p>
 
 <div role="tablist" class="tabs tabs-bordered mt-6 max-w-3xl">
@@ -1885,7 +1886,8 @@
 {/if}
 
 <dialog class="modal" class:modal-open={userModalOpen}>
-    <div class="modal-box flex min-h-[50vh] max-h-[85vh] max-w-3xl flex-col !overflow-hidden p-0">
+    <div
+        class="modal-box flex min-h-[50vh] max-h-[85vh] max-w-3xl flex-col !overflow-hidden p-0">
         <div
             class="flex justify-between items-start gap-2 p-6 pb-2 border-b border-base-200 shrink-0">
             <div>
@@ -2063,7 +2065,7 @@
         <div class="flex items-center justify-between gap-2">
             <span class="label-text font-medium">
                 {heading}
-                {#if uuids.length > 0}
+                {#if uuids.length > 0 && searchKind !== "head"}
                     <span class="text-base-content/60 font-normal ml-1"
                         >{visibleUuids.length}人</span>
                 {/if}
@@ -2088,7 +2090,7 @@
                     placeholder="氏名で検索"
                     bind:value={orgManagerSearch}
                     autocomplete="off" />
-            {:else}
+            {:else if searchKind !== "head"}
                 <input
                     type="search"
                     class="input input-bordered input-sm w-full placeholder-current"
@@ -2122,7 +2124,8 @@
 {/snippet}
 
 <dialog class="modal" class:modal-open={orgModalOpen}>
-    <div class="modal-box flex min-h-[50vh] max-h-[85vh] max-w-3xl flex-col !overflow-hidden p-0">
+    <div
+        class="modal-box flex min-h-[50vh] max-h-[85vh] max-w-3xl flex-col !overflow-hidden p-0">
         <div
             class="flex justify-between items-start gap-2 p-6 pb-2 border-b border-base-200 shrink-0">
             <div>
@@ -2335,7 +2338,8 @@
 </dialog>
 
 <dialog class="modal" class:modal-open={createUserOpen}>
-    <div class="modal-box flex min-h-[40vh] max-h-[85vh] max-w-lg flex-col !overflow-hidden p-0">
+    <div
+        class="modal-box flex min-h-[40vh] max-h-[85vh] max-w-lg flex-col !overflow-hidden p-0">
         <div class="p-6 pb-2 border-b border-base-200 shrink-0">
             <h3 class="font-bold text-lg">ユーザを追加</h3>
             <p class="text-sm text-base-content/60 mt-0.5">
@@ -2442,7 +2446,8 @@
 </dialog>
 
 <dialog class="modal" class:modal-open={createDeptOpen}>
-    <div class="modal-box flex min-h-[50vh] max-h-[85vh] max-w-3xl flex-col !overflow-hidden p-0">
+    <div
+        class="modal-box flex min-h-[50vh] max-h-[85vh] max-w-3xl flex-col !overflow-hidden p-0">
         <div class="p-6 pb-2 border-b border-base-200 shrink-0">
             <h3 class="font-bold text-lg">部署を追加</h3>
         </div>
@@ -2526,7 +2531,8 @@
 </dialog>
 
 <dialog class="modal" class:modal-open={createTeamOpen}>
-    <div class="modal-box flex min-h-[50vh] max-h-[85vh] max-w-3xl flex-col !overflow-hidden p-0">
+    <div
+        class="modal-box flex min-h-[50vh] max-h-[85vh] max-w-3xl flex-col !overflow-hidden p-0">
         <div class="p-6 pb-2 border-b border-base-200 shrink-0">
             <h3 class="font-bold text-lg">チームを追加</h3>
         </div>

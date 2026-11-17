@@ -118,6 +118,7 @@
             title: active.title || "",
             description: active.description || "",
             topics: (active.topics || []).map((x: Topic) => ({
+                uuid: x.uuid,
                 question: x.question,
                 description: x.description || "",
                 isRequire: x.isRequire,
@@ -161,6 +162,7 @@
             ...t,
             displayNo: i + 1,
         }));
+        console.log(topics);
         try {
             await api("PUT", `/api/v1/templates/${active.uuid}`, {
                 title: editForm.title,
@@ -243,7 +245,7 @@
 <svelte:window
     onkeydown={(e: KeyboardEvent) => e.key === "Escape" && closeModal()} />
 
-<div class="flex flex-wrap items-start justify-between gap-2">
+<div class="flex flex-wrap items-center justify-between gap-2">
     <div>
         <h1 class="font-display text-2xl font-semibold">テンプレート一覧</h1>
         <p class="mt-1 text-sm text-base-content/60">
@@ -329,7 +331,8 @@
 </div>
 
 <dialog class="modal" class:modal-open={modalOpen}>
-    <div class="modal-box flex min-h-[50vh] max-h-[85vh] max-w-2xl flex-col !overflow-hidden p-0">
+    <div
+        class="modal-box flex min-h-[50vh] max-h-[85vh] max-w-2xl flex-col !overflow-hidden p-0">
         <div
             class="flex shrink-0 items-start justify-between gap-2 border-b border-base-200 p-6 pb-2">
             <div class="min-w-0">

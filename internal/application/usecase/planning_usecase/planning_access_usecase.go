@@ -347,16 +347,14 @@ func (uc *PlanningAccessUsecase) mergeDepartmentTreeUsers(
 ) error {
 	deptIDs := descendantDepartmentIDs(roots, hierarchies)
 	headUserIDsInRoot := map[uint]struct{}{}
-	if skipHeadInDept != nil {
-		for deptID := range skipHeadInDept {
-			members, err := uc.deptMemberRepo.GetByDepartmentID(deptID)
-			if err != nil {
-				return err
-			}
-			for _, member := range members {
-				if member.IsHead {
-					headUserIDsInRoot[member.UserID] = struct{}{}
-				}
+	for deptID := range skipHeadInDept {
+		members, err := uc.deptMemberRepo.GetByDepartmentID(deptID)
+		if err != nil {
+			return err
+		}
+		for _, member := range members {
+			if member.IsHead {
+				headUserIDsInRoot[member.UserID] = struct{}{}
 			}
 		}
 	}

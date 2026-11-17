@@ -29,7 +29,7 @@
 
 {#if allowed}
     {#if showListHeader}
-        <div class="flex flex-wrap items-start justify-between gap-2">
+        <div class="flex flex-wrap items-center justify-between gap-2">
             <div>
                 <h1 class="font-display text-2xl font-semibold">ペア一覧</h1>
                 <p class="mt-1 text-sm text-base-content/60">

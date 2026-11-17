@@ -332,15 +332,15 @@ func TestMeetingCreator_CreateMeetingEveryMonth(t *testing.T) {
 			errContains: "メンターと同じユーザをメンティに指定できません",
 		},
 		{
-			name:        "異常系_一時ペア作成失敗",
-			mentorID:    mentorID,
-			templateID:  validTemplateID,
+			name:       "異常系_一時ペア作成失敗",
+			mentorID:   mentorID,
+			templateID: validTemplateID,
 			menteeIDs:  []uint{validMenteeID},
-			from:        from,
-			to:          to,
-			week:        2,
-			weekday:     time.Wednesday,
-			wantErr:     true,
+			from:       from,
+			to:         to,
+			week:       2,
+			weekday:    time.Wednesday,
+			wantErr:    true,
 			setup: func(_ *repomock.MockMeetingRepository, pairing *repomock.MockPairingRepository, _ *meetingCreatorCaptures) {
 				pairing.EXPECT().CreateTemporaryPairing(validMenteeID, mentorID, uint(1)).Return(nil, errGetPairingsFailed)
 			},
@@ -349,7 +349,7 @@ func TestMeetingCreator_CreateMeetingEveryMonth(t *testing.T) {
 			name:        "異常系_Create失敗",
 			mentorID:    mentorID,
 			templateID:  validTemplateID,
-			menteeIDs:  []uint{validMenteeID},
+			menteeIDs:   []uint{validMenteeID},
 			from:        from,
 			to:          to,
 			week:        2,
@@ -371,7 +371,7 @@ func TestMeetingCreator_CreateMeetingEveryMonth(t *testing.T) {
 				tt.setup(meetingRepo, pairingRepo, cap)
 			}
 
-			got, gotErr := uc.CreateMeetingEveryMonth(tt.mentorID, tt.templateID, tt.menteeIDs, tt.from, tt.to, tt.week, tt.weekday, 1, nil)
+			got, gotErr := uc.CreateMeetingEveryMonthWeekday(tt.mentorID, tt.templateID, tt.menteeIDs, tt.from, tt.to, tt.week, tt.weekday, 1, nil)
 			assertUsecaseErr(t, gotErr, tt.wantErr, tt.errContains, "CreateMeetingEveryMonth")
 			if t.Failed() {
 				return

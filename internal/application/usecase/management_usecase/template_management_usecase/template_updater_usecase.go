@@ -4,7 +4,10 @@ import (
 	"fmt"
 	"growlink/internal/application/converter"
 	inputmodel "growlink/internal/application/model/input_model"
+	"growlink/internal/domain/entity"
 	repository_interface "growlink/internal/domain/interface/repository"
+
+	"github.com/google/uuid"
 )
 
 type TemplateUpdater struct {
@@ -32,8 +35,27 @@ func (uc *TemplateUpdater) UpdateTemplate(templateID uint, input inputmodel.Temp
 		return err
 	}
 	newTemplate := converter.TemplateInputToEntity(input)
+	if err := ensureTopicsBelongToTemplate(tpl.Topics, newTemplate.Topics); err != nil {
+		return err
+	}
 	if err := uc.templateRepo.Update(templateID, newTemplate); err != nil {
 		return fmt.Errorf("テンプレートの情報更新に失敗しました: %w", err)
+	}
+	return nil
+}
+
+func ensureTopicsBelongToTemplate(existing []entity.Topic, incoming []entity.Topic) error {
+	known := make(map[uuid.UUID]struct{}, len(existing))
+	for _, topic := range existing {
+		known[topic.UUID] = struct{}{}
+	}
+	for i, topic := range incoming {
+		if topic.UUID == uuid.Nil {
+			continue
+		}
+		if _, ok := known[topic.UUID]; !ok {
+			return fmt.Errorf("%w: Q%d は存在しない質問です", ErrInvalidTemplateInput, i+1)
+		}
 	}
 	return nil
 }

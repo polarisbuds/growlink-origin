@@ -110,6 +110,7 @@
 <svelte:head><title>進捗 - Growlink</title></svelte:head>
 
 <h1 class="font-display text-2xl font-semibold">進捗</h1>
+<p class="mt-1 text-sm text-base-content/60">面談の実施状況の確認</p>
 
 <div role="tablist" class="tabs tabs-bordered mt-6 max-w-3xl">
     <button

@@ -42,7 +42,7 @@ department_members {
     boolean is_head "not null, default false。部長。is_manager も true"
     boolean is_manager "not null, default false。部内と子孫部署の面談を参照"
 
-bigint role_id FK
+    bigint role_id FK "not null"
     bigint department_id FK "UK(department_id, user_id)"
     bigint user_id FK "UK(department_id, user_id)"
 }
@@ -69,10 +69,8 @@ departments ||--|{ teams: "部署＞チーム（SM以下のチームを想定）
 
 pairings {
     boolean is_temporary "not null, default false。一時ペア"
-    number recur_week "nullable。定期実施：第N週"
-    number recur_weekday "nullable。定期実施：曜日（0=日曜）"
-
-    bigint mentor_id FK
+    
+    bigint mentor_id FK "メンター"
     bigint mentee_id FK "メンティ"
     bigint created_by_user_id FK "not null, default 0。作成者"
 }
@@ -85,7 +83,7 @@ pairing_sharers {
     bigint user_id FK
 }
 pairings ||--o{ pairing_sharers: ""
-users ||--o{ pairing_sharers: "共有先ユーザ"
+users ||--o{ pairing_sharers: ""
 
 %% ミーティング系
 %% status が done 以外では他ユーザから見られないようにする
@@ -108,9 +106,10 @@ meetings ||--o{ meeting_sharers: ""
 users ||--o{ meeting_sharers: "共有先ユーザ"
 
 templates {
-    text title UK
+    text title
     text description "not null, default 空文字"
     boolean is_sample "not null, default false。サンプルテンプレート"
+    boolean is_lock "not null, default false"
     boolean is_default "not null, default false。ミーティング作成時の初期テンプレート（同時にtrueは1件）"
 
     bigint creator_id FK "作成者のユーザID（列名 creator_id）"
@@ -157,18 +156,6 @@ answer_comments {
 answers ||--o| answer_comments: ""
 users ||--o{ answer_comments: "メンターID"
 
-%% user_relationships: 上司–部下。pairings（mentor–mentee）とは役割を分離
-user_relationships {
-    smallint relation_type "not null, boss|subordinate"
-
-    bigint source_user_id FK
-    bigint target_user_id FK
-}
-%% Source側からTargetを見た場合のリレーションを記述
-%% 例: relation_type=subordinate, source=部下ID, target=上司ID
-users ||--o{ user_relationships: "source_user_id"
-users ||--o{ user_relationships: "target_user_id"
-
 system_settings {
     number meeting_week "定期実施：第N週"
     number meeting_weekday "定期実施：曜日（0=日曜）"
@@ -190,26 +177,14 @@ department_hierarchies {
 departments ||--o{ department_hierarchies: "parent_department_id"
 departments ||--o{ department_hierarchies: "child_department_id"
 
-user_reference_users {
-    bigint user_id FK
-    bigint referable_user_id FK
-}
-users ||--o{ user_reference_users: ""
-users ||--o{ user_reference_users: "参照可能ユーザID"
+department_roles {
+    text name "ロール名。表示上利用するのみのため自由入力"
 
-user_reference_teams {
     bigint user_id FK
-    bigint referable_team_id FK
+    bigint department_id FK
 }
-users ||--o{ user_reference_teams: ""
-users ||--o{ user_reference_teams: "参照可能チームID"
-
-user_reference_departments {
-    bigint user_id FK
-    bigint referable_department_id FK
-}
-users ||--o{ user_reference_departments: ""
-users ||--o{ user_reference_departments: "参照可能部署ID"
+users ||--o{ department_roles: "役職名"
+departments ||--o{ department_roles: "部署ID"
 ```
 
 
@@ -220,6 +195,5 @@ users ||--o{ user_reference_departments: "参照可能部署ID"
 %% - team_members.is_reader: そのチームのメンティー面談
 %% - boss: user_relationships で部下のミーティング
 %% - owner: 全件
-%% 役職名（roles.name や SM 表示）は参照判定に使わない
+%% 役職名（department_roles.name や SM 表示）は参照判定に使わない
 %% system_role: none / system_admin（システム管理者）/ analyst（分析者）
-%% operation_target: none / department（部署）/ team（チーム）/ subordinate（部下）

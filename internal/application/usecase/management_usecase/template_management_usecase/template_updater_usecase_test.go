@@ -3,11 +3,12 @@ package template_mng_usecase_test
 import (
 	"testing"
 
-	template_mng_usecase "growlink/internal/application/usecase/management_usecase/template_management_usecase"
 	inputmodel "growlink/internal/application/model/input_model"
+	template_mng_usecase "growlink/internal/application/usecase/management_usecase/template_management_usecase"
 	"growlink/internal/domain/entity"
 	repomock "growlink/internal/domain/interface/repository/mock"
 
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
@@ -15,8 +16,8 @@ import (
 )
 
 type templateUpdaterCaptures struct {
-	templateID   uint
-	newTemplate  *entity.Template
+	templateID  uint
+	newTemplate *entity.Template
 }
 
 func newTemplateUpdater(t *testing.T) (
@@ -31,11 +32,12 @@ func newTemplateUpdater(t *testing.T) (
 }
 
 func TestTemplateUpdater_UpdateTemplate(t *testing.T) {
+	existingTopicUUID := uuid.MustParse("11111111-1111-1111-1111-111111111111")
 	input := inputmodel.TemplateInput{
 		Title:       "updated-template",
 		Description: "updated description",
 		Topics: []inputmodel.TopicInput{
-			{DisplayNo: 1, Question: "updated-question", IsRequire: true},
+			{UUID: existingTopicUUID.String(), DisplayNo: 1, Question: "updated-question", IsRequire: true},
 		},
 	}
 
@@ -49,10 +51,10 @@ func TestTemplateUpdater_UpdateTemplate(t *testing.T) {
 		assertFn    func(t *testing.T, cap *templateUpdaterCaptures)
 	}{
 		{
-			name:       "異常系_ロック中",
-			templateID: validTemplateID,
-			input:      input,
-			wantErr:    true,
+			name:        "異常系_ロック中",
+			templateID:  validTemplateID,
+			input:       input,
+			wantErr:     true,
 			errContains: "ロックされているため",
 			setup: func(repo *repomock.MockTemplateRepository, _ *templateUpdaterCaptures) {
 				repo.EXPECT().Get(validTemplateID).Return(&entity.Template{Model: gorm.Model{ID: validTemplateID}, IsLock: true}, nil)
@@ -64,7 +66,10 @@ func TestTemplateUpdater_UpdateTemplate(t *testing.T) {
 			input:      input,
 			wantErr:    false,
 			setup: func(repo *repomock.MockTemplateRepository, cap *templateUpdaterCaptures) {
-				repo.EXPECT().Get(validTemplateID).Return(&entity.Template{Model: gorm.Model{ID: validTemplateID}}, nil)
+				repo.EXPECT().Get(validTemplateID).Return(&entity.Template{
+					Model:  gorm.Model{ID: validTemplateID},
+					Topics: []entity.Topic{{UUID: existingTopicUUID}},
+				}, nil)
 				repo.EXPECT().Update(validTemplateID, gomock.Any()).DoAndReturn(func(id uint, template *entity.Template) error {
 					cap.templateID = id
 					cap.newTemplate = template
@@ -76,8 +81,30 @@ func TestTemplateUpdater_UpdateTemplate(t *testing.T) {
 				require.NotNil(t, cap.newTemplate)
 				assert.Equal(t, "updated-template", cap.newTemplate.Title)
 				require.Len(t, cap.newTemplate.Topics, 1)
+				assert.Equal(t, existingTopicUUID, cap.newTemplate.Topics[0].UUID)
 				assert.Equal(t, "updated-question", cap.newTemplate.Topics[0].Question)
 				assert.True(t, cap.newTemplate.Topics[0].IsRequire)
+			},
+		},
+		{
+			name:       "異常系_存在しない質問",
+			templateID: validTemplateID,
+			input: inputmodel.TemplateInput{
+				Title:       "updated-template",
+				Description: "updated description",
+				Topics: []inputmodel.TopicInput{
+					{UUID: "22222222-2222-2222-2222-222222222222", DisplayNo: 1, Question: "updated-question", IsRequire: true},
+				},
+			},
+			wantErr:     true,
+			errContains: "存在しない質問です",
+			setup: func(repo *repomock.MockTemplateRepository, _ *templateUpdaterCaptures) {
+				repo.EXPECT().Get(validTemplateID).Return(&entity.Template{
+					Model: gorm.Model{ID: validTemplateID},
+					Topics: []entity.Topic{{
+						UUID: uuid.MustParse("11111111-1111-1111-1111-111111111111"),
+					}},
+				}, nil)
 			},
 		},
 		{
@@ -87,7 +114,10 @@ func TestTemplateUpdater_UpdateTemplate(t *testing.T) {
 			wantErr:     true,
 			errContains: "テンプレートの情報更新に失敗しました",
 			setup: func(repo *repomock.MockTemplateRepository, _ *templateUpdaterCaptures) {
-				repo.EXPECT().Get(validTemplateID).Return(&entity.Template{Model: gorm.Model{ID: validTemplateID}}, nil)
+				repo.EXPECT().Get(validTemplateID).Return(&entity.Template{
+					Model:  gorm.Model{ID: validTemplateID},
+					Topics: []entity.Topic{{UUID: existingTopicUUID}},
+				}, nil)
 				repo.EXPECT().Update(validTemplateID, gomock.Any()).Return(errUpdateTemplateFailed)
 			},
 		},

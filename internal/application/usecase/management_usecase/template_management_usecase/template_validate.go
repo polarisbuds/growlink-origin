@@ -5,6 +5,8 @@ import (
 	"fmt"
 	inputmodel "growlink/internal/application/model/input_model"
 	"strings"
+
+	"github.com/google/uuid"
 )
 
 var (
@@ -22,10 +24,22 @@ func validateTemplateInput(input inputmodel.TemplateInput) error {
 	if len(input.Topics) == 0 {
 		return fmt.Errorf("%w: 質問を1件以上追加してください", ErrInvalidTemplateInput)
 	}
+	seen := make(map[string]struct{}, len(input.Topics))
 	for i, t := range input.Topics {
 		if strings.TrimSpace(t.Question) == "" {
 			return fmt.Errorf("%w: Q%d の質問文を入力してください", ErrInvalidTemplateInput, i+1)
 		}
+		if t.UUID == "" {
+			continue
+		}
+		parsed, err := uuid.Parse(t.UUID)
+		if err != nil || parsed == uuid.Nil {
+			return fmt.Errorf("%w: Q%d の識別子が不正です", ErrInvalidTemplateInput, i+1)
+		}
+		if _, ok := seen[parsed.String()]; ok {
+			return fmt.Errorf("%w: Q%d の識別子が重複しています", ErrInvalidTemplateInput, i+1)
+		}
+		seen[parsed.String()] = struct{}{}
 	}
 	return nil
 }

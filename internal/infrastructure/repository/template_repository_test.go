@@ -141,6 +141,70 @@ func TestTemplateRepository_Update(t *testing.T) {
 	assert.Equal(t, updatedTitle, got.Title)
 }
 
+func TestTemplateRepository_Update_SyncTopics(t *testing.T) {
+	tx := testutils.Begin(t)
+	repo := newTemplateRepo(t, tx)
+
+	template := fixtures.Template(t, tx)
+	kept := fixtures.Topic(t, tx, template)
+	removed := fixtures.Topic(t, tx, template)
+
+	err := repo.Update(template.ID, &entity.Template{
+		Title:       template.Title,
+		Description: "updated description",
+		Topics: []entity.Topic{
+			{
+				UUID:        kept.UUID,
+				DisplayNo:   2,
+				Question:    "updated question",
+				Description: "",
+				IsRequire:   false,
+			},
+			{
+				DisplayNo:   3,
+				Question:    "new question",
+				Description: "new description",
+				IsRequire:   true,
+			},
+		},
+	})
+	assertions.NoError(t, err)
+
+	got, err := repo.Get(template.ID)
+	assertions.NoError(t, err)
+	require.NotNil(t, got)
+	assert.Equal(t, "updated description", got.Description)
+	require.Len(t, got.Topics, 2)
+
+	byUUID := map[string]entity.Topic{}
+	for _, topic := range got.Topics {
+		byUUID[topic.UUID.String()] = topic
+	}
+	updated, ok := byUUID[kept.UUID.String()]
+	require.True(t, ok)
+	assert.Equal(t, uint(2), updated.DisplayNo)
+	assert.Equal(t, "updated question", updated.Question)
+	assert.Equal(t, "", updated.Description)
+	assert.False(t, updated.IsRequire)
+	assert.Equal(t, template.ID, updated.TemplateID)
+	_, stillThere := byUUID[removed.UUID.String()]
+	assert.False(t, stillThere)
+
+	var created *entity.Topic
+	for _, topic := range got.Topics {
+		if topic.UUID != kept.UUID {
+			created = &topic
+			break
+		}
+	}
+	require.NotNil(t, created)
+	assertions.NonZeroUUID(t, created.UUID)
+	assert.Equal(t, "new question", created.Question)
+	assert.Equal(t, "new description", created.Description)
+	assert.True(t, created.IsRequire)
+	assert.Equal(t, uint(3), created.DisplayNo)
+}
+
 func TestTemplateRepository_UpdateIsDefault(t *testing.T) {
 	tx := testutils.Begin(t)
 	repo := newTemplateRepo(t, tx)

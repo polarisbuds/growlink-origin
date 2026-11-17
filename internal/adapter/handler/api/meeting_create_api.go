@@ -81,6 +81,46 @@ func (h *Handler) CreateMeetingByAll(c *echo.Context) error {
 	return c.JSON(http.StatusOK, map[string]interface{}{"ok": "true", "count": len(outs)})
 }
 
+func (h *Handler) CreateMeetingMonth(c *echo.Context) error {
+	claims := authctx.Claims(c)
+	if claims == nil {
+		return c.JSON(http.StatusUnauthorized, map[string]string{"error": "unauthorized"})
+	}
+	var req inputmodel.CreateMeetingMonthlyInput
+	if err := c.Bind(&req); err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid request"})
+	}
+	if err := h.resolveCreateMeetingMonthlyInput(c, &req); err != nil {
+		return err
+	}
+	fromDate, ok := parseDateOnly(req.From)
+	if !ok {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid from"})
+	}
+	toDate, ok := parseDateOnly(req.To)
+	if !ok {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid to"})
+	}
+	fromMonth := time.Date(fromDate.Year(), fromDate.Month(), 1, 0, 0, 0, 0, fromDate.Location())
+	toMonth := time.Date(toDate.Year(), toDate.Month(), 1, 0, 0, 0, 0, toDate.Location())
+	if fromMonth.After(toMonth) {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "from must not be after to"})
+	}
+	outs, err := h.deps.Management.MeetingCreator.CreateMeetingEveryMonth(
+		req.MentorID,
+		req.TemplateID,
+		req.MenteeIDs,
+		fromDate,
+		toDate,
+		claims.UserID,
+		req.SharerUserIDs,
+	)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+	}
+	return c.JSON(http.StatusOK, map[string]interface{}{"ok": "true", "count": len(outs)})
+}
+
 func (h *Handler) CreateMeetingMonthly(c *echo.Context) error {
 	claims := authctx.Claims(c)
 	if claims == nil {
@@ -112,7 +152,7 @@ func (h *Handler) CreateMeetingMonthly(c *echo.Context) error {
 	if fromMonth.After(toMonth) {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "from must not be after to"})
 	}
-	outs, err := h.deps.Management.MeetingCreator.CreateMeetingEveryMonth(
+	outs, err := h.deps.Management.MeetingCreator.CreateMeetingEveryMonthWeekday(
 		req.MentorID,
 		req.TemplateID,
 		req.MenteeIDs,

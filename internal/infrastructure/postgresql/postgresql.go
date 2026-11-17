@@ -26,34 +26,7 @@ func NewPostgresqlDB(dsn string) (*gorm.DB, error) {
 		return nil, err
 	}
 
-	if err := migrateDepartmentMemberRoles(db); err != nil {
-		return nil, err
-	}
 	if err := AutoMigrate(db); err != nil {
-		return nil, err
-	}
-	if err := dropLegacyUserDepartmentColumns(db); err != nil {
-		return nil, err
-	}
-	if err := migrateAndDropPairingTargets(db); err != nil {
-		return nil, err
-	}
-	if err := dropLegacyOperationTargetTables(db); err != nil {
-		return nil, err
-	}
-	if err := dropTemplateDisplayNo(db); err != nil {
-		return nil, err
-	}
-	if err := dropRoleRank(db); err != nil {
-		return nil, err
-	}
-	if err := dropDepartmentRolesTable(db); err != nil {
-		return nil, err
-	}
-	if err := ensureTemplateDefaultIndex(db); err != nil {
-		return nil, err
-	}
-	if err := backfillTemplateIsDefault(db); err != nil {
 		return nil, err
 	}
 

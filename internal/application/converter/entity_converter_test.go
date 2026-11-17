@@ -9,6 +9,7 @@ import (
 	"growlink/internal/domain/entity"
 	"growlink/internal/domain/valueobject"
 
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"gorm.io/gorm"
@@ -45,19 +46,24 @@ func TestMeetingInputToEntityAndBack(t *testing.T) {
 }
 
 func TestTemplateInputToEntityAndBack(t *testing.T) {
+	topicUUID := uuid.MustParse("11111111-1111-1111-1111-111111111111")
 	input := inputmodel.TemplateInput{
 		Title:       "weekly",
 		Description: "weekly check-in",
 		Topics: []inputmodel.TopicInput{
-			{DisplayNo: 1, Question: "Q1", IsRequire: true},
+			{UUID: topicUUID.String(), DisplayNo: 1, Question: "Q1", IsRequire: true},
+			{DisplayNo: 2, Question: "Q2", IsRequire: false},
 		},
 	}
 
 	got := converter.TemplateInputToEntity(input)
 	require.NotNil(t, got)
 	assert.Equal(t, "weekly", got.Title)
-	require.Len(t, got.Topics, 1)
+	require.Len(t, got.Topics, 2)
+	assert.Equal(t, topicUUID, got.Topics[0].UUID)
 	assert.Equal(t, "Q1", got.Topics[0].Question)
+	assert.Equal(t, uuid.Nil, got.Topics[1].UUID)
+	assert.Equal(t, "Q2", got.Topics[1].Question)
 
 	entityTemplate := entity.Template{
 		Model:       gorm.Model{ID: 5},

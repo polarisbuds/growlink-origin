@@ -261,7 +261,7 @@
     onkeydown={(e: KeyboardEvent) =>
         e.key === "Escape" && (deleteOpen = false)} />
 
-<div class="mt-4 flex flex-wrap items-center gap-2 justify-end">
+<div class="mt-2 flex flex-wrap items-center gap-2 justify-end">
     <div class="join">
         <button
             type="button"
@@ -279,7 +279,7 @@
 </div>
 
 {#if isSystemAdmin}
-    <div class="mt-4 grid gap-3 sm:grid-cols-4">
+    <div class="mt-2 grid gap-3 sm:grid-cols-4">
         <label class="form-control">
             <span class="label-text text-xs">メンター</span>
             <MultiCheckSelect
@@ -383,17 +383,17 @@
 {#if viewMode === "individual"}
     {#if listLoading && displayedRows.length === 0}
         <div
-            class="mt-6 overflow-hidden rounded-3xl border border-base-300 bg-base-100 p-12 text-center text-sm text-base-content/50 shadow-sm">
+            class="mt-4 overflow-hidden rounded-3xl border border-base-300 bg-base-100 p-12 text-center text-sm text-base-content/50 shadow-sm">
             読み込み中…
         </div>
     {:else if total === 0}
         <div
-            class="mt-6 overflow-hidden rounded-3xl border border-base-300 bg-base-100 p-12 text-center text-sm text-base-content/50 shadow-sm">
+            class="mt-4 overflow-hidden rounded-3xl border border-base-300 bg-base-100 p-12 text-center text-sm text-base-content/50 shadow-sm">
             該当するペアがありません
         </div>
     {:else}
         <div
-            class="mt-6 overflow-hidden rounded-3xl border border-base-300 bg-base-100 shadow-sm">
+            class="mt-4 overflow-hidden rounded-3xl border border-base-300 bg-base-100 shadow-sm">
             <table class="table">
                 {@render tableHead()}
                 {@render tableBody(displayedRows)}
@@ -428,16 +428,16 @@
     {/if}
 {:else if departmentLoading}
     <div
-        class="mt-6 overflow-hidden rounded-3xl border border-base-300 bg-base-100 p-12 text-center text-sm text-base-content/50 shadow-sm">
+        class="mt-4 overflow-hidden rounded-3xl border border-base-300 bg-base-100 p-12 text-center text-sm text-base-content/50 shadow-sm">
         読み込み中…
     </div>
 {:else if departmentRows.length === 0}
     <div
-        class="mt-6 overflow-hidden rounded-3xl border border-base-300 bg-base-100 p-12 text-center text-sm text-base-content/50 shadow-sm">
+        class="mt-4 overflow-hidden rounded-3xl border border-base-300 bg-base-100 p-12 text-center text-sm text-base-content/50 shadow-sm">
         該当するペアがありません
     </div>
 {:else}
-    <div class="mt-6 space-y-6">
+    <div class="mt-4 space-y-6">
         {#each departmentGroups as group (group.label || "__empty__")}
             <section
                 class="overflow-hidden rounded-3xl border border-base-300 bg-base-100 shadow-sm">

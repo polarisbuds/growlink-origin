@@ -4,15 +4,21 @@ import (
 	inputmodel "growlink/internal/application/model/input_model"
 	outputmodel "growlink/internal/application/model/output_model"
 	"growlink/internal/domain/entity"
+
+	"github.com/google/uuid"
 )
 
 func TopicInputToEntity(in inputmodel.TopicInput) *entity.Topic {
-	return &entity.Topic{
+	topic := &entity.Topic{
 		DisplayNo:   in.DisplayNo,
 		Question:    in.Question,
 		Description: in.Description,
 		IsRequire:   in.IsRequire,
 	}
+	if parsed, err := uuid.Parse(in.UUID); err == nil && parsed != uuid.Nil {
+		topic.UUID = parsed
+	}
+	return topic
 }
 
 func TopicEntityToOutput(e entity.Topic) outputmodel.TopicOutput {

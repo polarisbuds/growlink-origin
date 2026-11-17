@@ -15,10 +15,12 @@
     import UserSelectModal from "$lib/components/UserSelectModal.svelte";
     import PairSelectModal from "$lib/components/PairSelectModal.svelte";
     import Icon from "$lib/components/Icon.svelte";
-
+    import TemplateSelectModal, {
+        type TemplatePickerTemplate,
+    } from "$lib/components/TemplateSelectModal.svelte";
     const MENTEE_PAGE_SIZE = 10;
 
-    type Template = { uuid: string; title?: string; isDefault?: boolean };
+    type Template = TemplatePickerTemplate;
     type User = {
         uuid: string;
         name: string;
@@ -36,7 +38,7 @@
         departmentUuid: string;
     };
     type CreateTarget = "manual" | "pair";
-    type ScheduleKind = "date" | "monthly";
+    type ScheduleKind = "date" | "month" | "monthly";
 
     function todayISO() {
         const d = new Date();
@@ -99,6 +101,10 @@
             (selectedMenteeTablePage - 1) * MENTEE_PAGE_SIZE,
             selectedMenteeTablePage * MENTEE_PAGE_SIZE,
         ),
+    );
+    let templateModalOpen = $state(false);
+    let selectedTemplate = $derived(
+        templates.find((t) => t.uuid === form.templateUuid),
     );
 
     $effect(() => {
@@ -215,9 +221,8 @@
     }
     function addableMemberCount(members?: User[]) {
         if (!members?.length) return 0;
-        return members.filter(
-            (m) => m?.uuid && m.uuid !== currentUserUuid,
-        ).length;
+        return members.filter((m) => m?.uuid && m.uuid !== currentUserUuid)
+            .length;
     }
     function managedTeamLabelOf(item: ManagedTeam) {
         const n = addableMemberCount(item.members);
@@ -274,6 +279,18 @@
             week: form.week,
             weekday: form.weekday,
         };
+    }
+
+    function validateMonthSchedule(): boolean {
+        if (!form.fromMonth || !form.toMonth) {
+            error = "期間を入力してください。";
+            return false;
+        }
+        if (form.fromMonth > form.toMonth) {
+            error = "開始月は終了月以前にしてください。";
+            return false;
+        }
+        return true;
     }
 
     function validateMonthlySchedule(): boolean {
@@ -390,6 +407,26 @@
                     implementedAt: form.implementedAt,
                     sharerUserUuids: sharerPayload,
                 });
+            } else if (target === "manual" && schedule === "month") {
+                if (!mentorUuid) {
+                    error = "メンターを選択してください。";
+                    return;
+                }
+                if (!menteeUuids.length) {
+                    error = "メンティを選択してください。";
+                    return;
+                }
+                if (menteeUuids.some((id) => id === mentorUuid)) {
+                    error = "メンターと同じユーザをメンティに指定できません。";
+                    return;
+                }
+                if (!validateMonthSchedule()) return;
+                await api("POST", "/api/v1/meetings/month", {
+                    mentorUuid,
+                    menteeUuids,
+                    ...monthlyPayloadBase(),
+                    sharerUserUuids: sharerPayload,
+                });
             } else if (target === "manual" && schedule === "monthly") {
                 if (!mentorUuid) {
                     error = "メンターを選択してください。";
@@ -487,16 +524,17 @@
             <div class="alert alert-error text-sm">{error}</div>
         {/if}
         <div class="form-control">
-            <span class="label-text font-medium">テンプレート</span>
-            <div class="mt-1">
-                <SearchableSelect
-                    pickRootId="meeting-new-template"
-                    items={templates}
-                    bind:value={form.templateUuid}
-                    labelOf={templateLabelOf}
-                    placeholder="名前で検索して選択"
-                    allowClear={true} />
+            <div class="flex items-end justify-between">
+                <span class="label-text font-medium">テンプレート</span>
+                <button
+                    type="button"
+                    class="btn btn-outline btn-xs"
+                    onclick={() => (templateModalOpen = true)}
+                    >テンプレートを選択</button>
             </div>
+            <p class="mt-2 text-sm">
+                {selectedTemplate?.title || "未選択"}
+            </p>
         </div>
         {#if target === "pair"}
             <div class="form-control space-y-3">
@@ -867,6 +905,13 @@
                     <button
                         type="button"
                         class="btn btn-sm join-item"
+                        class:btn-primary={schedule === "month"}
+                        class:btn-outline={schedule !== "month"}
+                        onclick={() => onScheduleChange("month")}
+                        >年月指定</button>
+                    <button
+                        type="button"
+                        class="btn btn-sm join-item"
                         class:btn-primary={schedule === "monthly"}
                         class:btn-outline={schedule !== "monthly"}
                         onclick={() => onScheduleChange("monthly")}
@@ -882,6 +927,23 @@
                         type="date"
                         bind:value={form.implementedAt} />
                 </label>
+            {:else if schedule === "month"}
+                <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                    <label class="form-control">
+                        <span class="label-text font-medium">年月（から）</span>
+                        <input
+                            class="input input-bordered mt-1"
+                            type="month"
+                            bind:value={form.fromMonth} />
+                    </label>
+                    <label class="form-control">
+                        <span class="label-text font-medium">年月（まで）</span>
+                        <input
+                            class="input input-bordered mt-1"
+                            type="month"
+                            bind:value={form.toMonth} />
+                    </label>
+                </div>
             {:else}
                 <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                     <label class="form-control">
@@ -936,6 +998,19 @@
         </div>
     </div>
 </main>
+
+<TemplateSelectModal
+    class="min-h-[60vh]"
+    open={templateModalOpen}
+    {templates}
+    selectedUuid={form.templateUuid}
+    onApply={(uuid) => {
+        form.templateUuid = uuid;
+        templateModalOpen = false;
+    }}
+    onClose={() => {
+        templateModalOpen = false;
+    }} />
 
 <UserSelectModal
     class="min-h-[60vh]"
@@ -1007,7 +1082,8 @@
     }} />
 
 <dialog class="modal" class:modal-open={departmentModalOpen}>
-    <div class="modal-box flex min-h-80 max-h-[85vh] max-w-lg flex-col !overflow-hidden">
+    <div
+        class="modal-box flex min-h-80 max-h-[85vh] max-w-lg flex-col !overflow-hidden">
         <h3 class="text-lg font-bold shrink-0">部署指定</h3>
         <p class="mt-1 text-sm text-base-content/60">
             部署を選ぶと、その所属ユーザがメンティに追加されます。
@@ -1038,7 +1114,8 @@
 </dialog>
 
 <dialog class="modal" class:modal-open={teamPickModalOpen}>
-    <div class="modal-box flex min-h-80 max-h-[85vh] max-w-lg flex-col !overflow-hidden">
+    <div
+        class="modal-box flex min-h-80 max-h-[85vh] max-w-lg flex-col !overflow-hidden">
         <h3 class="text-lg font-bold shrink-0">チーム指定</h3>
         <p class="mt-1 text-sm text-base-content/60">
             チームを選ぶと、そのメンバーがメンティに追加されます。
@@ -1069,7 +1146,8 @@
 </dialog>
 
 <dialog class="modal" class:modal-open={managedTeamModalOpen}>
-    <div class="modal-box flex min-h-80 max-h-[85vh] max-w-lg flex-col !overflow-hidden">
+    <div
+        class="modal-box flex min-h-80 max-h-[85vh] max-w-lg flex-col !overflow-hidden">
         <h3 class="text-lg font-bold shrink-0">管理チーム選択</h3>
         <p class="mt-1 text-sm text-base-content/60">
             あなたがリーダーのチームを選ぶと、そのメンバーがメンティに追加されます。

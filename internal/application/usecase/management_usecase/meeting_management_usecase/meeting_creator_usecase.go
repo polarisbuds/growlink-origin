@@ -109,7 +109,77 @@ func (uc *MeetingCreator) CreatePlannedMeetings(mentorID, templateID uint, mente
 	return converter.MeetingEntitiesToOutputs(result), nil
 }
 
-func (uc *MeetingCreator) CreateMeetingEveryMonth(mentorID, templateID uint, menteeIDs []uint, from, to time.Time, week int, weekday time.Weekday, createdByUserID uint, sharerUserIDs []uint) ([]outputmodel.MeetingOutput, error) {
+func (uc *MeetingCreator) CreateMeetingEveryMonth(mentorID, templateID uint, menteeIDs []uint, from, to time.Time, createdByUserID uint, sharerUserIDs []uint) ([]outputmodel.MeetingOutput, error) {
+	if mentorID == 0 {
+		return nil, fmt.Errorf("メンターが指定されていません")
+	}
+	if len(menteeIDs) == 0 {
+		return nil, fmt.Errorf("メンティが指定されていません")
+	}
+	implementDates := utils.ListSpecificMonth(from, to)
+	if len(implementDates) == 0 {
+		return converter.MeetingEntitiesToOutputs(nil), nil
+	}
+	pairingIDs := make([]uint, 0, len(menteeIDs))
+	for _, menteeID := range menteeIDs {
+		if menteeID == 0 {
+			return nil, fmt.Errorf("無効なメンティが含まれています")
+		}
+		if menteeID == mentorID {
+			return nil, fmt.Errorf("メンターと同じユーザをメンティに指定できません")
+		}
+		pair, err := uc.pairingRepo.CreateTemporaryPairing(menteeID, mentorID, createdByUserID)
+		if err != nil {
+			return nil, err
+		}
+		pairingIDs = append(pairingIDs, pair.ID)
+	}
+	var (
+		result = []entity.Meeting{}
+		mux    = sync.Mutex{}
+		wg     = sync.WaitGroup{}
+	)
+	totalCreates := len(implementDates) * len(pairingIDs)
+	errCh := make(chan error, totalCreates)
+	for _, implementDate := range implementDates {
+		implementDate := implementDate
+		for _, pairingID := range pairingIDs {
+			wg.Add(1)
+			pairingID := pairingID
+			go func(pairingID uint, ec chan<- error) {
+				defer wg.Done()
+				meeting, err := uc.meetingRepo.Create(&entity.Meeting{
+					ImplementedAt:   implementedAtPtr(implementDate),
+					Status:          valueobject.MeetingStatusPending,
+					TemplateID:      templateID,
+					PairingID:       pairingID,
+					CreatedByUserID: createdByUserID,
+				})
+				if err != nil {
+					ec <- fmt.Errorf("定期ミーティングのペアリングのミーティング作成に失敗しました: %w", err)
+					return
+				}
+				if err := uc.saveSharers(meeting.ID, sharerUserIDs); err != nil {
+					ec <- err
+					return
+				}
+				mux.Lock()
+				result = append(result, *meeting)
+				mux.Unlock()
+			}(pairingID, errCh)
+		}
+	}
+	wg.Wait()
+	close(errCh)
+	for err := range errCh {
+		if err != nil {
+			return nil, err
+		}
+	}
+	return converter.MeetingEntitiesToOutputs(result), nil
+}
+
+func (uc *MeetingCreator) CreateMeetingEveryMonthWeekday(mentorID, templateID uint, menteeIDs []uint, from, to time.Time, week int, weekday time.Weekday, createdByUserID uint, sharerUserIDs []uint) ([]outputmodel.MeetingOutput, error) {
 	if mentorID == 0 {
 		return nil, fmt.Errorf("メンターが指定されていません")
 	}

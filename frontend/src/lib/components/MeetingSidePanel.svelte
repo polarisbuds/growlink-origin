@@ -197,7 +197,7 @@
     <div class="hidden lg:flex shrink-0 top-4 p-5">
         <button
             type="button"
-            class="btn btn-ghost btn-sm btn-square sticky h-fit"
+            class="btn btn-ghost btn-xs btn-square sticky h-fit"
             aria-label="面談情報パネルを開く"
             onclick={() => (open = true)}>
             <PanelRightOpen class="h-4 w-4" />

@@ -245,10 +245,10 @@
             placeholder="すべて" />
     </label>
     <div class="grid grid-cols-4 gap-2 sm:col-span-3 items-center">
-        <label class="form-control">
+        <label class="form-control h-full">
             <span class="label-text text-xs">状態</span>
             <select
-                class="select select-bordered select-sm"
+                class="select select-bordered select-sm h-full"
                 bind:value={filterStatus}>
                 <option value="">すべて</option>
                 <option value="1">未着手</option>
@@ -260,14 +260,14 @@
             <span class="label-text text-xs">実施日（から）</span>
             <input
                 type="date"
-                class="input input-bordered input-sm"
+                class="input input-bordered input-sm h-full"
                 bind:value={filterDateFrom} />
         </label>
         <label class="form-control">
             <span class="label-text text-xs">実施日（まで）</span>
             <input
                 type="date"
-                class="input input-bordered input-sm"
+                class="input input-bordered input-sm h-full"
                 bind:value={filterDateTo} />
         </label>
         <label

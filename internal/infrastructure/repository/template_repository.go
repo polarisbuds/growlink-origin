@@ -58,8 +58,62 @@ func (repo *TemplateRepository) Create(input *entity.Template) error {
 }
 
 func (repo *TemplateRepository) Update(templateID uint, newTemplate *entity.Template) error {
-	if _, err := gorm.G[entity.Template](repo.db).Where("id = ?", templateID).Omit(clause.Associations).Updates(repo.ctx, *newTemplate); err != nil {
-		return fmt.Errorf("テンプレートの更新に失敗しました: %w", err)
+	return repo.db.WithContext(repo.ctx).Transaction(func(tx *gorm.DB) error {
+		if _, err := gorm.G[entity.Template](tx).
+			Where("id = ?", templateID).
+			Omit(clause.Associations).
+			Updates(repo.ctx, *newTemplate); err != nil {
+			return fmt.Errorf("テンプレートの更新に失敗しました: %w", err)
+		}
+		if err := syncTemplateTopics(repo.ctx, tx, templateID, newTemplate.Topics); err != nil {
+			return err
+		}
+		return nil
+	})
+}
+
+func syncTemplateTopics(ctx context.Context, tx *gorm.DB, templateID uint, incoming []entity.Topic) error {
+	existing, err := gorm.G[entity.Topic](tx).Where("template_id = ?", templateID).Find(ctx)
+	if err != nil {
+		return fmt.Errorf("トピックの取得に失敗しました: %w", err)
+	}
+	existingByUUID := make(map[uuid.UUID]entity.Topic, len(existing))
+	for _, topic := range existing {
+		existingByUUID[topic.UUID] = topic
+	}
+
+	kept := make(map[uuid.UUID]struct{}, len(incoming))
+	for _, topic := range incoming {
+		topic.TemplateID = templateID
+		if topic.UUID == uuid.Nil {
+			if err := gorm.G[entity.Topic](tx).Create(ctx, &topic); err != nil {
+				return fmt.Errorf("トピックの作成に失敗しました: %w", err)
+			}
+			continue
+		}
+		current, ok := existingByUUID[topic.UUID]
+		if !ok {
+			return fmt.Errorf("指定されたトピックがこのテンプレートに存在しません")
+		}
+		if _, seen := kept[topic.UUID]; seen {
+			return fmt.Errorf("トピックのUUIDが重複しています")
+		}
+		kept[topic.UUID] = struct{}{}
+		if _, err := gorm.G[entity.Topic](tx).
+			Where("id = ?", current.ID).
+			Select("DisplayNo", "Question", "Description", "IsRequire").
+			Updates(ctx, topic); err != nil {
+			return fmt.Errorf("トピックの更新に失敗しました: %w", err)
+		}
+	}
+
+	for _, topic := range existing {
+		if _, ok := kept[topic.UUID]; ok {
+			continue
+		}
+		if _, err := gorm.G[entity.Topic](tx).Where("id = ?", topic.ID).Delete(ctx); err != nil {
+			return fmt.Errorf("トピックの削除に失敗しました: %w", err)
+		}
 	}
 	return nil
 }

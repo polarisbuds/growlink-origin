@@ -40,3 +40,14 @@ func ListSpecificWeekdays(from, to time.Time, weekNum int, weekday time.Weekday)
 	}
 	return out
 }
+
+func ListSpecificMonth(from, to time.Time) []time.Time {
+	loc := from.Location()
+	cursor := time.Date(from.Year(), from.Month(), 1, 0, 0, 0, 0, loc)
+	end := time.Date(to.Year(), to.Month(), 1, 0, 0, 0, 0, loc)
+	out := []time.Time{}
+	for !cursor.After(end) {
+		cursor = cursor.AddDate(0, 1, 0)
+	}
+	return out
+}
