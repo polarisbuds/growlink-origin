@@ -10,6 +10,7 @@ import (
 
 type DepartmentRepository interface {
 	GetByID(id uint) (*entity.Department, error)
+	GetByName(name string) (*entity.Department, error)
 	GetByUUID(deptUUID uuid.UUID) (*entity.Department, error)
 	GetAll() ([]entity.Department, error)
 	Create(department *entity.Department) error

@@ -103,7 +103,7 @@ func main() {
 		ldapClient = ldap.NewClient(ldapSetting)
 	}
 
-	authUC := authenticate_usecase.NewAuthUsecase(ldapClient, userRepo, deptMemberRepo)
+	authUC := authenticate_usecase.NewAuthUsecase(ldapClient, userRepo, deptRepo, deptMemberRepo)
 	answerCommenter := meeting_usecase.NewAnswerCommenterUsecase(answerCommentRepo)
 	meetingBundle := meeting_usecase.Bundle{
 		List:                   meeting_usecase.NewMeetingListUsecase(meetingRepo, pairingRepo),

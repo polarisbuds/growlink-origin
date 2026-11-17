@@ -28,6 +28,17 @@ func (repo *DepartmentRepository) GetByID(id uint) (*entity.Department, error) {
 	return &dept, nil
 }
 
+func (repo *DepartmentRepository) GetByName(name string) (*entity.Department, error) {
+	dept, err := gorm.G[entity.Department](repo.db).Where("name = ?", name).Order("id ASC").First(repo.ctx)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, gorm.ErrRecordNotFound
+		}
+		return nil, fmt.Errorf("指定された部署名は存在しませんでした: %w", err)
+	}
+	return &dept, nil
+}
+
 func (repo *DepartmentRepository) GetByUUID(deptUUID uuid.UUID) (*entity.Department, error) {
 	dept, err := gorm.G[entity.Department](repo.db).Where("uuid = ?", deptUUID.String()).Order("id ASC").First(repo.ctx)
 	if err != nil {

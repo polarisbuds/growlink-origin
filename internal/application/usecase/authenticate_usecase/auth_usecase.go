@@ -27,13 +27,14 @@ import (
 type AuthUsecase struct {
 	ldapClient     ldap_interface.LDAPClient
 	userRepo       repository_interface.UserRepository
+	deptRepo       repository_interface.DepartmentRepository
 	deptMemberRepo repository_interface.DepartmentMemberRepository
 }
 
 const opAuth = "auth_usecase"
 
-func NewAuthUsecase(ldapClient ldap_interface.LDAPClient, userRepo repository_interface.UserRepository, deptMemberRepo repository_interface.DepartmentMemberRepository) *AuthUsecase {
-	return &AuthUsecase{ldapClient: ldapClient, userRepo: userRepo, deptMemberRepo: deptMemberRepo}
+func NewAuthUsecase(ldapClient ldap_interface.LDAPClient, userRepo repository_interface.UserRepository, deptRepo repository_interface.DepartmentRepository, deptMemberRepo repository_interface.DepartmentMemberRepository) *AuthUsecase {
+	return &AuthUsecase{ldapClient: ldapClient, userRepo: userRepo, deptRepo: deptRepo, deptMemberRepo: deptMemberRepo}
 }
 
 func (uc *AuthUsecase) LoginLDAP(ctx context.Context, email, password string) (string, outputmodel.UserOutput, error) {
@@ -50,6 +51,10 @@ func (uc *AuthUsecase) LoginLDAP(ctx context.Context, email, password string) (s
 		return "", outputmodel.UserOutput{}, fmt.Errorf("LDAP認証に失敗しました: %w", err)
 	}
 
+	if _, err := uc.ensureDepartmentFromLDAP(ctx, ldapUser.Department); err != nil {
+		return "", outputmodel.UserOutput{}, err
+	}
+
 	user, err := uc.userRepo.GetByEmail(ldapUser.Mail)
 	if err != nil {
 		if !errors.Is(err, gorm.ErrRecordNotFound) {
@@ -63,7 +68,10 @@ func (uc *AuthUsecase) LoginLDAP(ctx context.Context, email, password string) (s
 		if err := uc.userRepo.Create(user); err != nil {
 			return "", outputmodel.UserOutput{}, err
 		}
-		deptID := defaultDepartmentID()
+		deptID, err := uc.departmentIDForNewLDAPUser(ldapUser.Department)
+		if err != nil {
+			return "", outputmodel.UserOutput{}, err
+		}
 		roleID := defaultRoleID()
 		members, err := uc.deptMemberRepo.GetByDepartmentID(deptID)
 		if err != nil {
@@ -154,4 +162,38 @@ func defaultDepartmentID() uint {
 		}
 	}
 	return 1
+}
+
+func (uc *AuthUsecase) departmentIDForNewLDAPUser(ldapDepartment string) (uint, error) {
+	name := strings.TrimSpace(ldapDepartment)
+	if name == "" {
+		return defaultDepartmentID(), nil
+	}
+	dept, err := uc.deptRepo.GetByName(name)
+	if err != nil {
+		return 0, err
+	}
+	return dept.ID, nil
+}
+
+func (uc *AuthUsecase) ensureDepartmentFromLDAP(ctx context.Context, ldapDepartment string) (uint, error) {
+	const op = opAuth + ".ensureDepartmentFromLDAP"
+	name := strings.TrimSpace(ldapDepartment)
+	if name == "" {
+		return 0, nil
+	}
+	dept, err := uc.deptRepo.GetByName(name)
+	if err == nil {
+		return dept.ID, nil
+	}
+	if !errors.Is(err, gorm.ErrRecordNotFound) {
+		return 0, err
+	}
+	newDept := &entity.Department{Name: name}
+	if err := uc.deptRepo.Create(newDept); err != nil {
+		logutils.Error(ctx, logutils.LayerUsecase, op, "LDAP部署の作成失敗", slog.String("department", name), slog.String("err", err.Error()))
+		return 0, err
+	}
+	logutils.Info(ctx, logutils.LayerUsecase, op, "LDAP部署を追加", slog.String("department", name), slog.Uint64("department_id", uint64(newDept.ID)))
+	return newDept.ID, nil
 }
