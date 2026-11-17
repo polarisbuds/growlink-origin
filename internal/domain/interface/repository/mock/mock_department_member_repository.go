@@ -194,3 +194,41 @@ func (c *MockDepartmentMemberRepositoryReplaceByDepartmentCall) DoAndReturn(f fu
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
+
+// ReplaceByUser mocks base method.
+func (m *MockDepartmentMemberRepository) ReplaceByUser(userID uint, member entity.DepartmentMember) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ReplaceByUser", userID, member)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// ReplaceByUser indicates an expected call of ReplaceByUser.
+func (mr *MockDepartmentMemberRepositoryMockRecorder) ReplaceByUser(userID, member any) *MockDepartmentMemberRepositoryReplaceByUserCall {
+	mr.mock.ctrl.T.Helper()
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReplaceByUser", reflect.TypeOf((*MockDepartmentMemberRepository)(nil).ReplaceByUser), userID, member)
+	return &MockDepartmentMemberRepositoryReplaceByUserCall{Call: call}
+}
+
+// MockDepartmentMemberRepositoryReplaceByUserCall wrap *gomock.Call
+type MockDepartmentMemberRepositoryReplaceByUserCall struct {
+	*gomock.Call
+}
+
+// Return rewrite *gomock.Call.Return
+func (c *MockDepartmentMemberRepositoryReplaceByUserCall) Return(arg0 error) *MockDepartmentMemberRepositoryReplaceByUserCall {
+	c.Call = c.Call.Return(arg0)
+	return c
+}
+
+// Do rewrite *gomock.Call.Do
+func (c *MockDepartmentMemberRepositoryReplaceByUserCall) Do(f func(uint, entity.DepartmentMember) error) *MockDepartmentMemberRepositoryReplaceByUserCall {
+	c.Call = c.Call.Do(f)
+	return c
+}
+
+// DoAndReturn rewrite *gomock.Call.DoAndReturn
+func (c *MockDepartmentMemberRepositoryReplaceByUserCall) DoAndReturn(f func(uint, entity.DepartmentMember) error) *MockDepartmentMemberRepositoryReplaceByUserCall {
+	c.Call = c.Call.DoAndReturn(f)
+	return c
+}

@@ -5,6 +5,7 @@ import (
 	"log/slog"
 	"os"
 	"runtime"
+	"sync"
 	"time"
 
 	"growlink/internal/adapter/handler"
@@ -188,8 +189,28 @@ func main() {
 
 	handler.RegisterRoutes(ec, deps, logs.Audit)
 
+	if ldapClient != nil {
+		go runLDAPDirectorySync(authUC)
+	}
+
 	if err := ec.Start(":" + config.GetEchoPort()); err != nil {
 		slog.Error("server stopped", "err", err)
 		os.Exit(1)
+	}
+}
+
+func runLDAPDirectorySync(uc *authenticate_usecase.AuthUsecase) {
+	var mu sync.Mutex
+	run := func() {
+		mu.Lock()
+		defer mu.Unlock()
+		if err := uc.SyncDirectory(context.Background()); err != nil {
+			slog.Error("ldap directory sync failed", "err", err)
+		}
+	}
+	run()
+	for {
+		time.Sleep(time.Until(authenticate_usecase.NextDirectorySyncAt(time.Now())))
+		run()
 	}
 }

@@ -116,3 +116,47 @@ func (repo *DepartmentMemberRepository) ReplaceByDepartment(departmentID uint, m
 	}
 	return nil
 }
+
+func (repo *DepartmentMemberRepository) ReplaceByUser(userID uint, member entity.DepartmentMember) error {
+	member.UserID = userID
+	member.Department = nil
+	member.User = nil
+	member.Role = nil
+
+	err := repo.db.WithContext(repo.ctx).Transaction(func(tx *gorm.DB) error {
+		var existing []entity.DepartmentMember
+		if err := tx.Where("user_id = ?", userID).Find(&existing).Error; err != nil {
+			return err
+		}
+
+		var current *entity.DepartmentMember
+		for i := range existing {
+			if existing[i].DepartmentID == member.DepartmentID {
+				row := existing[i]
+				current = &row
+				continue
+			}
+			if err := tx.Delete(&existing[i]).Error; err != nil {
+				return err
+			}
+		}
+		if current == nil {
+			return tx.Create(&member).Error
+		}
+		if current.RoleID == member.RoleID && current.IsHead == member.IsHead && current.IsManager == member.IsManager {
+			return nil
+		}
+		return tx.Model(&entity.DepartmentMember{}).
+			Where("id = ?", current.ID).
+			Select("RoleID", "IsHead", "IsManager").
+			Updates(map[string]any{
+				"RoleID":    member.RoleID,
+				"IsHead":    member.IsHead,
+				"IsManager": member.IsManager,
+			}).Error
+	})
+	if err != nil {
+		return fmt.Errorf("ユーザの部署所属の入れ替えに失敗しました: %w", err)
+	}
+	return nil
+}

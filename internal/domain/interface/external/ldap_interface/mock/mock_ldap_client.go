@@ -117,3 +117,42 @@ func (c *MockLDAPClientSearchCall) DoAndReturn(f func(string) (*ldap_entity.LDAP
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
+
+// ListProperActive mocks base method.
+func (m *MockLDAPClient) ListProperActive() ([]ldap_entity.LDAPUser, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListProperActive")
+	ret0, _ := ret[0].([]ldap_entity.LDAPUser)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListProperActive indicates an expected call of ListProperActive.
+func (mr *MockLDAPClientMockRecorder) ListProperActive() *MockLDAPClientListProperActiveCall {
+	mr.mock.ctrl.T.Helper()
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListProperActive", reflect.TypeOf((*MockLDAPClient)(nil).ListProperActive))
+	return &MockLDAPClientListProperActiveCall{Call: call}
+}
+
+// MockLDAPClientListProperActiveCall wrap *gomock.Call
+type MockLDAPClientListProperActiveCall struct {
+	*gomock.Call
+}
+
+// Return rewrite *gomock.Call.Return
+func (c *MockLDAPClientListProperActiveCall) Return(arg0 []ldap_entity.LDAPUser, arg1 error) *MockLDAPClientListProperActiveCall {
+	c.Call = c.Call.Return(arg0, arg1)
+	return c
+}
+
+// Do rewrite *gomock.Call.Do
+func (c *MockLDAPClientListProperActiveCall) Do(f func() ([]ldap_entity.LDAPUser, error)) *MockLDAPClientListProperActiveCall {
+	c.Call = c.Call.Do(f)
+	return c
+}
+
+// DoAndReturn rewrite *gomock.Call.DoAndReturn
+func (c *MockLDAPClientListProperActiveCall) DoAndReturn(f func() ([]ldap_entity.LDAPUser, error)) *MockLDAPClientListProperActiveCall {
+	c.Call = c.Call.DoAndReturn(f)
+	return c
+}

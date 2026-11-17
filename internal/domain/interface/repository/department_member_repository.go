@@ -9,4 +9,5 @@ type DepartmentMemberRepository interface {
 	GetByDepartmentID(departmentID uint) ([]entity.DepartmentMember, error)
 	GetByUserID(userID uint) ([]entity.DepartmentMember, error)
 	ReplaceByDepartment(departmentID uint, members []entity.DepartmentMember) error
+	ReplaceByUser(userID uint, member entity.DepartmentMember) error
 }

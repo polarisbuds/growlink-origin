@@ -2,6 +2,8 @@ package ldap
 
 import (
 	"fmt"
+	"strings"
+
 	ldap_entity "growlink/internal/domain/entity/ldap"
 
 	"github.com/go-ldap/ldap/v3"
@@ -95,6 +97,76 @@ func (client *LDAPClient) Search(userName string) (*ldap_entity.LDAPUser, error)
 		Mail:       e.GetAttributeValue("mail"),
 		DN:         e.GetAttributeValue("distinguishedName"),
 	}, nil
+}
+
+func (client *LDAPClient) ListProperActive() ([]ldap_entity.LDAPUser, error) {
+	filter := strings.TrimSpace(client.setting.SearchFilterProper)
+	if filter == "" {
+		return nil, fmt.Errorf("LDAP_SEARCH_FILTER_BY_PROPER が未設定です")
+	}
+
+	conn, err := client.newConnection()
+	if err != nil {
+		return nil, fmt.Errorf("検索用接続に失敗しました: %w", err)
+	}
+	defer conn.Close()
+
+	if err := client.bind(conn, client.setting.BindDN, client.setting.BinddnPassword); err != nil {
+		return nil, fmt.Errorf("バインドに失敗しました: %w", err)
+	}
+
+	req := client.newLDAPSearchRequest(filter)
+	paging := ldap.NewControlPaging(100)
+	req.Controls = []ldap.Control{paging}
+
+	users := []ldap_entity.LDAPUser{}
+	for {
+		result, err := conn.Search(req)
+		if err != nil {
+			return nil, fmt.Errorf("LDAP一覧の取得に失敗しました: %w", err)
+		}
+		for _, entry := range result.Entries {
+			if entry == nil {
+				continue
+			}
+			mail := strings.TrimSpace(entry.GetAttributeValue("mail"))
+			if mail == "" {
+				continue
+			}
+			dn := entry.GetAttributeValue("distinguishedName")
+			if !dnIsActive(dn) {
+				continue
+			}
+			users = append(users, ldap_entity.LDAPUser{
+				UserName:   entry.GetAttributeValue("sAMAccountName"),
+				Name:       entry.GetAttributeValue("displayName"),
+				Department: entry.GetAttributeValue("department"),
+				EmployeeID: entry.GetAttributeValue("employeeID"),
+				Mail:       mail,
+				DN:         dn,
+			})
+		}
+
+		updated, ok := ldap.FindControl(result.Controls, ldap.ControlTypePaging).(*ldap.ControlPaging)
+		if !ok || len(updated.Cookie) == 0 {
+			break
+		}
+		paging.SetCookie(updated.Cookie)
+	}
+	return users, nil
+}
+
+func dnIsActive(dn string) bool {
+	for _, part := range strings.Split(dn, ",") {
+		part = strings.TrimSpace(part)
+		if len(part) < 3 || !strings.HasPrefix(part, "OU=") {
+			continue
+		}
+		if part[3:] == "Delete Users" {
+			return false
+		}
+	}
+	return true
 }
 
 func (client *LDAPClient) Authenticate(userName, password string) (*ldap_entity.LDAPUser, error) {

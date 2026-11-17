@@ -6,12 +6,13 @@ import (
 )
 
 type LDAPSetting struct {
-	URL            string
-	BaseDN         string
-	BindDN         string
-	BinddnPassword string
-	SearchAttr     string
-	SearchFilter   string
+	URL                string
+	BaseDN             string
+	BindDN             string
+	BinddnPassword     string
+	SearchAttr         string
+	SearchFilter       string
+	SearchFilterProper string
 }
 
 func NewLDAPSetting() (*LDAPSetting, error) {
@@ -52,6 +53,7 @@ func NewLDAPSetting() (*LDAPSetting, error) {
 		return nil, ldapError("LDAP_SEARCH_FILTER")
 	}
 	setting.SearchFilter = searchFilter
+	setting.SearchFilterProper = os.Getenv("LDAP_SEARCH_FILTER_BY_PROPER")
 
 	return &setting, nil
 }
