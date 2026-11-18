@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"growlink/internal/domain/entity"
-	logutils "growlink/internal/shared/logUtils"
 
 	"gorm.io/gorm"
 )
@@ -16,11 +15,6 @@ type Commenter[T entity.AnswerComment | entity.MeetingComment] struct {
 }
 
 func (c *Commenter[T]) GetComment(commentID uint) (ret0 *T, err error) {
-	const op = "commenter_repository.GetComment"
-	done := logutils.Begin(c.ctx, logutils.LayerRepository, op)
-	defer func() {
-		done(err)
-	}()
 	comment, err := gorm.G[T](c.db).Where("id = ?", commentID).Order("id ASC").First(c.ctx)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -32,11 +26,6 @@ func (c *Commenter[T]) GetComment(commentID uint) (ret0 *T, err error) {
 }
 
 func (c *Commenter[T]) PostComment(comment *T) (err error) {
-	const op = "commenter_repository.PostComment"
-	done := logutils.Begin(c.ctx, logutils.LayerRepository, op)
-	defer func() {
-		done(err)
-	}()
 	if err = gorm.G[T](c.db).Create(c.ctx, comment); err != nil {
 		return fmt.Errorf("コメントの作成に失敗しました: %w", err)
 	}
@@ -44,11 +33,6 @@ func (c *Commenter[T]) PostComment(comment *T) (err error) {
 }
 
 func (c *Commenter[T]) UpdateComment(commentID uint, newContent string) (err error) {
-	const op = "commenter_repository.UpdateComment"
-	done := logutils.Begin(c.ctx, logutils.LayerRepository, op)
-	defer func() {
-		done(err)
-	}()
 	if _, err = gorm.G[T](c.db).Where("id = ?", commentID).Update(c.ctx, "content", newContent); err != nil {
 		return fmt.Errorf("コメントの更新に失敗しました: %w", err)
 	}
@@ -56,11 +40,6 @@ func (c *Commenter[T]) UpdateComment(commentID uint, newContent string) (err err
 }
 
 func (c *Commenter[T]) DeleteComment(commentID uint) (err error) {
-	const op = "commenter_repository.DeleteComment"
-	done := logutils.Begin(c.ctx, logutils.LayerRepository, op)
-	defer func() {
-		done(err)
-	}()
 	if _, err = gorm.G[T](c.db).Where("id = ?", commentID).Delete(c.ctx); err != nil {
 		return fmt.Errorf("コメントの削除に失敗しました: %w", err)
 	}

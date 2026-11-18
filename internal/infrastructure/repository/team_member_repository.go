@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"growlink/internal/domain/entity"
-	logutils "growlink/internal/shared/logUtils"
 
 	"gorm.io/gorm"
 )
@@ -19,11 +18,6 @@ func NewTeamMemberRepository(ctx context.Context, dp *gorm.DB) *TeamMemberReposi
 }
 
 func (repo *TeamMemberRepository) Create(teamID, memberID uint, isReader bool) (err error) {
-	const op = "team_member_repository.Create"
-	done := logutils.Begin(repo.ctx, logutils.LayerRepository, op)
-	defer func() {
-		done(err)
-	}()
 	if err = gorm.G[entity.TeamMember](repo.db).Create(repo.ctx, &entity.TeamMember{
 		IsReader: isReader,
 		TeamID:   teamID,
@@ -35,11 +29,6 @@ func (repo *TeamMemberRepository) Create(teamID, memberID uint, isReader bool) (
 }
 
 func (repo *TeamMemberRepository) Update(teamMemberID uint, member *entity.TeamMember) (err error) {
-	const op = "team_member_repository.Update"
-	done := logutils.Begin(repo.ctx, logutils.LayerRepository, op)
-	defer func() {
-		done(err)
-	}()
 	if _, err = gorm.G[entity.TeamMember](repo.db).
 		Where("id = ?", teamMemberID).
 		Select("IsReader").
@@ -50,11 +39,6 @@ func (repo *TeamMemberRepository) Update(teamMemberID uint, member *entity.TeamM
 }
 
 func (repo *TeamMemberRepository) Delete(teamMemberID uint) (err error) {
-	const op = "team_member_repository.Delete"
-	done := logutils.Begin(repo.ctx, logutils.LayerRepository, op)
-	defer func() {
-		done(err)
-	}()
 	if _, err = gorm.G[entity.TeamMember](repo.db).Where("id = ?", teamMemberID).Delete(repo.ctx); err != nil {
 		return fmt.Errorf("チームメンバーの削除に失敗しました: %w", err)
 	}
@@ -62,11 +46,6 @@ func (repo *TeamMemberRepository) Delete(teamMemberID uint) (err error) {
 }
 
 func (repo *TeamMemberRepository) GetAll() (ret0 []entity.TeamMember, err error) {
-	const op = "team_member_repository.GetAll"
-	done := logutils.Begin(repo.ctx, logutils.LayerRepository, op)
-	defer func() {
-		done(err)
-	}()
 	teamMembers, err := gorm.G[entity.TeamMember](repo.db).Order("id ASC").
 		Preload("Team", nil).
 		Preload("Team.Department", nil).
@@ -94,11 +73,6 @@ func (repo *TeamMemberRepository) preloadWhere(query string, args ...any) ([]ent
 }
 
 func (repo *TeamMemberRepository) GetByTeamID(teamID uint) (ret0 []entity.TeamMember, err error) {
-	const op = "team_member_repository.GetByTeamID"
-	done := logutils.Begin(repo.ctx, logutils.LayerRepository, op)
-	defer func() {
-		done(err)
-	}()
 	teamMembers, err := repo.preloadWhere("team_id = ?", teamID)
 	if err != nil {
 		return nil, fmt.Errorf("チームID指定でのチームメンバー取得に失敗しました: %w", err)
@@ -107,11 +81,6 @@ func (repo *TeamMemberRepository) GetByTeamID(teamID uint) (ret0 []entity.TeamMe
 }
 
 func (repo *TeamMemberRepository) GetByMemberID(memberID uint) (ret0 []entity.TeamMember, err error) {
-	const op = "team_member_repository.GetByMemberID"
-	done := logutils.Begin(repo.ctx, logutils.LayerRepository, op)
-	defer func() {
-		done(err)
-	}()
 	teamMembers, err := repo.preloadWhere("member_id = ?", memberID)
 	if err != nil {
 		return nil, fmt.Errorf("メンバーID指定でのチームメンバー取得に失敗しました: %w", err)
@@ -120,11 +89,6 @@ func (repo *TeamMemberRepository) GetByMemberID(memberID uint) (ret0 []entity.Te
 }
 
 func (repo *TeamMemberRepository) GetReaders() (ret0 []entity.TeamMember, err error) {
-	const op = "team_member_repository.GetReaders"
-	done := logutils.Begin(repo.ctx, logutils.LayerRepository, op)
-	defer func() {
-		done(err)
-	}()
 	readers, err := repo.preloadWhere("is_reader = true")
 	if err != nil {
 		return nil, fmt.Errorf("リーダーユーザの取得に失敗しました: %w", err)

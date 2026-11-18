@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	logutils "growlink/internal/shared/logUtils"
 	"growlink/internal/shared/utils"
 	"image"
 	"image/png"
@@ -30,11 +29,6 @@ func NewStorageRepository(ctx context.Context, root string) *StorageFileReposito
 }
 
 func (repo *StorageFileRepository) Exists(name string) (isExists bool, err error) {
-	const op = "storage_file_repository.Exists"
-	done := logutils.Begin(repo.ctx, logutils.LayerRepository, op)
-	defer func() {
-		done(err)
-	}()
 	uploadsDirectory, err := utils.GetAbsoluteTargetDir(repo.root)
 	filePath := filepath.Join(uploadsDirectory, name)
 	if _, err = os.Stat(filePath); err != nil {
@@ -47,11 +41,6 @@ func (repo *StorageFileRepository) Exists(name string) (isExists bool, err error
 }
 
 func (repo *StorageFileRepository) NewFile(name string, content io.Reader) (err error) {
-	const op = "storage_file_repository.NewFile"
-	done := logutils.Begin(repo.ctx, logutils.LayerRepository, op)
-	defer func() {
-		done(err)
-	}()
 	uploadsDirectory, err := utils.GetAbsoluteTargetDir(repo.root)
 	if err != nil {
 		return fmt.Errorf("[CREATE]アイコン保存先のフォルダの取得に失敗しました: %w", err)
@@ -81,11 +70,6 @@ func (repo *StorageFileRepository) NewFile(name string, content io.Reader) (err 
 }
 
 func (repo *StorageFileRepository) DeleteFile(name string) (err error) {
-	const op = "storage_file_repository.DeleteFile"
-	done := logutils.Begin(repo.ctx, logutils.LayerRepository, op)
-	defer func() {
-		done(err)
-	}()
 	uploadsDirectory, err := utils.GetAbsoluteTargetDir(repo.root)
 	if err != nil {
 		return fmt.Errorf("[DELETE]アイコン保存先のフォルダの取得に失敗しました: %w", err)

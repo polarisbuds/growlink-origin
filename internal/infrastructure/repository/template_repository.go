@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"growlink/internal/domain/entity"
-	logutils "growlink/internal/shared/logUtils"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -28,11 +27,6 @@ func templateChain(db *gorm.DB) gorm.ChainInterface[entity.Template] {
 }
 
 func (repo *TemplateRepository) GetAll() (ret0 []entity.Template, err error) {
-	const op = "template_repository.GetAll"
-	done := logutils.Begin(repo.ctx, logutils.LayerRepository, op)
-	defer func() {
-		done(err)
-	}()
 	templates, err := templateChain(repo.db).Find(repo.ctx)
 	if err != nil {
 		return nil, fmt.Errorf("テンプレートの全取得処理に失敗しました: %w", err)
@@ -41,11 +35,6 @@ func (repo *TemplateRepository) GetAll() (ret0 []entity.Template, err error) {
 }
 
 func (repo *TemplateRepository) GetByUUID(templateUUID uuid.UUID) (ret0 *entity.Template, err error) {
-	const op = "template_repository.GetByUUID"
-	done := logutils.Begin(repo.ctx, logutils.LayerRepository, op)
-	defer func() {
-		done(err)
-	}()
 	template, err := templateChain(repo.db).Where("uuid = ?", templateUUID).First(repo.ctx)
 	if err != nil {
 		return nil, fmt.Errorf("UUID指定でのテンプレート取得処理に失敗しました: %w", err)
@@ -54,11 +43,6 @@ func (repo *TemplateRepository) GetByUUID(templateUUID uuid.UUID) (ret0 *entity.
 }
 
 func (repo *TemplateRepository) Get(templateID uint) (ret0 *entity.Template, err error) {
-	const op = "template_repository.Get"
-	done := logutils.Begin(repo.ctx, logutils.LayerRepository, op)
-	defer func() {
-		done(err)
-	}()
 	template, err := templateChain(repo.db).Where("id = ?", templateID).First(repo.ctx)
 	if err != nil {
 		return nil, fmt.Errorf("ID指定でのテンプレート取得処理に失敗しました: %w", err)
@@ -67,11 +51,6 @@ func (repo *TemplateRepository) Get(templateID uint) (ret0 *entity.Template, err
 }
 
 func (repo *TemplateRepository) Create(input *entity.Template) (err error) {
-	const op = "template_repository.Create"
-	done := logutils.Begin(repo.ctx, logutils.LayerRepository, op)
-	defer func() {
-		done(err)
-	}()
 	if err = gorm.G[entity.Template](repo.db).Create(repo.ctx, input); err != nil {
 		return fmt.Errorf("テンプレートの新規作成に失敗しました: %w", err)
 	}
@@ -79,11 +58,6 @@ func (repo *TemplateRepository) Create(input *entity.Template) (err error) {
 }
 
 func (repo *TemplateRepository) Update(templateID uint, newTemplate *entity.Template) (err error) {
-	const op = "template_repository.Update"
-	done := logutils.Begin(repo.ctx, logutils.LayerRepository, op)
-	defer func() {
-		done(err)
-	}()
 	return repo.db.WithContext(repo.ctx).Transaction(func(tx *gorm.DB) error {
 		if _, err = gorm.G[entity.Template](tx).
 			Where("id = ?", templateID).
@@ -145,11 +119,6 @@ func syncTemplateTopics(ctx context.Context, tx *gorm.DB, templateID uint, incom
 }
 
 func (repo *TemplateRepository) UpdateIsLock(templateID uint, isLock bool) (err error) {
-	const op = "template_repository.UpdateIsLock"
-	done := logutils.Begin(repo.ctx, logutils.LayerRepository, op)
-	defer func() {
-		done(err)
-	}()
 	if _, err = gorm.G[entity.Template](repo.db).Where("id = ?", templateID).Update(repo.ctx, "is_lock", isLock); err != nil {
 		return fmt.Errorf("テンプレートのロック状態更新に失敗しました: %w", err)
 	}
@@ -157,11 +126,6 @@ func (repo *TemplateRepository) UpdateIsLock(templateID uint, isLock bool) (err 
 }
 
 func (repo *TemplateRepository) UpdateIsDefault(templateID uint, isDefault bool) (err error) {
-	const op = "template_repository.UpdateIsDefault"
-	done := logutils.Begin(repo.ctx, logutils.LayerRepository, op)
-	defer func() {
-		done(err)
-	}()
 	return repo.db.WithContext(repo.ctx).Transaction(func(tx *gorm.DB) error {
 		if isDefault {
 			if err = tx.Model(&entity.Template{}).
@@ -184,11 +148,6 @@ func (repo *TemplateRepository) UpdateIsDefault(templateID uint, isDefault bool)
 }
 
 func (repo *TemplateRepository) Delete(templateID uint) (err error) {
-	const op = "template_repository.Delete"
-	done := logutils.Begin(repo.ctx, logutils.LayerRepository, op)
-	defer func() {
-		done(err)
-	}()
 	if _, err = gorm.G[entity.Template](repo.db).Where("id = ?", templateID).Delete(repo.ctx); err != nil {
 		return fmt.Errorf("テンプレートの削除に失敗しました: %w", err)
 	}

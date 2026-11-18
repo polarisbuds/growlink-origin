@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"growlink/internal/domain/entity"
-	logutils "growlink/internal/shared/logUtils"
 
 	"gorm.io/gorm"
 )
@@ -24,11 +23,6 @@ func NewAnswerCommentRepository(ctx context.Context, dp *gorm.DB) *AnswerComment
 }
 
 func (repo *AnswerCommentRepository) GetByAnswerID(answerID uint) (ret0 *entity.AnswerComment, err error) {
-	const op = "answer_comment_repository.GetByAnswerID"
-	done := logutils.Begin(repo.ctx, logutils.LayerRepository, op)
-	defer func() {
-		done(err)
-	}()
 	comment, err := gorm.G[entity.AnswerComment](repo.db).Where("answer_id = ?", answerID).Order("id ASC").First(repo.ctx)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {

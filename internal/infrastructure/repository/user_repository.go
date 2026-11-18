@@ -25,10 +25,6 @@ func NewUserRepository(ctx context.Context, dp *gorm.DB, uploadDir string) *User
 
 func (repo *UserRepository) AttachImageBase64(user *entity.User) {
 	const op = "user_repository.AttachImageBase64"
-	done := logutils.Begin(repo.ctx, logutils.LayerRepository, op)
-	defer func() {
-		done(nil)
-	}()
 	if user == nil || user.ImageURI == nil || *user.ImageURI == "" {
 		return
 	}
@@ -41,11 +37,6 @@ func (repo *UserRepository) AttachImageBase64(user *entity.User) {
 }
 
 func (repo *UserRepository) GetByEmail(email string) (ret0 *entity.User, err error) {
-	const op = "user_repository.GetByEmail"
-	done := logutils.Begin(repo.ctx, logutils.LayerRepository, op)
-	defer func() {
-		done(err)
-	}()
 	user, err := gorm.G[entity.User](repo.db).Where("email = ?", email).Order("id ASC").First(repo.ctx)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -57,11 +48,6 @@ func (repo *UserRepository) GetByEmail(email string) (ret0 *entity.User, err err
 }
 
 func (repo *UserRepository) Create(user *entity.User) (err error) {
-	const op = "user_repository.Create"
-	done := logutils.Begin(repo.ctx, logutils.LayerRepository, op)
-	defer func() {
-		done(err)
-	}()
 	if user == nil {
 		return fmt.Errorf("作成対象のユーザが空です")
 	}
@@ -72,11 +58,6 @@ func (repo *UserRepository) Create(user *entity.User) (err error) {
 }
 
 func (repo *UserRepository) GetByID(id uint) (ret0 *entity.User, err error) {
-	const op = "user_repository.GetByID"
-	done := logutils.Begin(repo.ctx, logutils.LayerRepository, op)
-	defer func() {
-		done(err)
-	}()
 	user, err := gorm.G[entity.User](repo.unscoped).Where("id = ?", id).Scopes(func(stmt *gorm.Statement) { stmt.Unscoped = true }).Order("id ASC").First(repo.ctx)
 	if err != nil {
 		return nil, fmt.Errorf("指定されたユーザIDは存在しませんでした: %w", err)
@@ -85,11 +66,6 @@ func (repo *UserRepository) GetByID(id uint) (ret0 *entity.User, err error) {
 }
 
 func (repo *UserRepository) GetByUUID(userUUID uuid.UUID) (ret0 *entity.User, err error) {
-	const op = "user_repository.GetByUUID"
-	done := logutils.Begin(repo.ctx, logutils.LayerRepository, op)
-	defer func() {
-		done(err)
-	}()
 	user, err := gorm.G[entity.User](repo.unscoped).Where("uuid = ?", userUUID.String()).Scopes(func(stmt *gorm.Statement) { stmt.Unscoped = true }).Order("id ASC").First(repo.ctx)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -102,11 +78,6 @@ func (repo *UserRepository) GetByUUID(userUUID uuid.UUID) (ret0 *entity.User, er
 }
 
 func (repo *UserRepository) GetByUUIDs(userUUIDs []string) (ret0 []entity.User, err error) {
-	const op = "user_repository.GetByUUID"
-	done := logutils.Begin(repo.ctx, logutils.LayerRepository, op)
-	defer func() {
-		done(err)
-	}()
 	users, err := gorm.G[entity.User](repo.unscoped).Where("uuid IN ?", userUUIDs).Scopes(func(stmt *gorm.Statement) { stmt.Unscoped = true }).Order("id ASC").Find(repo.ctx)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -118,11 +89,6 @@ func (repo *UserRepository) GetByUUIDs(userUUIDs []string) (ret0 []entity.User, 
 }
 
 func (repo *UserRepository) GetByIDs(ids []uint) (ret0 []entity.User, err error) {
-	const op = "user_repository.GetByIDs"
-	done := logutils.Begin(repo.ctx, logutils.LayerRepository, op)
-	defer func() {
-		done(err)
-	}()
 	if len(ids) == 0 {
 		return []entity.User{}, nil
 	}
@@ -134,11 +100,6 @@ func (repo *UserRepository) GetByIDs(ids []uint) (ret0 []entity.User, err error)
 }
 
 func (repo *UserRepository) GetActiveUsersByIDs(ids []uint) (ret0 []entity.User, err error) {
-	const op = "user_repository.GetByIDs"
-	done := logutils.Begin(repo.ctx, logutils.LayerRepository, op)
-	defer func() {
-		done(err)
-	}()
 	if len(ids) == 0 {
 		return []entity.User{}, nil
 	}
@@ -150,11 +111,6 @@ func (repo *UserRepository) GetActiveUsersByIDs(ids []uint) (ret0 []entity.User,
 }
 
 func (repo *UserRepository) GetByDepartmentID(departmentID uint) (ret0 []entity.User, err error) {
-	const op = "user_repository.GetByDepartmentID"
-	done := logutils.Begin(repo.ctx, logutils.LayerRepository, op)
-	defer func() {
-		done(err)
-	}()
 	var memberUserIDs []uint
 	if err = repo.db.WithContext(repo.ctx).
 		Model(&entity.DepartmentMember{}).
@@ -180,11 +136,6 @@ func (repo *UserRepository) GetByDepartmentID(departmentID uint) (ret0 []entity.
 }
 
 func (repo *UserRepository) GetAll() (ret0 []entity.User, err error) {
-	const op = "user_repository.GetAll"
-	done := logutils.Begin(repo.ctx, logutils.LayerRepository, op)
-	defer func() {
-		done(err)
-	}()
 	users, err := gorm.G[entity.User](repo.db).Order("id ASC").
 		Preload("DepartmentMembers", nil).
 		Preload("DepartmentMembers.Department", nil).
@@ -199,11 +150,6 @@ func (repo *UserRepository) GetAll() (ret0 []entity.User, err error) {
 }
 
 func (repo *UserRepository) SetSuspendedByIDs(ids []uint, suspended bool) (err error) {
-	const op = "user_repository.SetSuspendedByIDs"
-	done := logutils.Begin(repo.ctx, logutils.LayerRepository, op)
-	defer func() {
-		done(err)
-	}()
 	if len(ids) == 0 {
 		return nil
 	}
@@ -214,11 +160,7 @@ func (repo *UserRepository) SetSuspendedByIDs(ids []uint, suspended bool) (err e
 }
 
 func (repo *UserRepository) UpdateByID(user *entity.User) (err error) {
-	const op = "user_repository.UpdateByID"
-	done := logutils.Begin(repo.ctx, logutils.LayerRepository, op)
-	defer func() {
-		done(err)
-	}()
+	const op = "userre_pository.UpdateByID"
 	if user == nil {
 		logutils.Warn(repo.ctx, logutils.LayerRepository, op, "アップデート対象のデータが空データ（nil）です。")
 		return nil
@@ -231,11 +173,6 @@ func (repo *UserRepository) UpdateByID(user *entity.User) (err error) {
 }
 
 func (repo *UserRepository) UpdateColumns(id uint, columns map[string]any) (err error) {
-	const op = "user_repository.UpdateColumns"
-	done := logutils.Begin(repo.ctx, logutils.LayerRepository, op)
-	defer func() {
-		done(err)
-	}()
 	if len(columns) == 0 {
 		return nil
 	}

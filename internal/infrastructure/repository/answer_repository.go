@@ -21,11 +21,6 @@ func NewAnswerRepository(ctx context.Context, dp *gorm.DB) *AnswerRepository {
 }
 
 func (repo *AnswerRepository) GetByUUID(answerUUID uuid.UUID) (ret0 *entity.Answer, err error) {
-	const op = "answer_repository.GetByUUID"
-	done := logutils.Begin(repo.ctx, logutils.LayerRepository, op)
-	defer func() {
-		done(err)
-	}()
 	answer, err := gorm.G[entity.Answer](repo.db).Where("uuid = ?", answerUUID).Order("id ASC").First(repo.ctx)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -37,11 +32,6 @@ func (repo *AnswerRepository) GetByUUID(answerUUID uuid.UUID) (ret0 *entity.Answ
 }
 
 func (repo *AnswerRepository) GetByUUIDs(answerUUIDs []string) (ret0 []entity.Answer, err error) {
-	const op = "answer_repository.GetByUUID"
-	done := logutils.Begin(repo.ctx, logutils.LayerRepository, op)
-	defer func() {
-		done(err)
-	}()
 	answers, err := gorm.G[entity.Answer](repo.db).Where("uuid IN ?", answerUUIDs).Order("id ASC").Find(repo.ctx)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -53,11 +43,6 @@ func (repo *AnswerRepository) GetByUUIDs(answerUUIDs []string) (ret0 []entity.An
 }
 
 func (repo *AnswerRepository) GetByID(id uint) (ret0 *entity.Answer, err error) {
-	const op = "answer_repository.GetByID"
-	done := logutils.Begin(repo.ctx, logutils.LayerRepository, op)
-	defer func() {
-		done(err)
-	}()
 	answer, err := gorm.G[entity.Answer](repo.db).Where("id = ?", id).Order("id ASC").First(repo.ctx)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -69,11 +54,6 @@ func (repo *AnswerRepository) GetByID(id uint) (ret0 *entity.Answer, err error) 
 }
 
 func (repo *AnswerRepository) GetByMeetingID(meetingID uint) (ret0 []entity.Answer, err error) {
-	const op = "answer_repository.GetByMeetingID"
-	done := logutils.Begin(repo.ctx, logutils.LayerRepository, op)
-	defer func() {
-		done(err)
-	}()
 	answers, err := gorm.G[entity.Answer](repo.db).
 		Where("meeting_id = ?", meetingID).
 		Order("id ASC").
@@ -89,11 +69,6 @@ func (repo *AnswerRepository) GetByMeetingID(meetingID uint) (ret0 []entity.Answ
 }
 
 func (repo *AnswerRepository) GetByUserID(userID uint) (ret0 []entity.Answer, err error) {
-	const op = "answer_repository.GetByUserID"
-	done := logutils.Begin(repo.ctx, logutils.LayerRepository, op)
-	defer func() {
-		done(err)
-	}()
 	answers, err := gorm.G[entity.Answer](repo.db).
 		Where("user_id = ?", userID).
 		Order("id ASC").
@@ -106,10 +81,6 @@ func (repo *AnswerRepository) GetByUserID(userID uint) (ret0 []entity.Answer, er
 
 func (repo *AnswerRepository) Submit(answer *entity.Answer) (ret0 *entity.Answer, err error) {
 	const op = "answer_repository.Submit"
-	done := logutils.Begin(repo.ctx, logutils.LayerRepository, op)
-	defer func() {
-		done(err)
-	}()
 	if answer == nil {
 		logutils.Warn(repo.ctx, logutils.LayerRepository, op, "投稿された回答内容が空データになっています。データの登録はスキップされました。")
 		return nil, nil
@@ -124,10 +95,6 @@ func (repo *AnswerRepository) Submit(answer *entity.Answer) (ret0 *entity.Answer
 
 func (repo *AnswerRepository) Submits(answers []entity.Answer) (ret0 []entity.Answer, err error) {
 	const op = "answer_repository.Submits"
-	done := logutils.Begin(repo.ctx, logutils.LayerRepository, op)
-	defer func() {
-		done(err)
-	}()
 	if len(answers) == 0 || answers == nil {
 		logutils.Warn(repo.ctx, logutils.LayerRepository, op, "投稿された回答全ての内容が空データになっています。データの登録はスキップされました。")
 		return nil, nil
