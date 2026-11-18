@@ -90,6 +90,21 @@ func (repo *MeetingRepository) GetByID(id uint) (ret0 *entity.Meeting, err error
 	return &meeting, nil
 }
 
+func (repo *MeetingRepository) GetByIDs(ids []uint) (ret0 []entity.Meeting, err error) {
+	const op = "meeting_repository.GetByID"
+	done := logutils.Begin(repo.ctx, logutils.LayerRepository, op)
+	defer func() {
+		done(err)
+	}()
+	meetings, err := preloadAll(gorm.G[entity.Meeting](repo.unscoped).Scopes(func(stmt *gorm.Statement) { stmt.Unscoped = true }).Order("id DESC")).
+		Where("id IN ?", ids).
+		Find(repo.ctx)
+	if err != nil {
+		return nil, fmt.Errorf("ミーディング情報のID指定取得に失敗しました: %w", err)
+	}
+	return meetings, nil
+}
+
 func (repo *MeetingRepository) GetByUUID(uuid uuid.UUID) (ret0 *entity.Meeting, err error) {
 	const op = "meeting_repository.GetByUUID"
 	done := logutils.Begin(repo.ctx, logutils.LayerRepository, op)

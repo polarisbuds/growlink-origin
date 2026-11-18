@@ -11,6 +11,13 @@ type UserTeamAssignmentOutput struct {
 	IsLeader bool   `json:"isLeader"`
 }
 
+type ManagementUsersPageOutput struct {
+	Items    []ManagementUserOutput `json:"items"`
+	Total    int                    `json:"total"`
+	Page     int                    `json:"page"`
+	PageSize int                    `json:"pageSize"`
+}
+
 type ManagementUserOutput struct {
 	UUID           string                           `json:"uuid"`
 	Name           string                           `json:"name"`

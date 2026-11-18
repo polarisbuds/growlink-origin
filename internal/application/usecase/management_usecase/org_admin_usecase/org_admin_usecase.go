@@ -9,6 +9,9 @@ import (
 	"growlink/internal/domain/valueobject"
 	logutils "growlink/internal/shared/logUtils"
 	"strings"
+	"sync"
+
+	"golang.org/x/sync/errgroup"
 )
 
 type OrgAdmin struct {
@@ -201,51 +204,74 @@ func (uc *OrgAdmin) GetDepartmentDetail(id uint) (ret0 *outputmodel.OrgDetailOut
 	defer func() {
 		done(err)
 	}()
-	dept, err := uc.deptRepo.GetByID(id)
-	if err != nil {
-		return nil, err
-	}
-	isRoot, childIDs, err := uc.departmentMeta(id)
-	if err != nil {
-		return nil, err
-	}
+
 	deptMembers, err := uc.deptMemberRepo.GetByDepartmentID(id)
 	if err != nil {
 		return nil, err
 	}
-	members := make([]outputmodel.OrgMemberOutput, 0, len(deptMembers))
-	for _, row := range deptMembers {
-		name := ""
-		if row.User != nil {
-			name = row.User.Name
-		}
-		title := "メンバー"
-		if row.Role != nil && row.Role.Name != "" {
-			title = row.Role.Name
-		}
-		members = append(members, outputmodel.OrgMemberOutput{
-			UserUUID: uc.userUUIDByID(row.UserID),
-			UserName: name,
-			Title:    title,
-		})
-	}
-	teams, _ := uc.teamRepo.GetByDepartmentID(id)
-	teamUUIDs := make([]string, 0, len(teams))
-	for _, t := range teams {
-		teamUUIDs = append(teamUUIDs, t.UUID.String())
-	}
-	userUUIDs := make([]string, 0, len(deptMembers))
+
+	members := make([]outputmodel.OrgMemberOutput, len(deptMembers))
+	userUUIDs := make([]string, len(deptMembers))
 	managerUUIDs := make([]string, 0)
-	for _, row := range deptMembers {
-		userUUIDs = append(userUUIDs, uc.userUUIDByID(row.UserID))
-		if row.IsManager && !row.IsHead {
-			managerUUIDs = append(managerUUIDs, uc.userUUIDByID(row.UserID))
+	wg := sync.WaitGroup{}
+	wg.Go(func() {
+		for idx, row := range deptMembers {
+			name := ""
+			if row.User != nil {
+				name = row.User.Name
+			}
+			title := "メンバー"
+			if row.Role != nil && row.Role.Name != "" {
+				title = row.Role.Name
+			}
+
+			userUUID := row.User.UUID.String()
+			userUUIDs[idx] = userUUID
+			members[idx] = outputmodel.OrgMemberOutput{
+				UserUUID: userUUID,
+				UserName: name,
+				Title:    title,
+			}
+			if row.IsManager && !row.IsHead {
+				managerUUIDs = append(managerUUIDs, userUUID)
+			}
 		}
+	})
+
+	var (
+		dept       *entity.Department
+		isRoot     bool
+		childUUIDs []string
+	)
+	group, _ := errgroup.WithContext(context.Background())
+	group.Go(func() error {
+		var err error
+		dept, err = uc.deptRepo.GetByID(id)
+		if err != nil {
+			return err
+		}
+
+		var childIDs []uint
+		isRoot, childIDs, err = uc.departmentMeta(id)
+		if err != nil {
+			return err
+		}
+
+		childUUIDs = uc.departmentUUIDByIDs(childIDs...)
+		return nil
+	})
+
+	teams, _ := uc.teamRepo.GetByDepartmentID(id)
+	teamUUIDs := make([]string, len(teams))
+	for idx, t := range teams {
+		teamUUIDs[idx] = t.UUID.String()
 	}
-	childUUIDs := make([]string, 0, len(childIDs))
-	for _, childID := range childIDs {
-		childUUIDs = append(childUUIDs, uc.departmentUUIDByID(childID))
+
+	wg.Wait()
+	if err := group.Wait(); err != nil {
+		return nil, err
 	}
+
 	return &outputmodel.OrgDetailOutput{
 		Kind:                 "department",
 		UUID:                 dept.UUID.String(),
@@ -281,19 +307,21 @@ func departmentIsAncestor(ancestorID, deptID uint, parentOf map[uint]uint) bool 
 }
 
 func (uc *OrgAdmin) departmentMeta(id uint) (isRoot bool, childIDs []uint, err error) {
-	hierarchies, err := uc.hierarchyRepo.GetAll()
+	parentHierarchies, err := uc.hierarchyRepo.GetByChildDepartmentID(id)
 	if err != nil {
 		return false, nil, err
 	}
-	isRoot = true
-	childIDs = []uint{}
-	for _, h := range hierarchies {
-		if h.ChildDepartmentID == id {
-			isRoot = false
-		}
-		if h.ParentDepartmentID == id {
-			childIDs = append(childIDs, h.ChildDepartmentID)
-		}
+	if parentHierarchies != nil && len(parentHierarchies) == 0 {
+		isRoot = true
+	}
+
+	hierarchies, err := uc.hierarchyRepo.GetByParentDepartmentID(id)
+	if err != nil {
+		return false, nil, err
+	}
+	childIDs = make([]uint, len(hierarchies))
+	for idx, h := range hierarchies {
+		childIDs[idx] = h.ChildDepartmentID
 	}
 	return isRoot, childIDs, nil
 }
@@ -304,38 +332,44 @@ func (uc *OrgAdmin) GetTeamDetail(id uint) (ret0 *outputmodel.OrgDetailOutput, e
 	defer func() {
 		done(err)
 	}()
-	team, err := uc.teamRepo.GetByID(id)
-	if err != nil {
-		return nil, err
-	}
+
+	wg := sync.WaitGroup{}
 	members, err := uc.teamMemberRepo.GetByTeamID(id)
 	if err != nil {
 		return nil, err
 	}
-	outMembers := make([]outputmodel.OrgMemberOutput, 0, len(members))
+	memberIDs := make([]uint, len(members))
+	outMembers := make([]outputmodel.OrgMemberOutput, len(members))
+
 	var leaderID uint
-	memberIDs := make([]uint, 0, len(members))
-	for _, m := range members {
-		name := ""
-		if m.Member != nil {
-			name = m.Member.Name
+	wg.Go(func() {
+		for idx, m := range members {
+			name := ""
+			if m.Member != nil {
+				name = m.Member.Name
+			}
+			title := "メンバー"
+			if m.IsReader {
+				title = "SM"
+				leaderID = m.MemberID
+			}
+
+			memberIDs[idx] = m.MemberID
+			outMembers[idx] = outputmodel.OrgMemberOutput{
+				UserUUID: m.Member.UUID.String(),
+				UserName: name,
+				Title:    title,
+			}
 		}
-		title := "メンバー"
-		if m.IsReader {
-			title = "SM"
-			leaderID = m.MemberID
-		}
-		memberIDs = append(memberIDs, m.MemberID)
-		outMembers = append(outMembers, outputmodel.OrgMemberOutput{
-			UserUUID: uc.userUUIDByID(m.MemberID),
-			UserName: name,
-			Title:    title,
-		})
+	})
+
+	team, err := uc.teamRepo.GetByID(id)
+	if err != nil {
+		return nil, err
 	}
-	memberUUIDs := make([]string, 0, len(memberIDs))
-	for _, memberID := range memberIDs {
-		memberUUIDs = append(memberUUIDs, uc.userUUIDByID(memberID))
-	}
+
+	wg.Wait()
+	memberUUIDs := uc.userUUIDByIDs(memberIDs...)
 	return &outputmodel.OrgDetailOutput{
 		Kind:           "team",
 		UUID:           team.UUID.String(),
@@ -433,17 +467,13 @@ func (uc *OrgAdmin) UpdateDepartment(id uint, input UpdateDepartmentInput) (err 
 			}
 		}
 	}
-	teamIDs, err := uc.resolveTeamUUIDs(input.TeamUUIDs)
+	teams, err := uc.teamRepo.GetByUUIDs(input.TeamUUIDs)
 	if err != nil {
 		return err
 	}
-	for _, teamID := range teamIDs {
-		team, err := uc.teamRepo.GetByID(teamID)
-		if err != nil {
-			return err
-		}
+	for _, team := range teams {
 		team.DepartmentID = id
-		if err = uc.teamRepo.UpdateByID(team); err != nil {
+		if err = uc.teamRepo.UpdateByID(&team); err != nil {
 			return err
 		}
 	}
@@ -462,13 +492,8 @@ func (uc *OrgAdmin) UpdateDepartment(id uint, input UpdateDepartmentInput) (err 
 	if err = uc.validateDepartmentLeaderCandidate(headUserID); err != nil {
 		return err
 	}
-	for _, managerID := range managerUserIDs {
-		if managerID == headUserID {
-			continue
-		}
-		if err = uc.validateDepartmentLeaderCandidate(managerID); err != nil {
-			return err
-		}
+	if err = uc.validateDepartmentLeadersCandidate(managerUserIDs); err != nil {
+		return err
 	}
 	if userIDs != nil {
 		return uc.syncDepartmentMemberFlags(id, userIDs, headUserID, managerUserIDs)
@@ -488,6 +513,22 @@ func (uc *OrgAdmin) validateDepartmentLeaderCandidate(userID uint) error {
 		return nil
 	}
 	return fmt.Errorf("責任者・管理職にはボス以上のユーザーを指定してください")
+}
+
+func (uc *OrgAdmin) validateDepartmentLeadersCandidate(userIDs []uint) error {
+	if userIDs == nil {
+		return nil
+	}
+	users, err := uc.userRepo.GetByIDs(userIDs)
+	if err != nil {
+		return fmt.Errorf("ユーザが見つかりません")
+	}
+	for _, user := range users {
+		if int(user.Authority) < int(valueobject.AuthorityBoss) {
+			return fmt.Errorf("責任者・管理職にはボス以上のユーザーを指定してください")
+		}
+	}
+	return nil
 }
 
 func departmentMemberIsManager(
@@ -868,13 +909,8 @@ func (uc *OrgAdmin) CreateDepartment(input CreateDepartmentInput) (ret0 *outputm
 	if err != nil {
 		return nil, err
 	}
-	for _, managerID := range managerUserIDs {
-		if managerID == headUserID {
-			continue
-		}
-		if err = uc.validateDepartmentLeaderCandidate(managerID); err != nil {
-			return nil, err
-		}
+	if err = uc.validateDepartmentLeadersCandidate(managerUserIDs); err != nil {
+		return nil, err
 	}
 	userIDs, err := uc.resolveUserUUIDs(input.UserUUIDs)
 	if err != nil {
@@ -937,7 +973,7 @@ func (uc *OrgAdmin) ListTeamOptions() (ret0 []outputmodel.TeamOptionOutput, err 
 			UUID:           t.UUID.String(),
 			Name:           t.Name,
 			DepartmentName: t.Department.Name,
-			DepartmentUUID: uc.departmentUUIDByID(t.DepartmentID),
+			DepartmentUUID: t.Department.UUID.String(),
 		})
 	}
 	return out, nil

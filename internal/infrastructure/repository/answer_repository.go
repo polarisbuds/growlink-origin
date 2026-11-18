@@ -36,6 +36,22 @@ func (repo *AnswerRepository) GetByUUID(answerUUID uuid.UUID) (ret0 *entity.Answ
 	return &answer, nil
 }
 
+func (repo *AnswerRepository) GetByUUIDs(answerUUIDs []string) (ret0 []entity.Answer, err error) {
+	const op = "answer_repository.GetByUUID"
+	done := logutils.Begin(repo.ctx, logutils.LayerRepository, op)
+	defer func() {
+		done(err)
+	}()
+	answers, err := gorm.G[entity.Answer](repo.db).Where("uuid IN ?", answerUUIDs).Order("id ASC").Find(repo.ctx)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("UUID指定での回答取得に失敗しました: %w", err)
+	}
+	return answers, nil
+}
+
 func (repo *AnswerRepository) GetByID(id uint) (ret0 *entity.Answer, err error) {
 	const op = "answer_repository.GetByID"
 	done := logutils.Begin(repo.ctx, logutils.LayerRepository, op)

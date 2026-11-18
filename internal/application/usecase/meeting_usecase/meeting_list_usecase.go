@@ -120,12 +120,12 @@ func (uc *MeetingListUsecase) ListSharedMeetings(userID uint) (ret0 []outputmode
 	if err != nil {
 		return nil, fmt.Errorf("共有ミーティングの取得に失敗しました: %w", err)
 	}
-	for _, meetingID := range meetingIDs {
-		meeting, err := uc.meetingRepo.GetByID(meetingID)
-		if err != nil {
-			return nil, err
-		}
-		shared = append(shared, converter.MeetingEntityToOutput(*meeting))
+	meetings, err := uc.meetingRepo.GetByIDs(meetingIDs)
+	if err != nil {
+		return nil, fmt.Errorf("ミーティングの検索に失敗しました: %w", err)
+	}
+	for _, meeting := range meetings {
+		shared = append(shared, converter.MeetingEntityToOutput(meeting))
 	}
 
 	filtered := make([]outputmodel.MeetingOutput, 0, len(shared))

@@ -17,10 +17,12 @@
     import Icon from "$lib/components/Icon.svelte";
     import Trash2 from "lucide-svelte/icons/trash-2";
     import {
+        buildManagementUsersQuery,
         lastPageForTotal,
         visiblePageNumbers,
-    } from "$lib/planning-meetings-pager";
-    import SearchableSelect from "$lib/components/SearchableSelect.svelte";
+        type ManagementUsersPageResponse,
+        type ManagementUserListQuery,
+    } from "$lib/management-users-pager";
 
     const AUTHORITY_OPTIONS = [
         { value: "general", label: "メンバー" },
@@ -160,11 +162,18 @@
     let orgTree = $state<OrgTreeNode[]>([]);
     let options = $state<Options>({ departments: [], teams: [], roles: [] });
     let selectedUserUuids = $state<string[]>([]);
-    let userSearch = $state("");
+    let userNameSearch = $state("");
+    let userEmailSearch = $state("");
+    let userNameSearchDebounced = $state("");
+    let userEmailSearchDebounced = $state("");
     let userDeptFilter = $state<string[]>([]);
     let currentUserPage = $state(1);
     const USER_PAGE_SIZE = 20;
-    let usersLoading = $state(true);
+    let usersDirectoryLoading = $state(true);
+    let userListLoading = $state(true);
+    let userListTotal = $state(0);
+    let userPageCache = $state<Map<number, ManagementUser[]>>(new Map());
+    let userLoadGeneration = 0;
     let orgLoading = $state(true);
     let remind = $state({
         remindAutoSend: false,
@@ -468,23 +477,123 @@
     let confirmOnCancel = $state<(() => void) | null>(null);
     let confirmDanger = $state(false);
 
-    let filteredUsers = $derived.by(() => {
-        const q = userSearch.trim().toLowerCase();
-        return users.filter((u) => {
-            const matchText =
-                !q ||
-                (u.name || "").toLowerCase().includes(q) ||
-                (u.email || "").toLowerCase().includes(q);
-            const deptIds = new Set(userDeptFilter);
-            const matchDept =
-                deptIds.size === 0 ||
-                deptIds.has(u.departmentUuid) ||
-                (u.departments || []).some((d) =>
-                    deptIds.has(d.departmentUuid),
-                );
-            return matchText && matchDept;
-        });
-    });
+    let displayedUsers = $derived(userPageCache.get(currentUserPage) ?? []);
+
+    let userLastPage = $derived(
+        lastPageForTotal(userListTotal, USER_PAGE_SIZE),
+    );
+    let userPagerPages = $derived(
+        visiblePageNumbers(currentUserPage, userLastPage),
+    );
+
+    function userListQuery(page: number): ManagementUserListQuery {
+        return {
+            page,
+            name: userNameSearchDebounced,
+            email: userEmailSearchDebounced,
+            departmentUuids: userDeptFilter,
+        };
+    }
+
+    function trimUserPageCache(around: number) {
+        const next = new Map<number, ManagementUser[]>();
+        for (const p of [around - 1, around, around + 1]) {
+            const rows = userPageCache.get(p);
+            if (p >= 1 && rows) next.set(p, rows);
+        }
+        userPageCache = next;
+    }
+
+    async function fetchUserPage(
+        page: number,
+        gen: number,
+    ): Promise<ManagementUsersPageResponse | null> {
+        const qs = buildManagementUsersQuery(userListQuery(page));
+        try {
+            const res = await api<ManagementUsersPageResponse>(
+                "GET",
+                `/api/v1/management/users?${qs}`,
+            );
+            if (gen !== userLoadGeneration) return null;
+            return res;
+        } catch {
+            if (gen !== userLoadGeneration) return null;
+            return null;
+        }
+    }
+
+    async function storeUserPage(page: number, gen: number) {
+        const res = await fetchUserPage(page, gen);
+        if (!res || gen !== userLoadGeneration) return;
+        userListTotal = res.total;
+        const next = new Map(userPageCache);
+        next.set(page, res.items as ManagementUser[]);
+        userPageCache = next;
+    }
+
+    async function prefetchUserNeighbors(page: number, gen: number) {
+        const last = lastPageForTotal(userListTotal, USER_PAGE_SIZE);
+        const tasks: Promise<void>[] = [];
+        if (page > 1) tasks.push(storeUserPage(page - 1, gen));
+        if (page < last) tasks.push(storeUserPage(page + 1, gen));
+        await Promise.all(tasks);
+        if (gen !== userLoadGeneration) return;
+        trimUserPageCache(page);
+    }
+
+    async function goToUserPage(page: number) {
+        if (
+            page < 1 ||
+            page > lastPageForTotal(userListTotal, USER_PAGE_SIZE)
+        ) {
+            return;
+        }
+        const gen = ++userLoadGeneration;
+        const cached = userPageCache.get(page);
+        if (cached) {
+            currentUserPage = page;
+            void prefetchUserNeighbors(page, gen);
+            return;
+        }
+        userListLoading = true;
+        currentUserPage = page;
+        await storeUserPage(page, gen);
+        userListLoading = false;
+        if (gen !== userLoadGeneration) return;
+        await prefetchUserNeighbors(page, gen);
+    }
+
+    async function reloadUsersFromPageOne() {
+        const gen = ++userLoadGeneration;
+        userPageCache = new Map();
+        currentUserPage = 1;
+        userListLoading = true;
+        await storeUserPage(1, gen);
+        userListLoading = false;
+        if (gen !== userLoadGeneration) return;
+        await prefetchUserNeighbors(1, gen);
+    }
+
+    async function refreshUserList() {
+        const gen = ++userLoadGeneration;
+        let page = currentUserPage;
+        userPageCache = new Map();
+        await storeUserPage(page, gen);
+        if (gen !== userLoadGeneration) return;
+        const last = lastPageForTotal(userListTotal, USER_PAGE_SIZE);
+        if (page > last) {
+            page = Math.max(1, last);
+            currentUserPage = page;
+            await storeUserPage(page, gen);
+        }
+        if (gen !== userLoadGeneration) return;
+        await prefetchUserNeighbors(page, gen);
+    }
+
+    async function refreshUserData() {
+        await loadAllUsers();
+        await refreshUserList();
+    }
 
     function departmentLabels(u: ManagementUser): string[] {
         const fromRows = (u.departments || [])
@@ -510,44 +619,43 @@
         ];
     }
 
-    let pagedFilteredUsers = $derived.by(() => {
-        const start = (currentUserPage - 1) * USER_PAGE_SIZE;
-        return filteredUsers.slice(start, start + USER_PAGE_SIZE);
-    });
-
-    let userListTotal = $derived(filteredUsers.length);
-    let userLastPage = $derived(
-        lastPageForTotal(userListTotal, USER_PAGE_SIZE),
-    );
-    let userPagerPages = $derived(
-        visiblePageNumbers(currentUserPage, userLastPage),
-    );
-
     let allUsersSelected = $derived(
-        pagedFilteredUsers.length > 0 &&
-            pagedFilteredUsers.every((u) => selectedUserUuids.includes(u.uuid)),
+        displayedUsers.length > 0 &&
+            displayedUsers.every((u) => selectedUserUuids.includes(u.uuid)),
     );
 
     let userFilterSignature = $derived(
         JSON.stringify({
-            q: userSearch.trim(),
+            name: userNameSearchDebounced.trim(),
+            email: userEmailSearchDebounced.trim(),
             dept: userDeptFilter,
         }),
     );
     let userFilterSignatureMounted = "";
 
     $effect(() => {
+        const name = userNameSearch;
+        const t = setTimeout(() => {
+            userNameSearchDebounced = name;
+        }, 300);
+        return () => clearTimeout(t);
+    });
+
+    $effect(() => {
+        const email = userEmailSearch;
+        const t = setTimeout(() => {
+            userEmailSearchDebounced = email;
+        }, 300);
+        return () => clearTimeout(t);
+    });
+
+    $effect(() => {
         const sig = userFilterSignature;
         if (userFilterSignatureMounted === "") return;
         if (sig === userFilterSignatureMounted) return;
         userFilterSignatureMounted = sig;
-        currentUserPage = 1;
+        void reloadUsersFromPageOne();
     });
-
-    function goToUserPage(page: number) {
-        if (page < 1 || page > userLastPage) return;
-        currentUserPage = page;
-    }
 
     function authorityLabel(v: string) {
         return AUTHORITY_OPTIONS.find((o) => o.value === v)?.label || v;
@@ -753,17 +861,32 @@
         expandedAllDept = !expandedAllDept;
     }
 
-    async function loadUsers() {
-        usersLoading = true;
+    async function loadAllUsers() {
+        usersDirectoryLoading = true;
         try {
-            users = await api<ManagementUser[]>(
+            const res = await api<ManagementUsersPageResponse>(
                 "GET",
-                "/api/v1/management/users",
+                "/api/v1/management/users?all=1",
             );
+            users = (res.items || []) as ManagementUser[];
         } catch {
             users = [];
         }
-        usersLoading = false;
+        usersDirectoryLoading = false;
+    }
+
+    async function loadUserByDepartment(uuid: string) {
+        usersDirectoryLoading = true;
+        try {
+            const res = await api<ManagementUsersPageResponse>(
+                "GET",
+                `/api/v1/management/users?departmentUuids=${uuid}&pageSize=999`,
+            );
+            users = (res.items || []) as ManagementUser[];
+        } catch {
+            users = [];
+        }
+        usersDirectoryLoading = false;
     }
 
     async function loadOptions() {
@@ -822,7 +945,7 @@
     }
 
     function toggleAllUsers(checked: boolean) {
-        const pageUuids = pagedFilteredUsers.map((u) => u.uuid);
+        const pageUuids = displayedUsers.map((u) => u.uuid);
         if (checked) {
             const set = new Set(selectedUserUuids);
             for (const id of pageUuids) set.add(id);
@@ -957,7 +1080,7 @@
             return;
         }
         createUserOpen = false;
-        await Promise.all([loadUsers(), loadOrgTree()]);
+        await Promise.all([refreshUserData(), loadOrgTree()]);
         showToast("ユーザを追加しました");
     }
 
@@ -1037,7 +1160,7 @@
             return;
         }
         userModalOpen = false;
-        await Promise.all([loadUsers(), loadOrgTree()]);
+        await Promise.all([refreshUserData(), loadOrgTree()]);
         showToast("ユーザ情報を保存しました");
     }
 
@@ -1052,7 +1175,7 @@
             showToast("アイコンの削除に失敗しました", "error");
             return;
         }
-        await loadUsers();
+        await refreshUserData();
         showToast("アイコンを削除しました");
     }
 
@@ -1077,7 +1200,7 @@
         const ok = await setSuspendedForUsers([userForm.uuid], !unsuspend);
         if (!ok) return;
         userForm.suspended = !unsuspend;
-        await loadUsers();
+        await refreshUserData();
         showToast(
             unsuspend
                 ? "アカウントの停止を解除しました"
@@ -1094,7 +1217,7 @@
             const ok = await setSuspendedForUsers(selectedUserUuids, true);
             if (!ok) return;
             selectedUserUuids = [];
-            await loadUsers();
+            await refreshUserData();
             showToast("アカウントを停止しました");
         };
         confirmOpen = true;
@@ -1109,7 +1232,7 @@
             const ok = await setSuspendedForUsers(selectedUserUuids, false);
             if (!ok) return;
             selectedUserUuids = [];
-            await loadUsers();
+            await refreshUserData();
             showToast("アカウントの停止を解除しました");
         };
         confirmOpen = true;
@@ -1129,7 +1252,7 @@
         try {
             const result = await Promise.all([
                 api<OrgDetail>("GET", url),
-                loadUsers(),
+                loadUserByDepartment(n.uuid),
             ]);
             detail = result[0];
         } catch {
@@ -1369,7 +1492,7 @@
 
     onMount(async () => {
         await Promise.all([
-            loadUsers(),
+            loadAllUsers(),
             loadOptions(),
             loadOrgTree(),
             loadRoles(),
@@ -1377,6 +1500,7 @@
         ]);
         initExpandDept();
         userFilterSignatureMounted = userFilterSignature;
+        await reloadUsersFromPageOne();
     });
 </script>
 
@@ -1428,15 +1552,24 @@
     <div class="mt-6">
         <div
             class="flex flex-col sm:flex-row sm:items-center gap-3 mb-4 justify-between">
-            <div class="flex flex-1 flex-col sm:flex-row gap-3 max-w-2xl">
+            <div class="flex flex-1 flex-col sm:flex-row gap-3 max-w-3xl">
                 <label
-                    class="input input-bordered flex items-center gap-2 flex-1">
-                    <Search class="h-4 w-4 opacity-50" />
+                    class="input input-bordered flex items-center gap-2 flex-1 min-w-0">
+                    <Search class="h-4 w-4 opacity-50 shrink-0" />
                     <input
                         type="search"
-                        class="grow placeholder-current"
-                        placeholder="氏名・メールで検索"
-                        bind:value={userSearch} />
+                        class="grow placeholder-current min-w-0"
+                        placeholder="氏名で検索"
+                        bind:value={userNameSearch} />
+                </label>
+                <label
+                    class="input input-bordered flex items-center gap-2 flex-1 min-w-0">
+                    <Search class="h-4 w-4 opacity-50 shrink-0" />
+                    <input
+                        type="search"
+                        class="grow placeholder-current min-w-0"
+                        placeholder="メールで検索"
+                        bind:value={userEmailSearch} />
                 </label>
                 <div class="w-full sm:w-52 shrink-0">
                     <MultiCheckSelect
@@ -1474,13 +1607,13 @@
         </div>
         <div
             class="overflow-hidden rounded-3xl border border-base-300 bg-base-100 shadow-sm">
-            {#if usersLoading}
+            {#if userListLoading && displayedUsers.length === 0}
                 <div class="p-6 space-y-3">
                     {#each Array(5) as _, i (i)}
                         <div class="skeleton h-10 w-full rounded-xl"></div>
                     {/each}
                 </div>
-            {:else if filteredUsers.length === 0}
+            {:else if userListTotal === 0}
                 <div class="p-12 text-center text-base-content/50 text-sm">
                     該当するユーザがいません
                 </div>
@@ -1509,7 +1642,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        {#each pagedFilteredUsers as u (u.uuid)}
+                        {#each displayedUsers as u (u.uuid)}
                             {@const deptNames = departmentLabels(u)}
                             {@const teamNames = teamLabels(u)}
                             <tr
@@ -2210,7 +2343,7 @@
                         <div
                             class="border border-base-300 rounded-2xl max-h-44 overflow-y-auto p-2">
                             {#each filteredOrgDepartments() as d (`c-${d.uuid}`)}
-                                {#if d.uuid !== orgDetail?.uuid && !d.isRoot}
+                                {#if d.uuid !== orgDetail?.uuid}
                                     <label
                                         class="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-base-200 cursor-pointer">
                                         <input

@@ -1,11 +1,9 @@
 package api
 
 import (
-	"fmt"
 	"net/http"
 
 	inputmodel "growlink/internal/application/model/input_model"
-	"growlink/internal/domain/entity"
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v5"
@@ -34,17 +32,13 @@ func (h *Handler) resolveUserIDFromUUID(userUUID string) (uint, error) {
 	return user.ID, nil
 }
 
-func (h *Handler) resolveUserIDsFromUUIDs(uuids []string) ([]uint, error) {
+func (h *Handler) resolveUserIDFromUUIDs(uuids []string) ([]uint, error) {
 	if len(uuids) == 0 {
 		return nil, nil
 	}
-	ids := make([]uint, 0, len(uuids))
-	for _, s := range uuids {
-		id, err := h.resolveUserIDFromUUID(s)
-		if err != nil {
-			return nil, err
-		}
-		ids = append(ids, id)
+	ids, err := h.resolveUserIDFromUUIDs(uuids)
+	if err != nil {
+		return nil, err
 	}
 	return ids, nil
 }
@@ -66,33 +60,14 @@ func (h *Handler) resolvePairingIDs(pairingUUIDs []string) ([]uint, error) {
 		return nil, nil
 	}
 	ids := make([]uint, 0, len(pairingUUIDs))
-	for _, s := range pairingUUIDs {
-		parsed, err := uuid.Parse(s)
-		if err != nil {
-			return nil, err
-		}
-		pair, err := h.deps.PairingRepo.GetByUUID(parsed)
-		if err != nil {
-			return nil, err
-		}
+	pairs, err := h.deps.PairingRepo.GetByUUIDs(pairingUUIDs)
+	if err != nil {
+		return nil, err
+	}
+	for _, pair := range pairs {
 		ids = append(ids, pair.ID)
 	}
 	return ids, nil
-}
-
-func (h *Handler) resolvePairingTargetID(kind, targetUUID string) (uint, error) {
-	if kind != entity.PairingTargetKindUser {
-		return 0, fmt.Errorf("pairing target kind %q is not supported", kind)
-	}
-	parsed, err := uuid.Parse(targetUUID)
-	if err != nil {
-		return 0, err
-	}
-	user, err := h.deps.UserRepo.GetByUUID(parsed)
-	if err != nil {
-		return 0, err
-	}
-	return user.ID, nil
 }
 
 func (h *Handler) resolvePairingInput(c *echo.Context, req *inputmodel.PairingInput) error {
@@ -112,11 +87,9 @@ func (h *Handler) resolvePairingInput(c *echo.Context, req *inputmodel.PairingIn
 		if t.TargetUuid == "" {
 			return c.JSON(http.StatusBadRequest, map[string]string{"error": "targetUuid is required"})
 		}
-		targetID, err := h.resolvePairingTargetID(t.Kind, t.TargetUuid)
 		if respErr := apiUUIDResolveError(c, err); respErr != nil {
 			return respErr
 		}
-		t.TargetID = targetID
 	}
 	return nil
 }
@@ -136,11 +109,11 @@ func (h *Handler) resolveCreateMeetingInput(c *echo.Context, req *inputmodel.Cre
 	if respErr := apiUUIDResolveError(c, err); respErr != nil {
 		return respErr
 	}
-	menteeIDs, err := h.resolveUserIDsFromUUIDs(req.MenteeUuids)
+	menteeIDs, err := h.resolveUserIDFromUUIDs(req.MenteeUuids)
 	if respErr := apiUUIDResolveError(c, err); respErr != nil {
 		return respErr
 	}
-	sharerIDs, err := h.resolveUserIDsFromUUIDs(req.SharerUserUuids)
+	sharerIDs, err := h.resolveUserIDFromUUIDs(req.SharerUserUuids)
 	if respErr := apiUUIDResolveError(c, err); respErr != nil {
 		return respErr
 	}
@@ -159,7 +132,7 @@ func (h *Handler) resolveCreateMeetingByAllInput(c *echo.Context, req *inputmode
 	if respErr := apiUUIDResolveError(c, err); respErr != nil {
 		return respErr
 	}
-	sharerIDs, err := h.resolveUserIDsFromUUIDs(req.SharerUserUuids)
+	sharerIDs, err := h.resolveUserIDFromUUIDs(req.SharerUserUuids)
 	if respErr := apiUUIDResolveError(c, err); respErr != nil {
 		return respErr
 	}
@@ -188,11 +161,11 @@ func (h *Handler) resolveCreateMeetingMonthlyInput(c *echo.Context, req *inputmo
 	if respErr := apiUUIDResolveError(c, err); respErr != nil {
 		return respErr
 	}
-	menteeIDs, err := h.resolveUserIDsFromUUIDs(req.MenteeUuids)
+	menteeIDs, err := h.resolveUserIDFromUUIDs(req.MenteeUuids)
 	if respErr := apiUUIDResolveError(c, err); respErr != nil {
 		return respErr
 	}
-	sharerIDs, err := h.resolveUserIDsFromUUIDs(req.SharerUserUuids)
+	sharerIDs, err := h.resolveUserIDFromUUIDs(req.SharerUserUuids)
 	if respErr := apiUUIDResolveError(c, err); respErr != nil {
 		return respErr
 	}
@@ -214,7 +187,7 @@ func (h *Handler) resolveCreateMeetingMonthlyByPairingsInput(c *echo.Context, re
 	if respErr := apiUUIDResolveError(c, err); respErr != nil {
 		return respErr
 	}
-	sharerIDs, err := h.resolveUserIDsFromUUIDs(req.SharerUserUuids)
+	sharerIDs, err := h.resolveUserIDFromUUIDs(req.SharerUserUuids)
 	if respErr := apiUUIDResolveError(c, err); respErr != nil {
 		return respErr
 	}

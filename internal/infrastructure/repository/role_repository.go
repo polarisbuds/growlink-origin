@@ -36,6 +36,22 @@ func (repo *RoleRepository) GetByUUID(roleUUID uuid.UUID) (ret0 *entity.Role, er
 	return &role, nil
 }
 
+func (repo *RoleRepository) GetByUUIDs(roleUUID []string) (ret0 []entity.Role, err error) {
+	const op = "role_repository.GetByUUID"
+	done := logutils.Begin(repo.ctx, logutils.LayerRepository, op)
+	defer func() {
+		done(err)
+	}()
+	roles, err := gorm.G[entity.Role](repo.db).Where("uuid IN ?", roleUUID).Find(repo.ctx)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("UUID指定での役職取得に失敗しました: %w", err)
+	}
+	return roles, nil
+}
+
 func (repo *RoleRepository) GetAll() (ret0 []entity.Role, err error) {
 	const op = "role_repository.GetAll"
 	done := logutils.Begin(repo.ctx, logutils.LayerRepository, op)

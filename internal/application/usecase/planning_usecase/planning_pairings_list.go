@@ -105,21 +105,20 @@ func slicePlanningPairingsPage(list []outputmodel.PairingOutput, page, pageSize 
 	return slices.Clone(list[start:end])
 }
 
-func (uc *PlanningAccessUsecase) teamMemberUserUUIDsForTeams(teamUUIDs []uuid.UUID) (map[string]struct{}, error) {
+func (uc *PlanningAccessUsecase) teamMemberUserUUIDsForTeams(teamUUIDs []string) (map[string]struct{}, error) {
 	set := make(map[string]struct{})
 	if uc.teamRepo == nil || len(teamUUIDs) == 0 {
 		return set, nil
 	}
-	for _, tu := range teamUUIDs {
-		team, err := uc.teamRepo.GetByUUID(tu)
-		if err != nil {
+	teams, err := uc.teamRepo.GetByUUIDs(teamUUIDs)
+	if err != nil {
+		return set, err
+	}
+	for _, team := range teams {
+		if team.TeamMembers == nil {
 			continue
 		}
-		members, err := uc.teamMemberRepo.GetByTeamID(team.ID)
-		if err != nil {
-			return nil, err
-		}
-		for _, mem := range members {
+		for _, mem := range team.TeamMembers {
 			if mem.Member != nil {
 				set[mem.Member.UUID.String()] = struct{}{}
 			}
@@ -138,11 +137,19 @@ func (uc *PlanningAccessUsecase) listFilteredSortedPairings(
 	if err != nil {
 		return nil, err
 	}
-	deptUsers, err := uc.deptMemberUserUUIDsForDepartments(filter.DepartmentUUIDs)
+	deptUUIDs := []string{}
+	for _, u := range filter.DepartmentUUIDs {
+		deptUUIDs = append(deptUUIDs, u.String())
+	}
+	deptUsers, err := uc.deptMemberUserUUIDsForDepartments(deptUUIDs)
 	if err != nil {
 		return nil, err
 	}
-	teamUsers, err := uc.teamMemberUserUUIDsForTeams(filter.TeamUUIDs)
+	teamUUIDs := []string{}
+	for _, u := range filter.TeamUUIDs {
+		teamUUIDs = append(teamUUIDs, u.String())
+	}
+	teamUsers, err := uc.teamMemberUserUUIDsForTeams(teamUUIDs)
 	if err != nil {
 		return nil, err
 	}

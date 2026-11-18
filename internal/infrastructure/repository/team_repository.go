@@ -34,6 +34,19 @@ func (repo *TeamRepository) GetByID(id uint) (ret0 *entity.Team, err error) {
 	return &team, nil
 }
 
+func (repo *TeamRepository) GetByIDs(ids []uint) (ret0 []entity.Team, err error) {
+	const op = "team_repository.GetByID"
+	done := logutils.Begin(repo.ctx, logutils.LayerRepository, op)
+	defer func() {
+		done(err)
+	}()
+	team, err := gorm.G[entity.Team](repo.db).Where("id IN ?", ids).Order("id ASC").Find(repo.ctx)
+	if err != nil {
+		return nil, fmt.Errorf("チームの取得に失敗しました: %w", err)
+	}
+	return team, nil
+}
+
 func (repo *TeamRepository) GetByUUID(teamUUID uuid.UUID) (ret0 *entity.Team, err error) {
 	const op = "team_repository.GetByUUID"
 	done := logutils.Begin(repo.ctx, logutils.LayerRepository, op)
@@ -48,6 +61,25 @@ func (repo *TeamRepository) GetByUUID(teamUUID uuid.UUID) (ret0 *entity.Team, er
 		return nil, fmt.Errorf("指定されたチームUUIDは存在しませんでした: %w", err)
 	}
 	return &team, nil
+}
+
+func (repo *TeamRepository) GetByUUIDs(teamUUIDs []string) (ret0 []entity.Team, err error) {
+	const op = "team_repository.GetByUUID"
+	done := logutils.Begin(repo.ctx, logutils.LayerRepository, op)
+	defer func() {
+		done(err)
+	}()
+	teams, err := gorm.G[entity.Team](repo.db).Where("uuid IN ?", teamUUIDs).
+		Preload("TeamMembers", nil).
+		Preload("TeamMembers.Member", nil).
+		Order("id ASC").Find(repo.ctx)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, gorm.ErrRecordNotFound
+		}
+		return nil, fmt.Errorf("指定されたチームUUIDは存在しませんでした: %w", err)
+	}
+	return teams, nil
 }
 
 func (repo *TeamRepository) GetAll() (ret0 []entity.Team, err error) {

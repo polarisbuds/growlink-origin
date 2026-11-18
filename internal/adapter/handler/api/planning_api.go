@@ -1,13 +1,15 @@
 package api
 
 import (
+	"fmt"
 	"net/http"
 	"strings"
 
-	"github.com/labstack/echo/v5"
 	"growlink/internal/adapter/handler/authctx"
 	"growlink/internal/application/converter"
 	outputmodel "growlink/internal/application/model/output_model"
+
+	"github.com/labstack/echo/v5"
 )
 
 func stringsJoinUnique(items []string) string {
@@ -24,14 +26,14 @@ func stringsJoinUnique(items []string) string {
 }
 
 type planningDirectoryUser struct {
-	UUID              string   `json:"uuid"`
-	Name              string   `json:"name"`
-	Email             string   `json:"email"`
-	ImageURI          *string  `json:"imageUri,omitempty"`
-	RoleName          string   `json:"roleName"`
-	DepartmentNames   string   `json:"departmentNames"`
-	DepartmentUuids   []string `json:"departmentUuids,omitempty"`
-	TeamNames         string   `json:"teamNames"`
+	UUID            string   `json:"uuid"`
+	Name            string   `json:"name"`
+	Email           string   `json:"email"`
+	ImageURI        *string  `json:"imageUri,omitempty"`
+	RoleName        string   `json:"roleName"`
+	DepartmentNames string   `json:"departmentNames"`
+	DepartmentUuids []string `json:"departmentUuids,omitempty"`
+	TeamNames       string   `json:"teamNames"`
 }
 
 type planningDirectoryResponse struct {
@@ -53,14 +55,16 @@ func teamMembersToOutputs(h *Handler, teamID uint) ([]outputmodel.UserOutput, er
 	if err != nil {
 		return nil, err
 	}
-	memberOuts := make([]outputmodel.UserOutput, 0, len(members))
-	for _, m := range members {
-		user, err := h.deps.UserRepo.GetByID(m.MemberID)
-		if err != nil || user.Suspended {
-			continue
-		}
-		memberOuts = append(memberOuts, converter.UserEntityToOutput(*user))
+	memberIDs := []uint{}
+	for idx, m := range members {
+		memberIDs[idx] = m.MemberID
 	}
+
+	users, err := h.deps.UserRepo.GetActiveUsersByIDs(memberIDs)
+	if err != nil {
+		return nil, fmt.Errorf("アクティブユーザの取得に失敗しました: %w", err)
+	}
+	memberOuts := converter.UserEntitiesToOutputs(users)
 	return memberOuts, nil
 }
 
@@ -96,14 +100,14 @@ func (h *Handler) ListPlanningDirectory(c *echo.Context) error {
 			}
 		}
 		userOuts = append(userOuts, planningDirectoryUser{
-			UUID:              u.UUID.String(),
-			Name:              u.Name,
-			Email:             u.Email,
-			ImageURI:          u.ImageURI,
-			RoleName:          roleName,
-			DepartmentNames:   deptName,
-			DepartmentUuids:   deptUuids,
-			TeamNames:         stringsJoinUnique(teamNames),
+			UUID:            u.UUID.String(),
+			Name:            u.Name,
+			Email:           u.Email,
+			ImageURI:        u.ImageURI,
+			RoleName:        roleName,
+			DepartmentNames: deptName,
+			DepartmentUuids: deptUuids,
+			TeamNames:       stringsJoinUnique(teamNames),
 		})
 	}
 	teams, err := h.deps.TeamRepo.GetAll()
@@ -143,11 +147,11 @@ func (h *Handler) ListPlanningDirectory(c *echo.Context) error {
 		if err != nil {
 			return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 		}
-		for _, teamID := range leaderTeamIDs {
-			team, err := h.deps.TeamRepo.GetByID(teamID)
-			if err != nil {
-				continue
-			}
+		teams, err := h.deps.TeamRepo.GetByIDs(leaderTeamIDs)
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		}
+		for _, team := range teams {
 			memberOuts, err := teamMembersToOutputs(h, team.ID)
 			if err != nil {
 				return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})

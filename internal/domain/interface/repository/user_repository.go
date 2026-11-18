@@ -11,9 +11,11 @@ import (
 type UserRepository interface {
 	GetByID(id uint) (*entity.User, error)
 	GetByUUID(userUUID uuid.UUID) (*entity.User, error)
+	GetByUUIDs(userUUIDs []string) ([]entity.User, error)
 	AttachImageBase64(user *entity.User)
 	GetByEmail(email string) (*entity.User, error)
 	GetByIDs(ids []uint) ([]entity.User, error)
+	GetActiveUsersByIDs(ids []uint) ([]entity.User, error)
 	GetByDepartmentID(departmentID uint) ([]entity.User, error)
 	GetAll() ([]entity.User, error)
 	SetSuspendedByIDs(ids []uint, suspended bool) error

@@ -128,6 +128,22 @@ func (repo *PairingRepository) GetByUUID(pairingUUID uuid.UUID) (ret0 *entity.Pa
 	return &pairing, nil
 }
 
+func (repo *PairingRepository) GetByUUIDs(pairingUUID []string) (ret0 []entity.Pairing, err error) {
+	const op = "pairing_repository.GetByUUID"
+	done := logutils.Begin(repo.ctx, logutils.LayerRepository, op)
+	defer func() {
+		done(err)
+	}()
+	pairings, err := gorm.G[entity.Pairing](repo.db).Where("uuid IN ?", pairingUUID).Order("id ASC").
+		Preload("Mentor", nil).
+		Preload("Mentee", nil).
+		Find(repo.ctx)
+	if err != nil {
+		return nil, fmt.Errorf("ペアリングUUID指定での取得に失敗しました: %w", err)
+	}
+	return pairings, nil
+}
+
 func (repo *PairingRepository) GetAll() (ret0 []entity.Pairing, err error) {
 	const op = "pairing_repository.GetAll"
 	done := logutils.Begin(repo.ctx, logutils.LayerRepository, op)

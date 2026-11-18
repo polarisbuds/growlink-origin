@@ -11,6 +11,7 @@ import (
 type RoleRepository interface {
 	GetAll() ([]entity.Role, error)
 	GetByUUID(roleUUID uuid.UUID) (*entity.Role, error)
+	GetByUUIDs(roleUUID []string) ([]entity.Role, error)
 	GetByName(name string) (*entity.Role, error)
 	Create(role *entity.Role) error
 	Update(role *entity.Role) error

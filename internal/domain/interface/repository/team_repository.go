@@ -10,7 +10,9 @@ import (
 
 type TeamRepository interface {
 	GetByID(id uint) (*entity.Team, error)
+	GetByIDs(ids []uint) ([]entity.Team, error)
 	GetByUUID(teamUUID uuid.UUID) (*entity.Team, error)
+	GetByUUIDs(teamUUID []string) ([]entity.Team, error)
 	GetAll() ([]entity.Team, error)
 	GetByDepartmentID(departmentID uint) ([]entity.Team, error)
 	Create(team *entity.Team) error

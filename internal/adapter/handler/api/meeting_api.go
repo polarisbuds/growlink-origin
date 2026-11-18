@@ -225,7 +225,7 @@ func (h *Handler) UpdateMeetingSharers(c *echo.Context) error {
 	if err := c.Bind(&req); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid request"})
 	}
-	sharerIDs, err := h.resolveUserIDsFromUUIDs(req.SharerUserUuids)
+	sharerIDs, err := h.resolveUserIDFromUUIDs(req.SharerUserUuids)
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
 	}

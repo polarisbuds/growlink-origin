@@ -79,45 +79,6 @@ func (c *MockLDAPClientAuthenticateCall) DoAndReturn(f func(string, string) (*ld
 	return c
 }
 
-// Search mocks base method.
-func (m *MockLDAPClient) Search(name string) (*ldap_entity.LDAPUser, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Search", name)
-	ret0, _ := ret[0].(*ldap_entity.LDAPUser)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// Search indicates an expected call of Search.
-func (mr *MockLDAPClientMockRecorder) Search(name any) *MockLDAPClientSearchCall {
-	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Search", reflect.TypeOf((*MockLDAPClient)(nil).Search), name)
-	return &MockLDAPClientSearchCall{Call: call}
-}
-
-// MockLDAPClientSearchCall wrap *gomock.Call
-type MockLDAPClientSearchCall struct {
-	*gomock.Call
-}
-
-// Return rewrite *gomock.Call.Return
-func (c *MockLDAPClientSearchCall) Return(arg0 *ldap_entity.LDAPUser, arg1 error) *MockLDAPClientSearchCall {
-	c.Call = c.Call.Return(arg0, arg1)
-	return c
-}
-
-// Do rewrite *gomock.Call.Do
-func (c *MockLDAPClientSearchCall) Do(f func(string) (*ldap_entity.LDAPUser, error)) *MockLDAPClientSearchCall {
-	c.Call = c.Call.Do(f)
-	return c
-}
-
-// DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockLDAPClientSearchCall) DoAndReturn(f func(string) (*ldap_entity.LDAPUser, error)) *MockLDAPClientSearchCall {
-	c.Call = c.Call.DoAndReturn(f)
-	return c
-}
-
 // ListProperActive mocks base method.
 func (m *MockLDAPClient) ListProperActive() ([]ldap_entity.LDAPUser, error) {
 	m.ctrl.T.Helper()
@@ -153,6 +114,45 @@ func (c *MockLDAPClientListProperActiveCall) Do(f func() ([]ldap_entity.LDAPUser
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
 func (c *MockLDAPClientListProperActiveCall) DoAndReturn(f func() ([]ldap_entity.LDAPUser, error)) *MockLDAPClientListProperActiveCall {
+	c.Call = c.Call.DoAndReturn(f)
+	return c
+}
+
+// Search mocks base method.
+func (m *MockLDAPClient) Search(name string) (*ldap_entity.LDAPUser, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Search", name)
+	ret0, _ := ret[0].(*ldap_entity.LDAPUser)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Search indicates an expected call of Search.
+func (mr *MockLDAPClientMockRecorder) Search(name any) *MockLDAPClientSearchCall {
+	mr.mock.ctrl.T.Helper()
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Search", reflect.TypeOf((*MockLDAPClient)(nil).Search), name)
+	return &MockLDAPClientSearchCall{Call: call}
+}
+
+// MockLDAPClientSearchCall wrap *gomock.Call
+type MockLDAPClientSearchCall struct {
+	*gomock.Call
+}
+
+// Return rewrite *gomock.Call.Return
+func (c *MockLDAPClientSearchCall) Return(arg0 *ldap_entity.LDAPUser, arg1 error) *MockLDAPClientSearchCall {
+	c.Call = c.Call.Return(arg0, arg1)
+	return c
+}
+
+// Do rewrite *gomock.Call.Do
+func (c *MockLDAPClientSearchCall) Do(f func(string) (*ldap_entity.LDAPUser, error)) *MockLDAPClientSearchCall {
+	c.Call = c.Call.Do(f)
+	return c
+}
+
+// DoAndReturn rewrite *gomock.Call.DoAndReturn
+func (c *MockLDAPClientSearchCall) DoAndReturn(f func(string) (*ldap_entity.LDAPUser, error)) *MockLDAPClientSearchCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }

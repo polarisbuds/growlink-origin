@@ -11,15 +11,11 @@ func (uc *OrgAdmin) resolveDepartmentUUIDs(uuids []string) ([]uint, error) {
 		return nil, nil
 	}
 	out := make([]uint, 0, len(uuids))
-	for _, s := range uuids {
-		parsed, err := uuid.Parse(s)
-		if err != nil {
-			return nil, fmt.Errorf("invalid department uuid")
-		}
-		dept, err := uc.deptRepo.GetByUUID(parsed)
-		if err != nil {
-			return nil, fmt.Errorf("部署が見つかりません")
-		}
+	depts, err := uc.deptRepo.GetByUUIDs(uuids)
+	if err != nil {
+		return nil, err
+	}
+	for _, dept := range depts {
 		out = append(out, dept.ID)
 	}
 	return out, nil
@@ -30,15 +26,11 @@ func (uc *OrgAdmin) resolveTeamUUIDs(uuids []string) ([]uint, error) {
 		return nil, nil
 	}
 	out := make([]uint, 0, len(uuids))
-	for _, s := range uuids {
-		parsed, err := uuid.Parse(s)
-		if err != nil {
-			return nil, fmt.Errorf("invalid team uuid")
-		}
-		team, err := uc.teamRepo.GetByUUID(parsed)
-		if err != nil {
-			return nil, fmt.Errorf("チームが見つかりません")
-		}
+	teams, err := uc.teamRepo.GetByUUIDs(uuids)
+	if err != nil {
+		return nil, fmt.Errorf("チームが見つかりません")
+	}
+	for _, team := range teams {
 		out = append(out, team.ID)
 	}
 	return out, nil
@@ -49,15 +41,11 @@ func (uc *OrgAdmin) resolveUserUUIDs(uuids []string) ([]uint, error) {
 		return nil, nil
 	}
 	out := make([]uint, 0, len(uuids))
-	for _, s := range uuids {
-		parsed, err := uuid.Parse(s)
-		if err != nil {
-			return nil, fmt.Errorf("invalid user uuid")
-		}
-		user, err := uc.userRepo.GetByUUID(parsed)
-		if err != nil {
-			return nil, fmt.Errorf("ユーザが見つかりません")
-		}
+	users, err := uc.userRepo.GetByUUIDs(uuids)
+	if err != nil {
+		return nil, fmt.Errorf("invalid user uuid")
+	}
+	for _, user := range users {
 		out = append(out, user.ID)
 	}
 	return out, nil
@@ -104,6 +92,26 @@ func (uc *OrgAdmin) userUUIDByID(id uint) string {
 	return user.UUID.String()
 }
 
+func (uc *OrgAdmin) userUUIDByIDs(ids ...uint) []string {
+	searchIDs := []uint{}
+	for _, id := range ids {
+		if id != 0 {
+			searchIDs = append(searchIDs, id)
+		}
+	}
+	users, err := uc.userRepo.GetByIDs(searchIDs)
+	if err != nil {
+		return nil
+	}
+
+	result := []string{}
+	for _, user := range users {
+		result = append(result, user.UUID.String())
+	}
+
+	return result
+}
+
 func (uc *OrgAdmin) departmentUUIDByID(id uint) string {
 	if id == 0 {
 		return ""
@@ -113,6 +121,26 @@ func (uc *OrgAdmin) departmentUUIDByID(id uint) string {
 		return ""
 	}
 	return dept.UUID.String()
+}
+
+func (uc *OrgAdmin) departmentUUIDByIDs(ids ...uint) []string {
+	searchIDs := []uint{}
+	for _, id := range ids {
+		if id != 0 {
+			searchIDs = append(searchIDs, id)
+		}
+	}
+	depts, err := uc.deptRepo.GetByIDs(searchIDs)
+	if err != nil {
+		return nil
+	}
+
+	result := []string{}
+	for _, dept := range depts {
+		result = append(result, dept.UUID.String())
+	}
+
+	return result
 }
 
 func (uc *OrgAdmin) teamUUIDByID(id uint) string {

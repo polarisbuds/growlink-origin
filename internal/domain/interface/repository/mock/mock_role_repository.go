@@ -273,6 +273,45 @@ func (c *MockRoleRepositoryGetByUUIDCall) DoAndReturn(f func(uuid.UUID) (*entity
 	return c
 }
 
+// GetByUUIDs mocks base method.
+func (m *MockRoleRepository) GetByUUIDs(roleUUID []string) ([]entity.Role, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetByUUIDs", roleUUID)
+	ret0, _ := ret[0].([]entity.Role)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetByUUIDs indicates an expected call of GetByUUIDs.
+func (mr *MockRoleRepositoryMockRecorder) GetByUUIDs(roleUUID any) *MockRoleRepositoryGetByUUIDsCall {
+	mr.mock.ctrl.T.Helper()
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByUUIDs", reflect.TypeOf((*MockRoleRepository)(nil).GetByUUIDs), roleUUID)
+	return &MockRoleRepositoryGetByUUIDsCall{Call: call}
+}
+
+// MockRoleRepositoryGetByUUIDsCall wrap *gomock.Call
+type MockRoleRepositoryGetByUUIDsCall struct {
+	*gomock.Call
+}
+
+// Return rewrite *gomock.Call.Return
+func (c *MockRoleRepositoryGetByUUIDsCall) Return(arg0 []entity.Role, arg1 error) *MockRoleRepositoryGetByUUIDsCall {
+	c.Call = c.Call.Return(arg0, arg1)
+	return c
+}
+
+// Do rewrite *gomock.Call.Do
+func (c *MockRoleRepositoryGetByUUIDsCall) Do(f func([]string) ([]entity.Role, error)) *MockRoleRepositoryGetByUUIDsCall {
+	c.Call = c.Call.Do(f)
+	return c
+}
+
+// DoAndReturn rewrite *gomock.Call.DoAndReturn
+func (c *MockRoleRepositoryGetByUUIDsCall) DoAndReturn(f func([]string) ([]entity.Role, error)) *MockRoleRepositoryGetByUUIDsCall {
+	c.Call = c.Call.DoAndReturn(f)
+	return c
+}
+
 // Update mocks base method.
 func (m *MockRoleRepository) Update(role *entity.Role) error {
 	m.ctrl.T.Helper()

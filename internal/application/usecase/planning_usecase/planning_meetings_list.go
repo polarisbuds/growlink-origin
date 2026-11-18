@@ -189,21 +189,21 @@ func slicePlanningMeetingsPage(list []outputmodel.MeetingOutput, page, pageSize 
 	return slices.Clone(list[start:end])
 }
 
-func (uc *PlanningAccessUsecase) deptMemberUserUUIDsForDepartments(deptUUIDs []uuid.UUID) (map[string]struct{}, error) {
+func (uc *PlanningAccessUsecase) deptMemberUserUUIDsForDepartments(deptUUIDs []string) (map[string]struct{}, error) {
 	set := make(map[string]struct{})
 	if uc.deptRepo == nil || len(deptUUIDs) == 0 {
 		return set, nil
 	}
-	for _, du := range deptUUIDs {
-		dept, err := uc.deptRepo.GetByUUID(du)
-		if err != nil {
+	depts, err := uc.deptRepo.GetByUUIDs(deptUUIDs)
+	if err != nil {
+		return set, err
+	}
+
+	for _, dept := range depts {
+		if dept.DepartmentMembers != nil {
 			continue
 		}
-		members, err := uc.deptMemberRepo.GetByDepartmentID(dept.ID)
-		if err != nil {
-			return nil, err
-		}
-		for _, mem := range members {
+		for _, mem := range dept.DepartmentMembers {
 			if mem.User != nil {
 				set[mem.User.UUID.String()] = struct{}{}
 			}
@@ -229,7 +229,11 @@ func (uc *PlanningAccessUsecase) ListPlanningMeetingsPaged(
 	if err != nil {
 		return outputmodel.PlanningMeetingsPageOutput{}, err
 	}
-	deptUsers, err := uc.deptMemberUserUUIDsForDepartments(filter.DepartmentUUIDs)
+	deptUUIDs := []string{}
+	for _, u := range filter.DepartmentUUIDs {
+		deptUUIDs = append(deptUUIDs, u.String())
+	}
+	deptUsers, err := uc.deptMemberUserUUIDsForDepartments(deptUUIDs)
 	if err != nil {
 		return outputmodel.PlanningMeetingsPageOutput{}, err
 	}

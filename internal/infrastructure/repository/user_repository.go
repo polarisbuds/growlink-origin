@@ -101,6 +101,22 @@ func (repo *UserRepository) GetByUUID(userUUID uuid.UUID) (ret0 *entity.User, er
 	return &user, nil
 }
 
+func (repo *UserRepository) GetByUUIDs(userUUIDs []string) (ret0 []entity.User, err error) {
+	const op = "user_repository.GetByUUID"
+	done := logutils.Begin(repo.ctx, logutils.LayerRepository, op)
+	defer func() {
+		done(err)
+	}()
+	users, err := gorm.G[entity.User](repo.unscoped).Where("uuid IN ?", userUUIDs).Scopes(func(stmt *gorm.Statement) { stmt.Unscoped = true }).Order("id ASC").Find(repo.ctx)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, gorm.ErrRecordNotFound
+		}
+		return nil, fmt.Errorf("指定されたユーザUUIDは存在しませんでした: %w", err)
+	}
+	return users, nil
+}
+
 func (repo *UserRepository) GetByIDs(ids []uint) (ret0 []entity.User, err error) {
 	const op = "user_repository.GetByIDs"
 	done := logutils.Begin(repo.ctx, logutils.LayerRepository, op)
@@ -111,6 +127,22 @@ func (repo *UserRepository) GetByIDs(ids []uint) (ret0 []entity.User, err error)
 		return []entity.User{}, nil
 	}
 	users, err := gorm.G[entity.User](repo.db).Where("id IN ?", ids).Order("id ASC").Find(repo.ctx)
+	if err != nil {
+		return nil, fmt.Errorf("ユーザIDのバッチ取得に失敗しました: %w", err)
+	}
+	return users, nil
+}
+
+func (repo *UserRepository) GetActiveUsersByIDs(ids []uint) (ret0 []entity.User, err error) {
+	const op = "user_repository.GetByIDs"
+	done := logutils.Begin(repo.ctx, logutils.LayerRepository, op)
+	defer func() {
+		done(err)
+	}()
+	if len(ids) == 0 {
+		return []entity.User{}, nil
+	}
+	users, err := gorm.G[entity.User](repo.db).Where("id IN ?", ids).Not("suspended = ?", true).Order("id ASC").Find(repo.ctx)
 	if err != nil {
 		return nil, fmt.Errorf("ユーザIDのバッチ取得に失敗しました: %w", err)
 	}

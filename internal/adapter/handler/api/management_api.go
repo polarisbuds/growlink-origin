@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"growlink/internal/adapter/handler/authctx"
+	outputmodel "growlink/internal/application/model/output_model"
 	org_admin_usecase "growlink/internal/application/usecase/management_usecase/org_admin_usecase"
 	remind_settings_usecase "growlink/internal/application/usecase/management_usecase/remind_settings_usecase"
 	user_admin_usecase "growlink/internal/application/usecase/management_usecase/user_admin_usecase"
@@ -100,11 +101,42 @@ func (h *Handler) CreateManagementUser(c *echo.Context) error {
 }
 
 func (h *Handler) ListManagementUsers(c *echo.Context) error {
-	users, err := h.deps.Management.UserAdmin.ListUsers()
+	q, err := parseManagementUsersListQuery(c)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
+	}
+	if q.All {
+		users, err := h.deps.Management.UserAdmin.ListUsers()
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		}
+		ps := len(users)
+		if ps == 0 || q.Size == 0 {
+			ps = user_admin_usecase.ManagementUsersPageSize
+		}
+		return c.JSON(http.StatusOK, outputmodel.ManagementUsersPageOutput{
+			Items:    users,
+			Total:    len(users),
+			Page:     1,
+			PageSize: ps,
+		})
+	}
+	deptUUIDs := make([]uuid.UUID, len(q.DepartmentUUIDs))
+	copy(deptUUIDs, q.DepartmentUUIDs)
+
+	pageSize := q.Size
+	if pageSize == 0 {
+		pageSize = user_admin_usecase.ManagementUsersPageSize
+	}
+	out, err := h.deps.Management.UserAdmin.ListUsersPaged(user_admin_usecase.ManagementUsersListFilter{
+		Name:            q.Name,
+		Email:           q.Email,
+		DepartmentUUIDs: deptUUIDs,
+	}, q.Page, pageSize)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
-	return c.JSON(http.StatusOK, users)
+	return c.JSON(http.StatusOK, out)
 }
 
 func (h *Handler) UpdateManagementUser(c *echo.Context) error {

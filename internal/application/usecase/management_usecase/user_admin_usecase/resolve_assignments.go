@@ -46,15 +46,16 @@ func (uc *UserAdmin) resolveDepartmentAssignments(rows []DepartmentAssignmentInp
 
 func (uc *UserAdmin) resolveTeamAssignments(rows []TeamAssignmentInput) ([]teamAssignmentResolved, error) {
 	out := make([]teamAssignmentResolved, 0, len(rows))
+	teamUUIDs := []string{}
 	for _, row := range rows {
-		teamUUID, err := uuid.Parse(row.TeamUuid)
-		if err != nil {
-			return nil, fmt.Errorf("チームを選択してください")
-		}
-		team, err := uc.teamRepo.GetByUUID(teamUUID)
-		if err != nil {
-			return nil, fmt.Errorf("チームを選択してください")
-		}
+		teamUUIDs = append(teamUUIDs, row.TeamUuid)
+	}
+	teams, err := uc.teamRepo.GetByUUIDs(teamUUIDs)
+	if err != nil {
+		return nil, fmt.Errorf("チームを選択してください")
+	}
+
+	for _, team := range teams {
 		out = append(out, teamAssignmentResolved{
 			TeamID: team.ID,
 		})

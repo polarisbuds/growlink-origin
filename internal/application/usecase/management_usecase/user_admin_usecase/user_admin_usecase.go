@@ -11,9 +11,13 @@ import (
 	"growlink/internal/shared/config"
 	"growlink/internal/shared/crypto"
 	logutils "growlink/internal/shared/logUtils"
+	"maps"
+	"slices"
 	"strings"
+	"sync"
 
 	"github.com/google/uuid"
+	"golang.org/x/sync/errgroup"
 	"gorm.io/gorm"
 )
 
@@ -54,62 +58,141 @@ func (uc *UserAdmin) ListUsers() (ret0 []outputmodel.ManagementUserOutput, err e
 	if err != nil {
 		return nil, err
 	}
+	return uc.buildManagementUserOutputs(users)
+}
+
+type ManagementUsersListFilter struct {
+	Name            string
+	Email           string
+	DepartmentUUIDs []uuid.UUID
+}
+
+func (uc *UserAdmin) ListUsersPaged(filter ManagementUsersListFilter, page, size int) (ret0 outputmodel.ManagementUsersPageOutput, err error) {
+	const op = "user_admin_usecase.ListUsersPaged"
+	done := logutils.Begin(context.Background(), logutils.LayerUsecase, op)
+	defer func() {
+		done(err)
+	}()
+	if page < 1 {
+		page = 1
+	}
+	users, err := uc.userRepo.GetAll()
+	if err != nil {
+		return outputmodel.ManagementUsersPageOutput{}, err
+	}
+	deptUUIDSet := map[string]struct{}{}
+
+	for _, d := range filter.DepartmentUUIDs {
+		deptUUIDSet[d.String()] = struct{}{}
+	}
+	hasDeptFilter := len(deptUUIDSet) > 0
+	var deptMemberUserIDs map[uint]struct{}
+	if hasDeptFilter {
+		depts, err := uc.deptRepo.GetAll()
+		if err != nil {
+			return outputmodel.ManagementUsersPageOutput{}, err
+		}
+		deptIDToUUID := map[uint]string{}
+		for _, dept := range depts {
+			deptIDToUUID[dept.ID] = dept.UUID.String()
+		}
+		members, err := uc.deptMemberRepo.GetAll()
+		if err != nil {
+			return outputmodel.ManagementUsersPageOutput{}, err
+		}
+		deptMemberUserIDs = userIDsInDepartments(members, deptUUIDSet, deptIDToUUID)
+	}
+	filtered := filterManagementUsers(users, filter.Name, filter.Email, deptMemberUserIDs, hasDeptFilter)
+	pageUsers := sliceManagementUsersPage(filtered, page, size)
+	items, err := uc.buildManagementUserOutputs(pageUsers)
+	if err != nil {
+		return outputmodel.ManagementUsersPageOutput{}, err
+	}
+	return outputmodel.ManagementUsersPageOutput{
+		Items:    items,
+		Total:    len(filtered),
+		Page:     page,
+		PageSize: size,
+	}, nil
+}
+
+func (uc *UserAdmin) buildManagementUserOutputs(users []entity.User) ([]outputmodel.ManagementUserOutput, error) {
 	roles, err := uc.roleRepo.GetAll()
 	if err != nil {
 		return nil, err
 	}
-	roleIDToUUID := map[uint]string{}
-	for _, role := range roles {
-		roleIDToUUID[role.ID] = role.UUID.String()
-	}
+	roleIDToUUID := make(map[uint]string, len(roles))
+	roleUUIDToName := make(map[string]string, len(roles))
+	roleWg := sync.WaitGroup{}
+	roleWg.Go(func() {
+		for _, role := range roles {
+			roleIDToUUID[role.ID] = role.UUID.String()
+		}
+
+		for _, role := range roles {
+			roleUUIDToName[role.UUID.String()] = role.Name
+		}
+	})
+
 	depts, err := uc.deptRepo.GetAll()
 	if err != nil {
 		return nil, err
 	}
-	deptIDToUUID := map[uint]string{}
-	deptUUIDToName := map[string]string{}
-	for _, dept := range depts {
-		u := dept.UUID.String()
-		deptIDToUUID[dept.ID] = u
-		deptUUIDToName[u] = dept.Name
-	}
-	roleUUIDToName := map[string]string{}
-	for _, role := range roles {
-		roleUUIDToName[role.UUID.String()] = role.Name
-	}
-	out := make([]outputmodel.ManagementUserOutput, 0, len(users))
-	for _, u := range users {
-		departments, err := uc.loadDepartmentAssignments(u.ID, deptIDToUUID, roleIDToUUID)
-		if err != nil {
-			return nil, err
+	deptIDToUUID := make(map[uint]string, len(depts))
+	deptUUIDToName := make(map[string]string, len(depts))
+	deptWg := sync.WaitGroup{}
+	deptWg.Go(func() {
+		for _, dept := range depts {
+			u := dept.UUID.String()
+			deptIDToUUID[dept.ID] = u
+			deptUUIDToName[u] = dept.Name
 		}
-		teams, err := uc.loadTeamAssignments(u.ID)
-		if err != nil {
-			return nil, err
-		}
-		deptName, deptUUID, roleName, roleUUID := "", "", "", ""
-		if len(departments) > 0 {
-			deptUUID = departments[0].DepartmentUUID
-			roleUUID = departments[0].RoleUUID
-			deptName = deptUUIDToName[deptUUID]
-			roleName = roleUUIDToName[roleUUID]
-		}
-		out = append(out, outputmodel.ManagementUserOutput{
-			UUID:           u.UUID.String(),
-			Name:           u.Name,
-			Email:          u.Email,
-			ImageURI:       u.ImageURI,
-			Authority:      u.Authority.String(),
-			SystemRole:     u.SystemRole.String(),
-			DepartmentUUID: deptUUID,
-			DepartmentName: deptName,
-			RoleUUID:       roleUUID,
-			RoleName:       roleName,
-			Departments:    departments,
-			Teams:          teams,
-			Suspended:      u.Suspended,
+	})
+	roleWg.Wait()
+	deptWg.Wait()
+
+	group, _ := errgroup.WithContext(context.Background())
+	out := make([]outputmodel.ManagementUserOutput, len(users))
+	for idx, u := range users {
+		group.Go(func() error {
+			departments, err := uc.loadDepartmentAssignments(u.ID, deptIDToUUID, roleIDToUUID)
+			if err != nil {
+				return err
+			}
+			teams, err := uc.loadTeamAssignments(u.ID)
+			if err != nil {
+				return err
+			}
+			deptName, deptUUID, roleName, roleUUID := "", "", "", ""
+			if len(departments) > 0 {
+				deptUUID = departments[0].DepartmentUUID
+				roleUUID = departments[0].RoleUUID
+				deptName = deptUUIDToName[deptUUID]
+				roleName = roleUUIDToName[roleUUID]
+			}
+			out[idx] = outputmodel.ManagementUserOutput{
+				UUID:           u.UUID.String(),
+				Name:           u.Name,
+				Email:          u.Email,
+				ImageURI:       u.ImageURI,
+				Authority:      u.Authority.String(),
+				SystemRole:     u.SystemRole.String(),
+				DepartmentUUID: deptUUID,
+				DepartmentName: deptName,
+				RoleUUID:       roleUUID,
+				RoleName:       roleName,
+				Departments:    departments,
+				Teams:          teams,
+				Suspended:      u.Suspended,
+			}
+			return nil
 		})
 	}
+
+	if err := group.Wait(); err != nil {
+		return nil, err
+	}
+
 	return out, nil
 }
 
@@ -406,23 +489,26 @@ func (uc *UserAdmin) syncDepartmentAssignments(userID uint, rows []deptAssignmen
 		roleIDByDept[row.departmentID] = row.roleID
 	}
 
-	for deptID := range touched {
-		members, err := uc.deptMemberRepo.GetByDepartmentID(deptID)
-		if err != nil {
-			return nil, err
-		}
-		_, keep := allowed[deptID]
-		next := make([]entity.DepartmentMember, 0, len(members)+1)
+	// TODO; members, err := uc.deptMemberRepo.GetByDepartmentID(deptID)これをループ外へ出したい
+
+	departments, err := uc.deptRepo.GetByIDsByUnscoped(slices.Collect(maps.Keys(touched)))
+	if err != nil {
+		return nil, err
+	}
+
+	for _, dept := range departments {
+		_, keep := allowed[dept.ID]
+		next := make([]entity.DepartmentMember, 0, len(dept.DepartmentMembers)+1)
 		found := false
 		removed := false
-		for _, member := range members {
+		for _, member := range dept.DepartmentMembers {
 			if member.UserID == userID {
 				if !keep {
 					removed = true
 					continue
 				}
 				found = true
-				if roleID, ok := roleIDByDept[deptID]; ok {
+				if roleID, ok := roleIDByDept[dept.ID]; ok {
 					member.RoleID = roleID
 				}
 				next = append(next, member)
@@ -431,28 +517,28 @@ func (uc *UserAdmin) syncDepartmentAssignments(userID uint, rows []deptAssignmen
 			next = append(next, member)
 		}
 		if keep && !found {
-			roleID := roleIDByDept[deptID]
+			roleID := roleIDByDept[dept.ID]
 			if roleID == 0 {
 				return nil, fmt.Errorf("役職を選択してください")
 			}
 			next = append(next, entity.DepartmentMember{
-				DepartmentID: deptID,
+				DepartmentID: dept.ID,
 				UserID:       userID,
 				RoleID:       roleID,
 			})
 		}
-		if !departmentMembersEqual(members, next) {
-			if err := uc.deptMemberRepo.ReplaceByDepartment(deptID, next); err != nil {
+		if !departmentMembersEqual(dept.DepartmentMembers, next) {
+			if err := uc.deptMemberRepo.ReplaceByDepartment(dept.ID, next); err != nil {
 				return nil, err
 			}
 		}
 		if removed {
-			dept, err := uc.deptRepo.GetByID(deptID)
+			dept, err := uc.deptRepo.GetByID(dept.ID)
 			if err != nil {
 				return nil, err
 			}
 			if dept.HeadUserID == userID {
-				if err := uc.deptRepo.UpdateHeadUserID(deptID, 0); err != nil {
+				if err := uc.deptRepo.UpdateHeadUserID(dept.ID, 0); err != nil {
 					return nil, err
 				}
 			}
@@ -498,23 +584,23 @@ func memberKey(member entity.DepartmentMember) [4]uint {
 	return [4]uint{member.UserID, head, manager, member.RoleID}
 }
 
-func (uc *UserAdmin) syncTeamMemberships(userID uint, teams []teamAssignmentResolved, allowedDepartments map[uint]struct{}) error {
+func (uc *UserAdmin) syncTeamMemberships(userID uint, resolvedTeams []teamAssignmentResolved, allowedDepartments map[uint]struct{}) error {
 	want := map[uint]struct{}{}
-	for _, row := range teams {
-		if row.TeamID == 0 {
-			return fmt.Errorf("チームを選択してください")
-		}
-		if _, dup := want[row.TeamID]; dup {
-			return fmt.Errorf("同じチームを重複して登録できません")
-		}
-		team, err := uc.teamRepo.GetByID(row.TeamID)
-		if err != nil {
-			return err
-		}
+	teamIDs := []uint{}
+	for _, row := range resolvedTeams {
+		teamIDs = append(teamIDs, row.TeamID)
+	}
+
+	teams, err := uc.teamRepo.GetByIDs(teamIDs)
+	if err != nil {
+		return fmt.Errorf("チームの取得に失敗しました: %w", err)
+	}
+
+	for _, team := range teams {
 		if _, ok := allowedDepartments[team.DepartmentID]; !ok {
 			return fmt.Errorf("選択した部署に属さないチームは登録できません")
 		}
-		want[row.TeamID] = struct{}{}
+		want[team.ID] = struct{}{}
 	}
 
 	existing, err := uc.teamMemberRepo.GetByMemberID(userID)
@@ -551,16 +637,13 @@ func (uc *UserAdmin) SetUsersSuspended(uuids []string, suspended bool) (err erro
 	if len(uuids) == 0 {
 		return fmt.Errorf("対象のユーザが選択されていません")
 	}
+
 	ids := make([]uint, 0, len(uuids))
-	for _, s := range uuids {
-		parsed, err := uuid.Parse(s)
-		if err != nil {
-			return fmt.Errorf("invalid user uuid")
-		}
-		user, err := uc.userRepo.GetByUUID(parsed)
-		if err != nil {
-			return err
-		}
+	users, err := uc.userRepo.GetByUUIDs(uuids)
+	if err != nil {
+		return err
+	}
+	for _, user := range users {
 		ids = append(ids, user.ID)
 	}
 	return uc.userRepo.SetSuspendedByIDs(ids, suspended)

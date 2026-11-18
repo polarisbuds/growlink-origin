@@ -11,6 +11,7 @@ import (
 type AnswerRepository interface {
 	GetByID(id uint) (*entity.Answer, error)
 	GetByUUID(answerUUID uuid.UUID) (*entity.Answer, error)
+	GetByUUIDs(answerUUIDs []string) ([]entity.Answer, error)
 	GetByMeetingID(meetingID uint) ([]entity.Answer, error)
 	GetByUserID(userD uint) ([]entity.Answer, error)
 
