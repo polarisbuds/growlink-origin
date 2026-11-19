@@ -196,12 +196,12 @@
                 </div>
             </div>
         </div>
-        <div class="flex flex-1 w-full">
+        <div class="flex flex-col gap-3 w-full">
             {#if selectedMenteeRows.length === 0}
                 <p class="text-sm text-base-content/50">未選択</p>
             {:else}
                 <div
-                    class="flex flex-1 w-full overflow-hidden rounded-2xl border border-base-300"
+                    class="overflow-hidden rounded-2xl border border-base-300"
                 >
                     <table class="table table-sm">
                         <thead>

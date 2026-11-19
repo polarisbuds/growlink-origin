@@ -1,4 +1,4 @@
-FROM golang:1.27
+FROM golang:1.27.4
 LABEL MAINTAINER="ryota.kashio"
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
