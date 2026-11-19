@@ -146,6 +146,19 @@ func (repo *PairingRepository) GetByMenteeID(menteeID uint) (ret0 []entity.Pairi
 	return pairings, nil
 }
 
+func (repo *PairingRepository) GetByMenteeIDs(menteeIDs []uint) (ret0 []entity.Pairing, err error) {
+	pairings, err := gorm.G[entity.Pairing](repo.db).
+		Where("mentee_id IN ? AND is_temporary = ?", menteeIDs, false).
+		Order("id ASC").
+		Preload("Mentee", nil).
+		Preload("Mentor", nil).
+		Find(repo.ctx)
+	if err != nil {
+		return nil, fmt.Errorf("メンティーID指定でのペアリング取得に失敗しました: %w", err)
+	}
+	return pairings, nil
+}
+
 func (repo *PairingRepository) GetByMentorID(mentorID uint) (ret0 []entity.Pairing, err error) {
 	pairings, err := gorm.G[entity.Pairing](repo.db).
 		Where("mentor_id = ?", mentorID).
@@ -165,9 +178,9 @@ func (repo *PairingRepository) GetPairingIDsBySharerUserID(userID uint) (ret0 []
 	if err = repo.db.WithContext(repo.ctx).Where("user_id = ?", userID).Find(&sharers).Error; err != nil {
 		return nil, fmt.Errorf("共有者ペアの取得に失敗しました: %w", err)
 	}
-	ids := make([]uint, 0, len(sharers))
-	for _, s := range sharers {
-		ids = append(ids, s.PairingID)
+	ids := make([]uint, len(sharers))
+	for idx, s := range sharers {
+		ids[idx] = s.PairingID
 	}
 	return ids, nil
 }

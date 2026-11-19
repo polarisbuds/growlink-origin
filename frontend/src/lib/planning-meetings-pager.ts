@@ -41,19 +41,18 @@ export type PageToken = number | 'ellipsis';
 
 export function visiblePageNumbers(current: number, last: number): PageToken[] {
 	if (last <= 1) return [1];
-	const pages = new Set<number>();
-	pages.add(1);
-	pages.add(last);
-	for (let p = current - 1; p <= current + 1; p++) {
-		if (p >= 1 && p <= last) pages.add(p);
+	if (last <= 7) {
+		return Array.from({ length: last }, (_, i) => i + 1);
 	}
-	const sorted = [...pages].sort((a, b) => a - b);
-	const out: PageToken[] = [];
-	let prev = 0;
-	for (const p of sorted) {
-		if (prev && p - prev > 1) out.push('ellipsis');
-		out.push(p);
-		prev = p;
+
+	const needLeftEllipsis = current > 3;
+	const needRightEllipsis = current < last - 2;
+
+	if (!needLeftEllipsis) {
+		return [1, 2, 3, 4, 5, 'ellipsis', last];
 	}
-	return out;
+	if (!needRightEllipsis) {
+		return [1, 'ellipsis', last - 4, last - 3, last - 2, last - 1, last];
+	}
+	return [1, 'ellipsis', current - 1, current, current + 1, 'ellipsis', last];
 }

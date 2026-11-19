@@ -30,12 +30,12 @@ func (uc *PairingUpdater) UpdatePairing(pairingID uint, input inputmodel.Pairing
 	if len(targets) == 0 {
 		return fmt.Errorf("対象が指定されていません")
 	}
-	menteeIDs := make([]uint, 0, len(targets))
-	for _, t := range targets {
+	menteeIDs := make([]uint, len(targets))
+	for idx, t := range targets {
 		if t.Kind != entity.PairingTargetKindUser {
 			return fmt.Errorf("ユーザ以外の対象はサポートされていません")
 		}
-		menteeIDs = append(menteeIDs, t.TargetID)
+		menteeIDs[idx] = t.TargetID
 	}
 	existing, err := uc.pairingRepo.Get(pairingID)
 	if err != nil {

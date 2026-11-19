@@ -86,7 +86,8 @@ func (repo *DepartmentRepository) GetByUUID(deptUUID uuid.UUID) (ret0 *entity.De
 func (repo *DepartmentRepository) GetByUUIDs(deptUUIDs []string) (ret0 []entity.Department, err error) {
 	depts, err := gorm.G[entity.Department](repo.db).Where("uuid IN ?", deptUUIDs).
 		Preload("Teams", nil).
-		Preload("Teams.Member", nil).
+		Preload("Teams.TeamMembers", nil).
+		Preload("Teams.TeamMembers.Member", nil).
 		Preload("DepartmentMembers", nil).
 		Preload("DepartmentMembers.User", nil).
 		Order("id ASC").Find(repo.ctx)

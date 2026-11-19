@@ -10,13 +10,13 @@ func (uc *OrgAdmin) resolveDepartmentUUIDs(uuids []string) ([]uint, error) {
 	if uuids == nil {
 		return nil, nil
 	}
-	out := make([]uint, 0, len(uuids))
+	out := make([]uint, len(uuids))
 	depts, err := uc.deptRepo.GetByUUIDs(uuids)
 	if err != nil {
 		return nil, err
 	}
-	for _, dept := range depts {
-		out = append(out, dept.ID)
+	for idx, dept := range depts {
+		out[idx] = dept.ID
 	}
 	return out, nil
 }
@@ -25,13 +25,13 @@ func (uc *OrgAdmin) resolveTeamUUIDs(uuids []string) ([]uint, error) {
 	if uuids == nil {
 		return nil, nil
 	}
-	out := make([]uint, 0, len(uuids))
+	out := make([]uint, len(uuids))
 	teams, err := uc.teamRepo.GetByUUIDs(uuids)
 	if err != nil {
 		return nil, fmt.Errorf("チームが見つかりません")
 	}
-	for _, team := range teams {
-		out = append(out, team.ID)
+	for idx, team := range teams {
+		out[idx] = team.ID
 	}
 	return out, nil
 }
@@ -40,13 +40,13 @@ func (uc *OrgAdmin) resolveUserUUIDs(uuids []string) ([]uint, error) {
 	if uuids == nil {
 		return nil, nil
 	}
-	out := make([]uint, 0, len(uuids))
+	out := make([]uint, len(uuids))
 	users, err := uc.userRepo.GetByUUIDs(uuids)
 	if err != nil {
 		return nil, fmt.Errorf("invalid user uuid")
 	}
-	for _, user := range users {
-		out = append(out, user.ID)
+	for idx, user := range users {
+		out[idx] = user.ID
 	}
 	return out, nil
 }

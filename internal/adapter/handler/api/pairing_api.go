@@ -1,30 +1,16 @@
 package api
 
 import (
+	"errors"
 	"net/http"
-	"strconv"
 
 	"growlink/internal/adapter/handler/authctx"
 	inputmodel "growlink/internal/application/model/input_model"
+	planning_usecase "growlink/internal/application/usecase/planning_usecase"
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v5"
 )
-
-func (h *Handler) resolvePairingID(param string) (uint, error) {
-	if id64, err := strconv.ParseUint(param, 10, 64); err == nil {
-		return uint(id64), nil
-	}
-	pairUUID, err := uuid.Parse(param)
-	if err != nil {
-		return 0, err
-	}
-	pair, err := h.deps.PairingRepo.GetByUUID(pairUUID)
-	if err != nil {
-		return 0, err
-	}
-	return pair.ID, nil
-}
 
 func (h *Handler) ListPairings(c *echo.Context) error {
 	claims := authctx.Claims(c)
@@ -105,11 +91,22 @@ func (h *Handler) CreatePairing(c *echo.Context) error {
 	if err := c.Bind(&req); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid request"})
 	}
-	if err := h.resolvePairingInput(c, &req); err != nil {
-		return err
+	if err := validatePairingInput(&req); err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
 	}
-	for _, t := range req.ResolvedTargets() {
-		ok, err := h.deps.Planning.CanManagePairingMentee(claims.UserID, claims.Authority, claims.SystemRole, t.TargetID)
+
+	menteeUUIDs := make([]string, len(req.Targets))
+	for idx, pairingTarget := range req.Targets {
+		menteeUUIDs[idx] = pairingTarget.TargetUuid
+	}
+
+	menteeIDs, err := h.deps.Management.OrgAdmin.ResolveUserIDs(menteeUUIDs)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid target uuid"})
+	}
+
+	for _, menteeID := range menteeIDs {
+		ok, err := h.deps.Planning.CanManagePairingMentee(claims.UserID, claims.Authority, claims.SystemRole, menteeID)
 		if err != nil {
 			return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 		}
@@ -128,23 +125,35 @@ func (h *Handler) DeletePairing(c *echo.Context) error {
 	if claims == nil {
 		return c.JSON(http.StatusUnauthorized, map[string]string{"error": "unauthorized"})
 	}
-	pairingID, err := h.resolvePairingID(c.Param("uuid"))
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid pairing id"})
-	}
-	pair, err := h.deps.PairingRepo.Get(pairingID)
-	if err != nil {
-		return c.JSON(http.StatusNotFound, map[string]string{"error": "not found"})
-	}
-	ok, err := h.deps.Planning.CanBreakPairing(claims.UserID, claims.Authority, claims.SystemRole, pair.CreatedByUserID, pair.MenteeID)
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
-	}
-	if !ok {
-		return c.JSON(http.StatusForbidden, map[string]string{"error": "forbidden"})
-	}
-	if err := h.deps.Management.PairingDeleter.BreakPairing(pairingID); err != nil {
+	if err := h.deps.Planning.BreakPairingByUUID(
+		claims.UserID,
+		claims.Authority,
+		claims.SystemRole,
+		c.Param("uuid"),
+		h.deps.Management.PairingDeleter,
+	); err != nil {
+		if errors.Is(err, planning_usecase.ErrBreakPairingForbidden) {
+			return c.JSON(http.StatusForbidden, map[string]string{"error": "forbidden"})
+		}
+		if resp := apiUUIDResolveError(c, err); resp != nil {
+			return resp
+		}
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
 	return c.JSON(http.StatusOK, map[string]string{"ok": "true"})
+}
+
+func validatePairingInput(req *inputmodel.PairingInput) error {
+	if req.MentorUuid == "" {
+		return errors.New("mentorUuid is required")
+	}
+	if len(req.Targets) == 0 {
+		return errors.New("targets are required")
+	}
+	for i := range req.Targets {
+		if req.Targets[i].TargetUuid == "" {
+			return errors.New("targetUuid is required")
+		}
+	}
+	return nil
 }

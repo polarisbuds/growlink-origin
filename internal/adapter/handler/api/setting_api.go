@@ -4,7 +4,6 @@ import (
 	"net/http"
 
 	"growlink/internal/adapter/handler/authctx"
-	user_admin_usecase "growlink/internal/application/usecase/management_usecase/user_admin_usecase"
 
 	"github.com/labstack/echo/v5"
 )
@@ -45,10 +44,6 @@ func (h *Handler) UpdateSetting(c *echo.Context) error {
 	if claims == nil {
 		return c.JSON(http.StatusUnauthorized, map[string]string{"error": "unauthorized"})
 	}
-	user, err := h.deps.UserRepo.GetByID(claims.UserID)
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
-	}
 	var req struct {
 		LineWorksID   string `json:"lineWorksId"`
 		RemindEnabled *bool  `json:"remindEnabled"`
@@ -56,15 +51,8 @@ func (h *Handler) UpdateSetting(c *echo.Context) error {
 	if err := c.Bind(&req); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid request"})
 	}
-	if err := user_admin_usecase.ValidateLineWorksLocalID(req.LineWorksID); err != nil {
+	if err := h.deps.Profile.UpdateProfile(claims.UserID, req.LineWorksID, req.RemindEnabled); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
-	}
-	user.LineWorksID = req.LineWorksID
-	if req.RemindEnabled != nil {
-		user.RemindEnabled = *req.RemindEnabled
-	}
-	if err := h.deps.UserRepo.UpdateByID(user); err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
 	return c.JSON(http.StatusOK, map[string]string{"ok": "true"})
 }
@@ -74,16 +62,9 @@ func (h *Handler) GetProfile(c *echo.Context) error {
 	if claims == nil {
 		return c.JSON(http.StatusUnauthorized, map[string]string{"error": "unauthorized"})
 	}
-	user, err := h.deps.UserRepo.GetByID(claims.UserID)
+	profile, err := h.deps.Profile.GetProfile(claims.UserID)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
-	return c.JSON(http.StatusOK, map[string]interface{}{
-		"id":            user.ID,
-		"name":          user.Name,
-		"email":         user.Email,
-		"lineWorksId":   user.LineWorksID,
-		"imageUri":      user.ImageURI,
-		"remindEnabled": user.RemindEnabled,
-	})
+	return c.JSON(http.StatusOK, profile)
 }

@@ -68,9 +68,11 @@ func descendantDepartmentIDsLocal(rootIDs []uint, hierarchies []entity.Departmen
 	for _, rootID := range rootIDs {
 		walk(rootID)
 	}
-	ids := make([]uint, 0, len(seen))
+	ids := make([]uint, len(seen))
+	var idx int
 	for id := range seen {
-		ids = append(ids, id)
+		ids[idx] = id
+		idx++
 	}
 	return ids
 }

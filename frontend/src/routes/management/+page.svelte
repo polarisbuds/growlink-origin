@@ -1730,9 +1730,9 @@
                     disabled={currentUserPage <= 1}
                     onclick={() => goToUserPage(currentUserPage - 1)}
                     >前へ</button>
-                {#each userPagerPages as p (typeof p === "number" ? p : `e-${p}`)}
+                {#each userPagerPages.entries() as [idx, p] (typeof p === "number" ? p : `e-${p}-${idx}`)}
                     {#if p === "ellipsis"}
-                        <span class="px-1 text-base-content/50">…</span>
+                        <span class="px-1 w-8 text-base-content/50">…</span>
                     {:else}
                         <button
                             type="button"

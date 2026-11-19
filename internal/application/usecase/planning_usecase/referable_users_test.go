@@ -137,6 +137,7 @@ func TestHasPairManagementAccess_NoScope(t *testing.T) {
 	teamMember.EXPECT().GetByMemberID(uint(7)).Return(nil, nil)
 	pairing := repomock.NewMockPairingRepository(ctrl)
 	pairing.EXPECT().GetByMentorID(uint(7)).Return(nil, nil)
+	pairing.EXPECT().GetByMenteeID(uint(7)).Return(nil, nil)
 
 	uc := &PlanningAccessUsecase{teamMemberRepo: teamMember, pairingRepo: pairing}
 

@@ -253,6 +253,7 @@
                 <option value="">すべて</option>
                 <option value="1">未着手</option>
                 <option value="2">下書き</option>
+                <option value="4">提出済み</option>
                 <option value="3">完了</option>
             </select>
         </label>

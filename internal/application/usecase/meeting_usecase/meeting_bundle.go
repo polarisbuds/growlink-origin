@@ -10,4 +10,5 @@ type Bundle struct {
 	AnswerCommenter        *AnswerCommenterUsecase
 	MentorMeetingCompleter *MentorMeetingCompleterUsecase
 	MeetingCommenter       *MeetingCommenterUsecase
+	API                    *MeetingAPIUsecase
 }

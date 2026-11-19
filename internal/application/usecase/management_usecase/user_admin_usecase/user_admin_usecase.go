@@ -17,7 +17,6 @@ import (
 	"sync"
 
 	"github.com/google/uuid"
-	"golang.org/x/sync/errgroup"
 	"gorm.io/gorm"
 )
 
@@ -151,46 +150,47 @@ func (uc *UserAdmin) buildManagementUserOutputs(users []entity.User) ([]outputmo
 	roleWg.Wait()
 	deptWg.Wait()
 
-	group, _ := errgroup.WithContext(context.Background())
 	out := make([]outputmodel.ManagementUserOutput, len(users))
-	for idx, u := range users {
-		group.Go(func() error {
-			departments, err := uc.loadDepartmentAssignments(u.ID, deptIDToUUID, roleIDToUUID)
-			if err != nil {
-				return err
-			}
-			teams, err := uc.loadTeamAssignments(u.ID)
-			if err != nil {
-				return err
-			}
-			deptName, deptUUID, roleName, roleUUID := "", "", "", ""
-			if len(departments) > 0 {
-				deptUUID = departments[0].DepartmentUUID
-				roleUUID = departments[0].RoleUUID
-				deptName = deptUUIDToName[deptUUID]
-				roleName = roleUUIDToName[roleUUID]
-			}
-			out[idx] = outputmodel.ManagementUserOutput{
-				UUID:           u.UUID.String(),
-				Name:           u.Name,
-				Email:          u.Email,
-				ImageURI:       u.ImageURI,
-				Authority:      u.Authority.String(),
-				SystemRole:     u.SystemRole.String(),
-				DepartmentUUID: deptUUID,
-				DepartmentName: deptName,
-				RoleUUID:       roleUUID,
-				RoleName:       roleName,
-				Departments:    departments,
-				Teams:          teams,
-				Suspended:      u.Suspended,
-			}
-			return nil
-		})
+	userIDs := []uint{}
+	for _, user := range users {
+		userIDs = append(userIDs, user.ID)
 	}
 
-	if err := group.Wait(); err != nil {
+	departmentsMapByUserID, err := uc.loadDepartmentAssignmentsByUserIDs(userIDs, deptIDToUUID, roleIDToUUID)
+	if err != nil {
 		return nil, err
+	}
+	teamsMapByUserID, err := uc.loadTeamAssignmentsByUserIDs(userIDs)
+	if err != nil {
+		return nil, err
+	}
+
+	for idx, u := range users {
+		departments := departmentsMapByUserID[u.ID]
+		deptName, deptUUID, roleName, roleUUID := "", "", "", ""
+
+		if len(departments) > 0 {
+			deptUUID = departments[0].DepartmentUUID
+			roleUUID = departments[0].RoleUUID
+			deptName = deptUUIDToName[deptUUID]
+			roleName = roleUUIDToName[roleUUID]
+		}
+
+		out[idx] = outputmodel.ManagementUserOutput{
+			UUID:           u.UUID.String(),
+			Name:           u.Name,
+			Email:          u.Email,
+			ImageURI:       u.ImageURI,
+			Authority:      u.Authority.String(),
+			SystemRole:     u.SystemRole.String(),
+			DepartmentUUID: deptUUID,
+			DepartmentName: deptName,
+			RoleUUID:       roleUUID,
+			RoleName:       roleName,
+			Departments:    departments,
+			Teams:          teamsMapByUserID[u.ID],
+			Suspended:      u.Suspended,
+		}
 	}
 
 	return out, nil
@@ -213,6 +213,31 @@ func (uc *UserAdmin) loadDepartmentAssignments(userID uint, deptIDToUUID map[uin
 		})
 	}
 	return out, nil
+}
+
+func (uc *UserAdmin) loadDepartmentAssignmentsByUserIDs(userIDs []uint, deptIDToUUID map[uint]string, roleIDToUUID map[uint]string) (map[uint][]outputmodel.UserDepartmentAssignmentOutput, error) {
+	departmentMembersByUserID, err := uc.deptMemberRepo.GetByUserIDs(userIDs)
+	if err != nil {
+		return nil, err
+	}
+
+	departmentAssingmentByUserIDMap := map[uint][]outputmodel.UserDepartmentAssignmentOutput{}
+	for userID, members := range departmentMembersByUserID {
+		for _, member := range members {
+			if member.DepartmentID == 0 || member.RoleID == 0 {
+				continue
+			}
+			if _, ok := departmentAssingmentByUserIDMap[userID]; !ok {
+				departmentAssingmentByUserIDMap[userID] = []outputmodel.UserDepartmentAssignmentOutput{}
+			}
+			departmentAssingmentByUserIDMap[userID] = append(departmentAssingmentByUserIDMap[userID], outputmodel.UserDepartmentAssignmentOutput{
+				DepartmentName: member.Department.Name,
+				DepartmentUUID: deptIDToUUID[member.DepartmentID],
+				RoleUUID:       roleIDToUUID[member.RoleID],
+			})
+		}
+	}
+	return departmentAssingmentByUserIDMap, nil
 }
 
 func (uc *UserAdmin) loadTeamAssignments(userID uint) ([]outputmodel.UserTeamAssignmentOutput, error) {
@@ -242,6 +267,44 @@ func (uc *UserAdmin) loadTeamAssignments(userID uint) ([]outputmodel.UserTeamAss
 			TeamUUID: teamIDToUUID[member.TeamID],
 			IsLeader: member.IsReader,
 		})
+	}
+	return out, nil
+}
+
+func (uc *UserAdmin) loadTeamAssignmentsByUserIDs(userIDs []uint) (map[uint][]outputmodel.UserTeamAssignmentOutput, error) {
+	teamMemberMapByMemberID, err := uc.teamMemberRepo.GetByMemberIDs(userIDs)
+	if err != nil {
+		return nil, err
+	}
+	teams, err := uc.teamRepo.GetAll()
+	if err != nil {
+		return nil, err
+	}
+	teamIDToUUID := map[uint]string{}
+	for _, team := range teams {
+		teamIDToUUID[team.ID] = team.UUID.String()
+	}
+
+	out := map[uint][]outputmodel.UserTeamAssignmentOutput{}
+	for _, teamMembers := range teamMemberMapByMemberID {
+		seen := map[uint]struct{}{}
+		for _, teamMember := range teamMembers {
+			if teamMember.TeamID == 0 {
+				continue
+			}
+			if _, ok := seen[teamMember.TeamID]; ok {
+				continue
+			}
+			seen[teamMember.TeamID] = struct{}{}
+			if _, ok := out[teamMember.MemberID]; !ok {
+				out[teamMember.MemberID] = []outputmodel.UserTeamAssignmentOutput{}
+			}
+
+			out[teamMember.MemberID] = append(out[teamMember.MemberID], outputmodel.UserTeamAssignmentOutput{
+				TeamUUID: teamIDToUUID[teamMember.TeamID],
+				IsLeader: teamMember.IsReader,
+			})
+		}
 	}
 	return out, nil
 }
@@ -638,13 +701,13 @@ func (uc *UserAdmin) SetUsersSuspended(uuids []string, suspended bool) (err erro
 		return fmt.Errorf("対象のユーザが選択されていません")
 	}
 
-	ids := make([]uint, 0, len(uuids))
 	users, err := uc.userRepo.GetByUUIDs(uuids)
 	if err != nil {
 		return err
 	}
-	for _, user := range users {
-		ids = append(ids, user.ID)
+	ids := make([]uint, len(users))
+	for idx, user := range users {
+		ids[idx] = user.ID
 	}
 	return uc.userRepo.SetSuspendedByIDs(ids, suspended)
 }

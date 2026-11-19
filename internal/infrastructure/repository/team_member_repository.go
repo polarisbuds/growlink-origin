@@ -88,6 +88,38 @@ func (repo *TeamMemberRepository) GetByMemberID(memberID uint) (ret0 []entity.Te
 	return teamMembers, nil
 }
 
+func (repo *TeamMemberRepository) GetByTeamIDs(teamIDs []uint) (ret0 map[uint][]entity.TeamMember, err error) {
+	teamMembers, err := repo.preloadWhere("team_id IN ?", teamIDs)
+	if err != nil {
+		return nil, fmt.Errorf("チームID指定でのチームメンバー取得に失敗しました: %w", err)
+	}
+	ret0 = map[uint][]entity.TeamMember{}
+	for _, teamMember := range teamMembers {
+		if _, ok := ret0[teamMember.TeamID]; !ok {
+			ret0[teamMember.TeamID] = []entity.TeamMember{}
+		}
+		ret0[teamMember.TeamID] = append(ret0[teamMember.TeamID], teamMember)
+	}
+
+	return ret0, nil
+}
+
+func (repo *TeamMemberRepository) GetByMemberIDs(memberIDs []uint) (ret0 map[uint][]entity.TeamMember, err error) {
+	teamMembers, err := repo.preloadWhere("member_id IN ?", memberIDs)
+	if err != nil {
+		return nil, fmt.Errorf("メンバーID指定でのチームメンバー取得に失敗しました: %w", err)
+	}
+	ret0 = map[uint][]entity.TeamMember{}
+	for _, member := range teamMembers {
+		if _, ok := ret0[member.MemberID]; !ok {
+			ret0[member.MemberID] = []entity.TeamMember{}
+		}
+		ret0[member.MemberID] = append(ret0[member.MemberID], member)
+	}
+
+	return ret0, nil
+}
+
 func (repo *TeamMemberRepository) GetReaders() (ret0 []entity.TeamMember, err error) {
 	readers, err := repo.preloadWhere("is_reader = true")
 	if err != nil {

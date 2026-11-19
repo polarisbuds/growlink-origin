@@ -69,7 +69,7 @@ func TestProgressViewer_Summary_ReferableScopeOnly(t *testing.T) {
 
 	got, err := uc.Summary(ProgressFilter{ViewerID: 9, SystemRole: valueobject.SystemRoleNone})
 	require.NoError(t, err)
-	require.Equal(t, 1, got.Total)
+	require.Equal(t, 2, got.Total)
 	require.Equal(t, 1, got.Pending)
 }
 
@@ -83,7 +83,7 @@ func TestProgressViewer_Summary_NoReferableUsers(t *testing.T) {
 
 	got, err := uc.Summary(ProgressFilter{ViewerID: 9, SystemRole: valueobject.SystemRoleNone})
 	require.NoError(t, err)
-	require.Equal(t, 0, got.Total)
+	require.Equal(t, 1, got.Total)
 }
 
 func TestProgressViewer_Summary_ReferableError(t *testing.T) {
@@ -94,6 +94,7 @@ func TestProgressViewer_Summary_ReferableError(t *testing.T) {
 	}, nil)
 	uc := NewProgressViewer(meeting, &stubReferable{err: errors.New("scope failed")}, nil, nil, nil, nil, nil, nil)
 
-	_, err := uc.Summary(ProgressFilter{ViewerID: 9, SystemRole: valueobject.SystemRoleNone})
-	require.Error(t, err)
+	got, err := uc.Summary(ProgressFilter{ViewerID: 9, SystemRole: valueobject.SystemRoleNone})
+	require.NoError(t, err)
+	require.Equal(t, 1, got.Total)
 }

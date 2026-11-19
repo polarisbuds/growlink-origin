@@ -59,8 +59,12 @@ func TestIconRemoverUsecase_IconRemover(t *testing.T) {
 					cap.deleteFileNames = append(cap.deleteFileNames, name)
 					return nil
 				})
-				user.EXPECT().UpdateByID(gomock.Any()).DoAndReturn(func(u *entity.User) error {
-					cap.updatedUser = u
+				user.EXPECT().UpdateColumns(gomock.Any(), gomock.Any()).DoAndReturn(func(id uint, cols map[string]any) error {
+					cap.updatedUser = &entity.User{}
+					cap.updatedUser.ID = id
+					if v, ok := cols["image_uri"]; ok && v == nil {
+						cap.updatedUser.ImageURI = nil
+					}
 					return nil
 				})
 			},
@@ -82,8 +86,12 @@ func TestIconRemoverUsecase_IconRemover(t *testing.T) {
 					cap.existsNames = append(cap.existsNames, name)
 					return false, nil
 				})
-				user.EXPECT().UpdateByID(gomock.Any()).DoAndReturn(func(u *entity.User) error {
-					cap.updatedUser = u
+				user.EXPECT().UpdateColumns(gomock.Any(), gomock.Any()).DoAndReturn(func(id uint, cols map[string]any) error {
+					cap.updatedUser = &entity.User{}
+					cap.updatedUser.ID = id
+					if v, ok := cols["image_uri"]; ok && v == nil {
+						cap.updatedUser.ImageURI = nil
+					}
 					return nil
 				})
 			},
@@ -101,8 +109,12 @@ func TestIconRemoverUsecase_IconRemover(t *testing.T) {
 			wantErr: false,
 			setup: func(_ *testing.T, user *repomock.MockUserRepository, _ *repomock.MockUploadFileRepository, cap *iconRemoverCaptures) {
 				user.EXPECT().GetByID(validUserID).Return(newTestUser(validUserID, nil), nil)
-				user.EXPECT().UpdateByID(gomock.Any()).DoAndReturn(func(u *entity.User) error {
-					cap.updatedUser = u
+				user.EXPECT().UpdateColumns(gomock.Any(), gomock.Any()).DoAndReturn(func(id uint, cols map[string]any) error {
+					cap.updatedUser = &entity.User{}
+					cap.updatedUser.ID = id
+					if v, ok := cols["image_uri"]; ok && v == nil {
+						cap.updatedUser.ImageURI = nil
+					}
 					return nil
 				})
 			},
@@ -171,7 +183,7 @@ func TestIconRemoverUsecase_IconRemover(t *testing.T) {
 			name:        "異常系_ユーザ更新失敗",
 			userID:      validUserID,
 			wantErr:     true,
-			errContains: "ユーザデータの更新（ユーザアイコン）に失敗しました",
+			errContains: "ユーザアイコンの削除に失敗しました",
 			setup: func(_ *testing.T, user *repomock.MockUserRepository, file *repomock.MockUploadFileRepository, cap *iconRemoverCaptures) {
 				user.EXPECT().GetByID(validUserID).Return(newTestUser(validUserID, &existingIcon), nil)
 				file.EXPECT().Exists(existingIcon).Return(true, nil)
@@ -179,7 +191,7 @@ func TestIconRemoverUsecase_IconRemover(t *testing.T) {
 					cap.deleteFileNames = append(cap.deleteFileNames, name)
 					return nil
 				})
-				user.EXPECT().UpdateByID(gomock.Any()).Return(errUpdateFailed)
+				user.EXPECT().UpdateColumns(gomock.Any(), gomock.Any()).Return(errUpdateFailed)
 			},
 			assertFn: func(t *testing.T, cap *iconRemoverCaptures) {
 				t.Helper()
@@ -211,8 +223,12 @@ func TestIconRemoverUsecase_IconRemover(t *testing.T) {
 					cap.existsNames = append(cap.existsNames, name)
 					return false, nil
 				})
-				user.EXPECT().UpdateByID(gomock.Any()).DoAndReturn(func(u *entity.User) error {
-					cap.updatedUser = u
+				user.EXPECT().UpdateColumns(gomock.Any(), gomock.Any()).DoAndReturn(func(id uint, cols map[string]any) error {
+					cap.updatedUser = &entity.User{}
+					cap.updatedUser.ID = id
+					if v, ok := cols["image_uri"]; ok && v == nil {
+						cap.updatedUser.ImageURI = nil
+					}
 					return nil
 				})
 			},

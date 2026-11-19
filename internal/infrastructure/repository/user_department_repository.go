@@ -22,9 +22,9 @@ func (repo *DepartmentDepartmentRepository) GetUserIDsByDepartmentID(departmentI
 	if err := repo.db.WithContext(repo.ctx).Where("department_id = ?", departmentID).Find(&rows).Error; err != nil {
 		return nil, fmt.Errorf("部署所属ユーザの取得に失敗しました: %w", err)
 	}
-	ids := make([]uint, 0, len(rows))
-	for _, r := range rows {
-		ids = append(ids, r.UserID)
+	ids := make([]uint, len(rows))
+	for idx, r := range rows {
+		ids[idx] = r.UserID
 	}
 	return ids, nil
 }
@@ -60,9 +60,9 @@ func (repo *DepartmentDepartmentRepository) GetDepartmentIDsByUserID(userID uint
 	if err := repo.db.WithContext(repo.ctx).Where("user_id = ?", userID).Find(&rows).Error; err != nil {
 		return nil, fmt.Errorf("ユーザ所属部署の取得に失敗しました: %w", err)
 	}
-	ids := make([]uint, 0, len(rows))
-	for _, r := range rows {
-		ids = append(ids, r.DepartmentID)
+	ids := make([]uint, len(rows))
+	for idx, r := range rows {
+		ids[idx] = r.DepartmentID
 	}
 	return ids, nil
 }

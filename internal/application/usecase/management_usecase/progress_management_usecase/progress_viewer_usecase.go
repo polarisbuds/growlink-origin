@@ -271,14 +271,14 @@ func (uc *ProgressViewer) Breakdown(group string, filter ProgressFilter) (ret0 [
 		}
 	}
 
-	out := make([]outputmodel.ProgressBreakdownRowOutput, 0, len(buckets))
-	for _, b := range buckets {
+	out := make([]outputmodel.ProgressBreakdownRowOutput, len(buckets))
+	for idx, b := range buckets {
 		total := b.pending + b.draft + b.submitted + b.done
 		var donePct float64
 		if total > 0 {
 			donePct = float64(b.done) / float64(total) * 100
 		}
-		out = append(out, outputmodel.ProgressBreakdownRowOutput{
+		out[idx] = outputmodel.ProgressBreakdownRowOutput{
 			UUID:           b.uuid,
 			Name:           b.name,
 			DepartmentName: b.departmentName,
@@ -291,7 +291,7 @@ func (uc *ProgressViewer) Breakdown(group string, filter ProgressFilter) (ret0 [
 			UsersDraft:     b.usersDraft,
 			UsersSubmitted: b.usersSubmitted,
 			UsersDone:      b.usersDone,
-		})
+		}
 	}
 	slices.SortFunc(out, func(a, b outputmodel.ProgressBreakdownRowOutput) int {
 		if a.Name == unassignedProgressName && b.Name != unassignedProgressName {

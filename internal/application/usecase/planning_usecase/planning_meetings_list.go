@@ -46,6 +46,7 @@ func JSTDayEnd(dateYYYYMMDD string) (time.Time, error) {
 	return start.Add(24 * time.Hour).Add(-time.Nanosecond), nil
 }
 
+// TODO; Queryで処理できないか
 func filterPlanningMeetings(
 	list []outputmodel.MeetingOutput,
 	f PlanningMeetingsListFilter,
@@ -82,9 +83,11 @@ func filterPlanningMeetings(
 				continue
 			}
 		}
+
 		if f.Status != nil && m.Status != *f.Status {
 			continue
 		}
+
 		if !f.IncludeDeleted && m.Pairing.Deleted {
 			continue
 		}

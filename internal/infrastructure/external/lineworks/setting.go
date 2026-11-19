@@ -1,6 +1,7 @@
 package lineworks
 
 import (
+	"fmt"
 	"os"
 	"strings"
 )
@@ -51,7 +52,7 @@ func Load() (Setting, bool, error) {
 	}
 
 	if clientID == "" || strings.TrimSpace(clientSecret) == "" || serviceAccount == "" || privateKey == "" || botID == "" {
-		return Setting{}, false, nil
+		return Setting{}, false, fmt.Errorf("環境変数が正しく指定されていません: %s", fmt.Sprintf(`clientID="%s", strings.TrimSpace(clientSecret)="%s", serviceAccount="%s", privateKey="%s", botID="%s"`, clientID, strings.TrimSpace(clientSecret), serviceAccount, privateKey, botID))
 	}
 
 	apiBase := strings.TrimRight(strings.TrimSpace(os.Getenv(envAPIBase)), "/")

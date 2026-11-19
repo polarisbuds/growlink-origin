@@ -57,14 +57,14 @@ func (h *Handler) navigation(active string, isSystemAdmin, isAnalyst, canPairing
 func (h *Handler) baseData(c *echo.Context, active string) map[string]interface{} {
 	claims := authctx.Claims(c)
 	data := map[string]interface{}{
-		"Active":         active,
-		"UserName":       "",
-		"UserEmail":      "",
-		"IsSystemAdmin":  false,
-		"IsAnalyst":      false,
-		"CanPairing":     false,
-		"Navigation":     []NavItem{},
-		"NavSettings":    NavItem{},
+		"Active":        active,
+		"UserName":      "",
+		"UserEmail":     "",
+		"IsSystemAdmin": false,
+		"IsAnalyst":     false,
+		"CanPairing":    false,
+		"Navigation":    []NavItem{},
+		"NavSettings":   NavItem{},
 	}
 	if claims != nil {
 		isSystemAdmin := authctx.IsSystemAdmin(c)

@@ -51,6 +51,7 @@ func TestPairManagementScopeUserIDs_GeneralMentorMentees(t *testing.T) {
 	pairing.EXPECT().GetByMentorID(uint(9)).Return([]entity.Pairing{
 		{Model: gorm.Model{ID: 1}, MentorID: 9, MenteeID: 42},
 	}, nil)
+	pairing.EXPECT().GetByMenteeID(uint(9)).Return(nil, nil)
 
 	uc := &PlanningAccessUsecase{teamMemberRepo: teamMember, pairingRepo: pairing}
 
@@ -88,11 +89,15 @@ func TestPairManagementScopeUserIDs_BossSkipsMentorMentees(t *testing.T) {
 	teamMember := repomock.NewMockTeamMemberRepository(ctrl)
 	teamMember.EXPECT().GetByMemberID(uint(9)).Return(nil, nil)
 
+	pairing := repomock.NewMockPairingRepository(ctrl)
+	pairing.EXPECT().GetByMentorID(uint(9)).Return(nil, nil)
+	pairing.EXPECT().GetByMenteeID(uint(9)).Return(nil, nil)
+
 	uc := &PlanningAccessUsecase{
 		deptMemberRepo: deptMember,
 		hierarchyRepo:  hierarchy,
 		teamMemberRepo: teamMember,
-		pairingRepo:    repomock.NewMockPairingRepository(ctrl),
+		pairingRepo:    pairing,
 	}
 
 	ids, err := uc.PairManagementScopeUserIDs(9, valueobject.AuthorityBoss, valueobject.SystemRoleNone)
@@ -106,6 +111,7 @@ func TestHasPairManagementAccess_UsesPairScopeNotMentor(t *testing.T) {
 	teamMember.EXPECT().GetByMemberID(uint(9)).Return(nil, nil)
 	pairing := repomock.NewMockPairingRepository(ctrl)
 	pairing.EXPECT().GetByMentorID(uint(9)).Return(nil, nil)
+	pairing.EXPECT().GetByMenteeID(uint(9)).Return(nil, nil)
 
 	uc := &PlanningAccessUsecase{teamMemberRepo: teamMember, pairingRepo: pairing}
 
@@ -122,6 +128,7 @@ func TestHasPairManagementAccess_UsesPairScopeMentorWithMentee(t *testing.T) {
 	pairing.EXPECT().GetByMentorID(uint(9)).Return([]entity.Pairing{
 		{Model: gorm.Model{ID: 1}, MentorID: 9, MenteeID: 42},
 	}, nil)
+	pairing.EXPECT().GetByMenteeID(uint(9)).Return(nil, nil)
 
 	uc := &PlanningAccessUsecase{teamMemberRepo: teamMember, pairingRepo: pairing}
 

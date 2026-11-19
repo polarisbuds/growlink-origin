@@ -17,6 +17,7 @@ import (
 
 type PlanningAccessUsecase struct {
 	meetingRepo    repository_interface.MeetingRepository
+	userRepo       repository_interface.UserRepository
 	deptRepo       repository_interface.DepartmentRepository
 	deptMemberRepo repository_interface.DepartmentMemberRepository
 	hierarchyRepo  repository_interface.DepartmentHierarchyRepository
@@ -30,6 +31,7 @@ type PlanningAccessUsecase struct {
 
 func NewPlanningAccessUsecase(
 	meetingRepo repository_interface.MeetingRepository,
+	userRepo repository_interface.UserRepository,
 	deptRepo repository_interface.DepartmentRepository,
 	deptMemberRepo repository_interface.DepartmentMemberRepository,
 	hierarchyRepo repository_interface.DepartmentHierarchyRepository,
@@ -42,6 +44,7 @@ func NewPlanningAccessUsecase(
 ) *PlanningAccessUsecase {
 	return &PlanningAccessUsecase{
 		meetingRepo:    meetingRepo,
+		userRepo:       userRepo,
 		deptRepo:       deptRepo,
 		deptMemberRepo: deptMemberRepo,
 		hierarchyRepo:  hierarchyRepo,
@@ -164,9 +167,11 @@ func (uc *PlanningAccessUsecase) ListPlanningMeetings(userID uint, authority val
 	if err != nil {
 		return []outputmodel.MeetingOutput{}, err
 	}
-	menteeIDs := make([]uint, 0, len(referable))
+	menteeIDs := make([]uint, len(referable))
+	var menteeIdx int
 	for id := range referable {
-		menteeIDs = append(menteeIDs, id)
+		menteeIDs[menteeIdx] = id
+		menteeIdx++
 	}
 	scopedMeetings, err := uc.listMeetingsByMenteeIDs(menteeIDs)
 	if err != nil {
@@ -247,9 +252,11 @@ func (uc *PlanningAccessUsecase) listPairManagementScopedPairings(userID uint, a
 	if err != nil {
 		return nil, err
 	}
-	menteeIDs := make([]uint, 0, len(scope))
+	menteeIDs := make([]uint, len(scope))
+	var menteeIdx int
 	for id := range scope {
-		menteeIDs = append(menteeIDs, id)
+		menteeIDs[menteeIdx] = id
+		menteeIdx++
 	}
 	return uc.listPairingsByMenteeIDs(menteeIDs)
 }
@@ -293,9 +300,11 @@ func (uc *PlanningAccessUsecase) listReferableScopedPairings(userID uint, system
 	if err != nil {
 		return nil, err
 	}
-	menteeIDs := make([]uint, 0, len(referable))
+	menteeIDs := make([]uint, len(referable))
+	var menteeIdx int
 	for id := range referable {
-		menteeIDs = append(menteeIDs, id)
+		menteeIDs[menteeIdx] = id
+		menteeIdx++
 	}
 	return uc.listPairingsByMenteeIDs(menteeIDs)
 }
@@ -358,9 +367,11 @@ func (uc *PlanningAccessUsecase) departmentScopeUserIDs(userID uint) ([]uint, er
 			return nil, err
 		}
 	}
-	ids := make([]uint, 0, len(seen))
+	ids := make([]uint, len(seen))
+	var idx int
 	for id := range seen {
-		ids = append(ids, id)
+		ids[idx] = id
+		idx++
 	}
 	return ids, nil
 }
@@ -439,9 +450,11 @@ func descendantDepartmentIDs(rootIDs []uint, hierarchies []entity.DepartmentHier
 	for _, rootID := range rootIDs {
 		walk(rootID)
 	}
-	ids := make([]uint, 0, len(seen))
+	ids := make([]uint, len(seen))
+	var idx int
 	for id := range seen {
-		ids = append(ids, id)
+		ids[idx] = id
+		idx++
 	}
 	return ids
 }

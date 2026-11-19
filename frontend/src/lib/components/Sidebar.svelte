@@ -78,9 +78,7 @@
     </nav>
     <div class="mt-auto shrink-0 border-t border-base-300 p-3">
         <button
-            class="flex h-11 w-full items-center gap-3 rounded-xl px-3 text-sm font-medium transition {!expanded
-                ? 'justify-center'
-                : ''} {navLinkClass(navSettings.active)}"
+            class="flex h-11 w-full items-center gap-3 rounded-xl px-3 text-sm font-medium transition {navLinkClass(navSettings.active)}"
             onclick={() => {
                 onNavClick();
                 goto(navSettings.href);

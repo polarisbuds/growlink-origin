@@ -15,14 +15,23 @@ import (
 )
 
 type MeetingCreator struct {
-	meetingRepo repository_interface.MeetingRepository
-	pairingRepo repository_interface.PairingRepository
+	meetingRepo  repository_interface.MeetingRepository
+	pairingRepo  repository_interface.PairingRepository
+	userRepo     repository_interface.UserRepository
+	templateRepo repository_interface.TemplateRepository
 }
 
-func NewMeetingCreator(meetingRepo repository_interface.MeetingRepository, pairingRepo repository_interface.PairingRepository) *MeetingCreator {
+func NewMeetingCreator(
+	meetingRepo repository_interface.MeetingRepository,
+	pairingRepo repository_interface.PairingRepository,
+	userRepo repository_interface.UserRepository,
+	templateRepo repository_interface.TemplateRepository,
+) *MeetingCreator {
 	return &MeetingCreator{
-		meetingRepo: meetingRepo,
-		pairingRepo: pairingRepo,
+		meetingRepo:  meetingRepo,
+		pairingRepo:  pairingRepo,
+		userRepo:     userRepo,
+		templateRepo: templateRepo,
 	}
 }
 
@@ -65,10 +74,10 @@ func filterPairingsByIDs(pairings []entity.Pairing, pairingIDs []uint) []entity.
 }
 
 func excludeTemporaryPairings(pairings []entity.Pairing) []entity.Pairing {
-	out := make([]entity.Pairing, 0, len(pairings))
-	for _, p := range pairings {
+	out := make([]entity.Pairing, len(pairings))
+	for idx, p := range pairings {
 		if !p.IsTemporary {
-			out = append(out, p)
+			out[idx] = p
 		}
 	}
 	return out
@@ -86,8 +95,8 @@ func (uc *MeetingCreator) CreatePlannedMeetings(mentorID, templateID uint, mente
 	if len(menteeIDs) == 0 {
 		return nil, fmt.Errorf("メンティが指定されていません")
 	}
-	result := make([]entity.Meeting, 0, len(menteeIDs))
-	for _, menteeID := range menteeIDs {
+	result := make([]entity.Meeting, len(menteeIDs))
+	for idx, menteeID := range menteeIDs {
 		if menteeID == 0 {
 			return nil, fmt.Errorf("無効なメンティが含まれています")
 		}
@@ -111,7 +120,7 @@ func (uc *MeetingCreator) CreatePlannedMeetings(mentorID, templateID uint, mente
 		if err = uc.saveSharers(meeting.ID, sharerUserIDs); err != nil {
 			return nil, err
 		}
-		result = append(result, *meeting)
+		result[idx] = *meeting
 	}
 	return converter.MeetingEntitiesToOutputs(result), nil
 }
@@ -132,8 +141,8 @@ func (uc *MeetingCreator) CreateMeetingEveryMonth(mentorID, templateID uint, men
 	if len(implementDates) == 0 {
 		return converter.MeetingEntitiesToOutputs(nil), nil
 	}
-	pairingIDs := make([]uint, 0, len(menteeIDs))
-	for _, menteeID := range menteeIDs {
+	pairingIDs := make([]uint, len(menteeIDs))
+	for idx, menteeID := range menteeIDs {
 		if menteeID == 0 {
 			return nil, fmt.Errorf("無効なメンティが含まれています")
 		}
@@ -144,7 +153,7 @@ func (uc *MeetingCreator) CreateMeetingEveryMonth(mentorID, templateID uint, men
 		if err != nil {
 			return nil, err
 		}
-		pairingIDs = append(pairingIDs, pair.ID)
+		pairingIDs[idx] = pair.ID
 	}
 	var (
 		result = []entity.Meeting{}
@@ -207,8 +216,8 @@ func (uc *MeetingCreator) CreateMeetingEveryMonthWeekday(mentorID, templateID ui
 	if len(implementDates) == 0 {
 		return converter.MeetingEntitiesToOutputs(nil), nil
 	}
-	pairingIDs := make([]uint, 0, len(menteeIDs))
-	for _, menteeID := range menteeIDs {
+	pairingIDs := make([]uint, len(menteeIDs))
+	for idx, menteeID := range menteeIDs {
 		if menteeID == 0 {
 			return nil, fmt.Errorf("無効なメンティが含まれています")
 		}
@@ -219,7 +228,7 @@ func (uc *MeetingCreator) CreateMeetingEveryMonthWeekday(mentorID, templateID ui
 		if err != nil {
 			return nil, err
 		}
-		pairingIDs = append(pairingIDs, pair.ID)
+		pairingIDs[idx] = pair.ID
 	}
 	var (
 		result = []entity.Meeting{}

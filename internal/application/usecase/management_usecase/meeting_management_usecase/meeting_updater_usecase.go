@@ -12,11 +12,13 @@ import (
 
 type MeetingUpdater struct {
 	meetingRepo repository_interface.MeetingRepository
+	userRepo    repository_interface.UserRepository
 }
 
-func NewMeetingUpdater(meetingRepo repository_interface.MeetingRepository) *MeetingUpdater {
+func NewMeetingUpdater(meetingRepo repository_interface.MeetingRepository, userRepo repository_interface.UserRepository) *MeetingUpdater {
 	return &MeetingUpdater{
 		meetingRepo: meetingRepo,
+		userRepo:    userRepo,
 	}
 }
 

@@ -139,12 +139,12 @@ func meetingSharersToOutputs(meeting *entity.Meeting) []outputmodel.UserOutput {
 	if meeting == nil || len(meeting.Sharers) == 0 {
 		return nil
 	}
-	out := make([]outputmodel.UserOutput, 0, len(meeting.Sharers))
-	for _, s := range meeting.Sharers {
+	out := make([]outputmodel.UserOutput, len(meeting.Sharers))
+	for idx, s := range meeting.Sharers {
 		if s.User != nil {
-			out = append(out, converter.UserEntityToOutput(*s.User))
+			out[idx] = converter.UserEntityToOutput(*s.User)
 		} else if s.UserID != 0 {
-			out = append(out, outputmodel.UserOutput{ID: s.UserID})
+			out[idx] = outputmodel.UserOutput{ID: s.UserID}
 		}
 	}
 	return out
@@ -155,12 +155,12 @@ func filterMeetingComments(meeting *entity.Meeting, viewerID uint) []outputmodel
 		return nil
 	}
 	canViewLimited := canViewLimitedMeetingComments(meeting, viewerID)
-	filtered := make([]entity.MeetingComment, 0, len(meeting.MeetingComments))
-	for _, c := range meeting.MeetingComments {
+	filtered := make([]entity.MeetingComment, len(meeting.MeetingComments))
+	for idx, c := range meeting.MeetingComments {
 		if c.IsLimited && !canViewLimited {
 			continue
 		}
-		filtered = append(filtered, c)
+		filtered[idx] = c
 	}
 	return converter.MeetingCommentEntitiesToOutputs(filtered)
 }

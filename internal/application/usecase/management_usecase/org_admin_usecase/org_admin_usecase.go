@@ -59,7 +59,7 @@ func (uc *OrgAdmin) ListTree() (ret0 []outputmodel.OrgTreeNodeOutput, err error)
 	if err != nil {
 		return nil, err
 	}
-	members, err := uc.teamMemberRepo.GetAll()
+	membersByDeptID, err := uc.teamMemberRepo.GetAll()
 	if err != nil {
 		return nil, err
 	}
@@ -81,7 +81,7 @@ func (uc *OrgAdmin) ListTree() (ret0 []outputmodel.OrgTreeNodeOutput, err error)
 	leaderByTeam := map[uint]string{}
 	leaderRoleByTeam := map[uint]string{}
 	membersByTeam := map[uint][]uint{}
-	for _, m := range members {
+	for _, m := range membersByDeptID {
 		membersByTeam[m.TeamID] = append(membersByTeam[m.TeamID], m.MemberID)
 		if m.IsReader && m.Member != nil {
 			leaderByTeam[m.TeamID] = m.Member.Name
@@ -92,27 +92,31 @@ func (uc *OrgAdmin) ListTree() (ret0 []outputmodel.OrgTreeNodeOutput, err error)
 			}
 		}
 	}
+
 	userByID := map[uint]entity.User{}
 	usersByDept := map[uint][]uint{}
-	for _, d := range depts {
-		members, err := uc.deptMemberRepo.GetByDepartmentID(d.ID)
-		if err != nil {
-			return nil, err
+	headRoleByUserDept := map[uint]map[uint]string{}
+
+	deptIDs := []uint{}
+	for _, dept := range depts {
+		deptIDs = append(deptIDs, dept.ID)
+	}
+	membersByDeptIDMap, err := uc.deptMemberRepo.GetByDepartmentIDs(deptIDs)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, deptID := range deptIDs {
+		members, ok := membersByDeptIDMap[deptID]
+		if !ok {
+			continue
 		}
+
 		for _, member := range members {
-			usersByDept[d.ID] = append(usersByDept[d.ID], member.UserID)
+			usersByDept[deptID] = append(usersByDept[deptID], member.UserID)
 			if member.User != nil {
 				userByID[member.UserID] = *member.User
 			}
-		}
-	}
-	headRoleByUserDept := map[uint]map[uint]string{}
-	for _, d := range depts {
-		members, err := uc.deptMemberRepo.GetByDepartmentID(d.ID)
-		if err != nil {
-			return nil, err
-		}
-		for _, member := range members {
 			if member.Role == nil {
 				continue
 			}
@@ -122,18 +126,11 @@ func (uc *OrgAdmin) ListTree() (ret0 []outputmodel.OrgTreeNodeOutput, err error)
 			headRoleByUserDept[member.DepartmentID][member.UserID] = member.Role.Name
 		}
 	}
+
 	memberCountByDept := map[uint]int{}
-	var subtreeDeptIDs func(deptID uint) []uint
-	subtreeDeptIDs = func(deptID uint) []uint {
-		ids := []uint{deptID}
-		for _, childID := range childMap[deptID] {
-			ids = append(ids, subtreeDeptIDs(childID)...)
-		}
-		return ids
-	}
-	for _, d := range depts {
+	for _, deptID := range deptIDs {
 		seen := map[uint]bool{}
-		for _, subID := range subtreeDeptIDs(d.ID) {
+		for _, subID := range subtreeDeptIDs(childMap, deptID) {
 			for _, uid := range usersByDept[subID] {
 				seen[uid] = true
 			}
@@ -143,7 +140,7 @@ func (uc *OrgAdmin) ListTree() (ret0 []outputmodel.OrgTreeNodeOutput, err error)
 				}
 			}
 		}
-		memberCountByDept[d.ID] = len(seen)
+		memberCountByDept[deptID] = len(seen)
 	}
 
 	var nodes []outputmodel.OrgTreeNodeOutput
@@ -184,7 +181,6 @@ func (uc *OrgAdmin) ListTree() (ret0 []outputmodel.OrgTreeNodeOutput, err error)
 				})
 			}
 		}
-
 		for _, childID := range childMap[deptID] {
 			walk(childID, depth+1, false)
 		}
@@ -196,6 +192,14 @@ func (uc *OrgAdmin) ListTree() (ret0 []outputmodel.OrgTreeNodeOutput, err error)
 		}
 	}
 	return nodes, nil
+}
+
+func subtreeDeptIDs(childMap map[uint][]uint, deptID uint) []uint {
+	ids := []uint{deptID}
+	for _, childID := range childMap[deptID] {
+		ids = append(ids, subtreeDeptIDs(childMap, childID)...)
+	}
+	return ids
 }
 
 func (uc *OrgAdmin) GetDepartmentDetail(id uint) (ret0 *outputmodel.OrgDetailOutput, err error) {
@@ -604,7 +608,8 @@ func (uc *OrgAdmin) replaceDepartmentMemberFlags(
 			roleByUser[member.UserID] = member.RoleID
 		}
 	}
-	rows := make([]entity.DepartmentMember, 0, len(userIDsInDept))
+	rows := make([]entity.DepartmentMember, len(userIDsInDept))
+	var idx int
 	for userID := range userIDsInDept {
 		isHead := headUserID != 0 && userID == headUserID
 		roleID := roleByUser[userID]
@@ -615,7 +620,7 @@ func (uc *OrgAdmin) replaceDepartmentMemberFlags(
 				return err
 			}
 		}
-		rows = append(rows, entity.DepartmentMember{
+		rows[idx] = entity.DepartmentMember{
 			DepartmentID: departmentID,
 			UserID:       userID,
 			RoleID:       roleID,
@@ -623,7 +628,8 @@ func (uc *OrgAdmin) replaceDepartmentMemberFlags(
 			IsManager: departmentMemberIsManager(
 				userID, headUserID, managerUserIDs, explicitManagers, prevManager, prevHead,
 			),
-		})
+		}
+		idx++
 	}
 	if err := uc.deptMemberRepo.ReplaceByDepartment(departmentID, rows); err != nil {
 		return err
@@ -946,13 +952,13 @@ func (uc *OrgAdmin) ListDepartmentOptions() (ret0 []outputmodel.DepartmentOption
 	for _, h := range hierarchies {
 		childSet[h.ChildDepartmentID] = true
 	}
-	out := make([]outputmodel.DepartmentOptionOutput, 0, len(depts))
-	for _, d := range depts {
-		out = append(out, outputmodel.DepartmentOptionOutput{
+	out := make([]outputmodel.DepartmentOptionOutput, len(depts))
+	for idx, d := range depts {
+		out[idx] = outputmodel.DepartmentOptionOutput{
 			UUID:   d.UUID.String(),
 			Name:   d.Name,
 			IsRoot: !childSet[d.ID],
-		})
+		}
 	}
 	return out, nil
 }
@@ -967,14 +973,14 @@ func (uc *OrgAdmin) ListTeamOptions() (ret0 []outputmodel.TeamOptionOutput, err 
 	if err != nil {
 		return nil, err
 	}
-	out := make([]outputmodel.TeamOptionOutput, 0, len(teams))
-	for _, t := range teams {
-		out = append(out, outputmodel.TeamOptionOutput{
+	out := make([]outputmodel.TeamOptionOutput, len(teams))
+	for idx, t := range teams {
+		out[idx] = outputmodel.TeamOptionOutput{
 			UUID:           t.UUID.String(),
 			Name:           t.Name,
 			DepartmentName: t.Department.Name,
 			DepartmentUUID: t.Department.UUID.String(),
-		})
+		}
 	}
 	return out, nil
 }

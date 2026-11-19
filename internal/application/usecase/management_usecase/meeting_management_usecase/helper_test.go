@@ -29,13 +29,13 @@ const (
 )
 
 var (
-	errGetPairingsFailed   = errors.New("get pairings failed")
-	errGetMeetingsFailed     = errors.New("get meetings failed")
+	errGetPairingsFailed      = errors.New("get pairings failed")
+	errGetMeetingsFailed      = errors.New("get meetings failed")
 	errGetRelationshipsFailed = errors.New("get relationships failed")
-	errGetTeamMembersFailed  = errors.New("get team members failed")
-	errGetUsersFailed        = errors.New("get users failed")
-	errCreateMeetingFailed   = errors.New("create meeting failed")
-	errUpdateMeetingFailed   = errors.New("update meeting failed")
+	errGetTeamMembersFailed   = errors.New("get team members failed")
+	errGetUsersFailed         = errors.New("get users failed")
+	errCreateMeetingFailed    = errors.New("create meeting failed")
+	errUpdateMeetingFailed    = errors.New("update meeting failed")
 )
 
 func newTestUser(id uint, name string) *entity.User {
@@ -47,9 +47,9 @@ func newTestUser(id uint, name string) *entity.User {
 }
 
 func testPairings(ps ...*entity.Pairing) []entity.Pairing {
-	out := make([]entity.Pairing, 0, len(ps))
-	for _, p := range ps {
-		out = append(out, *p)
+	out := make([]entity.Pairing, len(ps))
+	for idx, p := range ps {
+		out[idx] = *p
 	}
 	return out
 }

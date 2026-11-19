@@ -194,6 +194,45 @@ func (c *MockTeamMemberRepositoryGetByMemberIDCall) DoAndReturn(f func(uint) ([]
 	return c
 }
 
+// GetByMemberIDs mocks base method.
+func (m *MockTeamMemberRepository) GetByMemberIDs(memberIDs []uint) (map[uint][]entity.TeamMember, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetByMemberIDs", memberIDs)
+	ret0, _ := ret[0].(map[uint][]entity.TeamMember)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetByMemberIDs indicates an expected call of GetByMemberIDs.
+func (mr *MockTeamMemberRepositoryMockRecorder) GetByMemberIDs(memberIDs any) *MockTeamMemberRepositoryGetByMemberIDsCall {
+	mr.mock.ctrl.T.Helper()
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByMemberIDs", reflect.TypeOf((*MockTeamMemberRepository)(nil).GetByMemberIDs), memberIDs)
+	return &MockTeamMemberRepositoryGetByMemberIDsCall{Call: call}
+}
+
+// MockTeamMemberRepositoryGetByMemberIDsCall wrap *gomock.Call
+type MockTeamMemberRepositoryGetByMemberIDsCall struct {
+	*gomock.Call
+}
+
+// Return rewrite *gomock.Call.Return
+func (c *MockTeamMemberRepositoryGetByMemberIDsCall) Return(arg0 map[uint][]entity.TeamMember, arg1 error) *MockTeamMemberRepositoryGetByMemberIDsCall {
+	c.Call = c.Call.Return(arg0, arg1)
+	return c
+}
+
+// Do rewrite *gomock.Call.Do
+func (c *MockTeamMemberRepositoryGetByMemberIDsCall) Do(f func([]uint) (map[uint][]entity.TeamMember, error)) *MockTeamMemberRepositoryGetByMemberIDsCall {
+	c.Call = c.Call.Do(f)
+	return c
+}
+
+// DoAndReturn rewrite *gomock.Call.DoAndReturn
+func (c *MockTeamMemberRepositoryGetByMemberIDsCall) DoAndReturn(f func([]uint) (map[uint][]entity.TeamMember, error)) *MockTeamMemberRepositoryGetByMemberIDsCall {
+	c.Call = c.Call.DoAndReturn(f)
+	return c
+}
+
 // GetByTeamID mocks base method.
 func (m *MockTeamMemberRepository) GetByTeamID(teamID uint) ([]entity.TeamMember, error) {
 	m.ctrl.T.Helper()
@@ -229,6 +268,45 @@ func (c *MockTeamMemberRepositoryGetByTeamIDCall) Do(f func(uint) ([]entity.Team
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
 func (c *MockTeamMemberRepositoryGetByTeamIDCall) DoAndReturn(f func(uint) ([]entity.TeamMember, error)) *MockTeamMemberRepositoryGetByTeamIDCall {
+	c.Call = c.Call.DoAndReturn(f)
+	return c
+}
+
+// GetByTeamIDs mocks base method.
+func (m *MockTeamMemberRepository) GetByTeamIDs(teamIDs []uint) (map[uint][]entity.TeamMember, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetByTeamIDs", teamIDs)
+	ret0, _ := ret[0].(map[uint][]entity.TeamMember)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetByTeamIDs indicates an expected call of GetByTeamIDs.
+func (mr *MockTeamMemberRepositoryMockRecorder) GetByTeamIDs(teamIDs any) *MockTeamMemberRepositoryGetByTeamIDsCall {
+	mr.mock.ctrl.T.Helper()
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByTeamIDs", reflect.TypeOf((*MockTeamMemberRepository)(nil).GetByTeamIDs), teamIDs)
+	return &MockTeamMemberRepositoryGetByTeamIDsCall{Call: call}
+}
+
+// MockTeamMemberRepositoryGetByTeamIDsCall wrap *gomock.Call
+type MockTeamMemberRepositoryGetByTeamIDsCall struct {
+	*gomock.Call
+}
+
+// Return rewrite *gomock.Call.Return
+func (c *MockTeamMemberRepositoryGetByTeamIDsCall) Return(arg0 map[uint][]entity.TeamMember, arg1 error) *MockTeamMemberRepositoryGetByTeamIDsCall {
+	c.Call = c.Call.Return(arg0, arg1)
+	return c
+}
+
+// Do rewrite *gomock.Call.Do
+func (c *MockTeamMemberRepositoryGetByTeamIDsCall) Do(f func([]uint) (map[uint][]entity.TeamMember, error)) *MockTeamMemberRepositoryGetByTeamIDsCall {
+	c.Call = c.Call.Do(f)
+	return c
+}
+
+// DoAndReturn rewrite *gomock.Call.DoAndReturn
+func (c *MockTeamMemberRepositoryGetByTeamIDsCall) DoAndReturn(f func([]uint) (map[uint][]entity.TeamMember, error)) *MockTeamMemberRepositoryGetByTeamIDsCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }

@@ -18,8 +18,8 @@ func splitCommaUUIDs(s string) ([]uuid.UUID, error) {
 		return nil, nil
 	}
 	parts := strings.Split(s, ",")
-	out := make([]uuid.UUID, 0, len(parts))
-	for _, p := range parts {
+	out := make([]uuid.UUID, len(parts))
+	for idx, p := range parts {
 		p = strings.TrimSpace(p)
 		if p == "" {
 			continue
@@ -28,7 +28,7 @@ func splitCommaUUIDs(s string) ([]uuid.UUID, error) {
 		if err != nil {
 			return nil, fmt.Errorf("invalid uuid")
 		}
-		out = append(out, id)
+		out[idx] = id
 	}
 	return out, nil
 }
@@ -72,7 +72,7 @@ func parsePlanningMeetingsListQuery(c *echo.Context) (planning_usecase.PlanningM
 
 	if st := strings.TrimSpace(c.QueryParam("status")); st != "" {
 		n, err := strconv.Atoi(st)
-		if err != nil || n < 1 || n > 3 {
+		if err != nil || n < 1 || n > 4 {
 			return filter, 0, false, fmt.Errorf("invalid status")
 		}
 		status := valueobject.MeetingStatus(n)

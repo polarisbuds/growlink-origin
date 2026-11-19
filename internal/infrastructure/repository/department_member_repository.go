@@ -47,12 +47,45 @@ func (repo *DepartmentMemberRepository) GetByDepartmentID(departmentID uint) (re
 	return members, nil
 }
 
+func (repo *DepartmentMemberRepository) GetByDepartmentIDs(departmentIDs []uint) (ret0 map[uint][]entity.DepartmentMember, err error) {
+	members, err := repo.preloadWhere("department_id IN ?", departmentIDs)
+	if err != nil {
+		return nil, fmt.Errorf("部署ID指定での部署メンバー取得に失敗しました: %w", err)
+	}
+
+	ret0 = map[uint][]entity.DepartmentMember{}
+	for _, member := range members {
+		deptID := member.DepartmentID
+		if _, ok := ret0[deptID]; !ok {
+			ret0[deptID] = []entity.DepartmentMember{}
+		}
+		ret0[deptID] = append(ret0[deptID], member)
+	}
+
+	return ret0, nil
+}
+
 func (repo *DepartmentMemberRepository) GetByUserID(userID uint) (ret0 []entity.DepartmentMember, err error) {
 	members, err := repo.preloadWhere("user_id = ?", userID)
 	if err != nil {
 		return nil, fmt.Errorf("ユーザID指定での部署メンバー取得に失敗しました: %w", err)
 	}
 	return members, nil
+}
+
+func (repo *DepartmentMemberRepository) GetByUserIDs(userIDs []uint) (ret0 map[uint][]entity.DepartmentMember, err error) {
+	departmentMembers, err := repo.preloadWhere("user_id IN ?", userIDs)
+	if err != nil {
+		return nil, fmt.Errorf("ユーザID指定での部署メンバー取得に失敗しました: %w", err)
+	}
+	ret0 = map[uint][]entity.DepartmentMember{}
+	for _, departmentMember := range departmentMembers {
+		if _, ok := ret0[departmentMember.UserID]; !ok {
+			ret0[departmentMember.UserID] = []entity.DepartmentMember{}
+		}
+		ret0[departmentMember.UserID] = append(ret0[departmentMember.UserID], departmentMember)
+	}
+	return ret0, nil
 }
 
 func (repo *DepartmentMemberRepository) ReplaceByDepartment(departmentID uint, members []entity.DepartmentMember) (err error) {

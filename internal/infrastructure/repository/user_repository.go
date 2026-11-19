@@ -103,7 +103,10 @@ func (repo *UserRepository) GetActiveUsersByIDs(ids []uint) (ret0 []entity.User,
 	if len(ids) == 0 {
 		return []entity.User{}, nil
 	}
-	users, err := gorm.G[entity.User](repo.db).Where("id IN ?", ids).Not("suspended = ?", true).Order("id ASC").Find(repo.ctx)
+	users, err := gorm.G[entity.User](repo.db).
+		Where("id IN ?", ids).
+		Not("suspended = ?", true).
+		Order("id ASC").Find(repo.ctx)
 	if err != nil {
 		return nil, fmt.Errorf("ユーザIDのバッチ取得に失敗しました: %w", err)
 	}

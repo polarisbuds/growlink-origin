@@ -29,7 +29,8 @@ func newMeetingUpdater(t *testing.T) (
 	t.Helper()
 	ctrl := gomock.NewController(t)
 	meetingRepo := repomock.NewMockMeetingRepository(ctrl)
-	return meeting_mng_usecase.NewMeetingUpdater(meetingRepo), meetingRepo
+	userRepo := repomock.NewMockUserRepository(ctrl)
+	return meeting_mng_usecase.NewMeetingUpdater(meetingRepo, userRepo), meetingRepo
 }
 
 func TestMeetingUpdater_Update(t *testing.T) {

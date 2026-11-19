@@ -37,12 +37,12 @@ func (h *Handler) MeetingNewPage(c *echo.Context) error {
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
-	userOuts := make([]outputmodel.UserOutput, 0, len(users))
-	for _, u := range users {
+	userOuts := make([]outputmodel.UserOutput, len(users))
+	for idx, u := range users {
 		if u.Suspended {
 			continue
 		}
-		userOuts = append(userOuts, outputmodel.UserOutput{ID: u.ID, Name: u.Name, Email: u.Email, ImageURI: u.ImageURI})
+		userOuts[idx] = outputmodel.UserOutput{ID: u.ID, Name: u.Name, Email: u.Email, ImageURI: u.ImageURI}
 	}
 	data["PairingsJSON"] = mustJSON(pairings)
 	data["TemplatesJSON"] = mustJSON(templates)
@@ -98,11 +98,11 @@ func (h *Handler) buildMeetingPagePayload(c *echo.Context, meetingUUID uuid.UUID
 		canEdit = authctx.CanModify(claims.UserID, claims.SystemRole, meeting.CreatedByUserID)
 	}
 	return map[string]interface{}{
-		"meeting":  out,
-		"answers":  answers,
-		"topics":   topics,
-		"canEdit":  canEdit,
-		"uuid":     meetingUUID.String(),
+		"meeting": out,
+		"answers": answers,
+		"topics":  topics,
+		"canEdit": canEdit,
+		"uuid":    meetingUUID.String(),
 	}, nil
 }
 

@@ -96,31 +96,31 @@ func (uc *ProgressViewer) DoneTrendByMonth(filter ProgressFilter) (ret0 []output
 	totalUsers := intersectUsers(affiliated, visible)
 	if len(totalUsers) == 0 && visible != nil {
 		windows := enumerateMonthWindows(*filter.From, *filter.To)
-		out := make([]outputmodel.ProgressDoneMonthOutput, 0, len(windows))
-		for _, w := range windows {
-			out = append(out, outputmodel.ProgressDoneMonthOutput{
+		out := make([]outputmodel.ProgressDoneMonthOutput, len(windows))
+		for idx, w := range windows {
+			out[idx] = outputmodel.ProgressDoneMonthOutput{
 				Year:  w.year,
 				Month: w.month,
 				Label: w.label,
 				Done:  0,
-			})
+			}
 		}
 		return out, nil
 	}
 
 	windows := enumerateMonthWindows(*filter.From, *filter.To)
-	out := make([]outputmodel.ProgressDoneMonthOutput, 0, len(windows))
-	for _, w := range windows {
+	out := make([]outputmodel.ProgressDoneMonthOutput, len(windows))
+	for idx, w := range windows {
 		sub := filter
 		sub.From = &w.from
 		sub.To = &w.to
 		stats := statsForUsers(totalUsers, pairings, meetings, sub)
-		out = append(out, outputmodel.ProgressDoneMonthOutput{
+		out[idx] = outputmodel.ProgressDoneMonthOutput{
 			Year:  w.year,
 			Month: w.month,
 			Label: w.label,
 			Done:  stats.doneCount,
-		})
+		}
 	}
 	return out, nil
 }

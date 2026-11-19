@@ -212,9 +212,9 @@ func (repo *MeetingRepository) GetMeetingIDsBySharerUserID(userID uint) (ret0 []
 	if err != nil {
 		return nil, fmt.Errorf("ミーティング共有者の取得に失敗しました: %w", err)
 	}
-	ids := make([]uint, 0, len(sharers))
-	for _, s := range sharers {
-		ids = append(ids, s.MeetingID)
+	ids := make([]uint, len(sharers))
+	for idx, s := range sharers {
+		ids[idx] = s.MeetingID
 	}
 	return ids, nil
 }

@@ -18,8 +18,8 @@ type teamAssignmentResolved struct {
 }
 
 func (uc *UserAdmin) resolveDepartmentAssignments(rows []DepartmentAssignmentInput) ([]deptAssignmentResolved, error) {
-	out := make([]deptAssignmentResolved, 0, len(rows))
-	for _, row := range rows {
+	out := make([]deptAssignmentResolved, len(rows))
+	for idx, row := range rows {
 		deptUUID, err := uuid.Parse(row.DepartmentUuid)
 		if err != nil {
 			return nil, fmt.Errorf("所属部署を選択してください")
@@ -36,29 +36,29 @@ func (uc *UserAdmin) resolveDepartmentAssignments(rows []DepartmentAssignmentInp
 		if err != nil {
 			return nil, fmt.Errorf("役職を選択してください")
 		}
-		out = append(out, deptAssignmentResolved{
+		out[idx] = deptAssignmentResolved{
 			DepartmentID: dept.ID,
 			RoleID:       role.ID,
-		})
+		}
 	}
 	return out, nil
 }
 
 func (uc *UserAdmin) resolveTeamAssignments(rows []TeamAssignmentInput) ([]teamAssignmentResolved, error) {
-	out := make([]teamAssignmentResolved, 0, len(rows))
-	teamUUIDs := []string{}
-	for _, row := range rows {
-		teamUUIDs = append(teamUUIDs, row.TeamUuid)
+	teamUUIDs := make([]string, len(rows))
+	for idx, row := range rows {
+		teamUUIDs[idx] = row.TeamUuid
 	}
 	teams, err := uc.teamRepo.GetByUUIDs(teamUUIDs)
 	if err != nil {
 		return nil, fmt.Errorf("チームを選択してください")
 	}
 
-	for _, team := range teams {
-		out = append(out, teamAssignmentResolved{
+	out := make([]teamAssignmentResolved, len(teams))
+	for idx, team := range teams {
+		out[idx] = teamAssignmentResolved{
 			TeamID: team.ID,
-		})
+		}
 	}
 	return out, nil
 }
@@ -80,12 +80,12 @@ func (uc *UserAdmin) departmentAssignmentsOutput(rows []deptAssignmentResolved) 
 	for _, role := range roles {
 		roleIDToUUID[role.ID] = role.UUID.String()
 	}
-	out := make([]outputmodel.UserDepartmentAssignmentOutput, 0, len(rows))
-	for _, row := range rows {
-		out = append(out, outputmodel.UserDepartmentAssignmentOutput{
+	out := make([]outputmodel.UserDepartmentAssignmentOutput, len(rows))
+	for idx, row := range rows {
+		out[idx] = outputmodel.UserDepartmentAssignmentOutput{
 			DepartmentUUID: deptIDToUUID[row.DepartmentID],
 			RoleUUID:       roleIDToUUID[row.RoleID],
-		})
+		}
 	}
 	return out, nil
 }

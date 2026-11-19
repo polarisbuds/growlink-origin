@@ -6,6 +6,7 @@ import (
 	pairing_mng_usecase "growlink/internal/application/usecase/management_usecase/pairing_management_usecase"
 	progress_mng_usecase "growlink/internal/application/usecase/management_usecase/progress_management_usecase"
 	remind_settings_usecase "growlink/internal/application/usecase/management_usecase/remind_settings_usecase"
+	role_admin_usecase "growlink/internal/application/usecase/management_usecase/role_admin_usecase"
 	template_mng_usecase "growlink/internal/application/usecase/management_usecase/template_management_usecase"
 	user_admin_usecase "growlink/internal/application/usecase/management_usecase/user_admin_usecase"
 )
@@ -29,4 +30,5 @@ type Bundle struct {
 	OrgAdmin        *org_admin_usecase.OrgAdmin
 	RemindSettings  *remind_settings_usecase.RemindSettings
 	Progress        *progress_mng_usecase.ProgressViewer
+	RoleAdmin       *role_admin_usecase.RoleAdmin
 }

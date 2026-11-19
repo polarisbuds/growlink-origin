@@ -31,7 +31,9 @@ func newMeetingCreator(t *testing.T) (
 	ctrl := gomock.NewController(t)
 	meetingRepo := repomock.NewMockMeetingRepository(ctrl)
 	pairingRepo := repomock.NewMockPairingRepository(ctrl)
-	return meeting_mng_usecase.NewMeetingCreator(meetingRepo, pairingRepo), meetingRepo, pairingRepo
+	userRepo := repomock.NewMockUserRepository(ctrl)
+	templateRepo := repomock.NewMockTemplateRepository(ctrl)
+	return meeting_mng_usecase.NewMeetingCreator(meetingRepo, pairingRepo, userRepo, templateRepo), meetingRepo, pairingRepo
 }
 
 func TestMeetingCreator_CreateMeeting(t *testing.T) {

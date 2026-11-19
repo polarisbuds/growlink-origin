@@ -118,6 +118,45 @@ func (c *MockDepartmentMemberRepositoryGetByDepartmentIDCall) DoAndReturn(f func
 	return c
 }
 
+// GetByDepartmentIDs mocks base method.
+func (m *MockDepartmentMemberRepository) GetByDepartmentIDs(departmentIDs []uint) (map[uint][]entity.DepartmentMember, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetByDepartmentIDs", departmentIDs)
+	ret0, _ := ret[0].(map[uint][]entity.DepartmentMember)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetByDepartmentIDs indicates an expected call of GetByDepartmentIDs.
+func (mr *MockDepartmentMemberRepositoryMockRecorder) GetByDepartmentIDs(departmentIDs any) *MockDepartmentMemberRepositoryGetByDepartmentIDsCall {
+	mr.mock.ctrl.T.Helper()
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByDepartmentIDs", reflect.TypeOf((*MockDepartmentMemberRepository)(nil).GetByDepartmentIDs), departmentIDs)
+	return &MockDepartmentMemberRepositoryGetByDepartmentIDsCall{Call: call}
+}
+
+// MockDepartmentMemberRepositoryGetByDepartmentIDsCall wrap *gomock.Call
+type MockDepartmentMemberRepositoryGetByDepartmentIDsCall struct {
+	*gomock.Call
+}
+
+// Return rewrite *gomock.Call.Return
+func (c *MockDepartmentMemberRepositoryGetByDepartmentIDsCall) Return(ret0 map[uint][]entity.DepartmentMember, err error) *MockDepartmentMemberRepositoryGetByDepartmentIDsCall {
+	c.Call = c.Call.Return(ret0, err)
+	return c
+}
+
+// Do rewrite *gomock.Call.Do
+func (c *MockDepartmentMemberRepositoryGetByDepartmentIDsCall) Do(f func([]uint) (map[uint][]entity.DepartmentMember, error)) *MockDepartmentMemberRepositoryGetByDepartmentIDsCall {
+	c.Call = c.Call.Do(f)
+	return c
+}
+
+// DoAndReturn rewrite *gomock.Call.DoAndReturn
+func (c *MockDepartmentMemberRepositoryGetByDepartmentIDsCall) DoAndReturn(f func([]uint) (map[uint][]entity.DepartmentMember, error)) *MockDepartmentMemberRepositoryGetByDepartmentIDsCall {
+	c.Call = c.Call.DoAndReturn(f)
+	return c
+}
+
 // GetByUserID mocks base method.
 func (m *MockDepartmentMemberRepository) GetByUserID(userID uint) ([]entity.DepartmentMember, error) {
 	m.ctrl.T.Helper()
@@ -153,6 +192,45 @@ func (c *MockDepartmentMemberRepositoryGetByUserIDCall) Do(f func(uint) ([]entit
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
 func (c *MockDepartmentMemberRepositoryGetByUserIDCall) DoAndReturn(f func(uint) ([]entity.DepartmentMember, error)) *MockDepartmentMemberRepositoryGetByUserIDCall {
+	c.Call = c.Call.DoAndReturn(f)
+	return c
+}
+
+// GetByUserIDs mocks base method.
+func (m *MockDepartmentMemberRepository) GetByUserIDs(userIDs []uint) (map[uint][]entity.DepartmentMember, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetByUserIDs", userIDs)
+	ret0, _ := ret[0].(map[uint][]entity.DepartmentMember)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetByUserIDs indicates an expected call of GetByUserIDs.
+func (mr *MockDepartmentMemberRepositoryMockRecorder) GetByUserIDs(userIDs any) *MockDepartmentMemberRepositoryGetByUserIDsCall {
+	mr.mock.ctrl.T.Helper()
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByUserIDs", reflect.TypeOf((*MockDepartmentMemberRepository)(nil).GetByUserIDs), userIDs)
+	return &MockDepartmentMemberRepositoryGetByUserIDsCall{Call: call}
+}
+
+// MockDepartmentMemberRepositoryGetByUserIDsCall wrap *gomock.Call
+type MockDepartmentMemberRepositoryGetByUserIDsCall struct {
+	*gomock.Call
+}
+
+// Return rewrite *gomock.Call.Return
+func (c *MockDepartmentMemberRepositoryGetByUserIDsCall) Return(arg0 map[uint][]entity.DepartmentMember, arg1 error) *MockDepartmentMemberRepositoryGetByUserIDsCall {
+	c.Call = c.Call.Return(arg0, arg1)
+	return c
+}
+
+// Do rewrite *gomock.Call.Do
+func (c *MockDepartmentMemberRepositoryGetByUserIDsCall) Do(f func([]uint) (map[uint][]entity.DepartmentMember, error)) *MockDepartmentMemberRepositoryGetByUserIDsCall {
+	c.Call = c.Call.Do(f)
+	return c
+}
+
+// DoAndReturn rewrite *gomock.Call.DoAndReturn
+func (c *MockDepartmentMemberRepositoryGetByUserIDsCall) DoAndReturn(f func([]uint) (map[uint][]entity.DepartmentMember, error)) *MockDepartmentMemberRepositoryGetByUserIDsCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }

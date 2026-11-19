@@ -7,7 +7,6 @@ import (
 
 	"growlink/internal/adapter/handler/authctx"
 
-	"github.com/google/uuid"
 	"github.com/labstack/echo/v5"
 	"gorm.io/gorm"
 )
@@ -25,7 +24,7 @@ func (h *Handler) AvatarMe(c *echo.Context) error {
 	if claims == nil {
 		return c.JSON(http.StatusUnauthorized, map[string]string{"error": "unauthorized"})
 	}
-	user, err := h.deps.UserRepo.GetByID(claims.UserID)
+	user, err := h.deps.Profile.GetUserWithAvatarByID(claims.UserID)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
@@ -54,11 +53,10 @@ func (h *Handler) AvatarInfo(c *echo.Context) error {
 	if claims == nil {
 		return c.JSON(http.StatusUnauthorized, map[string]string{"error": "unauthorized"})
 	}
-	user, err := h.deps.UserRepo.GetByID(claims.UserID)
+	user, err := h.deps.Profile.GetUserWithAvatarByID(claims.UserID)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
-	h.deps.UserRepo.AttachImageBase64(user)
 	return c.JSON(http.StatusOK, map[string]interface{}{
 		"name":        claims.Name,
 		"email":       claims.Email,
@@ -67,16 +65,12 @@ func (h *Handler) AvatarInfo(c *echo.Context) error {
 }
 
 func (h *Handler) AvatarByUUID(c *echo.Context) error {
-	userUUID, err := uuid.Parse(c.Param("uuid"))
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid uuid"})
-	}
-	user, err := h.deps.UserRepo.GetByUUID(userUUID)
+	user, err := h.deps.Profile.GetUserWithAvatarByUUID(c.Param("uuid"))
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return c.JSON(http.StatusNotFound, map[string]string{"error": "user not found"})
 		}
-		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid uuid"})
 	}
 	return c.JSON(http.StatusOK, map[string]interface{}{
 		"uuid":        user.UUID.String(),

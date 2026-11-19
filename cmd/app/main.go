@@ -16,6 +16,7 @@ import (
 	pairing_mng_usecase "growlink/internal/application/usecase/management_usecase/pairing_management_usecase"
 	progress_mng_usecase "growlink/internal/application/usecase/management_usecase/progress_management_usecase"
 	remind_settings_usecase "growlink/internal/application/usecase/management_usecase/remind_settings_usecase"
+	role_admin_usecase "growlink/internal/application/usecase/management_usecase/role_admin_usecase"
 	template_mng_usecase "growlink/internal/application/usecase/management_usecase/template_management_usecase"
 	user_admin_usecase "growlink/internal/application/usecase/management_usecase/user_admin_usecase"
 	"growlink/internal/application/usecase/meeting_usecase"
@@ -116,14 +117,26 @@ func main() {
 		MentorMeetingCompleter: meeting_usecase.NewMentorMeetingCompleterUsecase(meetingRepo, answerRepo, answerCommenter),
 		MeetingCommenter:       meeting_usecase.NewMeetingCommenterUsecase(meetingCommentRepo),
 	}
+	meetingBundle.API = meeting_usecase.NewMeetingAPIUsecase(
+		meetingRepo,
+		userRepo,
+		answerRepo,
+		meetingBundle.AnswerReader,
+		meetingBundle.DraftSaver,
+		meetingBundle.Submitter,
+		meetingBundle.SubmitCanceller,
+		meetingBundle.MentorMeetingCompleter,
+		meetingBundle.MeetingCommenter,
+		meetingBundle.AnswerCommenter,
+	)
 
 	managementBundle := management_usecase.Bundle{
 		Meeting:         meeting_mng_usecase.NewMeetingViewer(meetingRepo, pairingRepo, userRepo, teamMemberRepo),
-		MeetingCreator:  meeting_mng_usecase.NewMeetingCreator(meetingRepo, pairingRepo),
-		MeetingUpdater:  meeting_mng_usecase.NewMeetingUpdater(meetingRepo),
+		MeetingCreator:  meeting_mng_usecase.NewMeetingCreator(meetingRepo, pairingRepo, userRepo, templateRepo),
+		MeetingUpdater:  meeting_mng_usecase.NewMeetingUpdater(meetingRepo, userRepo),
 		MeetingDeleter:  meeting_mng_usecase.NewMeetingDeleter(meetingRepo),
 		Pairing:         pairing_mng_usecase.NewPairingViewer(userRepo, pairingRepo, teamMemberRepo, teamRepo, deptRepo),
-		PairingCreator:  pairing_mng_usecase.NewPairingCreator(pairingRepo),
+		PairingCreator:  pairing_mng_usecase.NewPairingCreator(pairingRepo, userRepo),
 		PairingUpdater:  pairing_mng_usecase.NewPairingUpdater(pairingRepo),
 		PairingDeleter:  pairing_mng_usecase.NewPairingDeleter(pairingRepo),
 		Template:        template_mng_usecase.NewTemplateViewer(templateRepo),
@@ -141,10 +154,12 @@ func main() {
 		),
 		OrgAdmin:       org_admin_usecase.NewOrgAdmin(deptRepo, teamRepo, deptHierarchyRepo, deptMemberRepo, teamMemberRepo, userRepo),
 		RemindSettings: remind_settings_usecase.NewRemindSettings(systemSettingsRepo),
+		RoleAdmin:      role_admin_usecase.NewRoleAdmin(roleRepo),
 	}
 
 	planningAccess := planning_usecase.NewPlanningAccessUsecase(
 		meetingRepo,
+		userRepo,
 		deptRepo,
 		deptMemberRepo,
 		deptHierarchyRepo,
@@ -155,6 +170,7 @@ func main() {
 		managementBundle.Pairing,
 		pairingRepo,
 	)
+	meetingBundle.API.SetPlanningAccess(planningAccess)
 
 	managementBundle.Progress = progress_mng_usecase.NewProgressViewer(
 		meetingRepo,
@@ -175,6 +191,7 @@ func main() {
 		PairingBrk:     pairing_usecase.NewPairingBreakerUsecase(pairingRepo, userRepo),
 		Setting:        setting_usecase.NewIconRegisterUsecase(uploadRepo, userRepo),
 		SettingRm:      setting_usecase.NewIconRemoverUsecase(uploadRepo, userRepo),
+		Profile:        setting_usecase.NewProfileUsecase(userRepo),
 		MeetingRepo:    meetingRepo,
 		AnswerRepo:     answerRepo,
 		PairingRepo:    pairingRepo,

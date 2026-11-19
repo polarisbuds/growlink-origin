@@ -12,5 +12,7 @@ type TeamMemberRepository interface {
 	GetReaders() ([]entity.TeamMember, error)
 	GetAll() ([]entity.TeamMember, error)
 	GetByTeamID(teamID uint) ([]entity.TeamMember, error)
+	GetByTeamIDs(teamIDs []uint) (map[uint][]entity.TeamMember, error)
 	GetByMemberID(memberID uint) ([]entity.TeamMember, error)
+	GetByMemberIDs(memberIDs []uint) (map[uint][]entity.TeamMember, error)
 }

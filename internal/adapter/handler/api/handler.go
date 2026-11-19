@@ -7,7 +7,6 @@ import (
 	"growlink/internal/application/usecase/pairing_usecase"
 	"growlink/internal/application/usecase/planning_usecase"
 	"growlink/internal/application/usecase/setting_usecase"
-	repository_interface "growlink/internal/domain/interface/repository"
 )
 
 type Deps struct {
@@ -18,16 +17,8 @@ type Deps struct {
 	PairingBrk *pairing_usecase.PairingBreakerUsecase
 	Setting    *setting_usecase.IconRegisterUsecase
 	SettingRm  *setting_usecase.IconRemoverUsecase
-	MeetingRepo     repository_interface.MeetingRepository
-	AnswerRepo      repository_interface.AnswerRepository
-	PairingRepo     repository_interface.PairingRepository
-	TemplateRepo    repository_interface.TemplateRepository
-	UserRepo        repository_interface.UserRepository
-	TeamRepo        repository_interface.TeamRepository
-	TeamMemberRepo  repository_interface.TeamMemberRepository
-	DepartmentRepo repository_interface.DepartmentRepository
-	RoleRepo       repository_interface.RoleRepository
-	Planning        *planning_usecase.PlanningAccessUsecase
+	Profile    *setting_usecase.ProfileUsecase
+	Planning   *planning_usecase.PlanningAccessUsecase
 }
 
 type Handler struct {

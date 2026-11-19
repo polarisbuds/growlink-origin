@@ -24,6 +24,7 @@ type Deps struct {
 	PairingBrk     *pairing_usecase.PairingBreakerUsecase
 	Setting        *setting_usecase.IconRegisterUsecase
 	SettingRm      *setting_usecase.IconRemoverUsecase
+	Profile        *setting_usecase.ProfileUsecase
 	MeetingRepo    repository_interface.MeetingRepository
 	AnswerRepo     repository_interface.AnswerRepository
 	PairingRepo    repository_interface.PairingRepository
@@ -50,23 +51,15 @@ func RegisterRoutes(e *echo.Echo, deps Deps, auditLogger *slog.Logger) {
 		MeetingRepo: deps.MeetingRepo,
 	})
 	ah := api.New(api.Deps{
-		Auth:           deps.Auth,
-		Meeting:        deps.Meeting,
-		Management:     deps.Management,
-		Pairing:        deps.Pairing,
-		PairingBrk:     deps.PairingBrk,
-		Setting:        deps.Setting,
-		SettingRm:      deps.SettingRm,
-		MeetingRepo:    deps.MeetingRepo,
-		AnswerRepo:     deps.AnswerRepo,
-		PairingRepo:    deps.PairingRepo,
-		TemplateRepo:   deps.TemplateRepo,
-		UserRepo:       deps.UserRepo,
-		TeamRepo:       deps.TeamRepo,
-		TeamMemberRepo: deps.TeamMemberRepo,
-		DepartmentRepo: deps.DepartmentRepo,
-		RoleRepo:       deps.RoleRepo,
-		Planning:       deps.Planning,
+		Auth:       deps.Auth,
+		Meeting:    deps.Meeting,
+		Management: deps.Management,
+		Pairing:    deps.Pairing,
+		PairingBrk: deps.PairingBrk,
+		Setting:    deps.Setting,
+		SettingRm:  deps.SettingRm,
+		Profile:    deps.Profile,
+		Planning:   deps.Planning,
 	})
 
 	e.GET("/login", ph.LoginPage)
