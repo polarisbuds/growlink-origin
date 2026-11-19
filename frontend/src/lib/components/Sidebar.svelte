@@ -70,8 +70,7 @@
                 transition:fade>
                 <Icon class="h-5 w-5 shrink-0" />
                 {#if expanded}
-                    <span class="whitespace-nowrap" transition:fade
-                        >{item.label}</span>
+                    <span class="whitespace-nowrap" transition:fade>{item.label}</span>
                 {/if}
             </button>
         {/each}
@@ -85,8 +84,7 @@
             }}>
             <Settings class="h-5 w-5 shrink-0" />
             {#if expanded}
-                <span transition:fade class="whitespace-nowrap"
-                    >{navSettings.label}</span>
+                <span transition:fade class="whitespace-nowrap">{navSettings.label}</span>
             {/if}
         </button>
     </div>
