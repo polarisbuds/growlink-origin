@@ -65,6 +65,38 @@ func (repo *DepartmentMemberRepository) GetByDepartmentIDs(departmentIDs []uint)
 	return ret0, nil
 }
 
+func (repo *DepartmentMemberRepository) GetByDepartmentUUIDs(departmentUUIDs []string) (ret0 map[string][]entity.DepartmentMember, err error) {
+	if len(departmentUUIDs) == 0 {
+		return map[string][]entity.DepartmentMember{}, nil
+	}
+	var members []entity.DepartmentMember
+	err = repo.db.WithContext(repo.ctx).
+		Joins("JOIN departments ON departments.id = department_members.department_id AND departments.deleted_at IS NULL").
+		Where("departments.uuid IN ?", departmentUUIDs).
+		Order("department_members.id ASC").
+		Preload("User").
+		Preload("Department").
+		Preload("Role").
+		Find(&members).Error
+	if err != nil {
+		return nil, fmt.Errorf("部署UUID指定での部署メンバー取得に失敗しました: %w", err)
+	}
+
+	ret0 = map[string][]entity.DepartmentMember{}
+	for _, member := range members {
+		if member.Department == nil {
+			continue
+		}
+		deptUUID := member.Department.UUID.String()
+		if _, ok := ret0[deptUUID]; !ok {
+			ret0[deptUUID] = []entity.DepartmentMember{}
+		}
+		ret0[deptUUID] = append(ret0[deptUUID], member)
+	}
+
+	return ret0, nil
+}
+
 func (repo *DepartmentMemberRepository) GetByUserID(userID uint) (ret0 []entity.DepartmentMember, err error) {
 	members, err := repo.preloadWhere("user_id = ?", userID)
 	if err != nil {

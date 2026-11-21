@@ -7,6 +7,7 @@ import (
 	"growlink/internal/domain/entity"
 	logutils "growlink/internal/shared/logUtils"
 	"log/slog"
+	"strings"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -148,6 +149,39 @@ func (repo *UserRepository) GetAll() (ret0 []entity.User, err error) {
 		Find(repo.ctx)
 	if err != nil {
 		return nil, fmt.Errorf("ユーザの全取得に失敗しました: %w", err)
+	}
+	return users, nil
+}
+
+func preloads(chainInterface gorm.ChainInterface[entity.User]) gorm.ChainInterface[entity.User] {
+	return chainInterface.
+		Preload("DepartmentMembers", nil).
+		Preload("DepartmentMembers.Department", nil).
+		Preload("DepartmentMembers.Role", nil).
+		Preload("TeamMembers", nil).
+		Preload("TeamMembers.Team", nil)
+}
+
+func likeContains(q string) string {
+	q = strings.ToLower(strings.TrimSpace(q))
+	q = strings.NewReplacer(`\`, `\\`, `%`, `\%`, `_`, `\_`).Replace(q)
+	return "%" + q + "%"
+}
+
+func (repo *UserRepository) GetByFilter(nameQ string, emailQ string, departmentMemberUUIDs []string) (filteredUsers []entity.User, err error) {
+	query := preloads(gorm.G[entity.User](repo.db).Order("id ASC"))
+	if strings.TrimSpace(nameQ) != "" {
+		query = query.Where("name LIKE ? ESCAPE '\\'", likeContains(strings.ToLower(nameQ)))
+	}
+	if strings.TrimSpace(emailQ) != "" {
+		query = query.Where("email LIKE ? ESCAPE '\\'", likeContains(strings.ToLower(emailQ)))
+	}
+	if len(departmentMemberUUIDs) > 0 {
+		query = query.Where("uuid IN ?", departmentMemberUUIDs)
+	}
+	users, err := query.Find(repo.ctx)
+	if err != nil {
+		return nil, fmt.Errorf("フィルタ済みユーザ取得に失敗しました: %w", err)
 	}
 	return users, nil
 }

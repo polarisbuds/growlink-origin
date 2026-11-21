@@ -14,9 +14,9 @@ import (
 	"maps"
 	"slices"
 	"strings"
-	"sync"
 
 	"github.com/google/uuid"
+	"golang.org/x/sync/errgroup"
 	"gorm.io/gorm"
 )
 
@@ -66,6 +66,19 @@ type ManagementUsersListFilter struct {
 	DepartmentUUIDs []uuid.UUID
 }
 
+func (f ManagementUsersListFilter) hasCondition() bool {
+	if f.Name != "" {
+		return true
+	}
+	if f.Email != "" {
+		return true
+	}
+	if len(f.DepartmentUUIDs) > 0 {
+		return true
+	}
+	return false
+}
+
 func (uc *UserAdmin) ListUsersPaged(filter ManagementUsersListFilter, page, size int) (ret0 outputmodel.ManagementUsersPageOutput, err error) {
 	const op = "user_admin_usecase.ListUsersPaged"
 	done := logutils.Begin(context.Background(), logutils.LayerUsecase, op)
@@ -75,85 +88,107 @@ func (uc *UserAdmin) ListUsersPaged(filter ManagementUsersListFilter, page, size
 	if page < 1 {
 		page = 1
 	}
-	users, err := uc.userRepo.GetAll()
+
+	var users []entity.User
+	if filter.hasCondition() {
+		deptUUIDs := make([]string, len(filter.DepartmentUUIDs))
+		for idx, departmentUUID := range filter.DepartmentUUIDs {
+			deptUUIDs[idx] = departmentUUID.String()
+		}
+		hasDeptFilter := len(deptUUIDs) > 0
+		deptMemberUserUUIDs := []string{}
+		deptMemberUserUUIDSet := map[string]struct{}{}
+		if hasDeptFilter {
+			depts, err := uc.deptRepo.GetByUUIDs(deptUUIDs)
+			if err != nil {
+				return outputmodel.ManagementUsersPageOutput{}, err
+			}
+			deptIDs := make([]uint, len(depts))
+			for idx, dept := range depts {
+				deptIDs[idx] = dept.ID
+			}
+
+			departmentMemberByDeptUUID, err := uc.deptMemberRepo.GetByDepartmentIDs(deptIDs)
+			if err != nil {
+				return outputmodel.ManagementUsersPageOutput{}, err
+			}
+
+			for _, departmentMembers := range departmentMemberByDeptUUID {
+				for _, member := range departmentMembers {
+					if member.User == nil {
+						continue
+					}
+					deptMemberUserUUIDSet[member.User.UUID.String()] = struct{}{}
+				}
+			}
+			deptMemberUserUUIDs = make([]string, 0, len(deptMemberUserUUIDSet))
+			for userUUID := range deptMemberUserUUIDSet {
+				deptMemberUserUUIDs = append(deptMemberUserUUIDs, userUUID)
+			}
+		}
+		users, err = uc.userRepo.GetByFilter(filter.Name, filter.Email, deptMemberUserUUIDs)
+	} else {
+		users, err = uc.userRepo.GetAll()
+	}
 	if err != nil {
 		return outputmodel.ManagementUsersPageOutput{}, err
 	}
-	deptUUIDSet := map[string]struct{}{}
 
-	for _, d := range filter.DepartmentUUIDs {
-		deptUUIDSet[d.String()] = struct{}{}
-	}
-	hasDeptFilter := len(deptUUIDSet) > 0
-	var deptMemberUserIDs map[uint]struct{}
-	if hasDeptFilter {
-		depts, err := uc.deptRepo.GetAll()
-		if err != nil {
-			return outputmodel.ManagementUsersPageOutput{}, err
-		}
-		deptIDToUUID := map[uint]string{}
-		for _, dept := range depts {
-			deptIDToUUID[dept.ID] = dept.UUID.String()
-		}
-		members, err := uc.deptMemberRepo.GetAll()
-		if err != nil {
-			return outputmodel.ManagementUsersPageOutput{}, err
-		}
-		deptMemberUserIDs = userIDsInDepartments(members, deptUUIDSet, deptIDToUUID)
-	}
-	filtered := filterManagementUsers(users, filter.Name, filter.Email, deptMemberUserIDs, hasDeptFilter)
-	pageUsers := sliceManagementUsersPage(filtered, page, size)
+	pageUsers := sliceManagementUsersPage(users, page, size)
 	items, err := uc.buildManagementUserOutputs(pageUsers)
 	if err != nil {
 		return outputmodel.ManagementUsersPageOutput{}, err
 	}
 	return outputmodel.ManagementUsersPageOutput{
 		Items:    items,
-		Total:    len(filtered),
+		Total:    len(users),
 		Page:     page,
 		PageSize: size,
 	}, nil
 }
 
 func (uc *UserAdmin) buildManagementUserOutputs(users []entity.User) ([]outputmodel.ManagementUserOutput, error) {
-	roles, err := uc.roleRepo.GetAll()
-	if err != nil {
-		return nil, err
-	}
-	roleIDToUUID := make(map[uint]string, len(roles))
-	roleUUIDToName := make(map[string]string, len(roles))
-	roleWg := sync.WaitGroup{}
-	roleWg.Go(func() {
+	group, _ := errgroup.WithContext(context.Background())
+
+	roleIDToUUID := map[uint]string{}
+	roleUUIDToName := map[string]string{}
+	group.Go(func() error {
+		roles, err := uc.roleRepo.GetAll()
+		if err != nil {
+			return err
+		}
 		for _, role := range roles {
 			roleIDToUUID[role.ID] = role.UUID.String()
 		}
-
 		for _, role := range roles {
 			roleUUIDToName[role.UUID.String()] = role.Name
 		}
+		return nil
 	})
 
-	depts, err := uc.deptRepo.GetAll()
-	if err != nil {
-		return nil, err
-	}
-	deptIDToUUID := make(map[uint]string, len(depts))
-	deptUUIDToName := make(map[string]string, len(depts))
-	deptWg := sync.WaitGroup{}
-	deptWg.Go(func() {
+	deptIDToUUID := map[uint]string{}
+	deptUUIDToName := map[string]string{}
+	group.Go(func() error {
+		depts, err := uc.deptRepo.GetAll()
+		if err != nil {
+			return err
+		}
 		for _, dept := range depts {
 			u := dept.UUID.String()
 			deptIDToUUID[dept.ID] = u
 			deptUUIDToName[u] = dept.Name
 		}
+		return nil
 	})
-	roleWg.Wait()
-	deptWg.Wait()
 
 	out := make([]outputmodel.ManagementUserOutput, len(users))
-	userIDs := []uint{}
-	for _, user := range users {
-		userIDs = append(userIDs, user.ID)
+	userIDs := make([]uint, len(users))
+	for idx, user := range users {
+		userIDs[idx] = user.ID
+	}
+
+	if err := group.Wait(); err != nil {
+		return nil, err
 	}
 
 	departmentsMapByUserID, err := uc.loadDepartmentAssignmentsByUserIDs(userIDs, deptIDToUUID, roleIDToUUID)
@@ -272,10 +307,18 @@ func (uc *UserAdmin) loadTeamAssignments(userID uint) ([]outputmodel.UserTeamAss
 }
 
 func (uc *UserAdmin) loadTeamAssignmentsByUserIDs(userIDs []uint) (map[uint][]outputmodel.UserTeamAssignmentOutput, error) {
-	teamMemberMapByMemberID, err := uc.teamMemberRepo.GetByMemberIDs(userIDs)
-	if err != nil {
-		return nil, err
-	}
+	group, _ := errgroup.WithContext(context.Background())
+	var err error
+
+	teamMemberMapByMemberID := map[uint][]entity.TeamMember{}
+	group.Go(func() error {
+		teamMemberMapByMemberID, err = uc.teamMemberRepo.GetByMemberIDs(userIDs)
+		if err != nil {
+			return err
+		}
+		return nil
+	})
+
 	teams, err := uc.teamRepo.GetAll()
 	if err != nil {
 		return nil, err
@@ -283,6 +326,10 @@ func (uc *UserAdmin) loadTeamAssignmentsByUserIDs(userIDs []uint) (map[uint][]ou
 	teamIDToUUID := map[uint]string{}
 	for _, team := range teams {
 		teamIDToUUID[team.ID] = team.UUID.String()
+	}
+
+	if err := group.Wait(); err != nil {
+		return nil, err
 	}
 
 	out := map[uint][]outputmodel.UserTeamAssignmentOutput{}

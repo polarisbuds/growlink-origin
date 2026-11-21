@@ -381,9 +381,9 @@
             class="btn btn-sm btn-ghost"
             disabled={currentPage <= 1}
             onclick={() => goToPage(currentPage - 1)}>前へ</button>
-        {#each pagerPages as p (typeof p === "number" ? p : `e-${p}`)}
+        {#each pagerPages.entries() as [idx, p] (typeof p === "number" ? p : `e-${p}-${idx}`)}
             {#if p === "ellipsis"}
-                <span class="px-1 text-base-content/50">…</span>
+                <span class="px-1 w-8 text-base-content/50">…</span>
             {:else}
                 <button
                     type="button"

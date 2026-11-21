@@ -157,6 +157,45 @@ func (c *MockDepartmentMemberRepositoryGetByDepartmentIDsCall) DoAndReturn(f fun
 	return c
 }
 
+// GetByDepartmentUUIDs mocks base method.
+func (m *MockDepartmentMemberRepository) GetByDepartmentUUIDs(departmentUUIDs []string) (map[string][]entity.DepartmentMember, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetByDepartmentUUIDs", departmentUUIDs)
+	ret0, _ := ret[0].(map[string][]entity.DepartmentMember)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetByDepartmentUUIDs indicates an expected call of GetByDepartmentUUIDs.
+func (mr *MockDepartmentMemberRepositoryMockRecorder) GetByDepartmentUUIDs(departmentUUIDs any) *MockDepartmentMemberRepositoryGetByDepartmentUUIDsCall {
+	mr.mock.ctrl.T.Helper()
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByDepartmentUUIDs", reflect.TypeOf((*MockDepartmentMemberRepository)(nil).GetByDepartmentUUIDs), departmentUUIDs)
+	return &MockDepartmentMemberRepositoryGetByDepartmentUUIDsCall{Call: call}
+}
+
+// MockDepartmentMemberRepositoryGetByDepartmentUUIDsCall wrap *gomock.Call
+type MockDepartmentMemberRepositoryGetByDepartmentUUIDsCall struct {
+	*gomock.Call
+}
+
+// Return rewrite *gomock.Call.Return
+func (c *MockDepartmentMemberRepositoryGetByDepartmentUUIDsCall) Return(ret0 map[string][]entity.DepartmentMember, err error) *MockDepartmentMemberRepositoryGetByDepartmentUUIDsCall {
+	c.Call = c.Call.Return(ret0, err)
+	return c
+}
+
+// Do rewrite *gomock.Call.Do
+func (c *MockDepartmentMemberRepositoryGetByDepartmentUUIDsCall) Do(f func([]string) (map[string][]entity.DepartmentMember, error)) *MockDepartmentMemberRepositoryGetByDepartmentUUIDsCall {
+	c.Call = c.Call.Do(f)
+	return c
+}
+
+// DoAndReturn rewrite *gomock.Call.DoAndReturn
+func (c *MockDepartmentMemberRepositoryGetByDepartmentUUIDsCall) DoAndReturn(f func([]string) (map[string][]entity.DepartmentMember, error)) *MockDepartmentMemberRepositoryGetByDepartmentUUIDsCall {
+	c.Call = c.Call.DoAndReturn(f)
+	return c
+}
+
 // GetByUserID mocks base method.
 func (m *MockDepartmentMemberRepository) GetByUserID(userID uint) ([]entity.DepartmentMember, error) {
 	m.ctrl.T.Helper()

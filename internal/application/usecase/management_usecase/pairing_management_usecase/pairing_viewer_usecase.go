@@ -38,10 +38,6 @@ func NewPairingViewer(
 	}
 }
 
-func (uc *PairingViewer) enrichOutputs(outs []outputmodel.PairingOutput) ([]outputmodel.PairingOutput, error) {
-	return outs, nil
-}
-
 func (uc *PairingViewer) GetPairingByUUID(pairingUUID uuid.UUID) (ret0 *outputmodel.PairingOutput, err error) {
 	const op = "pairing_mng_usecase.GetPairingByUUID"
 	done := logutils.Begin(context.Background(), logutils.LayerUsecase, op)
@@ -53,11 +49,7 @@ func (uc *PairingViewer) GetPairingByUUID(pairingUUID uuid.UUID) (ret0 *outputmo
 		return nil, fmt.Errorf("ペアリング情報のUUID指定取得に失敗しました: %w", err)
 	}
 	outputPairing := converter.PairingEntityToOutput(*pairing)
-	outs, err := uc.enrichOutputs([]outputmodel.PairingOutput{outputPairing})
-	if err != nil {
-		return nil, err
-	}
-	return &outs[0], nil
+	return &outputPairing, nil
 }
 
 func (uc *PairingViewer) GetPairing(pairingID uint) (ret0 *outputmodel.PairingOutput, err error) {
@@ -71,11 +63,7 @@ func (uc *PairingViewer) GetPairing(pairingID uint) (ret0 *outputmodel.PairingOu
 		return nil, fmt.Errorf("ペアリング情報のID指定取得に失敗しました: %w", err)
 	}
 	outputPairing := converter.PairingEntityToOutput(*pairing)
-	outs, err := uc.enrichOutputs([]outputmodel.PairingOutput{outputPairing})
-	if err != nil {
-		return nil, err
-	}
-	return &outs[0], nil
+	return &outputPairing, nil
 }
 
 func (uc *PairingViewer) ListPairingsByAll() (ret0 []outputmodel.PairingOutput, err error) {
@@ -94,8 +82,7 @@ func (uc *PairingViewer) ListPairingsByAll() (ret0 []outputmodel.PairingOutput, 
 			permanent = append(permanent, p)
 		}
 	}
-	outputPairings := converter.PairingEntitiesToOutputs(permanent)
-	return uc.enrichOutputs(outputPairings)
+	return converter.PairingEntitiesToOutputs(permanent), nil
 }
 
 func (uc *PairingViewer) ListPairingsByMentor(mentorID uint) (ret0 []outputmodel.PairingOutput, err error) {
@@ -108,8 +95,7 @@ func (uc *PairingViewer) ListPairingsByMentor(mentorID uint) (ret0 []outputmodel
 	if err != nil {
 		return nil, fmt.Errorf("メンターID指定でのペアリング情報の取得に失敗しました: %w", err)
 	}
-	outputPairings := converter.PairingEntitiesToOutputs(pairings)
-	return uc.enrichOutputs(outputPairings)
+	return converter.PairingEntitiesToOutputs(pairings), nil
 }
 
 func (uc *PairingViewer) ListPairingsByTeam(teamID uint) (ret0 []outputmodel.PairingOutput, err error) {
@@ -158,7 +144,7 @@ func (uc *PairingViewer) ListPairingsByTeam(teamID uint) (ret0 []outputmodel.Pai
 			return nil, err
 		}
 	}
-	return uc.enrichOutputs(result)
+	return result, nil
 }
 
 func (uc *PairingViewer) ListPairingsByDepartment(departmentID uint) (ret0 []outputmodel.PairingOutput, err error) {
@@ -199,5 +185,5 @@ func (uc *PairingViewer) ListPairingsByDepartment(departmentID uint) (ret0 []out
 			return nil, err
 		}
 	}
-	return uc.enrichOutputs(result)
+	return result, nil
 }

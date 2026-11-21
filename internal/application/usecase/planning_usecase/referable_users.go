@@ -4,6 +4,9 @@ import (
 	"context"
 	"growlink/internal/domain/valueobject"
 	logutils "growlink/internal/shared/logUtils"
+	"maps"
+
+	"golang.org/x/sync/errgroup"
 )
 
 func fullPlanningAccess(systemRole valueobject.SystemRole) bool {
@@ -21,44 +24,63 @@ func (uc *PlanningAccessUsecase) ReferableUserIDs(userID uint, systemRole valueo
 	if fullPlanningAccess(systemRole) {
 		return nil, nil
 	}
-	visible := map[uint]bool{}
 
-	deptUserIDs, err := uc.departmentScopeUserIDs(userID)
-	if err != nil {
-		return nil, err
-	}
-
-	for _, id := range deptUserIDs {
-		if id > 0 {
-			visible[id] = true
-		}
-	}
-
-	teamIDs, err := uc.readerTeamIDs(userID)
-	if err != nil {
-		return nil, err
-	}
-	for _, teamID := range teamIDs {
-		members, err := uc.teamMemberRepo.GetByTeamID(teamID)
+	group, _ := errgroup.WithContext(context.Background())
+	deptVisibles := map[uint]bool{}
+	group.Go(func() error {
+		deptUserIDs, err := uc.departmentScopeUserIDs(userID)
 		if err != nil {
-			return nil, err
+			return err
 		}
-		for _, member := range members {
-			if member.MemberID > 0 {
-				visible[member.MemberID] = true
+
+		for _, id := range deptUserIDs {
+			if id > 0 {
+				deptVisibles[id] = true
 			}
 		}
-	}
+		return nil
+	})
 
-	pairings, err := uc.pairingRepo.GetAll()
-	if err != nil {
+	teamVisibles := map[uint]bool{}
+	group.Go(func() error {
+		teamIDs, err := uc.readerTeamIDs(userID)
+		if err != nil {
+			return err
+		}
+		for _, teamID := range teamIDs {
+			members, err := uc.teamMemberRepo.GetByTeamID(teamID)
+			if err != nil {
+				return err
+			}
+			for _, member := range members {
+				if member.MemberID > 0 {
+					teamVisibles[member.MemberID] = true
+				}
+			}
+		}
+		return nil
+	})
+
+	pairVisibles := map[uint]bool{}
+	group.Go(func() error {
+		pairings, err := uc.pairingRepo.GetByMentorID(userID)
+		if err != nil {
+			return err
+		}
+		for _, p := range pairings {
+			pairVisibles[p.MenteeID] = true
+		}
+		return nil
+	})
+
+	if err := group.Wait(); err != nil {
 		return nil, err
 	}
-	for _, p := range pairings {
-		if p.MentorID == userID && p.MenteeID > 0 {
-			visible[p.MenteeID] = true
-		}
-	}
+
+	visible := map[uint]bool{}
+	maps.Copy(visible, deptVisibles)
+	maps.Copy(visible, teamVisibles)
+	maps.Copy(visible, pairVisibles)
 	return visible, nil
 }
 

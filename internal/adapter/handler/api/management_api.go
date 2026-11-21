@@ -44,6 +44,7 @@ func (h *Handler) ListManagementUsers(c *echo.Context) error {
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
 	}
+
 	if q.All {
 		users, err := h.deps.Management.UserAdmin.ListUsers()
 		if err != nil {

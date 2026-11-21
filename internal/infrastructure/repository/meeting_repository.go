@@ -131,6 +131,24 @@ func (repo *MeetingRepository) GetByPairingID(pairingID uint) (ret0 []entity.Mee
 	return meetings, nil
 }
 
+func (repo *MeetingRepository) GetByPairingIDs(pairingIDs []uint) (ret0 []entity.Meeting, err error) {
+	meetings, err := gorm.G[entity.Meeting](repo.db).
+		Scopes(func(stmt *gorm.Statement) {
+			stmt.Unscoped = true
+		}).
+		Where("pairing_id IN ?", pairingIDs).
+		Order("id ASC").
+		Preload("Pairing", nil).
+		Preload("Pairing.Mentor", nil).
+		Preload("Pairing.Mentee", nil).
+		Preload("Template", nil).
+		Find(repo.ctx)
+	if err != nil {
+		return nil, fmt.Errorf("ペアリングID指定でのペアリング情報取得に失敗しました: %w", err)
+	}
+	return meetings, nil
+}
+
 func (repo *MeetingRepository) GetFromSpecificDateOnward(base time.Time) (ret0 []entity.Meeting, err error) {
 	startOfBaseDay := utils.GetStartOfDay(base)
 

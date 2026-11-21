@@ -60,24 +60,3 @@ func sliceManagementUsersPage(list []entity.User, page, pageSize int) []entity.U
 	}
 	return list[start:end]
 }
-
-func userIDsInDepartments(
-	members []entity.DepartmentMember,
-	deptUUIDs map[string]struct{},
-	deptIDToUUID map[uint]string,
-) map[uint]struct{} {
-	set := make(map[uint]struct{})
-	if len(deptUUIDs) == 0 {
-		return set
-	}
-	for _, m := range members {
-		u := deptIDToUUID[m.DepartmentID]
-		if u == "" {
-			continue
-		}
-		if _, ok := deptUUIDs[u]; ok {
-			set[m.UserID] = struct{}{}
-		}
-	}
-	return set
-}

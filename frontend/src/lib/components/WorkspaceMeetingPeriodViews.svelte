@@ -79,7 +79,7 @@
     );
 </script>
 
-<div role="tablist" class="tabs tabs-bordered mt-8 max-w-3xl">
+<div role="tablist" class="tabs tabs-lifted mt-8 max-w-3xl">
     <button
         type="button"
         role="tab"
@@ -176,7 +176,7 @@
 {#if periodTab === "all"}
     {#each sections as section, i (section.key)}
         {@const items = periods[section.key]}
-        <section class={i === 0 ? "mt-8" : "mt-10"}>
+        <section class={i === 0 ? "mt-4" : "mt-5"}>
             <h2 class="text-sm font-semibold text-base-content/70">
                 {section.sectionTitle}
             </h2>

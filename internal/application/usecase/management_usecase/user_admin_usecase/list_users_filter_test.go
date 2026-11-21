@@ -39,16 +39,3 @@ func TestSliceManagementUsersPage(t *testing.T) {
 		t.Fatal("expected empty page")
 	}
 }
-
-func TestUserIDsInDepartments(t *testing.T) {
-	deptSet := map[string]struct{}{"d1": {}}
-	deptIDToUUID := map[uint]string{10: "d1", 11: "d2"}
-	members := []entity.DepartmentMember{
-		{DepartmentID: 10, UserID: 5},
-		{DepartmentID: 11, UserID: 6},
-	}
-	set := userIDsInDepartments(members, deptSet, deptIDToUUID)
-	if len(set) != 1 || set[5] != struct{}{} {
-		t.Fatalf("set = %#v", set)
-	}
-}

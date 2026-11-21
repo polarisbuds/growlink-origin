@@ -2,6 +2,7 @@ package api
 
 import (
 	"errors"
+	"log/slog"
 	"net/http"
 	"strings"
 
@@ -247,6 +248,7 @@ func (h *Handler) ListMeetingsAll(c *echo.Context) error {
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
 	}
+	slog.Debug("ListMeetingsAll", slog.Any("filter", filter))
 	out, err := h.deps.Planning.ListPlanningMeetingsPaged(
 		claims.UserID,
 		claims.Authority,

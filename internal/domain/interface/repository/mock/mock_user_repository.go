@@ -271,6 +271,45 @@ func (c *MockUserRepositoryGetByEmailCall) DoAndReturn(f func(string) (*entity.U
 	return c
 }
 
+// GetByFilter mocks base method.
+func (m *MockUserRepository) GetByFilter(nameQ, emailQ string, departmentMemberUUIDs []string) ([]entity.User, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetByFilter", nameQ, emailQ, departmentMemberUUIDs)
+	ret0, _ := ret[0].([]entity.User)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetByFilter indicates an expected call of GetByFilter.
+func (mr *MockUserRepositoryMockRecorder) GetByFilter(nameQ, emailQ, departmentMemberUUIDs any) *MockUserRepositoryGetByFilterCall {
+	mr.mock.ctrl.T.Helper()
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByFilter", reflect.TypeOf((*MockUserRepository)(nil).GetByFilter), nameQ, emailQ, departmentMemberUUIDs)
+	return &MockUserRepositoryGetByFilterCall{Call: call}
+}
+
+// MockUserRepositoryGetByFilterCall wrap *gomock.Call
+type MockUserRepositoryGetByFilterCall struct {
+	*gomock.Call
+}
+
+// Return rewrite *gomock.Call.Return
+func (c *MockUserRepositoryGetByFilterCall) Return(filteredUsers []entity.User, err error) *MockUserRepositoryGetByFilterCall {
+	c.Call = c.Call.Return(filteredUsers, err)
+	return c
+}
+
+// Do rewrite *gomock.Call.Do
+func (c *MockUserRepositoryGetByFilterCall) Do(f func(string, string, []string) ([]entity.User, error)) *MockUserRepositoryGetByFilterCall {
+	c.Call = c.Call.Do(f)
+	return c
+}
+
+// DoAndReturn rewrite *gomock.Call.DoAndReturn
+func (c *MockUserRepositoryGetByFilterCall) DoAndReturn(f func(string, string, []string) ([]entity.User, error)) *MockUserRepositoryGetByFilterCall {
+	c.Call = c.Call.DoAndReturn(f)
+	return c
+}
+
 // GetByID mocks base method.
 func (m *MockUserRepository) GetByID(id uint) (*entity.User, error) {
 	m.ctrl.T.Helper()

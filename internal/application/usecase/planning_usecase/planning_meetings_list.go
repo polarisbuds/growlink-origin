@@ -2,14 +2,17 @@ package planning_usecase
 
 import (
 	"context"
+	"log/slog"
 	"slices"
 	"time"
 
+	"growlink/internal/application/converter"
 	outputmodel "growlink/internal/application/model/output_model"
 	"growlink/internal/domain/valueobject"
 	logutils "growlink/internal/shared/logUtils"
 
 	"github.com/google/uuid"
+	"golang.org/x/sync/errgroup"
 	"golang.org/x/text/collate"
 	"golang.org/x/text/language"
 )
@@ -28,6 +31,31 @@ type PlanningMeetingsListFilter struct {
 	To              *time.Time // end of day JST inclusive
 	DateRangeEmpty  bool       // from after to
 	IncludeDeleted  bool       // include meetings whose pairing is soft-deleted
+}
+
+func (f PlanningMeetingsListFilter) HasCondition() bool {
+	if f.MentorUUIDs != nil {
+		return true
+	}
+	if f.MenteeUUIDs != nil {
+		return true
+	}
+	if f.DepartmentUUIDs != nil {
+		return true
+	}
+	if f.Status != nil {
+		return true
+	}
+	if f.From != nil {
+		return true
+	}
+	if f.To != nil {
+		return true
+	}
+	if f.IncludeDeleted {
+		return true
+	}
+	return false
 }
 
 func JSTDayStart(dateYYYYMMDD string) (time.Time, error) {
@@ -228,19 +256,69 @@ func (uc *PlanningAccessUsecase) ListPlanningMeetingsPaged(
 	defer func() {
 		done(err)
 	}()
-	all, err := uc.ListPlanningMeetings(userID, authority, systemRole)
+
+	group, _ := errgroup.WithContext(context.Background())
+	deptUsers := map[string]struct{}{}
+	group.Go(func() error {
+		deptUUIDs := []string{}
+		for _, u := range filter.DepartmentUUIDs {
+			deptUUIDs = append(deptUUIDs, u.String())
+		}
+		// TODO; DeptUsersではなくdeptUUIDsを渡したほうがいいのでは？？
+		deptUsers, err = uc.deptMemberUserUUIDsForDepartments(deptUUIDs)
+		if err != nil {
+			return err
+		}
+		return nil
+	})
+	slog.Debug("ListPlanningMeetingsPaged", slog.Any("deptUsers", deptUsers))
+
+	meetingOutputs := []outputmodel.MeetingOutput{}
+	if filter.HasCondition() {
+		deptUUIDs := make([]string, len(filter.DepartmentUUIDs))
+		for idx, deptUUID := range filter.DepartmentUUIDs {
+			deptUUIDs[idx] = deptUUID.String()
+		}
+		deptMembersByDeptUUID, err := uc.deptMemberRepo.GetByDepartmentUUIDs(deptUUIDs)
+		if err != nil {
+			return outputmodel.PlanningMeetingsPageOutput{}, err
+		}
+		userIDs := []uint{}
+		for _, deptMembers := range deptMembersByDeptUUID {
+			for _, deptMember := range deptMembers {
+				userIDs = append(userIDs, deptMember.UserID)
+			}
+		}
+
+		pairings, err := uc.pairingRepo.GetByMenteeIDs(userIDs)
+		if err != nil {
+			return outputmodel.PlanningMeetingsPageOutput{}, err
+		}
+
+		pairingIDs := make([]uint, len(pairings))
+		for idx, pairing := range pairings {
+			pairingIDs[idx] = pairing.ID
+		}
+
+		meetings, err := uc.meetingRepo.GetByPairingIDs(pairingIDs)
+		if err != nil {
+			return outputmodel.PlanningMeetingsPageOutput{}, err
+		}
+		// TODO; uc.ListPlanningMeetings(userID, authority, systemRole)←こちらと同等にアクセス権限などの読み取り制限を追加する必要有
+		meetingOutputs = converter.MeetingEntitiesToOutputs(meetings)
+	} else {
+		// TODO; Departmentのフィルタがあればuuids指定とする
+		meetingOutputs, err = uc.ListPlanningMeetings(userID, authority, systemRole)
+	}
 	if err != nil {
 		return outputmodel.PlanningMeetingsPageOutput{}, err
 	}
-	deptUUIDs := []string{}
-	for _, u := range filter.DepartmentUUIDs {
-		deptUUIDs = append(deptUUIDs, u.String())
-	}
-	deptUsers, err := uc.deptMemberUserUUIDsForDepartments(deptUUIDs)
-	if err != nil {
+
+	if err := group.Wait(); err != nil {
 		return outputmodel.PlanningMeetingsPageOutput{}, err
 	}
-	filtered := filterPlanningMeetings(all, filter, deptUsers)
+
+	filtered := filterPlanningMeetings(meetingOutputs, filter, deptUsers)
 	sortPlanningMeetings(filtered, dirDesc)
 	items := slicePlanningMeetingsPage(filtered, page, PlanningMeetingsPageSize)
 	return outputmodel.PlanningMeetingsPageOutput{

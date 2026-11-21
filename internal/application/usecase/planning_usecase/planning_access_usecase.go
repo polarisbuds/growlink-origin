@@ -13,6 +13,8 @@ import (
 	repository_interface "growlink/internal/domain/interface/repository"
 	"growlink/internal/domain/valueobject"
 	logutils "growlink/internal/shared/logUtils"
+
+	"golang.org/x/sync/errgroup"
 )
 
 type PlanningAccessUsecase struct {
@@ -155,43 +157,57 @@ func (uc *PlanningAccessUsecase) ListPlanningMeetings(userID uint, authority val
 		outs := converter.MeetingEntitiesToOutputs(meetings)
 		return applyPairingsToMeetings(outs, pairings), nil
 	}
+
 	merged := []outputmodel.MeetingOutput{}
-
-	involved, err := uc.meetingList.ListInvolvedMeetings(userID)
-	if err != nil {
-		return []outputmodel.MeetingOutput{}, err
-	}
-	merged = append(merged, involved...)
-
-	referable, err := uc.ReferableUserIDs(userID, systemRole)
-	if err != nil {
-		return []outputmodel.MeetingOutput{}, err
-	}
-	menteeIDs := make([]uint, len(referable))
-	var menteeIdx int
-	for id := range referable {
-		menteeIDs[menteeIdx] = id
-		menteeIdx++
-	}
-	scopedMeetings, err := uc.listMeetingsByMenteeIDs(menteeIDs)
-	if err != nil {
-		return []outputmodel.MeetingOutput{}, err
-	}
-	merged = append(merged, scopedMeetings...)
-
-	shared, err := uc.meetingList.ListSharedMeetings(userID)
-	if err != nil {
-		return []outputmodel.MeetingOutput{}, err
-	}
-	merged = append(merged, shared...)
-
-	deletedScoped := deletedPairingsInPlanningScope(pairings, userID, referable)
-	if len(deletedScoped) > 0 {
-		fromDeleted, err := uc.meetingsForPairings(deletedScoped)
+	group, _ := errgroup.WithContext(context.Background())
+	group.Go(func() error {
+		involved, err := uc.meetingList.ListInvolvedMeetings(userID)
 		if err != nil {
-			return []outputmodel.MeetingOutput{}, err
+			return err
 		}
-		merged = append(merged, fromDeleted...)
+		merged = append(merged, involved...)
+		return nil
+	})
+
+	group.Go(func() error {
+		referable, err := uc.ReferableUserIDs(userID, systemRole)
+		if err != nil {
+			return err
+		}
+		menteeIDs := make([]uint, len(referable))
+		var menteeIdx int
+		for id := range referable {
+			menteeIDs[menteeIdx] = id
+			menteeIdx++
+		}
+		scopedMeetings, err := uc.listMeetingsByMenteeIDs(menteeIDs)
+		if err != nil {
+			return err
+		}
+		merged = append(merged, scopedMeetings...)
+
+		deletedScoped := deletedPairingsInPlanningScope(pairings, userID, referable)
+		if len(deletedScoped) > 0 {
+			fromDeleted, err := uc.meetingsForPairings(deletedScoped)
+			if err != nil {
+				return err
+			}
+			merged = append(merged, fromDeleted...)
+		}
+		return nil
+	})
+
+	group.Go(func() error {
+		shared, err := uc.meetingList.ListSharedMeetings(userID)
+		if err != nil {
+			return err
+		}
+		merged = append(merged, shared...)
+		return nil
+	})
+
+	if err := group.Wait(); err != nil {
+		return []outputmodel.MeetingOutput{}, fmt.Errorf("面談一覧の取得に失敗しました: %w", err)
 	}
 
 	merged = dedupeMeetings(merged)
@@ -478,23 +494,17 @@ func (uc *PlanningAccessUsecase) listMeetingsByMenteeIDs(ids []uint) ([]outputmo
 }
 
 func (uc *PlanningAccessUsecase) listPairingsByMenteeIDs(ids []uint) ([]outputmodel.PairingOutput, error) {
-	var merged []outputmodel.PairingOutput
-	for _, menteeID := range ids {
-		pairings, err := uc.pairingRepo.GetByMenteeID(menteeID)
-		if err != nil {
-			return nil, err
-		}
-		for _, pairing := range pairings {
-			out, err := uc.pairingViewer.GetPairing(pairing.ID)
-			if err != nil {
-				return nil, err
-			}
-			if out != nil {
-				merged = append(merged, *out)
-			}
-		}
+	pairings, err := uc.pairingRepo.GetByMenteeIDs(ids)
+	if err != nil {
+		return nil, err
 	}
-	return merged, nil
+
+	result := make([]outputmodel.PairingOutput, len(pairings))
+	for idx, pairing := range pairings {
+		result[idx] = converter.PairingEntityToOutput(pairing)
+	}
+
+	return result, nil
 }
 
 func (uc *PlanningAccessUsecase) CanSpecifyPairMeeting(userID uint, systemRole valueobject.SystemRole, authority valueobject.Authority) (ret0 bool, err error) {

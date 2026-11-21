@@ -2,6 +2,7 @@ package planning_usecase
 
 import (
 	"context"
+	"fmt"
 	"slices"
 
 	outputmodel "growlink/internal/application/model/output_model"
@@ -9,6 +10,7 @@ import (
 	logutils "growlink/internal/shared/logUtils"
 
 	"github.com/google/uuid"
+	"golang.org/x/sync/errgroup"
 	"golang.org/x/text/collate"
 	"golang.org/x/text/language"
 )
@@ -133,26 +135,51 @@ func (uc *PlanningAccessUsecase) listFilteredSortedPairings(
 	systemRole valueobject.SystemRole,
 	filter PlanningPairingsListFilter,
 ) ([]outputmodel.PairingOutput, error) {
-	all, err := uc.ListPairingsForManagement(userID, authority, systemRole)
-	if err != nil {
-		return nil, err
-	}
+
+	var (
+		all []outputmodel.PairingOutput
+		err error
+	)
+
+	group, _ := errgroup.WithContext(context.Background())
+	group.Go(func() error {
+		all, err = uc.ListPairingsForManagement(userID, authority, systemRole)
+		if err != nil {
+			return err
+		}
+		return nil
+	})
+
 	deptUUIDs := []string{}
-	for _, u := range filter.DepartmentUUIDs {
-		deptUUIDs = append(deptUUIDs, u.String())
-	}
-	deptUsers, err := uc.deptMemberUserUUIDsForDepartments(deptUUIDs)
-	if err != nil {
-		return nil, err
-	}
+	deptUsers := map[string]struct{}{}
+	group.Go(func() error {
+		for _, u := range filter.DepartmentUUIDs {
+			deptUUIDs = append(deptUUIDs, u.String())
+		}
+		deptUsers, err = uc.deptMemberUserUUIDsForDepartments(deptUUIDs)
+		if err != nil {
+			return err
+		}
+		return nil
+	})
+
 	teamUUIDs := []string{}
-	for _, u := range filter.TeamUUIDs {
-		teamUUIDs = append(teamUUIDs, u.String())
+	teamUsers := map[string]struct{}{}
+	group.Go(func() error {
+		for _, u := range filter.TeamUUIDs {
+			teamUUIDs = append(teamUUIDs, u.String())
+		}
+		teamUsers, err = uc.teamMemberUserUUIDsForTeams(teamUUIDs)
+		if err != nil {
+			return err
+		}
+		return nil
+	})
+
+	if err := group.Wait(); err != nil {
+		return nil, fmt.Errorf("ペア取得処理に失敗しました: %w", err)
 	}
-	teamUsers, err := uc.teamMemberUserUUIDsForTeams(teamUUIDs)
-	if err != nil {
-		return nil, err
-	}
+
 	filtered := filterPlanningPairings(all, filter, deptUsers, teamUsers)
 	sortPlanningPairings(filtered)
 	return filtered, nil

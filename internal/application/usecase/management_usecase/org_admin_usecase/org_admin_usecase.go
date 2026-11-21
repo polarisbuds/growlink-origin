@@ -8,6 +8,7 @@ import (
 	repository_interface "growlink/internal/domain/interface/repository"
 	"growlink/internal/domain/valueobject"
 	logutils "growlink/internal/shared/logUtils"
+	"slices"
 	"strings"
 	"sync"
 
@@ -47,84 +48,116 @@ func (uc *OrgAdmin) ListTree() (ret0 []outputmodel.OrgTreeNodeOutput, err error)
 	defer func() {
 		done(err)
 	}()
-	depts, err := uc.deptRepo.GetAll()
-	if err != nil {
-		return nil, err
-	}
-	hierarchies, err := uc.hierarchyRepo.GetAll()
-	if err != nil {
-		return nil, err
-	}
-	teams, err := uc.teamRepo.GetAll()
-	if err != nil {
-		return nil, err
-	}
-	membersByDeptID, err := uc.teamMemberRepo.GetAll()
-	if err != nil {
-		return nil, err
-	}
 
-	childMap := map[uint][]uint{}
-	childSet := map[uint]bool{}
-	for _, h := range hierarchies {
-		childMap[h.ParentDepartmentID] = append(childMap[h.ParentDepartmentID], h.ChildDepartmentID)
-		childSet[h.ChildDepartmentID] = true
-	}
+	group, _ := errgroup.WithContext(context.Background())
+
+	var (
+		depts           []entity.Department
+		teams           []entity.Team
+		hierarchies     []entity.DepartmentHierarchy
+		membersByDeptID []entity.TeamMember
+	)
+
 	deptByID := map[uint]entity.Department{}
-	for _, d := range depts {
-		deptByID[d.ID] = d
-	}
-	teamsByDept := map[uint][]entity.Team{}
-	for _, t := range teams {
-		teamsByDept[t.DepartmentID] = append(teamsByDept[t.DepartmentID], t)
-	}
-	leaderByTeam := map[uint]string{}
-	leaderRoleByTeam := map[uint]string{}
-	membersByTeam := map[uint][]uint{}
-	for _, m := range membersByDeptID {
-		membersByTeam[m.TeamID] = append(membersByTeam[m.TeamID], m.MemberID)
-		if m.IsReader && m.Member != nil {
-			leaderByTeam[m.TeamID] = m.Member.Name
-			if m.Team != nil {
-				if roleName := memberRoleNameForDepartment(m.Member.DepartmentMembers, m.Team.DepartmentID); roleName != "" {
-					leaderRoleByTeam[m.TeamID] = roleName
-				}
-			}
-		}
-	}
-
+	deptIDs := []uint{}
 	userByID := map[uint]entity.User{}
 	usersByDept := map[uint][]uint{}
 	headRoleByUserDept := map[uint]map[uint]string{}
-
-	deptIDs := []uint{}
-	for _, dept := range depts {
-		deptIDs = append(deptIDs, dept.ID)
-	}
-	membersByDeptIDMap, err := uc.deptMemberRepo.GetByDepartmentIDs(deptIDs)
-	if err != nil {
-		return nil, err
-	}
-
-	for _, deptID := range deptIDs {
-		members, ok := membersByDeptIDMap[deptID]
-		if !ok {
-			continue
+	membersByDeptIDMap := map[uint][]entity.DepartmentMember{}
+	group.Go(func() error {
+		depts, err = uc.deptRepo.GetAll()
+		if err != nil {
+			return err
 		}
 
-		for _, member := range members {
-			usersByDept[deptID] = append(usersByDept[deptID], member.UserID)
-			if member.User != nil {
-				userByID[member.UserID] = *member.User
-			}
-			if member.Role == nil {
+		for _, dept := range depts {
+			deptByID[dept.ID] = dept
+			deptIDs = append(deptIDs, dept.ID)
+		}
+
+		membersByDeptIDMap, err = uc.deptMemberRepo.GetByDepartmentIDs(deptIDs)
+		if err != nil {
+			return err
+		}
+
+		for _, deptID := range deptIDs {
+			members, ok := membersByDeptIDMap[deptID]
+			if !ok {
 				continue
 			}
-			if headRoleByUserDept[member.DepartmentID] == nil {
-				headRoleByUserDept[member.DepartmentID] = map[uint]string{}
+
+			for _, member := range members {
+				usersByDept[deptID] = append(usersByDept[deptID], member.UserID)
+				if member.User != nil {
+					userByID[member.UserID] = *member.User
+				}
+				if member.Role == nil {
+					continue
+				}
+				if headRoleByUserDept[member.DepartmentID] == nil {
+					headRoleByUserDept[member.DepartmentID] = map[uint]string{}
+				}
+				headRoleByUserDept[member.DepartmentID][member.UserID] = member.Role.Name
 			}
-			headRoleByUserDept[member.DepartmentID][member.UserID] = member.Role.Name
 		}
+		return nil
+	})
+
+	childMap := map[uint][]uint{}
+	childSet := map[uint]bool{}
+	group.Go(func() error {
+		hierarchies, err = uc.hierarchyRepo.GetAll()
+		if err != nil {
+			return err
+		}
+
+		slices.SortFunc(hierarchies, func(h1, h2 entity.DepartmentHierarchy) int {
+			return strings.Compare(h1.ChildDepartment.Name, h2.ChildDepartment.Name)
+		})
+
+		for _, h := range hierarchies {
+			childMap[h.ParentDepartmentID] = append(childMap[h.ParentDepartmentID], h.ChildDepartmentID)
+			childSet[h.ChildDepartmentID] = true
+		}
+		return nil
+	})
+
+	teamsByDept := map[uint][]entity.Team{}
+	group.Go(func() error {
+		teams, err = uc.teamRepo.GetAll()
+		if err != nil {
+			return err
+		}
+		for _, t := range teams {
+			teamsByDept[t.DepartmentID] = append(teamsByDept[t.DepartmentID], t)
+		}
+		return nil
+	})
+
+	leaderByTeam := map[uint]string{}
+	leaderRoleByTeam := map[uint]string{}
+	membersByTeam := map[uint][]uint{}
+	group.Go(func() error {
+		membersByDeptID, err = uc.teamMemberRepo.GetAll()
+		if err != nil {
+			return err
+		}
+		for _, m := range membersByDeptID {
+			membersByTeam[m.TeamID] = append(membersByTeam[m.TeamID], m.MemberID)
+			if m.IsReader && m.Member != nil {
+				leaderByTeam[m.TeamID] = m.Member.Name
+				if m.Team != nil {
+					if roleName := memberRoleNameForDepartment(m.Member.DepartmentMembers, m.Team.DepartmentID); roleName != "" {
+						leaderRoleByTeam[m.TeamID] = roleName
+					}
+				}
+			}
+		}
+		return nil
+	})
+
+	if err := group.Wait(); err != nil {
+		return nil, fmt.Errorf("部署階層取得処理に失敗しました: %w", err)
 	}
 
 	memberCountByDept := map[uint]int{}
@@ -419,19 +452,14 @@ func (uc *OrgAdmin) UpdateDepartment(id uint, input UpdateDepartmentInput) (err 
 		if err != nil {
 			return err
 		}
-		childSet := map[uint]bool{}
 		parentOf := map[uint]uint{}
 		for _, h := range hierarchies {
-			childSet[h.ChildDepartmentID] = true
 			parentOf[h.ChildDepartmentID] = h.ParentDepartmentID
 		}
 		want := map[uint]bool{}
 		for _, childID := range childDepartmentIDs {
 			if childID == id {
 				return fmt.Errorf("自分自身を子部署に指定できません")
-			}
-			if !childSet[childID] {
-				return fmt.Errorf("ルート部署を子部署に指定できません")
 			}
 			if departmentIsAncestor(childID, id, parentOf) {
 				return fmt.Errorf("循環する子部署は指定できません")
