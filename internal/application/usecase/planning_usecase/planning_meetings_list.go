@@ -231,9 +231,6 @@ func (uc *PlanningAccessUsecase) deptMemberUserUUIDsForDepartments(deptUUIDs []s
 	}
 
 	for _, dept := range depts {
-		if dept.DepartmentMembers != nil {
-			continue
-		}
 		for _, mem := range dept.DepartmentMembers {
 			if mem.User != nil {
 				set[mem.User.UUID.String()] = struct{}{}
