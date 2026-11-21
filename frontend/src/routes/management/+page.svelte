@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { onMount } from "svelte";
+    import { onMount, tick } from "svelte";
     import { api } from "$lib/api";
     import { showToast } from "$lib/toast";
     import Users from "lucide-svelte/icons/users";
@@ -182,6 +182,25 @@
         remindWeekday: 1,
         remindTime: "09:00",
     });
+    const LINE_WORKS_MESSAGE_TITLES = [
+        "未提出通知",
+        "提出通知",
+        "未実施通知",
+    ] as const;
+    type LineWorksMessageTitle = (typeof LINE_WORKS_MESSAGE_TITLES)[number];
+    let remindSection = $state<"send" | "messages">("send");
+    let lineWorksMessageTab = $state<LineWorksMessageTitle>("未提出通知");
+    let lineWorksMessages = $state<
+        { uuid: string; title: string; content: string }[]
+    >([]);
+    let lineWorksMessageBodyEl = $state<HTMLTextAreaElement | null>(null);
+    const LINE_WORKS_PLACEHOLDERS = [
+        { label: "メンター", token: "[mentor]" },
+        { label: "メンティー", token: "[mentee]" },
+        { label: "年", token: "[year]" },
+        { label: "月", token: "[month]" },
+        { label: "日", token: "[day]" },
+    ] as const;
     let orgChildSearch = $state("");
     let orgTeamSearch = $state("");
     let orgMemberSearch = $state("");
@@ -944,6 +963,50 @@
         }
     }
 
+    async function loadLineWorksMessages() {
+        try {
+            const data = await api<{
+                messages?: { uuid: string; title: string; content: string }[];
+            }>("GET", "/api/v1/management/settings/line-works-messages");
+            lineWorksMessages = data.messages ?? [];
+        } catch {
+            lineWorksMessages = [];
+        }
+    }
+
+    function updateLineWorksMessageContent(title: string, content: string) {
+        const idx = lineWorksMessages.findIndex((m) => m.title === title);
+        if (idx >= 0) {
+            lineWorksMessages = lineWorksMessages.map((m, i) =>
+                i === idx ? { ...m, content } : m,
+            );
+        } else {
+            lineWorksMessages = [...lineWorksMessages, { uuid: "", title, content }];
+        }
+    }
+
+    function lineWorksMessageContent(title: string) {
+        return lineWorksMessages.find((m) => m.title === title)?.content ?? "";
+    }
+
+    async function insertLineWorksPlaceholder(token: string) {
+        const title = lineWorksMessageTab;
+        const el = lineWorksMessageBodyEl;
+        const current = lineWorksMessageContent(title);
+        if (!el) {
+            updateLineWorksMessageContent(title, current + token);
+            return;
+        }
+        const start = el.selectionStart ?? current.length;
+        const end = el.selectionEnd ?? current.length;
+        const next = current.slice(0, start) + token + current.slice(end);
+        updateLineWorksMessageContent(title, next);
+        const pos = start + token.length;
+        await tick();
+        el.focus();
+        el.setSelectionRange(pos, pos);
+    }
+
     function toggleAllUsers(checked: boolean) {
         const pageUuids = displayedUsers.map((u) => u.uuid);
         if (checked) {
@@ -1458,6 +1521,26 @@
         showToast("通知設定を保存しました");
     }
 
+    async function saveLineWorksMessages() {
+        const payload = LINE_WORKS_MESSAGE_TITLES.map((title) => {
+            const row = lineWorksMessages.find((m) => m.title === title);
+            return {
+                uuid: row?.uuid ?? "",
+                content: lineWorksMessageContent(title),
+            };
+        });
+        try {
+            await api("PUT", "/api/v1/management/settings/line-works-messages", {
+                messages: payload,
+            });
+        } catch (e) {
+            showToast(apiErrorMessage(e, "保存に失敗しました"), "error");
+            return;
+        }
+        showToast("通知文を保存しました");
+        await loadLineWorksMessages();
+    }
+
     function switchTab(name: "users" | "departments" | "roles" | "remind") {
         tab = name;
     }
@@ -1497,6 +1580,7 @@
             loadOrgTree(),
             loadRoles(),
             loadRemind(),
+            loadLineWorksMessages(),
         ]);
         initExpandDept();
         userFilterSignatureMounted = userFilterSignature;
@@ -1544,7 +1628,7 @@
         class="tab gap-2"
         class:tab-active={tab === "remind"}
         onclick={() => switchTab("remind")}>
-        <Bell class="h-4 w-4" />1on1通知
+        <Bell class="h-4 w-4" />通知
     </button>
 </div>
 
@@ -1938,83 +2022,153 @@
 {/if}
 
 {#if tab === "remind"}
-    <div class="mt-6 max-w-xl">
-        <div
-            class="rounded-3xl border border-base-300 bg-base-100 p-6 shadow-sm space-y-5">
-            <div role="alert" class="alert alert-info text-sm">
-                <Info class="h-5 w-5 shrink-0" />
-                <span
-                    >設定の保存のみ行います。実際の通知送信はバックエンドジョブで別途実装されます。</span>
-            </div>
-            <label
-                class="label cursor-pointer justify-start gap-3 rounded-2xl border border-base-300 px-4 py-3">
-                <input
-                    type="checkbox"
-                    class="toggle toggle-primary"
-                    bind:checked={remind.remindAutoSend} />
-                <span class="label-text font-medium"
-                    >1on1の通知を自動送信する</span>
-            </label>
-            <div>
-                <span class="label-text font-medium">通知タイミング</span>
-                <div class="flex flex-col gap-2 mt-2">
-                    <label
-                        class="label cursor-pointer justify-start gap-3 rounded-2xl border border-base-300 px-4 py-3">
-                        <input
-                            type="radio"
-                            name="remindMode"
-                            class="radio radio-primary"
-                            value="days_before"
-                            bind:group={remind.remindMode} />
-                        <span class="label-text">実施予定日の N 日前</span>
-                    </label>
-                    <label
-                        class="label cursor-pointer justify-start gap-3 rounded-2xl border border-base-300 px-4 py-3">
-                        <input
-                            type="radio"
-                            name="remindMode"
-                            class="radio radio-primary"
-                            value="prev_weekday"
-                            bind:group={remind.remindMode} />
-                        <span class="label-text">前の週の指定曜日</span>
-                    </label>
-                </div>
-            </div>
-            {#if remind.remindMode === "days_before"}
-                <label class="form-control">
-                    <span class="label-text font-medium">何日前（1〜30）</span>
-                    <input
-                        type="number"
-                        min="1"
-                        max="30"
-                        class="input input-bordered"
-                        bind:value={remind.remindDaysBefore} />
-                </label>
-            {/if}
-            {#if remind.remindMode === "prev_weekday"}
-                <label class="form-control">
-                    <span class="label-text font-medium">曜日</span>
-                    <select
-                        class="select select-bordered"
-                        bind:value={remind.remindWeekday}>
-                        {#each WEEKDAYS as w (w.value)}
-                            <option value={w.value}>{w.label}</option>
-                        {/each}
-                    </select>
-                </label>
-            {/if}
-            <label class="form-control">
-                <span class="label-text font-medium">送信時刻</span>
-                <input
-                    type="time"
-                    class="input input-bordered"
-                    bind:value={remind.remindTime} />
-            </label>
+    <div class="mt-6 max-w-2xl">
+        <div role="tablist" class="tabs tabs-bordered mb-4">
             <button
                 type="button"
-                class="btn btn-primary w-full sm:w-auto"
-                onclick={saveRemind}>保存</button>
+                role="tab"
+                class="tab"
+                class:tab-active={remindSection === "send"}
+                onclick={() => (remindSection = "send")}>送信設定</button>
+            <button
+                type="button"
+                role="tab"
+                class="tab"
+                class:tab-active={remindSection === "messages"}
+                onclick={() => (remindSection = "messages")}>通知文</button>
         </div>
+
+        {#if remindSection === "send"}
+            <div
+                class="rounded-3xl border border-base-300 bg-base-100 p-6 shadow-sm space-y-5">
+                <div role="alert" class="alert alert-info text-sm">
+                    <Info class="h-5 w-5 shrink-0" />
+                    <span
+                        >設定の保存のみ行います。実際の通知送信はバックエンドジョブで別途実装されます。</span>
+                </div>
+                <label
+                    class="label cursor-pointer justify-start gap-3 rounded-2xl border border-base-300 px-4 py-3">
+                    <input
+                        type="checkbox"
+                        class="toggle toggle-primary"
+                        bind:checked={remind.remindAutoSend} />
+                    <span class="label-text font-medium"
+                        >1on1の通知を自動送信する</span>
+                </label>
+                <div>
+                    <span class="label-text font-medium">通知タイミング</span>
+                    <div class="flex flex-col gap-2 mt-2">
+                        <label
+                            class="label cursor-pointer justify-start gap-3 rounded-2xl border border-base-300 px-4 py-3">
+                            <input
+                                type="radio"
+                                name="remindMode"
+                                class="radio radio-primary"
+                                value="days_before"
+                                bind:group={remind.remindMode} />
+                            <span class="label-text">実施予定日の N 日前</span>
+                        </label>
+                        <label
+                            class="label cursor-pointer justify-start gap-3 rounded-2xl border border-base-300 px-4 py-3">
+                            <input
+                                type="radio"
+                                name="remindMode"
+                                class="radio radio-primary"
+                                value="prev_weekday"
+                                bind:group={remind.remindMode} />
+                            <span class="label-text">前の週の指定曜日</span>
+                        </label>
+                    </div>
+                </div>
+                {#if remind.remindMode === "days_before"}
+                    <label class="form-control">
+                        <span class="label-text font-medium">何日前（1〜30）</span>
+                        <input
+                            type="number"
+                            min="1"
+                            max="30"
+                            class="input input-bordered"
+                            bind:value={remind.remindDaysBefore} />
+                    </label>
+                {/if}
+                {#if remind.remindMode === "prev_weekday"}
+                    <label class="form-control">
+                        <span class="label-text font-medium">曜日</span>
+                        <select
+                            class="select select-bordered"
+                            bind:value={remind.remindWeekday}>
+                            {#each WEEKDAYS as w (w.value)}
+                                <option value={w.value}>{w.label}</option>
+                            {/each}
+                        </select>
+                    </label>
+                {/if}
+                <label class="form-control">
+                    <span class="label-text font-medium">送信時刻</span>
+                    <input
+                        type="time"
+                        class="input input-bordered"
+                        bind:value={remind.remindTime} />
+                </label>
+                <div class="flex justify-end pt-2">
+                    <button
+                        type="button"
+                        class="btn btn-primary"
+                        onclick={saveRemind}>保存</button>
+                </div>
+            </div>
+        {:else}
+            <div
+                class="rounded-3xl border border-base-300 bg-base-100 p-6 shadow-sm">
+                <p class="text-sm text-base-content/60 mb-4">
+                    ペアのメンター・メンティーへ送る LINE WORKS
+                    の文面です。送信時に装飾子が置き換わります。
+                </p>
+                <div role="tablist" class="tabs tabs-boxed bg-base-200/60 mb-4">
+                    {#each LINE_WORKS_MESSAGE_TITLES as t (t)}
+                        <button
+                            type="button"
+                            role="tab"
+                            class="tab"
+                            class:tab-active={lineWorksMessageTab === t}
+                            onclick={() => (lineWorksMessageTab = t)}>{t}</button>
+                    {/each}
+                </div>
+                <div class="space-y-3">
+                    <div class="flex flex-wrap items-center gap-2">
+                        <span class="text-sm font-medium text-base-content/70"
+                            >挿入</span>
+                        {#each LINE_WORKS_PLACEHOLDERS as ph (ph.token)}
+                            <button
+                                type="button"
+                                class="btn btn-outline btn-xs"
+                                onclick={() =>
+                                    insertLineWorksPlaceholder(ph.token)}
+                                >{ph.label}</button>
+                        {/each}
+                    </div>
+                    <label class="form-control">
+                        <span class="label-text font-medium">本文</span>
+                        <textarea
+                            class="textarea textarea-bordered min-h-[10rem] font-mono text-sm leading-relaxed"
+                            value={lineWorksMessageContent(lineWorksMessageTab)}
+                            oninput={(e) =>
+                                updateLineWorksMessageContent(
+                                    lineWorksMessageTab,
+                                    (e.currentTarget as HTMLTextAreaElement)
+                                        .value,
+                                )}
+                            bind:this={lineWorksMessageBodyEl}></textarea>
+                    </label>
+                </div>
+                <div class="flex justify-end pt-4">
+                    <button
+                        type="button"
+                        class="btn btn-primary"
+                        onclick={saveLineWorksMessages}>保存</button>
+                </div>
+            </div>
+        {/if}
     </div>
 {/if}
 

@@ -6,6 +6,7 @@ import (
 	"growlink/internal/adapter/handler/authctx"
 	outputmodel "growlink/internal/application/model/output_model"
 	org_admin_usecase "growlink/internal/application/usecase/management_usecase/org_admin_usecase"
+	line_works_messages_usecase "growlink/internal/application/usecase/management_usecase/line_works_messages_usecase"
 	remind_settings_usecase "growlink/internal/application/usecase/management_usecase/remind_settings_usecase"
 	role_admin_usecase "growlink/internal/application/usecase/management_usecase/role_admin_usecase"
 	user_admin_usecase "growlink/internal/application/usecase/management_usecase/user_admin_usecase"
@@ -290,6 +291,26 @@ func (h *Handler) UpdateRemindSettings(c *echo.Context) error {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid request"})
 	}
 	if err := h.deps.Management.RemindSettings.Update(req); err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
+	}
+	return c.JSON(http.StatusOK, map[string]string{"ok": "true"})
+}
+
+func (h *Handler) GetLineWorksMessages(c *echo.Context) error {
+	messages, err := h.deps.Management.LineWorksMessages.List()
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+	}
+	return c.JSON(http.StatusOK, map[string]any{"messages": messages})
+}
+
+func (h *Handler) UpdateLineWorksMessages(c *echo.Context) error {
+	claims := authctx.Claims(c)
+	var req line_works_messages_usecase.UpdateLineWorksMessagesInput
+	if err := c.Bind(&req); err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid request"})
+	}
+	if err := h.deps.Management.LineWorksMessages.Update(claims.UserID, req); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
 	}
 	return c.JSON(http.StatusOK, map[string]string{"ok": "true"})

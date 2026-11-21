@@ -166,5 +166,7 @@ func RegisterRoutes(e *echo.Echo, deps Deps, auditLogger *slog.Logger) {
 	apiAuth.DELETE("/management/teams/:uuid", ah.DeleteTeam, SystemAdminAPI(), auditLogging(auditLogger, false))
 	apiAuth.GET("/management/settings/remind", ah.GetRemindSettings, SystemAdminAPI(), auditLogging(auditLogger, false))
 	apiAuth.PUT("/management/settings/remind", ah.UpdateRemindSettings, SystemAdminAPI(), auditLogging(auditLogger, false))
+	apiAuth.GET("/management/settings/line-works-messages", ah.GetLineWorksMessages, SystemAdminAPI(), auditLogging(auditLogger, false))
+	apiAuth.PUT("/management/settings/line-works-messages", ah.UpdateLineWorksMessages, SystemAdminAPI(), auditLogging(auditLogger, false))
 	apiAuth.GET("/management/options", ah.ListManagementOptions, SystemAdminAPI(), auditLogging(auditLogger, false))
 }

@@ -80,6 +80,12 @@ type RemindSettingsOutput struct {
 	RemindTime       string `json:"remindTime"`
 }
 
+type LineWorksMessageOutput struct {
+	UUID    string `json:"uuid"`
+	Title   string `json:"title"`
+	Content string `json:"content"`
+}
+
 type RoleOptionOutput struct {
 	UUID string `json:"uuid"`
 	Name string `json:"name"`

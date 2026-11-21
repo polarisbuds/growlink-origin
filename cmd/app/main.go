@@ -15,6 +15,7 @@ import (
 	org_admin_usecase "growlink/internal/application/usecase/management_usecase/org_admin_usecase"
 	pairing_mng_usecase "growlink/internal/application/usecase/management_usecase/pairing_management_usecase"
 	progress_mng_usecase "growlink/internal/application/usecase/management_usecase/progress_management_usecase"
+	line_works_messages_usecase "growlink/internal/application/usecase/management_usecase/line_works_messages_usecase"
 	remind_settings_usecase "growlink/internal/application/usecase/management_usecase/remind_settings_usecase"
 	role_admin_usecase "growlink/internal/application/usecase/management_usecase/role_admin_usecase"
 	template_mng_usecase "growlink/internal/application/usecase/management_usecase/template_management_usecase"
@@ -96,6 +97,7 @@ func main() {
 	deptMemberRepo := repository.NewDepartmentMemberRepository(ctx, db)
 	roleRepo := repository.NewRoleRepository(ctx, db)
 	systemSettingsRepo := repository.NewSystemSettingsRepository(ctx, db)
+	lineWorksSettingRepo := repository.NewLineWorksSettingRepository(ctx, db)
 
 	ldapSetting, err := ldap.NewLDAPSetting()
 	var ldapClient *ldap.LDAPClient
@@ -153,7 +155,8 @@ func main() {
 			roleRepo,
 		),
 		OrgAdmin:       org_admin_usecase.NewOrgAdmin(deptRepo, teamRepo, deptHierarchyRepo, deptMemberRepo, teamMemberRepo, userRepo),
-		RemindSettings: remind_settings_usecase.NewRemindSettings(systemSettingsRepo),
+		RemindSettings:    remind_settings_usecase.NewRemindSettings(systemSettingsRepo),
+		LineWorksMessages: line_works_messages_usecase.NewLineWorksMessages(lineWorksSettingRepo),
 		RoleAdmin:      role_admin_usecase.NewRoleAdmin(roleRepo),
 	}
 

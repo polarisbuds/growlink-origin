@@ -156,6 +156,13 @@ answer_comments {
 answers ||--o| answer_comments: ""
 users ||--o{ answer_comments: "メンターID"
 
+line_works_settings {
+    text title "not null; unique:idx_line_works_setting_title(未削除); unique:idx_line_works_setting(複合)"
+    text content "not null; unique:idx_line_works_setting"
+
+    bigint update_user_id FK "保存した管理者"
+}
+
 system_settings {
     number meeting_week "定期実施：第N週"
     number meeting_weekday "定期実施：曜日（0=日曜）"

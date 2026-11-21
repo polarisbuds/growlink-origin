@@ -30,6 +30,10 @@ func NewPostgresqlDB(dsn string) (*gorm.DB, error) {
 		return nil, err
 	}
 
+	if err := ensureLineWorksDefaultMessages(db); err != nil {
+		return nil, err
+	}
+
 	if config.IsDevelop() {
 		if err := genSeed(db); err != nil {
 			return nil, err
@@ -60,10 +64,36 @@ func AutoMigrate(db *gorm.DB) error {
 		&entity.AnswerComment{},
 		&entity.SystemSettings{},
 		&entity.DepartmentHierarchy{},
+		&entity.LineWorksSetting{},
 
 		// マスタテーブル
 		&entity.Role{},
 	)
+}
+
+var lineWorksDefaultMessages = []struct {
+	title   string
+	content string
+}{
+	{title: "未提出通知", content: "[year]年[month]月のログが未提出です。"},
+	{title: "提出通知", content: "[mentee]さんが[month]月のログを提出しました。"},
+	{title: "未実施通知", content: "[year]年[month]月の面談が未実施です。"},
+}
+
+func ensureLineWorksDefaultMessages(db *gorm.DB) error {
+	for _, d := range lineWorksDefaultMessages {
+		var count int64
+		if err := db.Model(&entity.LineWorksSetting{}).Where("title = ?", d.title).Count(&count).Error; err != nil {
+			return err
+		}
+		if count > 0 {
+			continue
+		}
+		if err := db.Create(&entity.LineWorksSetting{Title: d.title, Content: d.content}).Error; err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func dropTemplateDisplayNo(db *gorm.DB) error {
