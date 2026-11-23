@@ -75,7 +75,7 @@ func (h *Handler) SaveDraft(c *echo.Context) error {
 	if claims == nil {
 		return c.JSON(http.StatusUnauthorized, map[string]string{"error": "unauthorized"})
 	}
-	id, err := uuid.Parse(c.Param("uuid"))
+	meetingUUID, err := uuid.Parse(c.Param("uuid"))
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid uuid"})
 	}
@@ -85,7 +85,7 @@ func (h *Handler) SaveDraft(c *echo.Context) error {
 	if err := c.Bind(&req); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid request"})
 	}
-	if err := h.deps.Meeting.API.SaveDraftByUUID(id, claims.UserID, req.Answers); err != nil {
+	if err := h.deps.Meeting.API.SaveDraftByUUID(meetingUUID, claims.UserID, req.Answers); err != nil {
 		return meetingAPIError(c, err)
 	}
 	return c.JSON(http.StatusOK, map[string]string{"ok": "true"})
@@ -120,7 +120,7 @@ func (h *Handler) CompleteMentorMeeting(c *echo.Context) error {
 	if claims == nil {
 		return c.JSON(http.StatusUnauthorized, map[string]string{"error": "unauthorized"})
 	}
-	id, err := uuid.Parse(c.Param("uuid"))
+	meetingUUID, err := uuid.Parse(c.Param("uuid"))
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid uuid"})
 	}
@@ -130,7 +130,7 @@ func (h *Handler) CompleteMentorMeeting(c *echo.Context) error {
 	if err := c.Bind(&req); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid request"})
 	}
-	if err := h.deps.Meeting.API.CompleteMentorByUUID(id, claims.UserID, req.Comments); err != nil {
+	if err := h.deps.Meeting.API.CompleteMentorByUUID(meetingUUID, claims.UserID, req.Comments); err != nil {
 		if err.Error() == "pairing not found" {
 			return c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
 		}
