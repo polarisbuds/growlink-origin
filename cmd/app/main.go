@@ -97,7 +97,7 @@ func main() {
 	deptMemberRepo := repository.NewDepartmentMemberRepository(ctx, db)
 	roleRepo := repository.NewRoleRepository(ctx, db)
 	systemSettingsRepo := repository.NewSystemSettingsRepository(ctx, db)
-	lineWorksSettingRepo := repository.NewLineWorksSettingRepository(ctx, db)
+	lineWorksMessageSettingRepo := repository.NewLineWorksMessageSettingRepository(ctx, db)
 
 	ldapSetting, err := ldap.NewLDAPSetting()
 	var ldapClient *ldap.LDAPClient
@@ -156,7 +156,7 @@ func main() {
 		),
 		OrgAdmin:       org_admin_usecase.NewOrgAdmin(deptRepo, teamRepo, deptHierarchyRepo, deptMemberRepo, teamMemberRepo, userRepo),
 		RemindSettings:    remind_settings_usecase.NewRemindSettings(systemSettingsRepo),
-		LineWorksMessages: line_works_messages_usecase.NewLineWorksMessages(lineWorksSettingRepo),
+		LineWorksMessages: line_works_messages_usecase.NewLineWorksMessages(lineWorksMessageSettingRepo),
 		RoleAdmin:      role_admin_usecase.NewRoleAdmin(roleRepo),
 	}
 

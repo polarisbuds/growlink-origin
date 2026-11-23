@@ -78,7 +78,7 @@
 | 提出通知 | `[mentee]さんが[month]月のログを提出しました。` |
 | 未実施通知 | `[year]年[month]月の面談が未実施です。` |
 
-- タイトル入力欄は置かない。`line_works_settings.title` はサブタブ名（未提出通知 / 提出通知 / 未実施通知）に対応する。
+- タイトル入力欄は置かない。`line_works_message_settings.title` はサブタブ名（未提出通知 / 提出通知 / 未実施通知）に対応する。
 - 編集するのは `content`（本文）のみ。
 - 挿入ボタンは本文テキストエリアのカーソル位置に次の文字列を入れる。
 
@@ -92,7 +92,7 @@
 
 送信時にメンター・メンティー氏名や年月日へ置き換える。本画面ではプレースホルダ文字列のまま保存する。
 
-- 保存先: `line_works_settings`（サブタブ1つ = 1行。3サブタブ分をまとめて保存）
+- 保存先: `line_works_message_settings`（サブタブ1つ = 1行。3サブタブ分をまとめて保存）
 - 保存時に `update_user_id` に操作した管理者を記録する。`uuid`・`created_at`・`updated_at`・`deleted_at` は画面に表示しない。
 - 保存ボタン: 通知文枠の右下に1つ（表示中のタブのみでなく3タブ分を一括保存）
 
@@ -103,7 +103,7 @@
 | 領域 | 保存ボタン位置 | 永続化先 |
 |------|----------------|----------|
 | 送信設定 | 送信設定カード右下 | `system_settings` |
-| 通知文 | 通知文カード右下 | `line_works_settings` |
+| 通知文 | 通知文カード右下 | `line_works_message_settings` |
 
 それぞれ独立したボタンとテーブルとする。
 
@@ -115,16 +115,17 @@
 
 ---
 
-## データモデル参考（`line_works_settings`）
+## データモデル参考（`line_works_message_settings`）
 
 ```mermaid
 erDiagram
 
-line_works_settings {
+line_works_message_settings {
     bigint id PK
     uuid uuid UK
-    text title "not null; unique:idx_line_works_setting"
-    text content "not null; unique:idx_line_works_setting"
+    smallint kind "not null; unique per kind (deleted excluded)"
+    text title "not null; unique:idx_line_works_message_setting"
+    text content "not null; unique:idx_line_works_message_setting"
     datetime created_at
     datetime updated_at
     datetime deleted_at
@@ -132,4 +133,4 @@ line_works_settings {
 }
 ```
 
-`title` と `content` の組み合わせはユニーク（`idx_line_works_setting`）。運用上は `title` を通知種別キー（未提出通知・提出通知・未実施通知）として固定し、`content` を画面で編集する想定。
+`kind` は列挙（Draft / Submit / NotConducted）。`title` は画面タブ名と対応し固定、`content` のみ管理画面で編集する。

@@ -8,6 +8,7 @@ import (
 	outputmodel "growlink/internal/application/model/output_model"
 	"growlink/internal/domain/entity"
 	repository_interface "growlink/internal/domain/interface/repository"
+	"growlink/internal/domain/valueobject"
 	logutils "growlink/internal/shared/logUtils"
 
 	"github.com/google/uuid"
@@ -39,10 +40,10 @@ func defaultContent(title string) (string, bool) {
 }
 
 type LineWorksMessages struct {
-	repo repository_interface.LineWorksSettingRepository
+	repo repository_interface.LineWorksMessageSettingRepository
 }
 
-func NewLineWorksMessages(repo repository_interface.LineWorksSettingRepository) *LineWorksMessages {
+func NewLineWorksMessages(repo repository_interface.LineWorksMessageSettingRepository) *LineWorksMessages {
 	return &LineWorksMessages{repo: repo}
 }
 
@@ -144,14 +145,22 @@ func (uc *LineWorksMessages) ensureAllDefaults() error {
 		if !ok {
 			return fmt.Errorf("既定の通知文がありません: %s", title)
 		}
-		if err := uc.repo.Create(&entity.LineWorksSetting{Title: title, Content: content}); err != nil {
+		kind, ok := valueobject.LineWorksMessageKindFromTitle(title)
+		if !ok {
+			return fmt.Errorf("既定の通知文がありません: %s", title)
+		}
+		if err := uc.repo.Create(&entity.LineWorksMessageSetting{
+			Kind:    kind,
+			Title:   title,
+			Content: content,
+		}); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func rowsToOutput(rows []entity.LineWorksSetting) []outputmodel.LineWorksMessageOutput {
+func rowsToOutput(rows []entity.LineWorksMessageSetting) []outputmodel.LineWorksMessageOutput {
 	out := make([]outputmodel.LineWorksMessageOutput, 0, len(rows))
 	for _, row := range rows {
 		out = append(out, outputmodel.LineWorksMessageOutput{

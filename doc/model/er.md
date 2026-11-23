@@ -156,9 +156,10 @@ answer_comments {
 answers ||--o| answer_comments: ""
 users ||--o{ answer_comments: "メンターID"
 
-line_works_settings {
-    text title "not null; unique:idx_line_works_setting_title(未削除); unique:idx_line_works_setting(複合)"
-    text content "not null; unique:idx_line_works_setting"
+line_works_message_settings {
+    smallint kind "not null; unique:idx_line_works_message_setting_kind(未削除)。1=Draft 2=Submit 3=NotConducted"
+    text title "not null; unique:idx_line_works_message_setting_title(未削除); unique:idx_line_works_message_setting(複合)"
+    text content "not null; unique:idx_line_works_message_setting"
 
     bigint update_user_id FK "保存した管理者"
 }

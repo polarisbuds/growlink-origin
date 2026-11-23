@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	repository_interface "growlink/internal/domain/interface/repository"
 	logutils "growlink/internal/shared/logUtils"
 	"strings"
 )
@@ -14,11 +15,15 @@ type Sender interface {
 }
 
 type Usecase struct {
-	client Sender
+	client                  Sender
+	lineWorksMessageSetting repository_interface.LineWorksMessageSettingRepository
 }
 
-func New(client Sender) *Usecase {
-	return &Usecase{client: client}
+func New(client Sender, lineWorksMessageSetting repository_interface.LineWorksMessageSettingRepository) *Usecase {
+	return &Usecase{
+		client:                  client,
+		lineWorksMessageSetting: lineWorksMessageSetting,
+	}
 }
 
 // SendMessage は lineworksIDs の各ユーザーへ同じ本文を送る。

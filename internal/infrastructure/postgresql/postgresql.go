@@ -2,6 +2,7 @@ package infrastructure
 
 import (
 	"growlink/internal/domain/entity"
+	"growlink/internal/domain/valueobject"
 	"growlink/internal/shared/config"
 	"time"
 
@@ -26,7 +27,15 @@ func NewPostgresqlDB(dsn string) (*gorm.DB, error) {
 		return nil, err
 	}
 
+	if err := renameLineWorksSettingsTable(db); err != nil {
+		return nil, err
+	}
+
 	if err := AutoMigrate(db); err != nil {
+		return nil, err
+	}
+
+	if err := backfillLineWorksMessageKind(db); err != nil {
 		return nil, err
 	}
 
@@ -64,32 +73,62 @@ func AutoMigrate(db *gorm.DB) error {
 		&entity.AnswerComment{},
 		&entity.SystemSettings{},
 		&entity.DepartmentHierarchy{},
-		&entity.LineWorksSetting{},
+		&entity.LineWorksMessageSetting{},
 
 		// マスタテーブル
 		&entity.Role{},
 	)
 }
 
-var lineWorksDefaultMessages = []struct {
-	title   string
-	content string
-}{
-	{title: "未提出通知", content: "[year]年[month]月のログが未提出です。"},
-	{title: "提出通知", content: "[mentee]さんが[month]月のログを提出しました。"},
-	{title: "未実施通知", content: "[year]年[month]月の面談が未実施です。"},
+func renameLineWorksSettingsTable(db *gorm.DB) error {
+	if db.Migrator().HasTable("line_works_settings") && !db.Migrator().HasTable("line_works_message_settings") {
+		return db.Exec("ALTER TABLE line_works_settings RENAME TO line_works_message_settings").Error
+	}
+	return nil
+}
+
+var lineWorksDefaultKinds = []valueobject.LineWorksMessageKind{
+	valueobject.LineWorksMessageKindDraft,
+	valueobject.LineWorksMessageKindSubmit,
+	valueobject.LineWorksMessageKindNotConducted,
+}
+
+func backfillLineWorksMessageKind(db *gorm.DB) error {
+	if !db.Migrator().HasTable("line_works_message_settings") {
+		return nil
+	}
+	for title, kind := range map[string]valueobject.LineWorksMessageKind{
+		"未提出通知": valueobject.LineWorksMessageKindDraft,
+		"提出通知":  valueobject.LineWorksMessageKindSubmit,
+		"未実施通知": valueobject.LineWorksMessageKindNotConducted,
+	} {
+		if err := db.Model(&entity.LineWorksMessageSetting{}).
+			Where("title = ? AND (kind = 0 OR kind IS NULL)", title).
+			Update("kind", kind).Error; err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func ensureLineWorksDefaultMessages(db *gorm.DB) error {
-	for _, d := range lineWorksDefaultMessages {
+	for _, kind := range lineWorksDefaultKinds {
 		var count int64
-		if err := db.Model(&entity.LineWorksSetting{}).Where("title = ?", d.title).Count(&count).Error; err != nil {
+		if err := db.Model(&entity.LineWorksMessageSetting{}).Where("kind = ?", kind).Count(&count).Error; err != nil {
 			return err
 		}
 		if count > 0 {
 			continue
 		}
-		if err := db.Create(&entity.LineWorksSetting{Title: d.title, Content: d.content}).Error; err != nil {
+		content, ok := kind.DefaultContent()
+		if !ok {
+			continue
+		}
+		if err := db.Create(&entity.LineWorksMessageSetting{
+			Kind:    kind,
+			Title:   kind.DefaultTitle(),
+			Content: content,
+		}).Error; err != nil {
 			return err
 		}
 	}

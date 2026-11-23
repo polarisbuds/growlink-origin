@@ -28,7 +28,7 @@ func main() {
 		fmt.Println(err.Error())
 		os.Exit(3)
 	}
-	uc := lineworks_usecase.New(client)
+	uc := lineworks_usecase.New(client, nil)
 	if err := uc.SendMessage(context.Background(), []string{"ryota.kashio@cap"}, "test"); err != nil {
 		fmt.Println(err.Error())
 		os.Exit(4)
