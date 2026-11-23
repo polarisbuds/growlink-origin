@@ -88,7 +88,7 @@ func renameLineWorksSettingsTable(db *gorm.DB) error {
 }
 
 var lineWorksDefaultKinds = []valueobject.LineWorksMessageKind{
-	valueobject.LineWorksMessageKindDraft,
+	valueobject.LineWorksMessageKindUnsubmitted,
 	valueobject.LineWorksMessageKindSubmit,
 	valueobject.LineWorksMessageKindNotConducted,
 }
@@ -98,7 +98,7 @@ func backfillLineWorksMessageKind(db *gorm.DB) error {
 		return nil
 	}
 	for title, kind := range map[string]valueobject.LineWorksMessageKind{
-		"未提出通知": valueobject.LineWorksMessageKindDraft,
+		"未提出通知": valueobject.LineWorksMessageKindUnsubmitted,
 		"提出通知":  valueobject.LineWorksMessageKindSubmit,
 		"未実施通知": valueobject.LineWorksMessageKindNotConducted,
 	} {

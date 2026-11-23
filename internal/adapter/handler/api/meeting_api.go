@@ -2,6 +2,7 @@ package api
 
 import (
 	"errors"
+	"fmt"
 	"log/slog"
 	"net/http"
 	"strings"
@@ -87,6 +88,10 @@ func (h *Handler) SaveDraft(c *echo.Context) error {
 	if err := h.deps.Meeting.API.SaveDraftByUUID(id, claims.UserID, req.Answers); err != nil {
 		return meetingAPIError(c, err)
 	}
+	if err := h.deps.Lineworks.SendUnsubmittedMsg(c.Request().Context(), id); err != nil {
+		return meetingAPIError(c, fmt.Errorf("未提出通知の送信に失敗しました: %w", err))
+	}
+
 	return c.JSON(http.StatusOK, map[string]string{"ok": "true"})
 }
 
@@ -95,7 +100,7 @@ func (h *Handler) SubmitMeeting(c *echo.Context) error {
 	if claims == nil {
 		return c.JSON(http.StatusUnauthorized, map[string]string{"error": "unauthorized"})
 	}
-	id, err := uuid.Parse(c.Param("uuid"))
+	meetingUUID, err := uuid.Parse(c.Param("uuid"))
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid uuid"})
 	}
@@ -105,8 +110,11 @@ func (h *Handler) SubmitMeeting(c *echo.Context) error {
 	if err := c.Bind(&req); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid request"})
 	}
-	if err := h.deps.Meeting.API.SubmitByUUID(id, claims.UserID, req.Answers); err != nil {
+	if err := h.deps.Meeting.API.SubmitByUUID(meetingUUID, claims.UserID, req.Answers); err != nil {
 		return meetingAPIError(c, err)
+	}
+	if err := h.deps.Lineworks.SendSubmitMsg(c.Request().Context(), meetingUUID); err != nil {
+		return meetingAPIError(c, fmt.Errorf("提出完了通知の送信に失敗しました: %w", err))
 	}
 	return c.JSON(http.StatusOK, map[string]string{"ok": "true"})
 }

@@ -133,4 +133,4 @@ line_works_message_settings {
 }
 ```
 
-`kind` は列挙（Draft / Submit / NotConducted）。`title` は画面タブ名と対応し固定、`content` のみ管理画面で編集する。
+`kind` は列挙（Unsubmitted / Submit / NotConducted）。未提出はメンティー向け、提出・未実施はメンター向け。`title` は画面タブ名と対応し固定、`content` のみ管理画面で編集する。

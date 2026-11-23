@@ -7,8 +7,8 @@ import (
 
 	"growlink/internal/application/converter"
 	outputmodel "growlink/internal/application/model/output_model"
-	repository_interface "growlink/internal/domain/interface/repository"
 	"growlink/internal/domain/entity"
+	repository_interface "growlink/internal/domain/interface/repository"
 	"growlink/internal/domain/valueobject"
 	logutils "growlink/internal/shared/logUtils"
 
@@ -39,17 +39,17 @@ type MeetingDetailOutput struct {
 }
 
 type MeetingAPIUsecase struct {
-	meetingRepo          repository_interface.MeetingRepository
-	userRepo             repository_interface.UserRepository
-	answerRepo           repository_interface.AnswerRepository
-	answerReader         *AnswerReaderUsecase
-	draftSaver           *DraftSaverUsecase
-	submitter            *SubmitterUsecase
-	submitCanceller      *SubmitCancellerUsecase
-	mentorCompleter      *MentorMeetingCompleterUsecase
-	meetingCommenter     *MeetingCommenterUsecase
-	answerCommenter      *AnswerCommenterUsecase
-	planning             PlanningMeetingAccess
+	meetingRepo      repository_interface.MeetingRepository
+	userRepo         repository_interface.UserRepository
+	answerRepo       repository_interface.AnswerRepository
+	answerReader     *AnswerReaderUsecase
+	draftSaver       *DraftSaverUsecase
+	submitter        *SubmitterUsecase
+	submitCanceller  *SubmitCancellerUsecase
+	mentorCompleter  *MentorMeetingCompleterUsecase
+	meetingCommenter *MeetingCommenterUsecase
+	answerCommenter  *AnswerCommenterUsecase
+	planning         PlanningMeetingAccess
 }
 
 func NewMeetingAPIUsecase(
@@ -67,14 +67,14 @@ func NewMeetingAPIUsecase(
 	return &MeetingAPIUsecase{
 		meetingRepo:      meetingRepo,
 		userRepo:         userRepo,
-		answerRepo:         answerRepo,
-		answerReader:       answerReader,
-		draftSaver:         draftSaver,
-		submitter:          submitter,
-		submitCanceller:    submitCanceller,
-		mentorCompleter:    mentorCompleter,
-		meetingCommenter:   meetingCommenter,
-		answerCommenter:    answerCommenter,
+		answerRepo:       answerRepo,
+		answerReader:     answerReader,
+		draftSaver:       draftSaver,
+		submitter:        submitter,
+		submitCanceller:  submitCanceller,
+		mentorCompleter:  mentorCompleter,
+		meetingCommenter: meetingCommenter,
+		answerCommenter:  answerCommenter,
 	}
 }
 

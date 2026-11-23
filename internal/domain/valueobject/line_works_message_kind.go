@@ -5,14 +5,14 @@ import "fmt"
 type LineWorksMessageKind int
 
 const (
-	LineWorksMessageKindDraft LineWorksMessageKind = iota + 1
+	LineWorksMessageKindUnsubmitted LineWorksMessageKind = iota + 1
 	LineWorksMessageKindSubmit
 	LineWorksMessageKindNotConducted
 )
 
 func (k LineWorksMessageKind) IsValid() bool {
 	switch k {
-	case LineWorksMessageKindDraft, LineWorksMessageKindSubmit, LineWorksMessageKindNotConducted:
+	case LineWorksMessageKindUnsubmitted, LineWorksMessageKindSubmit, LineWorksMessageKindNotConducted:
 		return true
 	default:
 		return false
@@ -26,7 +26,7 @@ func (k LineWorksMessageKind) Int() int {
 func LineWorksMessageKindFromTitle(title string) (LineWorksMessageKind, bool) {
 	switch title {
 	case "未提出通知":
-		return LineWorksMessageKindDraft, true
+		return LineWorksMessageKindUnsubmitted, true
 	case "提出通知":
 		return LineWorksMessageKindSubmit, true
 	case "未実施通知":
@@ -38,7 +38,7 @@ func LineWorksMessageKindFromTitle(title string) (LineWorksMessageKind, bool) {
 
 func (k LineWorksMessageKind) DefaultTitle() string {
 	switch k {
-	case LineWorksMessageKindDraft:
+	case LineWorksMessageKindUnsubmitted:
 		return "未提出通知"
 	case LineWorksMessageKindSubmit:
 		return "提出通知"
@@ -51,7 +51,7 @@ func (k LineWorksMessageKind) DefaultTitle() string {
 
 func (k LineWorksMessageKind) DefaultContent() (string, bool) {
 	switch k {
-	case LineWorksMessageKindDraft:
+	case LineWorksMessageKindUnsubmitted:
 		return "[year]年[month]月のログが未提出です。", true
 	case LineWorksMessageKindSubmit:
 		return "[mentee]さんが[month]月のログを提出しました。", true

@@ -2,6 +2,7 @@ package api
 
 import (
 	authenticate_usecase "growlink/internal/application/usecase/authenticate_usecase"
+	lineworks_usecase "growlink/internal/application/usecase/lineworks_usecase"
 	management_usecase "growlink/internal/application/usecase/management_usecase"
 	"growlink/internal/application/usecase/meeting_usecase"
 	"growlink/internal/application/usecase/pairing_usecase"
@@ -19,6 +20,7 @@ type Deps struct {
 	SettingRm  *setting_usecase.IconRemoverUsecase
 	Profile    *setting_usecase.ProfileUsecase
 	Planning   *planning_usecase.PlanningAccessUsecase
+	Lineworks  *lineworks_usecase.Usecase
 }
 
 type Handler struct {
