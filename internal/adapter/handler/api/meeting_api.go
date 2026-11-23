@@ -88,10 +88,6 @@ func (h *Handler) SaveDraft(c *echo.Context) error {
 	if err := h.deps.Meeting.API.SaveDraftByUUID(id, claims.UserID, req.Answers); err != nil {
 		return meetingAPIError(c, err)
 	}
-	if err := h.deps.Lineworks.SendUnsubmittedMsg(c.Request().Context(), id); err != nil {
-		return meetingAPIError(c, fmt.Errorf("未提出通知の送信に失敗しました: %w", err))
-	}
-
 	return c.JSON(http.StatusOK, map[string]string{"ok": "true"})
 }
 
