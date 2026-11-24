@@ -101,6 +101,23 @@ func (repo *MeetingRepository) GetByUUID(uuid uuid.UUID) (ret0 *entity.Meeting, 
 	return &meeting, nil
 }
 
+func (repo *MeetingRepository) GetByUUIDs(uuids []uuid.UUID) (ret0 []entity.Meeting, err error) {
+	meetingUUIDs := make([]string, len(uuids))
+	for idx, id := range uuids {
+		meetingUUIDs[idx] = id.String()
+	}
+
+	meetings, err := preloadAll(gorm.G[entity.Meeting](repo.unscoped).Scopes(func(stmt *gorm.Statement) {
+		stmt.Unscoped = true
+	}).Order("id DESC")).
+		Where("uuid IN ?", meetingUUIDs).
+		Find(repo.ctx)
+	if err != nil {
+		return nil, fmt.Errorf("ミーディング情報のID指定取得に失敗しました: %w", err)
+	}
+	return meetings, nil
+}
+
 func (repo *MeetingRepository) GetUntilToday(base time.Time) (ret0 []entity.Meeting, err error) {
 	endOfBaseDay := utils.GetEndOfDay(base)
 

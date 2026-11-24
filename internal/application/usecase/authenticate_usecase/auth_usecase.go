@@ -142,10 +142,8 @@ func issueToken(user *entity.User) (string, error) {
 		Name:       user.Name,
 		Authority:  user.Authority,
 		SystemRole: user.SystemRole,
-		RegisteredClaims: jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(1 * time.Hour)),
-			IssuedAt:  jwt.NewNumericDate(time.Now()),
-		},
+		ExpiresAt:  jwt.NewNumericDate(time.Now().Add(1 * time.Hour)),
+		IssuedAt:   jwt.NewNumericDate(time.Now()),
 	}
 	return jwt.NewWithClaims(jwt.SigningMethodHS256, claims).SignedString([]byte(config.GetJWTKey()))
 }
@@ -179,6 +177,10 @@ func (uc *AuthUsecase) departmentIDForNewLDAPUser(ldapDepartment string) (uint, 
 	if err != nil {
 		return 0, err
 	}
+	if dept == nil {
+		return 0, nil
+	}
+
 	return dept.ID, nil
 }
 
@@ -189,11 +191,11 @@ func (uc *AuthUsecase) ensureDepartmentFromLDAP(ctx context.Context, ldapDepartm
 		return 0, nil
 	}
 	dept, err := uc.deptRepo.GetByName(name)
-	if err == nil {
-		return dept.ID, nil
-	}
-	if !errors.Is(err, gorm.ErrRecordNotFound) {
+	if err != nil {
 		return 0, err
+	}
+	if dept != nil {
+		return dept.ID, nil
 	}
 	newDept := &entity.Department{Name: name}
 	if err := uc.deptRepo.Create(newDept); err != nil {

@@ -1,11 +1,11 @@
 package api
 
 import (
+	"context"
 	"errors"
-	"fmt"
-	"log/slog"
 	"net/http"
 	"strings"
+	"time"
 
 	"growlink/internal/adapter/handler/authctx"
 	outputmodel "growlink/internal/application/model/output_model"
@@ -64,6 +64,9 @@ func meetingAPIError(c *echo.Context, err error) error {
 	if errors.Is(err, meeting_usecase.ErrMeetingForbidden) || err.Error() == "forbidden" {
 		return c.JSON(http.StatusForbidden, map[string]string{"error": "forbidden"})
 	}
+	if errors.Is(err, meeting_usecase.ErrRequireAnswerNotAnswered) {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
+	}
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return c.JSON(http.StatusNotFound, map[string]string{"error": "not found"})
 	}
@@ -109,9 +112,8 @@ func (h *Handler) SubmitMeeting(c *echo.Context) error {
 	if err := h.deps.Meeting.API.SubmitByUUID(meetingUUID, claims.UserID, req.Answers); err != nil {
 		return meetingAPIError(c, err)
 	}
-	if err := h.deps.Lineworks.SendSubmitMsg(c.Request().Context(), meetingUUID); err != nil {
-		return meetingAPIError(c, fmt.Errorf("提出完了通知の送信に失敗しました: %w", err))
-	}
+
+	go h.deps.Lineworks.SendSubmitMsg(context.Background(), claims, meetingUUID)
 	return c.JSON(http.StatusOK, map[string]string{"ok": "true"})
 }
 
@@ -144,14 +146,60 @@ func (h *Handler) CancelSubmit(c *echo.Context) error {
 	if claims == nil {
 		return c.JSON(http.StatusUnauthorized, map[string]string{"error": "unauthorized"})
 	}
-	id, err := uuid.Parse(c.Param("uuid"))
+	meetingUUID, err := uuid.Parse(c.Param("uuid"))
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid uuid"})
 	}
-	if err := h.deps.Meeting.API.CancelSubmitByUUID(id, claims.UserID); err != nil {
+	if err := h.deps.Meeting.API.CancelSubmitByUUID(meetingUUID, claims.UserID); err != nil {
 		return meetingAPIError(c, err)
 	}
+
+	go h.deps.Lineworks.SendCancelSubmittedMsg(context.Background(), claims, meetingUUID)
 	return c.JSON(http.StatusOK, map[string]string{"ok": "true"})
+}
+
+func (h *Handler) UpdateMeetingImplementedAt(c *echo.Context) error {
+	claims := authctx.Claims(c)
+	if claims == nil {
+		return c.JSON(http.StatusUnauthorized, map[string]string{"error": "unauthorized"})
+	}
+	pathUUID, err := uuid.Parse(c.Param("uuid"))
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid uuid"})
+	}
+	var req struct {
+		UUID          string `json:"uuid"`
+		ImplementedAt string `json:"implementedAt"`
+	}
+	if err := c.Bind(&req); err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid request"})
+	}
+	if req.UUID == "" {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "uuid is required"})
+	}
+	bodyUUID, err := uuid.Parse(req.UUID)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid uuid"})
+	}
+	if bodyUUID != pathUUID {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "uuid mismatch"})
+	}
+	implementDate, ok := parseDateOnly(req.ImplementedAt)
+	if !ok {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid implementedAt"})
+	}
+	updated, err := h.deps.Management.MeetingUpdater.ChangeImplementDateByUUID(
+		pathUUID,
+		claims.UserID,
+		claims.SystemRole,
+		implementDate,
+	)
+	if err != nil {
+		return meetingAPIError(c, err)
+	}
+
+	go h.deps.Lineworks.SendChangeImplementedAtMsg(context.Background(), claims, pathUUID)
+	return c.JSON(http.StatusOK, map[string]string{"implementedAt": updated.Format(time.RFC3339)})
 }
 
 func (h *Handler) UpdateMeetingSharers(c *echo.Context) error {
@@ -252,7 +300,7 @@ func (h *Handler) ListMeetingsAll(c *echo.Context) error {
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
 	}
-	slog.Debug("ListMeetingsAll", slog.Any("filter", filter))
+
 	out, err := h.deps.Planning.ListPlanningMeetingsPaged(
 		claims.UserID,
 		claims.Authority,

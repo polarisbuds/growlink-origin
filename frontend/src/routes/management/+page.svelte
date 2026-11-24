@@ -185,7 +185,10 @@
     const LINE_WORKS_MESSAGE_TITLES = [
         "未提出通知",
         "提出通知",
+        "提出取消通知",
         "未実施通知",
+        "面談作成通知",
+        "面談日設定通知",
     ] as const;
     type LineWorksMessageTitle = (typeof LINE_WORKS_MESSAGE_TITLES)[number];
     let remindSection = $state<"send" | "messages">("send");
@@ -200,6 +203,9 @@
         { label: "年", token: "[year]" },
         { label: "月", token: "[month]" },
         { label: "日", token: "[day]" },
+        { label: "URL", token: "[url]" },
+        { label: `更新者名`, token: "[iam_name]" },
+        { label: `更新者アドレス`, token: "[iam_mail]" },
     ] as const;
     let orgChildSearch = $state("");
     let orgTeamSearch = $state("");
@@ -981,7 +987,10 @@
                 i === idx ? { ...m, content } : m,
             );
         } else {
-            lineWorksMessages = [...lineWorksMessages, { uuid: "", title, content }];
+            lineWorksMessages = [
+                ...lineWorksMessages,
+                { uuid: "", title, content },
+            ];
         }
     }
 
@@ -1530,9 +1539,13 @@
             };
         });
         try {
-            await api("PUT", "/api/v1/management/settings/line-works-messages", {
-                messages: payload,
-            });
+            await api(
+                "PUT",
+                "/api/v1/management/settings/line-works-messages",
+                {
+                    messages: payload,
+                },
+            );
         } catch (e) {
             showToast(apiErrorMessage(e, "保存に失敗しました"), "error");
             return;
@@ -2082,7 +2095,8 @@
                 </div>
                 {#if remind.remindMode === "days_before"}
                     <label class="form-control">
-                        <span class="label-text font-medium">何日前（1〜30）</span>
+                        <span class="label-text font-medium"
+                            >何日前（1〜30）</span>
                         <input
                             type="number"
                             min="1"
@@ -2131,7 +2145,8 @@
                             role="tab"
                             class="tab"
                             class:tab-active={lineWorksMessageTab === t}
-                            onclick={() => (lineWorksMessageTab = t)}>{t}</button>
+                            onclick={() => (lineWorksMessageTab = t)}
+                            >{t}</button>
                     {/each}
                 </div>
                 <div class="space-y-3">

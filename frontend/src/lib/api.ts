@@ -1,5 +1,18 @@
 import { ensureSession, redirectToLogin } from './session';
 
+export function apiErrorMessage(e: unknown, fallback: string): string {
+	if (e instanceof Error) {
+		try {
+			const j = JSON.parse(e.message) as { error?: string };
+			if (j?.error) return j.error;
+		} catch {
+			/* not json */
+		}
+		if (e.message && e.message !== 'unauthorized') return e.message;
+	}
+	return fallback;
+}
+
 export async function api<T>(
 	method: string,
 	path: string,

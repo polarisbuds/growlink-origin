@@ -14,15 +14,13 @@
     let viewMode = $state<"card" | "table">("card");
     let ownMeetings = $state<MeetingListItem[]>([]);
     let mentorMeetings = $state<MeetingListItem[]>([]);
-    let includeMenteeMeetings = $state(true);
+    let hiddenMentorMeeting = $state(false);
     let sharedMeetings = $state<MeetingListItem[]>([]);
     let currentUserUuid = $state("");
     let directoryUsers = $state<PlanningDirectoryUser[]>([]);
 
     let ownVisibleMeetings = $derived(
-        includeMenteeMeetings
-            ? [...ownMeetings, ...mentorMeetings]
-            : ownMeetings,
+        hiddenMentorMeeting ? ownMeetings : [...ownMeetings, ...mentorMeetings],
     );
 
     let canIncludeMenteeMeetings = $derived(mentorMeetings.length > 0);
@@ -104,7 +102,7 @@
         {currentUserUuid}
         {directoryUsers}
         {canIncludeMenteeMeetings}
-        bind:includeMenteeMeetings />
+        bind:hiddenMentorMeeting />
 {:else}
     <WorkspaceMeetingPeriodViews
         meetings={sharedMeetings}

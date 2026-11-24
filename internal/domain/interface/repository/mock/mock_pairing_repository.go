@@ -354,6 +354,45 @@ func (c *MockPairingRepositoryGetAllContainDeletedCall) DoAndReturn(f func() ([]
 	return c
 }
 
+// GetByIDs mocks base method.
+func (m *MockPairingRepository) GetByIDs(pairingIDs []uint) ([]entity.Pairing, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetByIDs", pairingIDs)
+	ret0, _ := ret[0].([]entity.Pairing)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetByIDs indicates an expected call of GetByIDs.
+func (mr *MockPairingRepositoryMockRecorder) GetByIDs(pairingIDs any) *MockPairingRepositoryGetByIDsCall {
+	mr.mock.ctrl.T.Helper()
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByIDs", reflect.TypeOf((*MockPairingRepository)(nil).GetByIDs), pairingIDs)
+	return &MockPairingRepositoryGetByIDsCall{Call: call}
+}
+
+// MockPairingRepositoryGetByIDsCall wrap *gomock.Call
+type MockPairingRepositoryGetByIDsCall struct {
+	*gomock.Call
+}
+
+// Return rewrite *gomock.Call.Return
+func (c *MockPairingRepositoryGetByIDsCall) Return(arg0 []entity.Pairing, arg1 error) *MockPairingRepositoryGetByIDsCall {
+	c.Call = c.Call.Return(arg0, arg1)
+	return c
+}
+
+// Do rewrite *gomock.Call.Do
+func (c *MockPairingRepositoryGetByIDsCall) Do(f func([]uint) ([]entity.Pairing, error)) *MockPairingRepositoryGetByIDsCall {
+	c.Call = c.Call.Do(f)
+	return c
+}
+
+// DoAndReturn rewrite *gomock.Call.DoAndReturn
+func (c *MockPairingRepositoryGetByIDsCall) DoAndReturn(f func([]uint) ([]entity.Pairing, error)) *MockPairingRepositoryGetByIDsCall {
+	c.Call = c.Call.DoAndReturn(f)
+	return c
+}
+
 // GetByMenteeID mocks base method.
 func (m *MockPairingRepository) GetByMenteeID(menteeID uint) ([]entity.Pairing, error) {
 	m.ctrl.T.Helper()

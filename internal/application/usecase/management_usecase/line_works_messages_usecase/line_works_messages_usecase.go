@@ -14,28 +14,16 @@ import (
 	"github.com/google/uuid"
 )
 
-const (
-	TitleUnsubmitted    = "未提出通知"
-	TitleSubmitted      = "提出通知"
-	TitleNotImplemented = "未実施通知"
-
-	lineWorksMessageCount = 3
-)
+const lineWorksMessageCount = 6
 
 func orderedTitles() []string {
-	return []string{TitleUnsubmitted, TitleSubmitted, TitleNotImplemented}
-}
-
-func defaultContent(title string) (string, bool) {
-	switch title {
-	case TitleUnsubmitted:
-		return "[year]年[month]月のログが未提出です。", true
-	case TitleSubmitted:
-		return "[mentee]さんが[month]月のログを提出しました。", true
-	case TitleNotImplemented:
-		return "[year]年[month]月の面談が未実施です。", true
-	default:
-		return "", false
+	return []string{
+		valueobject.LineWorksMessageKindUnsubmitted.DefaultTitle(),
+		valueobject.LineWorksMessageKindSubmit.DefaultTitle(),
+		valueobject.LineWorksMessageKindCancelSubmitted.DefaultTitle(),
+		valueobject.LineWorksMessageKindNotConducted.DefaultTitle(),
+		valueobject.LineWorksMessageKindCreateMeeting.DefaultTitle(),
+		valueobject.LineWorksMessageKindSetImplementDate.DefaultTitle(),
 	}
 }
 
@@ -141,11 +129,11 @@ func (uc *LineWorksMessages) ensureAllDefaults() error {
 		if _, ok := exists[title]; ok {
 			continue
 		}
-		content, ok := defaultContent(title)
+		kind, ok := valueobject.LineWorksMessageKindFromTitle(title)
 		if !ok {
 			return fmt.Errorf("既定の通知文がありません: %s", title)
 		}
-		kind, ok := valueobject.LineWorksMessageKindFromTitle(title)
+		content, ok := kind.DefaultContent()
 		if !ok {
 			return fmt.Errorf("既定の通知文がありません: %s", title)
 		}

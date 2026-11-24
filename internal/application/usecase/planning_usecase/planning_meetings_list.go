@@ -2,7 +2,6 @@ package planning_usecase
 
 import (
 	"context"
-	"log/slog"
 	"slices"
 	"time"
 
@@ -268,7 +267,6 @@ func (uc *PlanningAccessUsecase) ListPlanningMeetingsPaged(
 		}
 		return nil
 	})
-	slog.Debug("ListPlanningMeetingsPaged", slog.Any("deptUsers", deptUsers))
 
 	meetingOutputs := []outputmodel.MeetingOutput{}
 	if filter.HasCondition() {

@@ -27,14 +27,14 @@
         currentUserUuid,
         directoryUsers,
         canIncludeMenteeMeetings = false,
-        includeMenteeMeetings = $bindable(false),
+        hiddenMentorMeeting: hiddenMentorMeeting = $bindable(false),
     }: {
         meetings: MeetingListItem[];
         viewMode: "card" | "table";
         currentUserUuid?: string;
         directoryUsers: PlanningDirectoryUser[];
         canIncludeMenteeMeetings?: boolean;
-        includeMenteeMeetings?: boolean;
+        hiddenMentorMeeting?: boolean;
     } = $props();
 
     let deptMaps = $derived(buildUserDepartmentMaps(directoryUsers));
@@ -106,8 +106,9 @@
             <input
                 type="checkbox"
                 class="checkbox checkbox-sm checkbox-primary"
-                bind:checked={includeMenteeMeetings} />
-            <span class="label-text text-sm">メンティーの面談も表示</span>
+                bind:checked={hiddenMentorMeeting} />
+            <span class="label-text text-sm"
+                >自分がメンターの面談を非表示にする</span>
         </label>
     </div>
 {/if}
@@ -131,7 +132,7 @@
                             <ChevronRight class="h-4 w-4 mt-4 self-center"
                             ></ChevronRight>
                             <label>
-                                <p class="label-text text-xs">メンター</p>
+                                <p class="label-text text-xs">メンティー</p>
                                 <WorkspacePerson
                                     userUuid={item.pairing?.mentee?.uuid}
                                     name={item.pairing?.mentee?.name}

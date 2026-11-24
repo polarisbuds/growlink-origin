@@ -81,6 +81,17 @@ func (repo *PairingRepository) Get(pairingID uint) (ret0 *entity.Pairing, err er
 	return &pairing, nil
 }
 
+func (repo *PairingRepository) GetByIDs(pairingIDs []uint) (ret0 []entity.Pairing, err error) {
+	pairings, err := gorm.G[entity.Pairing](repo.db).Where("id IN ?", pairingIDs).Order("id ASC").
+		Preload("Mentor", nil).
+		Preload("Mentee", nil).
+		Find(repo.ctx)
+	if err != nil {
+		return nil, fmt.Errorf("ペアリングID指定での取得に失敗しました: %w", err)
+	}
+	return pairings, nil
+}
+
 func (repo *PairingRepository) GetByUUID(pairingUUID uuid.UUID) (ret0 *entity.Pairing, err error) {
 	pairing, err := gorm.G[entity.Pairing](repo.db).Where("uuid = ?", pairingUUID).Order("id ASC").
 		Preload("Mentor", nil).

@@ -1,12 +1,14 @@
 package api
 
 import (
+	"context"
 	"net/http"
 	"time"
 
 	"growlink/internal/adapter/handler/authctx"
 	inputmodel "growlink/internal/application/model/input_model"
 
+	"github.com/google/uuid"
 	"github.com/labstack/echo/v5"
 )
 
@@ -48,7 +50,17 @@ func (h *Handler) CreateMeeting(c *echo.Context) error {
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
-	return c.JSON(http.StatusOK, map[string]interface{}{"ok": "true", "count": len(outs)})
+
+	meetingUUIDs := make([]uuid.UUID, len(outs))
+	for idx, out := range outs {
+		meetingUUIDs[idx], err = uuid.Parse(out.UUID)
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, map[string]any{"err": err.Error()})
+		}
+	}
+
+	go h.deps.Lineworks.SendCreateMeetingMsgs(context.Background(), claims, meetingUUIDs)
+	return c.JSON(http.StatusOK, map[string]any{"ok": "true", "count": len(outs)})
 }
 
 func (h *Handler) CreateMeetingByAll(c *echo.Context) error {
@@ -78,6 +90,15 @@ func (h *Handler) CreateMeetingByAll(c *echo.Context) error {
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
+	meetingUUIDs := make([]uuid.UUID, len(outs))
+	for idx, out := range outs {
+		meetingUUIDs[idx], err = uuid.Parse(out.UUID)
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, map[string]any{"error": err.Error()})
+		}
+	}
+
+	go h.deps.Lineworks.SendCreateMeetingMsgs(context.Background(), claims, meetingUUIDs)
 	return c.JSON(http.StatusOK, map[string]interface{}{"ok": "true", "count": len(outs)})
 }
 
@@ -118,6 +139,15 @@ func (h *Handler) CreateMeetingMonth(c *echo.Context) error {
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
+	meetingUUIDs := make([]uuid.UUID, len(outs))
+	for idx, out := range outs {
+		meetingUUIDs[idx], err = uuid.Parse(out.UUID)
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, map[string]any{"error": err.Error()})
+		}
+	}
+
+	go h.deps.Lineworks.SendCreateMeetingMsgs(context.Background(), claims, meetingUUIDs)
 	return c.JSON(http.StatusOK, map[string]interface{}{"ok": "true", "count": len(outs)})
 }
 
@@ -166,6 +196,15 @@ func (h *Handler) CreateMeetingMonthly(c *echo.Context) error {
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
+	meetingUUIDs := make([]uuid.UUID, len(outs))
+	for idx, out := range outs {
+		meetingUUIDs[idx], err = uuid.Parse(out.UUID)
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, map[string]any{"error": err.Error()})
+		}
+	}
+
+	go h.deps.Lineworks.SendCreateMeetingMsgs(context.Background(), claims, meetingUUIDs)
 	return c.JSON(http.StatusOK, map[string]interface{}{"ok": "true", "count": len(outs)})
 }
 
@@ -220,5 +259,15 @@ func (h *Handler) CreateMeetingMonthlyByPairings(c *echo.Context) error {
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
-	return c.JSON(http.StatusOK, map[string]interface{}{"ok": "true", "count": len(outs)})
+	meetingUUIDs := make([]uuid.UUID, len(outs))
+	for idx, out := range outs {
+		meetingUUIDs[idx], err = uuid.Parse(out.UUID)
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, map[string]any{"error": err.Error()})
+		}
+	}
+
+	go h.deps.Lineworks.SendCreateMeetingMsgs(context.Background(), claims, meetingUUIDs)
+
+	return c.JSON(http.StatusOK, map[string]any{"ok": "true", "count": len(outs)})
 }

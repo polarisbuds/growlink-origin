@@ -43,9 +43,15 @@
     let departments = $state<{ uuid: string; name: string }[]>([]);
     let teams = $state<DirectoryTeam[]>([]);
     let applyingSharers = $state(false);
+    let savingImplementedDate = $state(false);
+    let savedImplementedDate = $state("");
 
     let sharerUserUuids = $derived(
         (sharers || []).map((s) => s.uuid).filter((id): id is string => !!id),
+    );
+
+    let implementedDateUnchanged = $derived(
+        implementedDate === savedImplementedDate,
     );
 
     let deptMaps = $derived(buildUserDepartmentMaps(directoryUsers));
@@ -54,6 +60,11 @@
         if (open) {
             void loadDirectoryIfNeeded();
         }
+    });
+
+    $effect(() => {
+        sharers;
+        savedImplementedDate = implementedDate;
     });
 
     async function loadDirectoryIfNeeded() {
@@ -96,8 +107,30 @@
         }
     }
 
-    function saveImplementedDate() {
-        showToast("実施日の API は今後接続されます（表示のみ更新可）", "info");
+    async function saveImplementedDate() {
+        if (!uuid || !implementedDate) return;
+        savingImplementedDate = true;
+        try {
+            const res = await api<{ implementedAt: string }>(
+                "PUT",
+                `/api/v1/meetings/${uuid}/implemented-at`,
+                { uuid, implementedAt: implementedDate },
+            );
+            if (res.implementedAt) {
+                const d = new Date(res.implementedAt);
+                if (!Number.isNaN(d.getTime())) {
+                    implementedDate = d.toISOString().slice(0, 10);
+                }
+            }
+            savedImplementedDate = implementedDate;
+            showToast("実施予定日を保存しました");
+        } catch (err) {
+            const message =
+                err instanceof Error ? err.message : "保存に失敗しました";
+            showToast(message, "error");
+        } finally {
+            savingImplementedDate = false;
+        }
     }
 </script>
 
@@ -109,6 +142,7 @@
     {teams}
     selectedUuids={sharerUserUuids}
     pickRootId="meeting-answer-sharer-name"
+    disableApplyWhenUnchanged
     onApply={applySharers}
     onClose={() => {
         sharerModalOpen = false;
@@ -182,8 +216,13 @@
                         <button
                             type="button"
                             class="btn btn-outline btn-sm mt-2 w-full"
+                            disabled={savingImplementedDate ||
+                                !implementedDate ||
+                                implementedDateUnchanged}
                             onclick={saveImplementedDate}>
-                            実施予定日を保存
+                            {savingImplementedDate
+                                ? "保存中…"
+                                : "実施予定日を保存"}
                         </button>
                     {:else}
                         <span class="font-medium"

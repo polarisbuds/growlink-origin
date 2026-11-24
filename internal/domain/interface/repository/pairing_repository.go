@@ -17,6 +17,7 @@ type PairingRepository interface {
 	GetAll() ([]entity.Pairing, error)
 	GetAllContainDeleted() ([]entity.Pairing, error)
 	Get(pairingID uint) (*entity.Pairing, error)
+	GetByIDs(pairingIDs []uint) ([]entity.Pairing, error)
 	GetByUUID(pairingUUID uuid.UUID) (*entity.Pairing, error)
 	GetByUUIDs(pairingUUIDs []string) ([]entity.Pairing, error)
 	GetByMenteeID(menteeID uint) ([]entity.Pairing, error)

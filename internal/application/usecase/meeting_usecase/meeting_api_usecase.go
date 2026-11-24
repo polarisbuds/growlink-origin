@@ -16,8 +16,9 @@ import (
 )
 
 var (
-	ErrMeetingForbidden = errors.New("forbidden")
-	ErrMeetingNotFound  = errors.New("not found")
+	ErrMeetingForbidden         = errors.New("forbidden")
+	ErrMeetingNotFound          = errors.New("not found")
+	ErrRequireAnswerNotAnswered = errors.New("answered require")
 )
 
 type MeetingDetailFlags struct {
@@ -181,6 +182,9 @@ func (uc *MeetingAPIUsecase) SubmitByUUID(meetingUUID uuid.UUID, viewerID uint, 
 	}
 	if !CanWriteMeetingAnswers(meeting, viewerID) {
 		return ErrMeetingForbidden
+	}
+	if err := validateRequiredAnswers(meeting, answers); err != nil {
+		return err
 	}
 	sanitized, err := sanitizeAnswerOutputs(meeting.ID, viewerID, answers, meeting, uc.answerReader.GetAnswer)
 	if err != nil {

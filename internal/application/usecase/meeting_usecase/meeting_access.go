@@ -35,6 +35,30 @@ func enrichAnswersForMeeting(meetingID, userID uint, answers []outputmodel.Answe
 	return out, nil
 }
 
+func validateRequiredAnswers(meeting *entity.Meeting, answers []outputmodel.AnswerOutput) error {
+	if meeting == nil || meeting.Template == nil {
+		return nil
+	}
+	contentByTopicUUID := make(map[string]string, len(answers))
+	for _, a := range answers {
+		topicUUID := a.Topic.UUID
+		if topicUUID == "" {
+			continue
+		}
+		contentByTopicUUID[topicUUID] = a.Content
+	}
+	for _, topic := range meeting.Template.Topics {
+		if !topic.IsRequire {
+			continue
+		}
+		content, ok := contentByTopicUUID[topic.UUID.String()]
+		if !ok || content == "" {
+			return ErrRequireAnswerNotAnswered
+		}
+	}
+	return nil
+}
+
 func sanitizeAnswerOutputs(
 	meetingID, userID uint,
 	answers []outputmodel.AnswerOutput,
@@ -130,6 +154,22 @@ func CanEditMeetingSharers(meeting *entity.Meeting, viewerID uint) bool {
 	}
 	role := MeetingViewerRole(meeting, viewerID)
 	return role == "mentor" || role == "mentee"
+}
+
+func CanEditMeetingImplementedDate(meeting *entity.Meeting, viewerID uint, systemRole valueobject.SystemRole) bool {
+	if meeting == nil || viewerID == 0 {
+		return false
+	}
+	if CanEditMeetingSharers(meeting, viewerID) {
+		return true
+	}
+	if systemRole == valueobject.SystemRoleAdmin {
+		return true
+	}
+	if meeting.CreatedByUserID == 0 {
+		return false
+	}
+	return viewerID == meeting.CreatedByUserID
 }
 
 func MeetingSharersToOutputs(meeting *entity.Meeting) []outputmodel.UserOutput {

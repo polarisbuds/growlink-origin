@@ -91,6 +91,9 @@ var lineWorksDefaultKinds = []valueobject.LineWorksMessageKind{
 	valueobject.LineWorksMessageKindUnsubmitted,
 	valueobject.LineWorksMessageKindSubmit,
 	valueobject.LineWorksMessageKindNotConducted,
+	valueobject.LineWorksMessageKindCancelSubmitted,
+	valueobject.LineWorksMessageKindCreateMeeting,
+	valueobject.LineWorksMessageKindSetImplementDate,
 }
 
 func backfillLineWorksMessageKind(db *gorm.DB) error {
@@ -98,9 +101,12 @@ func backfillLineWorksMessageKind(db *gorm.DB) error {
 		return nil
 	}
 	for title, kind := range map[string]valueobject.LineWorksMessageKind{
-		"未提出通知": valueobject.LineWorksMessageKindUnsubmitted,
-		"提出通知":  valueobject.LineWorksMessageKindSubmit,
-		"未実施通知": valueobject.LineWorksMessageKindNotConducted,
+		"未提出通知":   valueobject.LineWorksMessageKindUnsubmitted,
+		"提出通知":    valueobject.LineWorksMessageKindSubmit,
+		"未実施通知":   valueobject.LineWorksMessageKindNotConducted,
+		"提出取消通知":  valueobject.LineWorksMessageKindCancelSubmitted,
+		"面談作成通知":  valueobject.LineWorksMessageKindCreateMeeting,
+		"面談日変更通知": valueobject.LineWorksMessageKindSetImplementDate,
 	} {
 		if err := db.Model(&entity.LineWorksMessageSetting{}).
 			Where("title = ? AND (kind = 0 OR kind IS NULL)", title).

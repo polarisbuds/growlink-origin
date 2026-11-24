@@ -102,11 +102,18 @@ func (uc *AuthUsecase) createUserFromLDAP(ctx context.Context, ldapUser ldap_ent
 	if _, err := uc.ensureDepartmentFromLDAP(ctx, ldapUser.Department); err != nil {
 		return nil, err
 	}
+
+	var lineworksID string
 	email := strings.TrimSpace(ldapUser.Mail)
+	atMarkIdx := strings.Index(ldapUser.Mail, "@")
+	if atMarkIdx >= 0 {
+		lineworksID = ldapUser.Mail[:atMarkIdx] + "@cap"
+	}
 	user := &entity.User{
-		Name:      strings.TrimSpace(ldapUser.Name),
-		Email:     email,
-		Authority: valueobject.AuthorityGeneral,
+		Name:        strings.TrimSpace(ldapUser.Name),
+		Email:       email,
+		Authority:   valueobject.AuthorityGeneral,
+		LineWorksID: lineworksID,
 	}
 	if err := uc.userRepo.Create(user); err != nil {
 		return nil, err

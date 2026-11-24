@@ -20,7 +20,7 @@ type Deps struct {
 	SettingRm  *setting_usecase.IconRemoverUsecase
 	Profile    *setting_usecase.ProfileUsecase
 	Planning   *planning_usecase.PlanningAccessUsecase
-	Lineworks  *lineworks_usecase.Usecase
+	Lineworks  *lineworks_usecase.LineWorksUsecase
 }
 
 type Handler struct {

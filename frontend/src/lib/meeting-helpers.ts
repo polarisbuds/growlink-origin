@@ -24,6 +24,7 @@ export type MeetingTopicRef = {
 	displayNo?: number;
 	question?: string;
 	description?: string;
+	isRequire?: boolean;
 };
 
 export type MeetingAnswerCommentRef = {

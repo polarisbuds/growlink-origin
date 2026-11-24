@@ -2,7 +2,7 @@
     import { onMount } from "svelte";
     import { goto } from "$app/navigation";
     import { page } from "$app/state";
-    import { api } from "$lib/api";
+    import { api, apiErrorMessage } from "$lib/api";
     import { showToast } from "$lib/toast";
     import MeetingSidePanel from "$lib/components/MeetingSidePanel.svelte";
     import {
@@ -18,6 +18,7 @@
 
     let payload = $state<MeetingPayload | null>(null);
     let drafts = $state<Record<string, string>>({});
+    let savedDrafts = $state<Record<string, string>>({});
     let panelOpen = $state(true);
     let sharers = $state<MeetingUserRef[]>([]);
 
@@ -60,10 +61,30 @@
         return row.topic?.uuid ?? String(row.displayNo);
     }
 
+    function draftsMatch(
+        current: Record<string, string>,
+        baseline: Record<string, string>,
+    ): boolean {
+        const keys = new Set([
+            ...Object.keys(current),
+            ...Object.keys(baseline),
+        ]);
+        for (const key of keys) {
+            if ((current[key] ?? "") !== (baseline[key] ?? "")) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    let draftUnchanged = $derived(draftsMatch(drafts, savedDrafts));
+
     async function load() {
         payload = await api<MeetingPayload>("GET", `/api/v1/meetings/${uuid}`);
         sharers = payload.sharers || [];
-        drafts = ownAnswerDrafts(payload, payload.viewerRole);
+        const nextDrafts = ownAnswerDrafts(payload, payload.viewerRole);
+        drafts = nextDrafts;
+        savedDrafts = { ...nextDrafts };
         const raw = payload.meeting?.implementedAt;
         if (raw) {
             const d = new Date(raw);
@@ -122,11 +143,15 @@
         await goto("/");
     }
     async function submit() {
-        await api("POST", `/api/v1/meetings/${uuid}/submit`, {
-            answers: answerPayload(),
-        });
-        showToast("提出しました");
-        await goto("/");
+        try {
+            await api("POST", `/api/v1/meetings/${uuid}/submit`, {
+                answers: answerPayload(),
+            });
+            showToast("提出しました");
+            await goto("/");
+        } catch (e) {
+            showToast(apiErrorMessage(e, "提出に失敗しました"), "error");
+        }
     }
     async function cancelSubmit() {
         await api("POST", `/api/v1/meetings/${uuid}/draft/cancel`, null);
@@ -138,7 +163,7 @@
 <svelte:head><title>面談記入 - Growlink</title></svelte:head>
 
 {#if payload}
-    <div class="flex max-w-7xl items-center justify-between gap-4">
+    <div class="flex items-center justify-between gap-4">
         <div>
             <h1 class="font-display text-2xl font-semibold">{templateTitle}</h1>
             {#if templateDescription}
@@ -172,6 +197,7 @@
                         <button
                             type="button"
                             class="btn btn-sm btn-outline"
+                            disabled={draftUnchanged}
                             onclick={saveDraft}>下書き保存</button>
                         <button
                             type="button"
@@ -209,15 +235,23 @@
                             <span
                                 class="badge badge-primary badge-outline shrink-0"
                                 >Q{row.displayNo || i + 1}</span>
-                            <div class="min-w-0 flex-1">
-                                <p class="font-medium leading-relaxed">
-                                    {row.topic?.question}
-                                </p>
-                                {#if row.topic?.description}
-                                    <p
-                                        class="mt-1 whitespace-pre-wrap text-sm text-base-content/60">
-                                        {row.topic.description}
+                            <div
+                                class="flex min-w-0 flex-1 items-center justify-between gap-3">
+                                <div class="min-w-0">
+                                    <p class="font-medium leading-relaxed">
+                                        {row.topic?.question}
                                     </p>
+                                    {#if row.topic?.description}
+                                        <p
+                                            class="mt-1 whitespace-pre-wrap text-sm text-base-content/60">
+                                            {row.topic.description}
+                                        </p>
+                                    {/if}
+                                </div>
+                                {#if row.topic?.isRequire}
+                                    <span
+                                        class="badge badge-error badge-outline badge-sm shrink-0"
+                                        >回答必須</span>
                                 {/if}
                             </div>
                         </div>

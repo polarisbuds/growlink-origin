@@ -10,7 +10,9 @@ import (
 	"growlink/internal/domain/valueobject"
 	repomock "growlink/internal/domain/interface/repository/mock"
 
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
 )
 
@@ -154,6 +156,86 @@ func TestMeetingUpdater_ChangeImplementDate(t *testing.T) {
 			}
 			if tt.assertFn != nil {
 				tt.assertFn(t, cap)
+			}
+		})
+	}
+}
+
+func TestMeetingUpdater_ChangeImplementDateByUUID(t *testing.T) {
+	meetingUUID := uuid.MustParse("11111111-1111-1111-1111-111111111111")
+	newDate := time.Date(2026, time.March, 15, 0, 0, 0, 0, time.UTC)
+	pairing := newTestPairing(pairingID1, validMenteeID, validMentorID)
+
+	newTestMeetingWithPairing := func(id uint) *entity.Meeting {
+		m := newTestMeeting(id, pairingID1)
+		m.UUID = meetingUUID
+		m.Pairing = pairing
+		m.PairingID = pairingID1
+		return &m
+	}
+
+	tests := []struct {
+		name        string
+		viewerID    uint
+		systemRole  valueobject.SystemRole
+		wantErr     bool
+		errContains string
+		setup       func(repo *repomock.MockMeetingRepository)
+		assertFn    func(t *testing.T, got time.Time)
+	}{
+		{
+			name:       "通常系_メンターが変更",
+			viewerID:   validMentorID,
+			systemRole: valueobject.SystemRoleNone,
+			wantErr:    false,
+			setup: func(repo *repomock.MockMeetingRepository) {
+				repo.EXPECT().GetByUUID(meetingUUID).Return(newTestMeetingWithPairing(meetingID1), nil)
+				repo.EXPECT().UpdateImplementDate(meetingID1, newDate).Return(nil)
+			},
+			assertFn: func(t *testing.T, got time.Time) {
+				assert.True(t, got.Equal(newDate))
+			},
+		},
+		{
+			name:        "異常系_権限なし",
+			viewerID:    999,
+			systemRole:  valueobject.SystemRoleNone,
+			wantErr:     true,
+			errContains: "forbidden",
+			setup: func(repo *repomock.MockMeetingRepository) {
+				repo.EXPECT().GetByUUID(meetingUUID).Return(newTestMeetingWithPairing(meetingID1), nil)
+			},
+		},
+		{
+			name:        "異常系_更新失敗",
+			viewerID:    validMentorID,
+			systemRole:  valueobject.SystemRoleNone,
+			wantErr:     true,
+			errContains: "ミーティングの実施予定日の変更に失敗しました",
+			setup: func(repo *repomock.MockMeetingRepository) {
+				repo.EXPECT().GetByUUID(meetingUUID).Return(newTestMeetingWithPairing(meetingID1), nil)
+				repo.EXPECT().UpdateImplementDate(meetingID1, newDate).Return(errUpdateMeetingFailed)
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			uc, repo := newMeetingUpdater(t)
+			if tt.setup != nil {
+				tt.setup(repo)
+			}
+
+			got, gotErr := uc.ChangeImplementDateByUUID(meetingUUID, tt.viewerID, tt.systemRole, newDate)
+			assertUsecaseErr(t, gotErr, tt.wantErr, tt.errContains, "ChangeImplementDateByUUID")
+			if t.Failed() {
+				return
+			}
+			if tt.assertFn != nil {
+				tt.assertFn(t, got)
+			}
+			if !tt.wantErr {
+				require.False(t, got.IsZero())
 			}
 		})
 	}

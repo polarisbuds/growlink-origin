@@ -17,6 +17,7 @@ type MeetingRepository interface {
 	GetByID(id uint) (*entity.Meeting, error)
 	GetByIDs(id []uint) ([]entity.Meeting, error)
 	GetByUUID(uuid uuid.UUID) (*entity.Meeting, error)
+	GetByUUIDs(uuids []uuid.UUID) ([]entity.Meeting, error)
 	GetByPairingID(pairingID uint) ([]entity.Meeting, error)
 	GetByPairingIDs(pairingIDs []uint) ([]entity.Meeting, error)
 

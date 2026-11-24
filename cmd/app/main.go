@@ -9,22 +9,24 @@ import (
 	"time"
 
 	"growlink/internal/adapter/handler"
-	authenticate_usecase "growlink/internal/application/usecase/authenticate_usecase"
-	management_usecase "growlink/internal/application/usecase/management_usecase"
+	"growlink/internal/application/usecase/authenticate_usecase"
+	"growlink/internal/application/usecase/lineworks_usecase"
+	"growlink/internal/application/usecase/management_usecase"
+	"growlink/internal/application/usecase/management_usecase/line_works_messages_usecase"
 	meeting_mng_usecase "growlink/internal/application/usecase/management_usecase/meeting_management_usecase"
-	org_admin_usecase "growlink/internal/application/usecase/management_usecase/org_admin_usecase"
+	"growlink/internal/application/usecase/management_usecase/org_admin_usecase"
 	pairing_mng_usecase "growlink/internal/application/usecase/management_usecase/pairing_management_usecase"
 	progress_mng_usecase "growlink/internal/application/usecase/management_usecase/progress_management_usecase"
-	line_works_messages_usecase "growlink/internal/application/usecase/management_usecase/line_works_messages_usecase"
-	remind_settings_usecase "growlink/internal/application/usecase/management_usecase/remind_settings_usecase"
-	role_admin_usecase "growlink/internal/application/usecase/management_usecase/role_admin_usecase"
+	"growlink/internal/application/usecase/management_usecase/remind_settings_usecase"
+	"growlink/internal/application/usecase/management_usecase/role_admin_usecase"
 	template_mng_usecase "growlink/internal/application/usecase/management_usecase/template_management_usecase"
-	user_admin_usecase "growlink/internal/application/usecase/management_usecase/user_admin_usecase"
+	"growlink/internal/application/usecase/management_usecase/user_admin_usecase"
 	"growlink/internal/application/usecase/meeting_usecase"
 	"growlink/internal/application/usecase/pairing_usecase"
 	"growlink/internal/application/usecase/planning_usecase"
 	"growlink/internal/application/usecase/setting_usecase"
 	"growlink/internal/infrastructure/external/ldap"
+	"growlink/internal/infrastructure/external/lineworks"
 	applogger "growlink/internal/infrastructure/logger"
 	infrastructure "growlink/internal/infrastructure/postgresql"
 	"growlink/internal/infrastructure/repository"
@@ -107,6 +109,21 @@ func main() {
 		ldapClient = ldap.NewClient(ldapSetting)
 	}
 
+	setting, ok, err := lineworks.Load()
+	if err != nil {
+		os.Exit(1)
+		slog.Error("Line WorksのAPIの設定の読込に失敗しました: %w", slog.String("err", err.Error()))
+	}
+	if !ok {
+		os.Exit(1)
+		slog.Error("Line WorksのAPIの設定取得に失敗しました: %w", slog.String("err", err.Error()))
+	}
+	client, err := lineworks.NewClient(setting)
+	if err != nil {
+		slog.Error("Line Worksのクライアント作成に失敗しました: %w", slog.String("err", err.Error()))
+		os.Exit(1)
+	}
+
 	authUC := authenticate_usecase.NewAuthUsecase(ldapClient, userRepo, deptRepo, deptMemberRepo)
 	answerCommenter := meeting_usecase.NewAnswerCommenterUsecase(answerCommentRepo)
 	meetingBundle := meeting_usecase.Bundle{
@@ -154,10 +171,10 @@ func main() {
 			teamRepo,
 			roleRepo,
 		),
-		OrgAdmin:       org_admin_usecase.NewOrgAdmin(deptRepo, teamRepo, deptHierarchyRepo, deptMemberRepo, teamMemberRepo, userRepo),
+		OrgAdmin:          org_admin_usecase.NewOrgAdmin(deptRepo, teamRepo, deptHierarchyRepo, deptMemberRepo, teamMemberRepo, userRepo),
 		RemindSettings:    remind_settings_usecase.NewRemindSettings(systemSettingsRepo),
 		LineWorksMessages: line_works_messages_usecase.NewLineWorksMessages(lineWorksMessageSettingRepo),
-		RoleAdmin:      role_admin_usecase.NewRoleAdmin(roleRepo),
+		RoleAdmin:         role_admin_usecase.NewRoleAdmin(roleRepo),
 	}
 
 	planningAccess := planning_usecase.NewPlanningAccessUsecase(
@@ -205,6 +222,7 @@ func main() {
 		DepartmentRepo: deptRepo,
 		RoleRepo:       roleRepo,
 		Planning:       planningAccess,
+		LineWorks:      lineworks_usecase.New(client, lineWorksMessageSettingRepo, meetingRepo, pairingRepo),
 	}
 
 	handler.RegisterRoutes(ec, deps, logs.Audit)

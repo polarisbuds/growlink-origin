@@ -25,6 +25,7 @@
         selectedUuids = [],
         pickRootId = "sharer-select-modal-name",
         class: boxClass = "min-h-[24rem]",
+        disableApplyWhenUnchanged = false,
         onApply,
         onClose,
     }: {
@@ -36,6 +37,7 @@
         selectedUuids?: string[];
         pickRootId?: string;
         class?: string;
+        disableApplyWhenUnchanged?: boolean;
         onApply: (uuids: string[]) => void;
         onClose: () => void;
     } = $props();
@@ -133,6 +135,14 @@
     let allPageSelected = $derived(
         pageRows.length > 0 && pageRows.every((u) => draftUuids.has(u.uuid)),
     );
+
+    let draftSelectionUnchanged = $derived.by(() => {
+        if (draftUuids.size !== selectedUuids.length) return false;
+        for (const id of selectedUuids) {
+            if (!draftUuids.has(id)) return false;
+        }
+        return true;
+    });
 
     function userLabelOf(u: SharerPickerUser) {
         return `${u.name} (${u.email})`;
@@ -320,8 +330,11 @@
 
         <div
             class="modal-action shrink-0 border-t border-base-200 p-4 flex justify-end">
-            <button type="button" class="btn btn-primary" onclick={apply}
-                >適用</button>
+            <button
+                type="button"
+                class="btn btn-primary"
+                disabled={disableApplyWhenUnchanged && draftSelectionUnchanged}
+                onclick={apply}>適用</button>
         </div>
     </div>
     <form method="dialog" class="modal-backdrop">

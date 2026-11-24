@@ -6,6 +6,7 @@ import (
 	"growlink/internal/adapter/handler/api"
 	"growlink/internal/adapter/handler/page"
 	authenticate_usecase "growlink/internal/application/usecase/authenticate_usecase"
+	"growlink/internal/application/usecase/lineworks_usecase"
 	management_usecase "growlink/internal/application/usecase/management_usecase"
 	"growlink/internal/application/usecase/meeting_usecase"
 	"growlink/internal/application/usecase/pairing_usecase"
@@ -35,6 +36,7 @@ type Deps struct {
 	DepartmentRepo repository_interface.DepartmentRepository
 	RoleRepo       repository_interface.RoleRepository
 	Planning       *planning_usecase.PlanningAccessUsecase
+	LineWorks      *lineworks_usecase.LineWorksUsecase
 }
 
 func RegisterRoutes(e *echo.Echo, deps Deps, auditLogger *slog.Logger) {
@@ -60,6 +62,7 @@ func RegisterRoutes(e *echo.Echo, deps Deps, auditLogger *slog.Logger) {
 		SettingRm:  deps.SettingRm,
 		Profile:    deps.Profile,
 		Planning:   deps.Planning,
+		Lineworks:  deps.LineWorks,
 	})
 
 	e.GET("/login", ph.LoginPage)
@@ -104,6 +107,7 @@ func RegisterRoutes(e *echo.Echo, deps Deps, auditLogger *slog.Logger) {
 	apiAuth.GET("/meetings/shared", ah.ListSharedMeetings, auditLogging(auditLogger, false))
 	apiAuth.GET("/meetings/:uuid", ah.GetMeeting, auditLogging(auditLogger, false))
 	apiAuth.PUT("/meetings/:uuid/sharers", ah.UpdateMeetingSharers, auditLogging(auditLogger, false))
+	apiAuth.PUT("/meetings/:uuid/implemented-at", ah.UpdateMeetingImplementedAt, auditLogging(auditLogger, false))
 	apiAuth.GET("/meetings/:uuid/sharer-candidates", ah.ListMeetingSharerCandidates, auditLogging(auditLogger, false))
 	apiAuth.POST("/meetings/:uuid/draft", ah.SaveDraft, auditLogging(auditLogger, false))
 	apiAuth.POST("/meetings/:uuid/submit", ah.SubmitMeeting, auditLogging(auditLogger, false))
