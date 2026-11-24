@@ -10,6 +10,7 @@
     import ChevronsUpDown from "lucide-svelte/icons/chevrons-up-down";
     import ChevronsDownUp from "lucide-svelte/icons/chevrons-down-up";
     import ChevronRight from "lucide-svelte/icons/chevron-right";
+    import ChevronDown from "lucide-svelte/icons/chevron-down";
     import Info from "lucide-svelte/icons/info";
     import MemberPickModal from "$lib/components/MemberPickModal.svelte";
     import MultiCheckSelect from "$lib/components/MultiCheckSelect.svelte";
@@ -214,6 +215,9 @@
     let userForm = $state<UserForm | null>(null);
     let authoritySelect = $state("general");
     let systemRoleSelect = $state("none");
+    let bulkDeptTransferOpen = $state(false);
+    let bulkDeptFromUuid = $state("");
+    let bulkDeptToUuid = $state("");
     let createUserOpen = $state(false);
     let createUserForm = $state({
         name: "",
@@ -647,6 +651,22 @@
     let allUsersSelected = $derived(
         displayedUsers.length > 0 &&
             displayedUsers.every((u) => selectedUserUuids.includes(u.uuid)),
+    );
+
+    let selectedUsers = $derived(
+        users.filter((u) => selectedUserUuids.includes(u.uuid)),
+    );
+    let canBulkChangeDept = $derived(selectedUserUuids.length > 0);
+    let canSuspendSelected = $derived(
+        selectedUsers.some((u) => !u.suspended),
+    );
+    let canUnsuspendSelected = $derived(
+        selectedUsers.some((u) => u.suspended),
+    );
+    let canSubmitBulkDeptTransfer = $derived(
+        bulkDeptFromUuid.trim() !== "" &&
+            bulkDeptToUuid.trim() !== "" &&
+            bulkDeptFromUuid !== bulkDeptToUuid,
     );
 
     let userFilterSignature = $derived(
@@ -1310,6 +1330,130 @@
         confirmOpen = true;
     }
 
+    function userDepartmentRows(u: ManagementUser): DeptAssignment[] {
+        if (u.departments && u.departments.length) {
+            return u.departments.map((d) => ({
+                departmentUuid: d.departmentUuid,
+                roleUuid: d.roleUuid,
+            }));
+        }
+        if (u.departmentUuid && u.roleUuid) {
+            return [
+                {
+                    departmentUuid: u.departmentUuid,
+                    roleUuid: u.roleUuid,
+                },
+            ];
+        }
+        return [];
+    }
+
+    function buildDeptTransferUpdate(
+        u: ManagementUser,
+        fromUuid: string,
+        toUuid: string,
+    ): {
+        departments: DeptAssignment[];
+        teams: TeamAssignment[];
+    } | null {
+        const rows = userDepartmentRows(u);
+        const fromRow = rows.find((r) => r.departmentUuid === fromUuid);
+        if (!fromRow?.roleUuid) return null;
+
+        const nextDepts = rows.filter((r) => r.departmentUuid !== fromUuid);
+        if (!rows.some((r) => r.departmentUuid === toUuid)) {
+            nextDepts.push({
+                departmentUuid: toUuid,
+                roleUuid: fromRow.roleUuid,
+            });
+        }
+
+        const teams = (u.teams || [])
+            .filter((t) => {
+                const meta = options.teams.find(
+                    (opt) => opt.uuid === t.teamUuid,
+                );
+                if (!meta) return true;
+                return meta.departmentUuid !== fromUuid;
+            })
+            .map((t) => ({ teamUuid: t.teamUuid }));
+
+        return { departments: nextDepts, teams };
+    }
+
+    function openBulkDeptTransferModal() {
+        bulkDeptFromUuid = "";
+        bulkDeptToUuid = "";
+        bulkDeptTransferOpen = true;
+    }
+
+    async function submitBulkDeptTransfer() {
+        const fromUuid = bulkDeptFromUuid.trim();
+        const toUuid = bulkDeptToUuid.trim();
+        if (!fromUuid || !toUuid || fromUuid === toUuid) {
+            showToast("異動元と異動先を選択してください", "error");
+            return;
+        }
+
+        const toUpdate = selectedUsers
+            .map((u) => ({
+                u,
+                payload: buildDeptTransferUpdate(u, fromUuid, toUuid),
+            }))
+            .filter(
+                (
+                    x,
+                ): x is {
+                    u: ManagementUser;
+                    payload: {
+                        departments: DeptAssignment[];
+                        teams: TeamAssignment[];
+                    };
+                } => x.payload !== null,
+            );
+
+        if (toUpdate.length === 0) {
+            showToast("異動元に所属するユーザが選択されていません", "error");
+            return;
+        }
+
+        if (
+            toUpdate.some(
+                ({ payload }) =>
+                    payload.departments.length === 0 ||
+                    payload.departments.some(
+                        (d) => !d.departmentUuid || !d.roleUuid,
+                    ),
+            )
+        ) {
+            showToast("役職を取得できないユーザが含まれています", "error");
+            return;
+        }
+
+        for (const { u, payload } of toUpdate) {
+            try {
+                await api("PUT", `/api/v1/management/users/${u.uuid}`, {
+                    authority: u.authority,
+                    systemRole: u.systemRole,
+                    departments: payload.departments,
+                    teams: payload.teams,
+                });
+            } catch (e) {
+                showToast(
+                    apiErrorMessage(e, "所属部署の変更に失敗しました"),
+                    "error",
+                );
+                await Promise.all([refreshUserData(), loadOrgTree()]);
+                return;
+            }
+        }
+
+        bulkDeptTransferOpen = false;
+        selectedUserUuids = [];
+        await Promise.all([refreshUserData(), loadOrgTree()]);
+        showToast("所属部署を変更しました");
+    }
+
     async function openOrgModal(n: OrgTreeNode) {
         orgEditMode = false;
         orgChildSearch = "";
@@ -1677,25 +1821,47 @@
                         placeholder="すべての部署" />
                 </div>
             </div>
-            <div class="flex justify-end gap-3">
+            <div class="flex justify-end gap-3 items-center">
                 {#if selectedUserUuids.length > 0}
-                    <div class="flex items-center gap-2" transition:fade>
-                        <span class="text-sm text-base-content/60"
-                            >{selectedUserUuids.length} 件選択中</span>
-                        {#if users.some((u) => selectedUserUuids.indexOf(u.uuid) !== -1 && !u.suspended)}
-                            <button
-                                type="button"
-                                class="btn btn-error btn-sm"
-                                onclick={askSuspend}>アカウント停止</button>
-                        {/if}
-                        {#if users.some((u) => selectedUserUuids.indexOf(u.uuid) !== -1 && u.suspended)}
-                            <button
-                                type="button"
-                                class="btn btn-success btn-sm"
-                                onclick={askUnsuspend}>停止解除</button>
-                        {/if}
-                    </div>
+                    <span
+                        class="text-sm text-base-content/60"
+                        transition:fade
+                        >{selectedUserUuids.length} 件選択中</span>
                 {/if}
+                <div class="dropdown dropdown-end">
+                    <button
+                        type="button"
+                        tabindex="0"
+                        class="btn btn-outline btn-sm gap-1 shrink-0">
+                        操作
+                        <ChevronDown class="h-4 w-4 opacity-60" />
+                    </button>
+                    <ul
+                        role="menu"
+                        tabindex="0"
+                        class="menu dropdown-content z-50 mt-2 w-44 rounded-box border border-base-300 bg-base-100 p-2 shadow-lg">
+                        <li>
+                            <button
+                                type="button"
+                                disabled={!canBulkChangeDept}
+                                onclick={openBulkDeptTransferModal}
+                                >部署変更</button>
+                        </li>
+                        <li>
+                            <button
+                                type="button"
+                                class="text-error"
+                                disabled={!canSuspendSelected}
+                                onclick={askSuspend}>アカウント停止</button>
+                        </li>
+                        <li>
+                            <button
+                                type="button"
+                                disabled={!canUnsuspendSelected}
+                                onclick={askUnsuspend}>停止解除</button>
+                        </li>
+                    </ul>
+                </div>
                 <button
                     type="button"
                     class="btn btn-primary btn-sm shrink-0"
@@ -2635,6 +2801,57 @@
     </div>
     <form method="dialog" class="modal-backdrop">
         <button type="button" onclick={() => (orgModalOpen = false)}
+            >close</button>
+    </form>
+</dialog>
+
+<dialog class="modal" class:modal-open={bulkDeptTransferOpen}>
+    <div
+        class="modal-box flex min-h-[40vh] max-h-[85vh] max-w-lg flex-col !overflow-hidden p-0">
+        <div class="p-6 pb-2 border-b border-base-200 shrink-0">
+            <h3 class="font-bold text-lg">部署変更</h3>
+            <p class="text-sm text-base-content/60 mt-0.5">
+                選択した {selectedUserUuids.length} 件のユーザを異動します
+            </p>
+        </div>
+        <div class="min-h-0 flex-1 overflow-y-auto px-6 py-4 space-y-4">
+            <label class="form-control">
+                <span class="label-text font-medium">異動元</span>
+                <select
+                    class="select select-bordered mt-1"
+                    bind:value={bulkDeptFromUuid}>
+                    <option value="">部署を選択</option>
+                    {#each options.departments as d (`bulk-dept-from-${d.uuid}`)}
+                        <option value={d.uuid}>{d.name}</option>
+                    {/each}
+                </select>
+            </label>
+            <label class="form-control">
+                <span class="label-text font-medium">異動先</span>
+                <select
+                    class="select select-bordered mt-1"
+                    bind:value={bulkDeptToUuid}>
+                    <option value="">部署を選択</option>
+                    {#each options.departments as d (`bulk-dept-to-${d.uuid}`)}
+                        <option value={d.uuid}>{d.name}</option>
+                    {/each}
+                </select>
+            </label>
+        </div>
+        <div class="modal-action border-t border-base-200 p-4 shrink-0">
+            <button
+                type="button"
+                class="btn btn-ghost"
+                onclick={() => (bulkDeptTransferOpen = false)}>キャンセル</button>
+            <button
+                type="button"
+                class="btn btn-primary"
+                disabled={!canSubmitBulkDeptTransfer}
+                onclick={submitBulkDeptTransfer}>変更</button>
+        </div>
+    </div>
+    <form method="dialog" class="modal-backdrop">
+        <button type="button" onclick={() => (bulkDeptTransferOpen = false)}
             >close</button>
     </form>
 </dialog>
