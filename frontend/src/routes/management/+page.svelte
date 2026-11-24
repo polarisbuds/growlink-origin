@@ -35,14 +35,6 @@
         { value: "system_admin", label: "システム管理者" },
         { value: "analyst", label: "分析者" },
     ];
-    const WEEKDAYS = [
-        { value: 1, label: "月曜日" },
-        { value: 2, label: "火曜日" },
-        { value: 3, label: "水曜日" },
-        { value: 4, label: "木曜日" },
-        { value: 5, label: "金曜日" },
-    ];
-
     type DeptAssignment = {
         departmentUuid: string;
         roleUuid: string;
@@ -177,11 +169,9 @@
     let userLoadGeneration = 0;
     let orgLoading = $state(true);
     let remind = $state({
-        remindAutoSend: false,
-        remindMode: "prev_weekday",
-        remindDaysBefore: 1,
-        remindWeekday: 1,
-        remindTime: "09:00",
+        notifyStartWeek: 1,
+        notifyIntervalDays: 1,
+        notifyTime: "09:00",
     });
     const LINE_WORKS_MESSAGE_TITLES = [
         "未提出通知",
@@ -968,21 +958,20 @@
     async function loadRemind() {
         try {
             const data = await api<{
-                remindAutoSend?: boolean;
-                remindMode?: string;
-                remindDaysBefore?: number;
-                remindWeekday?: number;
-                remindTime?: string;
+                notifyStartWeek?: number;
+                notifyIntervalDays?: number;
+                notifyTime?: string;
             }>("GET", "/api/v1/management/settings/remind");
             remind = {
-                remindAutoSend: !!data.remindAutoSend,
-                remindMode: data.remindMode || "prev_weekday",
-                remindDaysBefore:
-                    data.remindDaysBefore && data.remindDaysBefore > 0
-                        ? data.remindDaysBefore
+                notifyStartWeek:
+                    data.notifyStartWeek && data.notifyStartWeek >= 1
+                        ? data.notifyStartWeek
                         : 1,
-                remindWeekday: data.remindWeekday || 1,
-                remindTime: (data.remindTime || "09:00").slice(0, 5),
+                notifyIntervalDays:
+                    data.notifyIntervalDays && data.notifyIntervalDays >= 1
+                        ? data.notifyIntervalDays
+                        : 1,
+                notifyTime: (data.notifyTime || "09:00").slice(0, 5),
             };
         } catch {
             /* keep defaults */
@@ -2225,70 +2214,32 @@
                     <span
                         >設定の保存のみ行います。実際の通知送信はバックエンドジョブで別途実装されます。</span>
                 </div>
-                <label
-                    class="label cursor-pointer justify-start gap-3 rounded-2xl border border-base-300 px-4 py-3">
-                    <input
-                        type="checkbox"
-                        class="toggle toggle-primary"
-                        bind:checked={remind.remindAutoSend} />
+                <label class="form-control">
                     <span class="label-text font-medium"
-                        >1on1の通知を自動送信する</span>
+                        >送信開始（第何週目から・1〜5）</span>
+                    <input
+                        type="number"
+                        min="1"
+                        max="5"
+                        class="input input-bordered"
+                        bind:value={remind.notifyStartWeek} />
                 </label>
-                <div>
-                    <span class="label-text font-medium">通知タイミング</span>
-                    <div class="flex flex-col gap-2 mt-2">
-                        <label
-                            class="label cursor-pointer justify-start gap-3 rounded-2xl border border-base-300 px-4 py-3">
-                            <input
-                                type="radio"
-                                name="remindMode"
-                                class="radio radio-primary"
-                                value="days_before"
-                                bind:group={remind.remindMode} />
-                            <span class="label-text">実施予定日の N 日前</span>
-                        </label>
-                        <label
-                            class="label cursor-pointer justify-start gap-3 rounded-2xl border border-base-300 px-4 py-3">
-                            <input
-                                type="radio"
-                                name="remindMode"
-                                class="radio radio-primary"
-                                value="prev_weekday"
-                                bind:group={remind.remindMode} />
-                            <span class="label-text">前の週の指定曜日</span>
-                        </label>
-                    </div>
-                </div>
-                {#if remind.remindMode === "days_before"}
-                    <label class="form-control">
-                        <span class="label-text font-medium"
-                            >何日前（1〜30）</span>
-                        <input
-                            type="number"
-                            min="1"
-                            max="30"
-                            class="input input-bordered"
-                            bind:value={remind.remindDaysBefore} />
-                    </label>
-                {/if}
-                {#if remind.remindMode === "prev_weekday"}
-                    <label class="form-control">
-                        <span class="label-text font-medium">曜日</span>
-                        <select
-                            class="select select-bordered"
-                            bind:value={remind.remindWeekday}>
-                            {#each WEEKDAYS as w (w.value)}
-                                <option value={w.value}>{w.label}</option>
-                            {/each}
-                        </select>
-                    </label>
-                {/if}
+                <label class="form-control">
+                    <span class="label-text font-medium"
+                        >送信間隔（日・1〜31。1 は毎日）</span>
+                    <input
+                        type="number"
+                        min="1"
+                        max="31"
+                        class="input input-bordered"
+                        bind:value={remind.notifyIntervalDays} />
+                </label>
                 <label class="form-control">
                     <span class="label-text font-medium">送信時刻</span>
                     <input
                         type="time"
                         class="input input-bordered"
-                        bind:value={remind.remindTime} />
+                        bind:value={remind.notifyTime} />
                 </label>
                 <div class="flex justify-end pt-2">
                     <button
