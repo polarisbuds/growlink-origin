@@ -2304,7 +2304,7 @@
 
 <dialog class="modal" class:modal-open={userModalOpen}>
     <div
-        class="modal-box flex min-h-[50vh] max-h-[85vh] max-w-3xl flex-col !overflow-hidden p-0">
+        class="modal-box flex min-h-[50vh] max-h-[85vh] max-w-3xl flex-col overflow-hidden! p-0">
         <div
             class="flex justify-between items-start gap-2 p-6 pb-2 border-b border-base-200 shrink-0">
             <div>
@@ -2542,7 +2542,7 @@
 
 <dialog class="modal" class:modal-open={orgModalOpen}>
     <div
-        class="modal-box flex min-h-[50vh] max-h-[85vh] max-w-3xl flex-col !overflow-hidden p-0">
+        class="modal-box flex min-h-[50vh] max-h-[85vh] max-w-3xl flex-col overflow-hidden! p-0">
         <div
             class="flex justify-between items-start gap-2 p-6 pb-2 border-b border-base-200 shrink-0">
             <div>
@@ -2756,7 +2756,7 @@
 
 <dialog class="modal" class:modal-open={bulkDeptTransferOpen}>
     <div
-        class="modal-box flex min-h-[40vh] max-h-[85vh] max-w-lg flex-col !overflow-hidden p-0">
+        class="modal-box flex min-h-[40vh] max-h-[85vh] max-w-lg flex-col overflow-hidden! p-0">
         <div class="p-6 pb-2 border-b border-base-200 shrink-0">
             <h3 class="font-bold text-lg">部署変更</h3>
             <p class="text-sm text-base-content/60 mt-0.5">
@@ -2808,7 +2808,7 @@
 
 <dialog class="modal" class:modal-open={createUserOpen}>
     <div
-        class="modal-box flex min-h-[40vh] max-h-[85vh] max-w-lg flex-col !overflow-hidden p-0">
+        class="modal-box flex min-h-[40vh] max-h-[85vh] max-w-lg flex-col overflow-hidden! p-0">
         <div class="p-6 pb-2 border-b border-base-200 shrink-0">
             <h3 class="font-bold text-lg">ユーザを追加</h3>
             <p class="text-sm text-base-content/60 mt-0.5">
@@ -2916,7 +2916,7 @@
 
 <dialog class="modal" class:modal-open={createDeptOpen}>
     <div
-        class="modal-box flex min-h-[50vh] max-h-[85vh] max-w-3xl flex-col !overflow-hidden p-0">
+        class="modal-box flex min-h-[50vh] max-h-[85vh] max-w-3xl flex-col overflow-hidden! p-0">
         <div class="p-6 pb-2 border-b border-base-200 shrink-0">
             <h3 class="font-bold text-lg">部署を追加</h3>
         </div>
@@ -3001,7 +3001,7 @@
 
 <dialog class="modal" class:modal-open={createTeamOpen}>
     <div
-        class="modal-box flex min-h-[50vh] max-h-[85vh] max-w-3xl flex-col !overflow-hidden p-0">
+        class="modal-box flex min-h-[50vh] max-h-[85vh] max-w-3xl flex-col overflow-hidden! p-0">
         <div class="p-6 pb-2 border-b border-base-200 shrink-0">
             <h3 class="font-bold text-lg">チームを追加</h3>
         </div>
