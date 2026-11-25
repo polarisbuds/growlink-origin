@@ -1,11 +1,15 @@
 <script lang="ts">
+    import { fade } from "svelte/transition";
     import { onMount } from "svelte";
     import { api } from "$lib/api";
     import { showToast } from "$lib/toast";
     import { getAvatar } from "$lib/session";
     import MultiCheckSelect from "$lib/components/MultiCheckSelect.svelte";
     import Icon from "$lib/components/Icon.svelte";
-    import PairSharerModal from "$lib/components/PairSharerModal.svelte";
+    import PairSharerModal, {
+        type PairShareTarget,
+    } from "$lib/components/PairSharerModal.svelte";
+    import { ChevronDown } from "lucide-svelte";
     import type { PairingDisplayRow } from "$lib/pairing-helpers";
     import {
         type PairingListItem,
@@ -30,6 +34,14 @@
     type Dept = { uuid: string; name: string };
     type Team = { uuid: string; name: string; departmentUuid: string };
 
+    type SelectedPairing = {
+        uuid: string;
+        mentorUserUuid: string;
+        menteeUserUuid: string;
+        mentorName: string;
+        menteeName: string;
+    };
+
     const PAGE_SIZE = 20;
 
     let directoryUsers = $state<PlanningDirectoryUser[]>([]);
@@ -37,10 +49,10 @@
     let filterMentorUuids = $state<string[]>([]);
     let filterMenteeUuids = $state<string[]>([]);
     let viewMode = $state<ViewMode>("individual");
-    let selected = $state<PairingListItem | null>(null);
-    let deleteOpen = $state(false);
+    let selectedPairings = $state<SelectedPairing[]>([]);
+    let bulkDeleteOpen = $state(false);
     let shareOpen = $state(false);
-    let shareRow = $state<PairingDisplayRow | null>(null);
+    let shareTargets = $state<PairShareTarget[]>([]);
     let isSystemAdmin = $state(false);
     let departments = $state<Dept[]>([]);
     let selectDepartmentUuids = $state<string[]>([]);
@@ -63,6 +75,59 @@
     let displayedRows = $derived(pageCache.get(currentPage) ?? []);
     let lastPage = $derived(lastPageForTotal(total, PAGE_SIZE));
     let pagerPages = $derived(visiblePageNumbers(currentPage, lastPage));
+
+    let canBulkPairAction = $derived(selectedPairings.length > 0);
+
+    function rowToSelected(row: PairingDisplayRow): SelectedPairing {
+        return {
+            uuid: row.pairing.uuid,
+            mentorUserUuid: row.mentorUserUuid,
+            menteeUserUuid: row.menteeUserUuid,
+            mentorName: row.mentorName,
+            menteeName: row.menteeName,
+        };
+    }
+
+    function isPairSelected(uuid: string) {
+        return selectedPairings.some((p) => p.uuid === uuid);
+    }
+
+    function togglePair(row: PairingDisplayRow, checked: boolean) {
+        const uuid = row.pairing.uuid;
+        if (checked) {
+            if (isPairSelected(uuid)) return;
+            selectedPairings = [...selectedPairings, rowToSelected(row)];
+        } else {
+            selectedPairings = selectedPairings.filter((p) => p.uuid !== uuid);
+        }
+    }
+
+    function allRowsSelected(rows: PairingDisplayRow[]) {
+        return (
+            rows.length > 0 &&
+            rows.every((r) => isPairSelected(r.pairing.uuid))
+        );
+    }
+
+    function toggleAllPairsInTable(rows: PairingDisplayRow[], checked: boolean) {
+        const rowUuids = rows.map((r) => r.pairing.uuid);
+        if (checked) {
+            const set = new Set(selectedPairings.map((p) => p.uuid));
+            const next = [...selectedPairings];
+            for (let i = 0; i < rows.length; i++) {
+                const uuid = rowUuids[i];
+                if (set.has(uuid)) continue;
+                set.add(uuid);
+                next.push(rowToSelected(rows[i]));
+            }
+            selectedPairings = next;
+        } else {
+            const remove = new Set(rowUuids);
+            selectedPairings = selectedPairings.filter(
+                (p) => !remove.has(p.uuid),
+            );
+        }
+    }
 
     function filterQueryBase(): Omit<PairingListQuery, "page"> {
         return {
@@ -234,26 +299,66 @@
         await reloadFromPageOne();
     });
 
-    function askDelete(p: PairingListItem) {
-        selected = p;
-        deleteOpen = true;
+    function rowToShareTarget(row: PairingDisplayRow): PairShareTarget {
+        return {
+            pairingUuid: row.pairing.uuid,
+            mentorUserUuid: row.mentorUserUuid,
+            menteeUserUuid: row.menteeUserUuid,
+            mentorName: row.mentorName,
+            menteeName: row.menteeName,
+        };
+    }
+
+    function selectedToShareTargets(): PairShareTarget[] {
+        const out: PairShareTarget[] = [];
+        for (let i = 0; i < selectedPairings.length; i++) {
+            const p = selectedPairings[i];
+            out[i] = {
+                pairingUuid: p.uuid,
+                mentorUserUuid: p.mentorUserUuid,
+                menteeUserUuid: p.menteeUserUuid,
+                mentorName: p.mentorName,
+                menteeName: p.menteeName,
+            };
+        }
+        return out;
     }
 
     function openShare(row: PairingDisplayRow) {
-        shareRow = row;
+        shareTargets = [rowToShareTarget(row)];
+        shareOpen = true;
+    }
+
+    function openBulkShare() {
+        if (selectedPairings.length === 0) return;
+        shareTargets = selectedToShareTargets();
         shareOpen = true;
     }
 
     function closeShare() {
         shareOpen = false;
-        shareRow = null;
+        shareTargets = [];
     }
-    async function confirmDelete() {
-        if (!selected) return;
+
+    function askBulkDelete() {
+        if (selectedPairings.length === 0) return;
+        bulkDeleteOpen = true;
+    }
+
+    async function confirmBulkDelete() {
+        if (selectedPairings.length === 0) return;
+        const uuids = selectedPairings.map((p) => p.uuid);
+        bulkDeleteOpen = false;
         try {
-            await api("DELETE", `/api/v1/pairings/${selected.uuid}`);
-            deleteOpen = false;
-            showToast("ペアを削除しました");
+            for (let i = 0; i < uuids.length; i++) {
+                await api("DELETE", `/api/v1/pairings/${uuids[i]}`);
+            }
+            selectedPairings = [];
+            showToast(
+                uuids.length === 1
+                    ? "ペアを削除しました"
+                    : `${uuids.length} 件のペアを削除しました`,
+            );
             if (viewMode === "individual") {
                 await reloadFromPageOne();
             } else {
@@ -261,6 +366,11 @@
             }
         } catch {
             showToast("削除に失敗しました", "error");
+            if (viewMode === "individual") {
+                await reloadFromPageOne();
+            } else {
+                await reloadDepartmentView();
+            }
         }
     }
 
@@ -275,10 +385,44 @@
     onkeydown={(e: KeyboardEvent) => {
         if (e.key !== "Escape") return;
         if (document.querySelector("[data-pick-panel]")) return;
-        deleteOpen = false;
+        bulkDeleteOpen = false;
         const openModals = document.querySelectorAll(".modal.modal-open");
         if (shareOpen && openModals.length <= 1) closeShare();
     }} />
+
+{#snippet pairBulkActions()}
+    {#if selectedPairings.length > 0}
+        <span class="text-sm text-base-content/60" transition:fade
+            >{selectedPairings.length} 件選択中</span>
+    {/if}
+    <div class="dropdown dropdown-end">
+        <button
+            type="button"
+            tabindex="0"
+            class="btn btn-outline btn-sm gap-1 shrink-0">
+            操作
+            <ChevronDown class="h-4 w-4 opacity-60" />
+        </button>
+        <ul
+            role="menu"
+            tabindex="0"
+            class="menu dropdown-content z-50 mt-2 w-44 rounded-box border border-base-300 bg-base-100 p-2 shadow-lg">
+            <li>
+                <button
+                    type="button"
+                    disabled={!canBulkPairAction}
+                    onclick={openBulkShare}>共有者設定</button>
+            </li>
+            <li>
+                <button
+                    type="button"
+                    class="text-error"
+                    disabled={!canBulkPairAction}
+                    onclick={askBulkDelete}>削除</button>
+            </li>
+        </ul>
+    </div>
+{/snippet}
 
 <div class="mt-2 flex flex-wrap items-center gap-2 justify-end">
     <div class="join">
@@ -295,58 +439,78 @@
             class:btn-outline={viewMode !== "department"}
             onclick={() => setViewMode("department")}>部署</button>
     </div>
+    {#if !isSystemAdmin}
+        <div class="flex items-center gap-3">
+            {@render pairBulkActions()}
+        </div>
+    {/if}
 </div>
 
 {#if isSystemAdmin}
-    <div class="mt-2 grid gap-3 sm:grid-cols-4">
-        <label class="form-control">
-            <span class="label-text text-xs">メンター</span>
-            <MultiCheckSelect
-                pickRootId="pair-list-mentor"
-                items={directoryUsers}
-                bind:selectedUuids={filterMentorUuids}
-                labelOf={userOptionLabel}
-                placeholder="すべて" />
-        </label>
-        <label class="form-control">
-            <span class="label-text text-xs">メンティ</span>
-            <MultiCheckSelect
-                pickRootId="pair-list-mentee"
-                items={directoryUsers}
-                bind:selectedUuids={filterMenteeUuids}
-                labelOf={userOptionLabel}
-                placeholder="すべて" />
-        </label>
-        <label class="form-control">
-            <span class="label-text text-xs">部署</span>
-            <MultiCheckSelect
-                pickRootId="pair-list-dept"
-                items={departments}
-                bind:selectedUuids={selectDepartmentUuids}
-                labelOf={(item: Dept) => `${item.name}`}
-                placeholder="すべて" />
-        </label>
-        <label class="form-control">
-            <span class="label-text text-xs">チーム</span>
-            <MultiCheckSelect
-                pickRootId="pair-list-tea,"
-                items={teams}
-                bind:selectedUuids={selectTeamUuids}
-                labelOf={(item: Team) => item.name}
-                placeholder="すべて" />
-        </label>
+    <div class="mt-2 flex flex-wrap items-end gap-3">
+        <div class="grid flex-1 min-w-0 gap-3 sm:grid-cols-4">
+            <label class="form-control">
+                <span class="label-text text-xs">メンター</span>
+                <MultiCheckSelect
+                    pickRootId="pair-list-mentor"
+                    items={directoryUsers}
+                    bind:selectedUuids={filterMentorUuids}
+                    labelOf={userOptionLabel}
+                    placeholder="すべて" />
+            </label>
+            <label class="form-control">
+                <span class="label-text text-xs">メンティ</span>
+                <MultiCheckSelect
+                    pickRootId="pair-list-mentee"
+                    items={directoryUsers}
+                    bind:selectedUuids={filterMenteeUuids}
+                    labelOf={userOptionLabel}
+                    placeholder="すべて" />
+            </label>
+            <label class="form-control">
+                <span class="label-text text-xs">部署</span>
+                <MultiCheckSelect
+                    pickRootId="pair-list-dept"
+                    items={departments}
+                    bind:selectedUuids={selectDepartmentUuids}
+                    labelOf={(item: Dept) => `${item.name}`}
+                    placeholder="すべて" />
+            </label>
+            <label class="form-control">
+                <span class="label-text text-xs">チーム</span>
+                <MultiCheckSelect
+                    pickRootId="pair-list-team"
+                    items={teams}
+                    bind:selectedUuids={selectTeamUuids}
+                    labelOf={(item: Team) => item.name}
+                    placeholder="すべて" />
+            </label>
+        </div>
+        <div class="flex items-center gap-3 shrink-0 pb-0.5">
+            {@render pairBulkActions()}
+        </div>
     </div>
 {/if}
 
-{#snippet tableHead()}
+{#snippet tableHead(rows: PairingDisplayRow[])}
     <thead>
         <tr class="text-base-content/70">
+            <th class="w-10">
+                <input
+                    type="checkbox"
+                    class="checkbox checkbox-sm"
+                    checked={allRowsSelected(rows)}
+                    onchange={(e) =>
+                        toggleAllPairsInTable(
+                            rows,
+                            (e.currentTarget as HTMLInputElement).checked,
+                        )} />
+            </th>
             <th class="font-semibold">部署</th>
             <th class="font-semibold">メンター</th>
             <th class="font-semibold">部署</th>
             <th class="font-semibold">メンティ</th>
             <th class="font-semibold">チーム</th>
-            <th></th>
         </tr>
     </thead>
 {/snippet}
@@ -363,6 +527,18 @@
             <tr
                 class="cursor-pointer hover:bg-base-200/40"
                 onclick={() => openShare(row)}>
+                <!-- svelte-ignore a11y_no_static_element_interactions -->
+                <td onclick={(e) => e.stopPropagation()}>
+                    <input
+                        type="checkbox"
+                        class="checkbox checkbox-sm"
+                        checked={isPairSelected(row.pairing.uuid)}
+                        onchange={(e) =>
+                            togglePair(
+                                row,
+                                (e.currentTarget as HTMLInputElement).checked,
+                            )} />
+                </td>
                 <td class="text-sm"
                     >{departmentNameForUser(row.mentorUserUuid, deptMaps)}</td>
                 <td>
@@ -390,14 +566,6 @@
                 <td class="text-sm">
                     {menteeUser?.teamNames || ""}
                 </td>
-                <td
-                    class="space-x-1 whitespace-nowrap text-right"
-                    onclick={(e) => e.stopPropagation()}>
-                    <button
-                        type="button"
-                        class="btn btn-xs btn-error btn-outline"
-                        onclick={() => askDelete(row.pairing)}>削除</button>
-                </td>
             </tr>
         {/each}
     </tbody>
@@ -418,7 +586,7 @@
         <div
             class="mt-4 overflow-hidden rounded-3xl border border-base-300 bg-base-100 shadow-sm">
             <table class="table">
-                {@render tableHead()}
+                {@render tableHead(displayedRows)}
                 {@render tableBody(displayedRows)}
             </table>
         </div>
@@ -476,7 +644,7 @@
                     </div>
                 {/if}
                 <table class="table">
-                    {@render tableHead()}
+                    {@render tableHead(group.rows)}
                     {@render tableBody(group.rows)}
                 </table>
             </section>
@@ -486,30 +654,30 @@
 
 <PairSharerModal
     open={shareOpen}
-    pairingUuid={shareRow?.pairing.uuid ?? ""}
-    mentorUserUuid={shareRow?.mentorUserUuid ?? ""}
-    menteeUserUuid={shareRow?.menteeUserUuid ?? ""}
-    mentorName={shareRow?.mentorName ?? ""}
-    menteeName={shareRow?.menteeName ?? ""}
+    targets={shareTargets}
     users={directoryUsers}
     {departments}
     {teams}
     onClose={closeShare} />
 
-<dialog class="modal" class:modal-open={deleteOpen}>
+<dialog class="modal" class:modal-open={bulkDeleteOpen}>
     <div class="modal-box">
-        <h3 class="font-bold text-lg">ペアを削除しますか？</h3>
+        <h3 class="font-bold text-lg">
+            選択した {selectedPairings.length} 件のペアを削除しますか？
+        </h3>
         <div class="modal-action">
             <button
                 type="button"
                 class="btn btn-ghost"
-                onclick={() => (deleteOpen = false)}>キャンセル</button>
-            <button type="button" class="btn btn-error" onclick={confirmDelete}
-                >削除</button>
+                onclick={() => (bulkDeleteOpen = false)}>キャンセル</button>
+            <button
+                type="button"
+                class="btn btn-error"
+                onclick={confirmBulkDelete}>削除</button>
         </div>
     </div>
     <form method="dialog" class="modal-backdrop">
-        <button type="button" onclick={() => (deleteOpen = false)}
+        <button type="button" onclick={() => (bulkDeleteOpen = false)}
             >close</button>
     </form>
 </dialog>

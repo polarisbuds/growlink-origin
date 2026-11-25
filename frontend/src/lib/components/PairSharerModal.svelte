@@ -12,30 +12,30 @@
 
     const TABLE_PAGE_SIZE = 10;
 
+    export type PairShareTarget = {
+        pairingUuid: string;
+        mentorUserUuid: string;
+        menteeUserUuid: string;
+        mentorName: string;
+        menteeName: string;
+    };
+
     type Dept = { uuid: string; name: string };
     type Team = { uuid: string; name: string; departmentUuid: string };
 
     let {
         open = false,
-        pairingUuid = "",
-        mentorUserUuid = "",
-        menteeUserUuid = "",
+        targets = [],
         users,
         departments = [],
         teams = [],
-        mentorName = "",
-        menteeName = "",
         onClose,
     }: {
         open?: boolean;
-        pairingUuid?: string;
-        mentorUserUuid?: string;
-        menteeUserUuid?: string;
+        targets?: PairShareTarget[];
         users: SharerPickerUser[];
         departments?: Dept[];
         teams?: Team[];
-        mentorName?: string;
-        menteeName?: string;
         onClose: () => void;
     } = $props();
 
@@ -47,11 +47,29 @@
     let saving = $state(false);
     let loadGen = 0;
 
+    let excludedUserUuids = $derived.by(() => {
+        const set = new Set<string>();
+        for (let i = 0; i < targets.length; i++) {
+            const t = targets[i];
+            if (t.mentorUserUuid) set.add(t.mentorUserUuid);
+            if (t.menteeUserUuid) set.add(t.menteeUserUuid);
+        }
+        return set;
+    });
+
     let pickableUsers = $derived(
-        users.filter(
-            (u) => u.uuid !== mentorUserUuid && u.uuid !== menteeUserUuid,
-        ),
+        users.filter((u) => !excludedUserUuids.has(u.uuid)),
     );
+
+    let subtitle = $derived.by(() => {
+        if (targets.length === 1) {
+            return `${targets[0].mentorName} × ${targets[0].menteeName}`;
+        }
+        if (targets.length > 1) {
+            return `選択した ${targets.length} 件`;
+        }
+        return "";
+    });
 
     let selectedRows = $derived.by(() => {
         const rows = sharerUserUuids
@@ -91,11 +109,16 @@
     });
 
     $effect(() => {
-        if (!open || !pairingUuid) return;
+        if (!open || targets.length === 0) return;
         const gen = ++loadGen;
-        loading = true;
+        loading = targets.length === 1;
         sharerUserUuids = [];
         tablePage = 1;
+        if (targets.length !== 1) {
+            loading = false;
+            return;
+        }
+        const pairingUuid = targets[0].pairingUuid;
         void (async () => {
             try {
                 const res = await api<{
@@ -126,13 +149,20 @@
     }
 
     async function save() {
-        if (!pairingUuid || saving) return;
+        if (targets.length === 0 || saving) return;
         saving = true;
         try {
-            await api("PUT", `/api/v1/pairings/${pairingUuid}/sharers`, {
-                sharerUserUuids,
-            });
-            showToast("共有者を保存しました");
+            for (let i = 0; i < targets.length; i++) {
+                const pairingUuid = targets[i].pairingUuid;
+                await api("PUT", `/api/v1/pairings/${pairingUuid}/sharers`, {
+                    sharerUserUuids,
+                });
+            }
+            showToast(
+                targets.length === 1
+                    ? "共有者を保存しました"
+                    : `${targets.length} 件のペアに共有者を保存しました`,
+            );
             onClose();
         } catch {
             showToast("保存に失敗しました", "error");
@@ -164,7 +194,7 @@
             <div class="min-w-0">
                 <h3 class="text-lg font-bold">ペア共有</h3>
                 <p class="mt-1 truncate text-sm text-base-content/60">
-                    {mentorName} × {menteeName}
+                    {subtitle}
                 </p>
             </div>
             <button

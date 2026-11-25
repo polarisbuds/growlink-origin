@@ -111,20 +111,21 @@ func main() {
 		ldapClient = ldap.NewClient(ldapSetting)
 	}
 
-	setting, ok, err := lineworks.Load()
-	if err != nil {
-		slog.Error("Line WorksのAPIの設定の読込に失敗しました: %w", slog.String("err", err.Error()))
-		os.Exit(1)
-	}
-	if !ok {
-		slog.Error("Line WorksのAPIの設定取得に失敗しました")
-		os.Exit(1)
-	}
-	client, err := lineworks.NewClient(setting)
-	if err != nil {
-		slog.Error("Line Worksのクライアント作成に失敗しました: %w", slog.String("err", err.Error()))
-		os.Exit(1)
-	}
+	// setting, ok, err := lineworks.Load()
+	// if err != nil {
+	// 	slog.Error("Line WorksのAPIの設定の読込に失敗しました: %w", slog.String("err", err.Error()))
+	// 	os.Exit(2)
+	// }
+	// if !ok {
+	// 	slog.Error("Line WorksのAPIの設定取得に失敗しました")
+	// 	os.Exit(2)
+	// }
+	// client, err := lineworks.NewClient(setting)
+	// if err != nil {
+	// 	slog.Error("Line Worksのクライアント作成に失敗しました: %w", slog.String("err", err.Error()))
+	// 	os.Exit(2)
+	// }
+	client, _ := lineworks.NewClient(lineworks.Setting{})
 
 	authUC := authenticate_usecase.NewAuthUsecase(ldapClient, userRepo, deptRepo, deptMemberRepo)
 	answerCommenter := meeting_usecase.NewAnswerCommenterUsecase(answerCommentRepo)
