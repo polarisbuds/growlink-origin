@@ -17,6 +17,7 @@ import (
 
 	"github.com/google/uuid"
 	"golang.org/x/sync/errgroup"
+	"golang.org/x/sync/semaphore"
 	"gorm.io/gorm"
 )
 
@@ -187,6 +188,11 @@ func (uc *UserAdmin) buildManagementUserOutputs(users []entity.User) ([]outputmo
 		userIDs[idx] = user.ID
 	}
 
+	teamsMapByUserID, err := uc.loadTeamAssignmentsByUserIDs(userIDs)
+	if err != nil {
+		return nil, err
+	}
+
 	if err := group.Wait(); err != nil {
 		return nil, err
 	}
@@ -195,39 +201,50 @@ func (uc *UserAdmin) buildManagementUserOutputs(users []entity.User) ([]outputmo
 	if err != nil {
 		return nil, err
 	}
-	teamsMapByUserID, err := uc.loadTeamAssignmentsByUserIDs(userIDs)
-	if err != nil {
+
+	sem := semaphore.NewWeighted(5)
+
+	group, gctx := errgroup.WithContext(context.Background())
+	ctx := context.WithoutCancel(gctx)
+	for idx, u := range users {
+		group.Go(func() error {
+			if err := sem.Acquire(ctx, 1); err != nil {
+				return err
+			}
+			defer sem.Release(1)
+
+			departments := departmentsMapByUserID[u.ID]
+			deptName, deptUUID, roleName, roleUUID := "", "", "", ""
+
+			if len(departments) > 0 {
+				deptUUID = departments[0].DepartmentUUID
+				roleUUID = departments[0].RoleUUID
+				deptName = deptUUIDToName[deptUUID]
+				roleName = roleUUIDToName[roleUUID]
+			}
+
+			out[idx] = outputmodel.ManagementUserOutput{
+				UUID:           u.UUID.String(),
+				Name:           u.Name,
+				Email:          u.Email,
+				ImageURI:       u.ImageURI,
+				Authority:      u.Authority.String(),
+				SystemRole:     u.SystemRole.String(),
+				DepartmentUUID: deptUUID,
+				DepartmentName: deptName,
+				RoleUUID:       roleUUID,
+				RoleName:       roleName,
+				Departments:    departments,
+				Teams:          teamsMapByUserID[u.ID],
+				Suspended:      u.Suspended,
+			}
+			return nil
+		})
+	}
+
+	if err := group.Wait(); err != nil {
 		return nil, err
 	}
-
-	for idx, u := range users {
-		departments := departmentsMapByUserID[u.ID]
-		deptName, deptUUID, roleName, roleUUID := "", "", "", ""
-
-		if len(departments) > 0 {
-			deptUUID = departments[0].DepartmentUUID
-			roleUUID = departments[0].RoleUUID
-			deptName = deptUUIDToName[deptUUID]
-			roleName = roleUUIDToName[roleUUID]
-		}
-
-		out[idx] = outputmodel.ManagementUserOutput{
-			UUID:           u.UUID.String(),
-			Name:           u.Name,
-			Email:          u.Email,
-			ImageURI:       u.ImageURI,
-			Authority:      u.Authority.String(),
-			SystemRole:     u.SystemRole.String(),
-			DepartmentUUID: deptUUID,
-			DepartmentName: deptName,
-			RoleUUID:       roleUUID,
-			RoleName:       roleName,
-			Departments:    departments,
-			Teams:          teamsMapByUserID[u.ID],
-			Suspended:      u.Suspended,
-		}
-	}
-
 	return out, nil
 }
 

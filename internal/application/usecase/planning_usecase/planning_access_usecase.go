@@ -28,6 +28,7 @@ type PlanningAccessUsecase struct {
 	meetingViewer  *meeting_mng_usecase.MeetingViewer
 	meetingList    *meeting_usecase.MeetingListUsecase
 	pairingViewer  *pairing_mng_usecase.PairingViewer
+	pairingUpdater *pairing_mng_usecase.PairingUpdater
 	pairingRepo    repository_interface.PairingRepository
 }
 
@@ -42,6 +43,7 @@ func NewPlanningAccessUsecase(
 	meetingViewer *meeting_mng_usecase.MeetingViewer,
 	meetingList *meeting_usecase.MeetingListUsecase,
 	pairingViewer *pairing_mng_usecase.PairingViewer,
+	pairingUpdater *pairing_mng_usecase.PairingUpdater,
 	pairingRepo repository_interface.PairingRepository,
 ) *PlanningAccessUsecase {
 	return &PlanningAccessUsecase{
@@ -55,6 +57,7 @@ func NewPlanningAccessUsecase(
 		meetingViewer:  meetingViewer,
 		meetingList:    meetingList,
 		pairingViewer:  pairingViewer,
+		pairingUpdater: pairingUpdater,
 		pairingRepo:    pairingRepo,
 	}
 }
@@ -258,7 +261,7 @@ func (uc *PlanningAccessUsecase) ListPairingsForManagement(userID uint, authorit
 		done(err)
 	}()
 	if fullPlanningAccess(systemRole) || authority.IsOwner() {
-		return uc.pairingViewer.ListPairingsByAll()
+		return uc.pairingViewer.ListPairingsByAllExTemporary()
 	}
 	return uc.listPairManagementScopedPairings(userID, authority, systemRole)
 }
@@ -284,7 +287,7 @@ func (uc *PlanningAccessUsecase) ListPairingsForMeeting(userID uint, authority v
 		done(err)
 	}()
 	if fullPlanningAccess(systemRole) || authority.IsOwner() {
-		return uc.pairingViewer.ListPairingsByAll()
+		return uc.pairingViewer.ListPairingsByAllExTemporary()
 	}
 
 	merged := []outputmodel.PairingOutput{}

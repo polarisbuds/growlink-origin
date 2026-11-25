@@ -126,6 +126,8 @@ func RegisterRoutes(e *echo.Echo, deps Deps, auditLogger *slog.Logger) {
 	apiAuth.GET("/pairings/meeting", ah.ListPairingsForMeeting, auditLogging(auditLogger, false))
 	apiAuth.GET("/pairings", ah.ListPairings, pairAPI, auditLogging(auditLogger, false))
 	apiAuth.GET("/pairings/:uuid", ah.GetPairing, pairAPI, auditLogging(auditLogger, false))
+	apiAuth.GET("/pairings/:uuid/sharers", ah.ListPairingSharers, pairAPI, auditLogging(auditLogger, false))
+	apiAuth.PUT("/pairings/:uuid/sharers", ah.UpdatePairingSharers, pairAPI, auditLogging(auditLogger, false))
 	apiAuth.POST("/pairings", ah.CreatePairing, pairAPI, auditLogging(auditLogger, false))
 	apiAuth.DELETE("/pairings/:uuid", ah.DeletePairing, pairAPI, auditLogging(auditLogger, false))
 

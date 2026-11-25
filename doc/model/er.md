@@ -165,18 +165,10 @@ line_works_message_settings {
 }
  
 system_settings {
-    number meeting_week "定期実施：第N週"
-    number meeting_weekday "定期実施：曜日（0=日曜）"
-    bigint default_template_id FK "デフォルトテンプレート"
-    text log_output_path "ログ出力先"
-    text log_file_prefix "ログファイルPrefix"
-    boolean remind_auto_send "not null, default false。リマインド自動送信"
-    text remind_mode "not null, default prev_weekday。送信モード"
-    number remind_days_before "not null, default 1。何日前"
-    number remind_weekday "not null, default 1。曜日"
-    text remind_time "not null, default 09:00。送信時刻"
+    number notify_start_week "not null, default 1。送信開始の第何週目から（1〜5）"
+    number notify_interval_days "not null, default 1。送信間隔（日）。1 は毎日（1〜31）"
+    text notify_time "not null, default 09:00。送信時刻 HH:MM"
 }
-templates ||--o| system_settings: "default_template_id"
 
 department_hierarchies {
     bigint parent_department_id FK

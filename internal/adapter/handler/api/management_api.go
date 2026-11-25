@@ -5,8 +5,8 @@ import (
 
 	"growlink/internal/adapter/handler/authctx"
 	outputmodel "growlink/internal/application/model/output_model"
-	org_admin_usecase "growlink/internal/application/usecase/management_usecase/org_admin_usecase"
 	line_works_messages_usecase "growlink/internal/application/usecase/management_usecase/line_works_messages_usecase"
+	org_admin_usecase "growlink/internal/application/usecase/management_usecase/org_admin_usecase"
 	remind_settings_usecase "growlink/internal/application/usecase/management_usecase/remind_settings_usecase"
 	role_admin_usecase "growlink/internal/application/usecase/management_usecase/role_admin_usecase"
 	user_admin_usecase "growlink/internal/application/usecase/management_usecase/user_admin_usecase"
@@ -62,8 +62,6 @@ func (h *Handler) ListManagementUsers(c *echo.Context) error {
 			PageSize: ps,
 		})
 	}
-	deptUUIDs := make([]uuid.UUID, len(q.DepartmentUUIDs))
-	copy(deptUUIDs, q.DepartmentUUIDs)
 
 	pageSize := q.Size
 	if pageSize == 0 {
@@ -72,7 +70,7 @@ func (h *Handler) ListManagementUsers(c *echo.Context) error {
 	out, err := h.deps.Management.UserAdmin.ListUsersPaged(user_admin_usecase.ManagementUsersListFilter{
 		Name:            q.Name,
 		Email:           q.Email,
-		DepartmentUUIDs: deptUUIDs,
+		DepartmentUUIDs: q.DepartmentUUIDs,
 	}, q.Page, pageSize)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})

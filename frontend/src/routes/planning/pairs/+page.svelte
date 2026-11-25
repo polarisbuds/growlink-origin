@@ -5,6 +5,8 @@
     import { getAvatar } from "$lib/session";
     import MultiCheckSelect from "$lib/components/MultiCheckSelect.svelte";
     import Icon from "$lib/components/Icon.svelte";
+    import PairSharerModal from "$lib/components/PairSharerModal.svelte";
+    import type { PairingDisplayRow } from "$lib/pairing-helpers";
     import {
         type PairingListItem,
         expandUserPairings,
@@ -26,7 +28,7 @@
     type ViewMode = "individual" | "department";
 
     type Dept = { uuid: string; name: string };
-    type Team = { uuid: string; name: string };
+    type Team = { uuid: string; name: string; departmentUuid: string };
 
     const PAGE_SIZE = 20;
 
@@ -37,6 +39,8 @@
     let viewMode = $state<ViewMode>("individual");
     let selected = $state<PairingListItem | null>(null);
     let deleteOpen = $state(false);
+    let shareOpen = $state(false);
+    let shareRow = $state<PairingDisplayRow | null>(null);
     let isSystemAdmin = $state(false);
     let departments = $state<Dept[]>([]);
     let selectDepartmentUuids = $state<string[]>([]);
@@ -234,6 +238,16 @@
         selected = p;
         deleteOpen = true;
     }
+
+    function openShare(row: PairingDisplayRow) {
+        shareRow = row;
+        shareOpen = true;
+    }
+
+    function closeShare() {
+        shareOpen = false;
+        shareRow = null;
+    }
     async function confirmDelete() {
         if (!selected) return;
         try {
@@ -258,8 +272,13 @@
 <svelte:head><title>ペア一覧 - Growlink</title></svelte:head>
 
 <svelte:window
-    onkeydown={(e: KeyboardEvent) =>
-        e.key === "Escape" && (deleteOpen = false)} />
+    onkeydown={(e: KeyboardEvent) => {
+        if (e.key !== "Escape") return;
+        if (document.querySelector("[data-pick-panel]")) return;
+        deleteOpen = false;
+        const openModals = document.querySelectorAll(".modal.modal-open");
+        if (shareOpen && openModals.length <= 1) closeShare();
+    }} />
 
 <div class="mt-2 flex flex-wrap items-center gap-2 justify-end">
     <div class="join">
@@ -341,7 +360,9 @@
             {@const menteeUser = directoryUsers.find(
                 (u) => u.uuid === row.menteeUserUuid,
             )}
-            <tr class="hover:bg-base-200/40">
+            <tr
+                class="cursor-pointer hover:bg-base-200/40"
+                onclick={() => openShare(row)}>
                 <td class="text-sm"
                     >{departmentNameForUser(row.mentorUserUuid, deptMaps)}</td>
                 <td>
@@ -369,7 +390,9 @@
                 <td class="text-sm">
                     {menteeUser?.teamNames || ""}
                 </td>
-                <td class="space-x-1 whitespace-nowrap text-right">
+                <td
+                    class="space-x-1 whitespace-nowrap text-right"
+                    onclick={(e) => e.stopPropagation()}>
                     <button
                         type="button"
                         class="btn btn-xs btn-error btn-outline"
@@ -460,6 +483,18 @@
         {/each}
     </div>
 {/if}
+
+<PairSharerModal
+    open={shareOpen}
+    pairingUuid={shareRow?.pairing.uuid ?? ""}
+    mentorUserUuid={shareRow?.mentorUserUuid ?? ""}
+    menteeUserUuid={shareRow?.menteeUserUuid ?? ""}
+    mentorName={shareRow?.mentorName ?? ""}
+    menteeName={shareRow?.menteeName ?? ""}
+    users={directoryUsers}
+    {departments}
+    {teams}
+    onClose={closeShare} />
 
 <dialog class="modal" class:modal-open={deleteOpen}>
     <div class="modal-box">

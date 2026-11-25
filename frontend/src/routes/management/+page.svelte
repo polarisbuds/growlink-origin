@@ -169,9 +169,9 @@
     let userLoadGeneration = 0;
     let orgLoading = $state(true);
     let remind = $state({
-        notifyStartWeek: 1,
+        notifyStartWeek: 5,
         notifyIntervalDays: 1,
-        notifyTime: "09:00",
+        notifyTime: "10:00",
     });
     const LINE_WORKS_MESSAGE_TITLES = [
         "未提出通知",
@@ -647,12 +647,8 @@
         users.filter((u) => selectedUserUuids.includes(u.uuid)),
     );
     let canBulkChangeDept = $derived(selectedUserUuids.length > 0);
-    let canSuspendSelected = $derived(
-        selectedUsers.some((u) => !u.suspended),
-    );
-    let canUnsuspendSelected = $derived(
-        selectedUsers.some((u) => u.suspended),
-    );
+    let canSuspendSelected = $derived(selectedUsers.some((u) => !u.suspended));
+    let canUnsuspendSelected = $derived(selectedUsers.some((u) => u.suspended));
     let canSubmitBulkDeptTransfer = $derived(
         bulkDeptFromUuid.trim() !== "" &&
             bulkDeptToUuid.trim() !== "" &&
@@ -1812,9 +1808,7 @@
             </div>
             <div class="flex justify-end gap-3 items-center">
                 {#if selectedUserUuids.length > 0}
-                    <span
-                        class="text-sm text-base-content/60"
-                        transition:fade
+                    <span class="text-sm text-base-content/60" transition:fade
                         >{selectedUserUuids.length} 件選択中</span>
                 {/if}
                 <div class="dropdown dropdown-end">
@@ -2190,7 +2184,7 @@
 {/if}
 
 {#if tab === "remind"}
-    <div class="mt-6 max-w-2xl">
+    <div class="mt-6 max-w-3xl">
         <div role="tablist" class="tabs tabs-bordered mb-4">
             <button
                 type="button"
@@ -2214,26 +2208,30 @@
                     <span
                         >設定の保存のみ行います。実際の通知送信はバックエンドジョブで別途実装されます。</span>
                 </div>
-                <label class="form-control">
-                    <span class="label-text font-medium"
-                        >送信開始（第何週目から・1〜5）</span>
-                    <input
-                        type="number"
-                        min="1"
-                        max="5"
-                        class="input input-bordered"
-                        bind:value={remind.notifyStartWeek} />
-                </label>
-                <label class="form-control">
-                    <span class="label-text font-medium"
-                        >送信間隔（日・1〜31。1 は毎日）</span>
-                    <input
-                        type="number"
-                        min="1"
-                        max="31"
-                        class="input input-bordered"
-                        bind:value={remind.notifyIntervalDays} />
-                </label>
+                <div class="flex justify-between gap-4">
+                    <label class="form-control w-full">
+                        <span class="label-text font-medium">送信開始</span>
+                        <span class="label-text text-xs"
+                            >第何週目からリマインド通知をするか。「5」は最終週</span>
+                        <input
+                            type="number"
+                            min="1"
+                            max="5"
+                            class="input input-bordered"
+                            bind:value={remind.notifyStartWeek} />
+                    </label>
+                    <label class="form-control w-full">
+                        <span class="label-text font-medium">送信間隔</span>
+                        <span class="label-text text-xs"
+                            >リマインドの通知間隔。週初めからの経過日数。「1」は毎日</span>
+                        <input
+                            type="number"
+                            min="1"
+                            max="5"
+                            class="input input-bordered"
+                            bind:value={remind.notifyIntervalDays} />
+                    </label>
+                </div>
                 <label class="form-control">
                     <span class="label-text font-medium">送信時刻</span>
                     <input
@@ -2252,8 +2250,8 @@
             <div
                 class="rounded-3xl border border-base-300 bg-base-100 p-6 shadow-sm">
                 <p class="text-sm text-base-content/60 mb-4">
-                    ペアのメンター・メンティーへ送る LINE WORKS
-                    の文面です。送信時に装飾子が置き換わります。
+                    LINE
+                    WORKSで送信する通知文面です。送信時に装飾子が置き換わります。
                 </p>
                 <div role="tablist" class="tabs tabs-boxed bg-base-200/60 mb-4">
                     {#each LINE_WORKS_MESSAGE_TITLES as t (t)}
@@ -2793,7 +2791,8 @@
             <button
                 type="button"
                 class="btn btn-ghost"
-                onclick={() => (bulkDeptTransferOpen = false)}>キャンセル</button>
+                onclick={() => (bulkDeptTransferOpen = false)}
+                >キャンセル</button>
             <button
                 type="button"
                 class="btn btn-primary"

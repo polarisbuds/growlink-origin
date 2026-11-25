@@ -15,6 +15,7 @@ type PairingRepository interface {
 	BreakPairings(pairingID ...uint) error
 	BreakAllMenteePairing(mentorID uint) error
 	GetAll() ([]entity.Pairing, error)
+	GetAllExTemporary() ([]entity.Pairing, error)
 	GetAllContainDeleted() ([]entity.Pairing, error)
 	Get(pairingID uint) (*entity.Pairing, error)
 	GetByIDs(pairingIDs []uint) ([]entity.Pairing, error)
@@ -25,4 +26,6 @@ type PairingRepository interface {
 	GetByMentorID(mentorID uint) (mentees []entity.Pairing, err error)
 	GetPairingIDsBySharerUserID(userID uint) ([]uint, error)
 	UpdatePairing(pairingID, mentorID, menteeID uint) error
+	ListSharersByPairingID(pairingID uint) ([]entity.PairingSharer, error)
+	ReplaceSharers(pairingID uint, userIDs []uint) error
 }

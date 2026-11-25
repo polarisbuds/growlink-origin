@@ -61,3 +61,17 @@ func (uc *TemplateViewer) GetTemplate(templateID uint) (ret0 *outputmodel.Templa
 	out := converter.TemplateEntityToOutput(*template)
 	return &out, nil
 }
+
+func (uc *TemplateViewer) GetDefaultTemplate() (ret0 *outputmodel.TemplateOutput, err error) {
+	const op = "template_mng_usecase.GetDefaultTemplate"
+	done := logutils.Begin(context.Background(), logutils.LayerUsecase, op)
+	defer func() {
+		done(err)
+	}()
+	template, err := uc.templateRepo.GetDefault()
+	if err != nil {
+		return nil, fmt.Errorf("テンプレートのID指定取得に失敗しました: %w", err)
+	}
+	out := converter.TemplateEntityToOutput(*template)
+	return &out, nil
+}

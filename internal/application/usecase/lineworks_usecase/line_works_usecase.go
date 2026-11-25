@@ -9,6 +9,7 @@ import (
 	"growlink/internal/domain/valueobject"
 	"growlink/internal/shared/auth"
 	logutils "growlink/internal/shared/logUtils"
+	"growlink/internal/shared/utils"
 	"log/slog"
 	"os"
 	"strings"
@@ -106,6 +107,13 @@ func (uc *LineWorksUsecase) embededdingMessageTemplate(msg string, claims *auth.
 	return result
 }
 
+func systemClaims() *auth.CustomClaims {
+	return &auth.CustomClaims{
+		Name:  "システム",
+		Email: "system",
+	}
+}
+
 func (uc *LineWorksUsecase) getRequireInfo(meetingUUID uuid.UUID) (meeting *entity.Meeting, pairing *entity.Pairing, err error) {
 	meeting, err = uc.meetingRepo.GetByUUID(meetingUUID)
 	if err != nil {
@@ -149,6 +157,15 @@ func (uc *LineWorksUsecase) SendUnsubmittedMsg(ctx context.Context, claims *auth
 	return uc.sendMentee(ctx, claims, meetingUUID, valueobject.LineWorksMessageKindUnsubmitted, true)
 }
 
+func (uc *LineWorksUsecase) SendUnsubmittedMsgBySystem(ctx context.Context, meetingUUID uuid.UUID) (err error) {
+	const op = "lineworks_usecase.SendUnsubmittedMsgBySystem"
+	done := logutils.Begin(ctx, logutils.LayerUsecase, op)
+	defer func() {
+		done(err)
+	}()
+	return uc.SendUnsubmittedMsg(ctx, systemClaims(), meetingUUID)
+}
+
 func (uc *LineWorksUsecase) SendNotConductedMsg(ctx context.Context, claims *auth.CustomClaims, meetingUUID uuid.UUID) (err error) {
 	const op = "lineworks_usecase.SendNotConductedMsg"
 	done := logutils.Begin(ctx, logutils.LayerUsecase, op)
@@ -157,6 +174,16 @@ func (uc *LineWorksUsecase) SendNotConductedMsg(ctx context.Context, claims *aut
 	}()
 
 	return uc.sendMentor(ctx, claims, meetingUUID, valueobject.LineWorksMessageKindNotConducted, true)
+}
+
+func (uc *LineWorksUsecase) SendNotConductedMsgBySystem(ctx context.Context, meetingUUID uuid.UUID) (err error) {
+	const op = "lineworks_usecase.SendNotConductedMsgBySystem"
+	done := logutils.Begin(ctx, logutils.LayerUsecase, op)
+	defer func() {
+		done(err)
+	}()
+
+	return uc.SendNotConductedMsg(ctx, systemClaims(), meetingUUID)
 }
 
 func (uc *LineWorksUsecase) SendCreateMeetingMsg(ctx context.Context, claims *auth.CustomClaims, meetingUUID uuid.UUID) (err error) {
@@ -195,6 +222,16 @@ func (uc *LineWorksUsecase) SendCreateMeetingMsgs(ctx context.Context, claims *a
 		logutils.Error(ctx, logutils.LayerRepository, op, "LINE WORKSへの通知処理に失敗しました", slog.String("err", err.Error()))
 	}
 	return nil
+}
+
+func (uc *LineWorksUsecase) SendCreateMeetingMsgsBySystem(ctx context.Context, meetingUUIDs []uuid.UUID) (err error) {
+	const op = "lineworks_usecase.SendCreateMeetingMsgsBySystem"
+	done := logutils.Begin(ctx, logutils.LayerUsecase, op)
+	defer func() {
+		done(err)
+	}()
+
+	return uc.SendCreateMeetingMsgs(ctx, systemClaims(), meetingUUIDs)
 }
 
 func (uc *LineWorksUsecase) SendChangeImplementedAtMsg(ctx context.Context, claims *auth.CustomClaims, meetingUUID uuid.UUID) (err error) {
@@ -292,4 +329,90 @@ func (uc *LineWorksUsecase) sendMentee(ctx context.Context, claims *auth.CustomC
 		slog.Error(fmt.Sprintf("%sに失敗しました", kind.DefaultTitle()), slog.String("err", err.Error()))
 	}
 	return nil
+}
+
+func (uc *LineWorksUsecase) SendOverdueMeetingReminders(ctx context.Context) (err error) {
+	const op = "lineworks_usecase.SendOverdueMeetingReminders"
+	done := logutils.Begin(ctx, logutils.LayerUsecase, op)
+	defer func() {
+		done(err)
+	}()
+
+	pairings, err := uc.pairingRepo.GetAllExTemporary()
+	if err != nil {
+		return fmt.Errorf("ペアリング一覧の取得に失敗しました: %w", err)
+	}
+
+	today := utils.GetStartOfDay(time.Now())
+	var errs []error
+
+	type overdueTarget struct {
+		meetingUUID        uuid.UUID
+		toMentee, toMentor bool
+	}
+	targets := make([]overdueTarget, 0)
+
+	pairingIDs := make([]uint, len(pairings))
+	for idx, pairing := range pairings {
+		pairingIDs[idx] = pairing.ID
+	}
+
+	meetings, err := uc.meetingRepo.GetByPairingIDsByMonth(pairingIDs, today)
+	if err != nil {
+		return fmt.Errorf("面談の取得に失敗しました: %w", err)
+	}
+
+	for _, meeting := range meetings {
+		if meeting.ImplementedAt == nil {
+			continue
+		}
+		implDay := utils.GetStartOfDay(meeting.ImplementedAt.In(today.Location()))
+		if !implDay.Before(today) {
+			continue
+		}
+		if meeting.Status == valueobject.MeetingStatusDone {
+			continue
+		}
+
+		switch meeting.Status {
+		case valueobject.MeetingStatusPending, valueobject.MeetingStatusDraft:
+			targets = append(targets, overdueTarget{meetingUUID: meeting.UUID, toMentee: true, toMentor: true})
+		case valueobject.MeetingStatusSubmitted:
+			targets = append(targets, overdueTarget{meetingUUID: meeting.UUID, toMentor: true})
+		default:
+			continue
+		}
+	}
+
+	sem := semaphore.NewWeighted(3)
+	bg := context.WithoutCancel(ctx)
+	group, gctx := errgroup.WithContext(bg)
+	for _, target := range targets {
+		sem.Acquire(gctx, 1)
+		group.Go(func() error {
+			defer sem.Release(1)
+			var sendErrs []error
+			if target.toMentee {
+				if sendErr := uc.SendUnsubmittedMsgBySystem(gctx, target.meetingUUID); sendErr != nil {
+					slog.Error("未提出リマインド送信失敗", slog.String("meeting", target.meetingUUID.String()), slog.String("err", sendErr.Error()))
+					sendErrs = append(sendErrs, sendErr)
+				}
+			}
+			if target.toMentor {
+				if sendErr := uc.SendNotConductedMsgBySystem(gctx, target.meetingUUID); sendErr != nil {
+					slog.Error("未実施リマインド送信失敗", slog.String("meeting", target.meetingUUID.String()), slog.String("err", sendErr.Error()))
+					sendErrs = append(sendErrs, sendErr)
+				}
+			}
+			time.Sleep(time.Second)
+			return errors.Join(sendErrs...)
+		})
+	}
+
+	if waitErr := group.Wait(); waitErr != nil {
+		logutils.Error(ctx, logutils.LayerUsecase, op, "LINE WORKSへのリマインド処理に失敗しました", slog.String("err", waitErr.Error()))
+		errs = append(errs, waitErr)
+	}
+
+	return errors.Join(errs...)
 }

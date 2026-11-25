@@ -25,6 +25,17 @@ type PlanningPairingsListFilter struct {
 	TeamUUIDs       []uuid.UUID
 }
 
+func uuidSet(ids []uuid.UUID) map[string]bool {
+	if len(ids) == 0 {
+		return nil
+	}
+	s := make(map[string]bool, len(ids))
+	for _, id := range ids {
+		s[id.String()] = true
+	}
+	return s
+}
+
 func filterPlanningPairings(
 	list []outputmodel.PairingOutput,
 	f PlanningPairingsListFilter,

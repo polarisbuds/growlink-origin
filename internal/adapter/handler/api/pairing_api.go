@@ -120,6 +120,62 @@ func (h *Handler) CreatePairing(c *echo.Context) error {
 	return c.JSON(http.StatusOK, map[string]string{"ok": "true"})
 }
 
+func (h *Handler) ListPairingSharers(c *echo.Context) error {
+	claims := authctx.Claims(c)
+	if claims == nil {
+		return c.JSON(http.StatusUnauthorized, map[string]string{"error": "unauthorized"})
+	}
+	sharers, err := h.deps.Planning.ListPairingSharersByUUID(
+		claims.UserID,
+		claims.Authority,
+		claims.SystemRole,
+		c.Param("uuid"),
+	)
+	if err != nil {
+		if errors.Is(err, planning_usecase.ErrPairingSharerForbidden) {
+			return c.JSON(http.StatusForbidden, map[string]string{"error": "forbidden"})
+		}
+		if resp := apiUUIDResolveError(c, err); resp != nil {
+			return resp
+		}
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+	}
+	return c.JSON(http.StatusOK, map[string]interface{}{"sharers": sharers})
+}
+
+func (h *Handler) UpdatePairingSharers(c *echo.Context) error {
+	claims := authctx.Claims(c)
+	if claims == nil {
+		return c.JSON(http.StatusUnauthorized, map[string]string{"error": "unauthorized"})
+	}
+	var req struct {
+		SharerUserUuids []string `json:"sharerUserUuids"`
+	}
+	if err := c.Bind(&req); err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid request"})
+	}
+	sharers, err := h.deps.Planning.ReplacePairingSharersByUUID(
+		claims.UserID,
+		claims.Authority,
+		claims.SystemRole,
+		c.Param("uuid"),
+		req.SharerUserUuids,
+	)
+	if err != nil {
+		if errors.Is(err, planning_usecase.ErrPairingSharerForbidden) {
+			return c.JSON(http.StatusForbidden, map[string]string{"error": "forbidden"})
+		}
+		if errors.Is(err, planning_usecase.ErrPairingSharerInvalid) {
+			return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid sharer uuid"})
+		}
+		if resp := apiUUIDResolveError(c, err); resp != nil {
+			return resp
+		}
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+	}
+	return c.JSON(http.StatusOK, map[string]interface{}{"sharers": sharers})
+}
+
 func (h *Handler) DeletePairing(c *echo.Context) error {
 	claims := authctx.Claims(c)
 	if claims == nil {

@@ -215,6 +215,11 @@ func canViewLimitedMeetingComments(meeting *entity.Meeting, viewerID uint) bool 
 	if meeting.Pairing.MentorID == viewerID || meeting.Pairing.MenteeID == viewerID {
 		return true
 	}
+	for _, meetingComment := range meeting.MeetingComments {
+		if meetingComment.UserID == viewerID {
+			return true
+		}
+	}
 	return false
 }
 

@@ -11,6 +11,7 @@ import (
 type TemplateRepository interface {
 	GetAll() ([]entity.Template, error)
 	Get(templateID uint) (*entity.Template, error)
+	GetDefault() (*entity.Template, error)
 	GetByUUID(templateUUID uuid.UUID) (*entity.Template, error)
 	Create(input *entity.Template) error
 	Update(templateID uint, newTemplate *entity.Template) error

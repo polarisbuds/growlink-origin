@@ -2,6 +2,7 @@ package planning_usecase
 
 import (
 	"context"
+	"fmt"
 	"growlink/internal/domain/valueobject"
 	logutils "growlink/internal/shared/logUtils"
 	"maps"
@@ -65,10 +66,26 @@ func (uc *PlanningAccessUsecase) ReferableUserIDs(userID uint, systemRole valueo
 	group.Go(func() error {
 		pairings, err := uc.pairingRepo.GetByMentorID(userID)
 		if err != nil {
-			return err
+			return fmt.Errorf("ペア情報の取得に失敗しました: %w", err)
 		}
 		for _, p := range pairings {
 			pairVisibles[p.MenteeID] = true
+		}
+		return nil
+	})
+
+	sharedPairVisibles := map[uint]bool{}
+	group.Go(func() error {
+		sharedPairings, err := uc.pairingRepo.GetPairingIDsBySharerUserID(userID)
+		if err != nil {
+			return fmt.Errorf("共有されたペア情報の取得に失敗しました: %w", err)
+		}
+		pairings, err := uc.pairingRepo.GetByIDs(sharedPairings)
+		if err != nil {
+			return fmt.Errorf("ペア情報の取得に失敗しました: %w", err)
+		}
+		for _, pairing := range pairings {
+			sharedPairVisibles[pairing.MenteeID] = true
 		}
 		return nil
 	})
@@ -81,6 +98,7 @@ func (uc *PlanningAccessUsecase) ReferableUserIDs(userID uint, systemRole valueo
 	maps.Copy(visible, deptVisibles)
 	maps.Copy(visible, teamVisibles)
 	maps.Copy(visible, pairVisibles)
+	maps.Copy(visible, sharedPairVisibles)
 	return visible, nil
 }
 

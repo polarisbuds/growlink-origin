@@ -27,29 +27,29 @@ func (uc *RemindSettings) Get() (ret0 *outputmodel.RemindSettingsOutput, err err
 	if err != nil {
 		return nil, err
 	}
-	mode := s.RemindMode
-	if mode == "" {
-		mode = "prev_weekday"
+	startWeek := s.NotifyStartWeek
+	if startWeek < 1 {
+		startWeek = 1
 	}
-	daysBefore := s.RemindDaysBefore
-	if daysBefore < 1 {
-		daysBefore = 1
+	intervalDays := s.NotifyIntervalDays
+	if intervalDays < 1 {
+		intervalDays = 1
+	}
+	notifyTime := s.NotifyTime
+	if notifyTime == "" {
+		notifyTime = "09:00"
 	}
 	return &outputmodel.RemindSettingsOutput{
-		RemindAutoSend:   s.RemindAutoSend,
-		RemindMode:       mode,
-		RemindDaysBefore: daysBefore,
-		RemindWeekday:    s.RemindWeekday,
-		RemindTime:       s.RemindTime,
+		NotifyStartWeek:    startWeek,
+		NotifyIntervalDays: intervalDays,
+		NotifyTime:         notifyTime,
 	}, nil
 }
 
 type UpdateRemindInput struct {
-	RemindAutoSend   bool   `json:"remindAutoSend"`
-	RemindMode       string `json:"remindMode"`
-	RemindDaysBefore int    `json:"remindDaysBefore"`
-	RemindWeekday    int    `json:"remindWeekday"`
-	RemindTime       string `json:"remindTime"`
+	NotifyStartWeek    int    `json:"notifyStartWeek"`
+	NotifyIntervalDays int    `json:"notifyIntervalDays"`
+	NotifyTime         string `json:"notifyTime"`
 }
 
 func (uc *RemindSettings) Update(input UpdateRemindInput) (err error) {
@@ -58,31 +58,21 @@ func (uc *RemindSettings) Update(input UpdateRemindInput) (err error) {
 	defer func() {
 		done(err)
 	}()
-	if !strings.Contains(input.RemindTime, ":") {
+	if !strings.Contains(input.NotifyTime, ":") {
 		return fmt.Errorf("時刻の形式が不正です")
 	}
-	mode := input.RemindMode
-	if mode == "" {
-		mode = "prev_weekday"
+	if input.NotifyStartWeek < 1 || input.NotifyStartWeek > 5 {
+		return fmt.Errorf("送信開始週は 1〜5 で指定してください")
 	}
-	if mode != "days_before" && mode != "prev_weekday" {
-		return fmt.Errorf("通知の種類が不正です")
-	}
-	if mode == "days_before" {
-		if input.RemindDaysBefore < 1 || input.RemindDaysBefore > 30 {
-			return fmt.Errorf("日数は 1〜30 で指定してください")
-		}
-	} else if input.RemindWeekday < 1 || input.RemindWeekday > 7 {
-		return fmt.Errorf("曜日が不正です")
+	if input.NotifyIntervalDays < 1 || input.NotifyIntervalDays > 5 {
+		return fmt.Errorf("送信間隔は 1〜5 で指定してください")
 	}
 	s, err := uc.settingsRepo.GetSingleton()
 	if err != nil {
 		return err
 	}
-	s.RemindAutoSend = input.RemindAutoSend
-	s.RemindMode = mode
-	s.RemindDaysBefore = input.RemindDaysBefore
-	s.RemindWeekday = input.RemindWeekday
-	s.RemindTime = input.RemindTime
+	s.NotifyStartWeek = input.NotifyStartWeek
+	s.NotifyIntervalDays = input.NotifyIntervalDays
+	s.NotifyTime = input.NotifyTime
 	return uc.settingsRepo.Update(s)
 }

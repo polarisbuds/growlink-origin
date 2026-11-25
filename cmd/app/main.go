@@ -31,7 +31,9 @@ import (
 	infrastructure "growlink/internal/infrastructure/postgresql"
 	"growlink/internal/infrastructure/repository"
 	"growlink/internal/shared/config"
+	"growlink/internal/shared/utils"
 
+	"github.com/google/uuid"
 	"github.com/joho/godotenv"
 )
 
@@ -111,12 +113,12 @@ func main() {
 
 	setting, ok, err := lineworks.Load()
 	if err != nil {
-		os.Exit(1)
 		slog.Error("Line WorksのAPIの設定の読込に失敗しました: %w", slog.String("err", err.Error()))
+		os.Exit(1)
 	}
 	if !ok {
+		slog.Error("Line WorksのAPIの設定取得に失敗しました")
 		os.Exit(1)
-		slog.Error("Line WorksのAPIの設定取得に失敗しました: %w", slog.String("err", err.Error()))
 	}
 	client, err := lineworks.NewClient(setting)
 	if err != nil {
@@ -188,6 +190,7 @@ func main() {
 		managementBundle.Meeting,
 		meetingBundle.List,
 		managementBundle.Pairing,
+		managementBundle.PairingUpdater,
 		pairingRepo,
 	)
 	meetingBundle.API.SetPlanningAccess(planningAccess)
@@ -203,11 +206,12 @@ func main() {
 		teamMemberRepo,
 	)
 
+	pairingListCreatorUC := pairing_usecase.NewPairingListCreatorUsecase(pairingRepo, userRepo)
 	deps := handler.Deps{
 		Auth:           authUC,
 		Meeting:        meetingBundle,
 		Management:     managementBundle,
-		Pairing:        pairing_usecase.NewPairingListCreatorUsecase(pairingRepo, userRepo),
+		Pairing:        pairingListCreatorUC,
 		PairingBrk:     pairing_usecase.NewPairingBreakerUsecase(pairingRepo, userRepo),
 		Setting:        setting_usecase.NewIconRegisterUsecase(uploadRepo, userRepo),
 		SettingRm:      setting_usecase.NewIconRemoverUsecase(uploadRepo, userRepo),
@@ -230,6 +234,8 @@ func main() {
 	if ldapClient != nil {
 		go runLDAPDirectorySync(authUC)
 	}
+	go runPeriodicReminder(managementBundle.RemindSettings, deps.LineWorks)
+	go runPeriodicMeetingCreator(managementBundle.MeetingCreator, managementBundle.Pairing, managementBundle.Template, deps.LineWorks)
 
 	if err := ec.Start(":" + config.GetEchoPort()); err != nil {
 		slog.Error("server stopped", "err", err)
@@ -249,6 +255,90 @@ func runLDAPDirectorySync(uc *authenticate_usecase.AuthUsecase) {
 	run()
 	for {
 		time.Sleep(time.Until(authenticate_usecase.NextDirectorySyncAt(time.Now())))
+		run()
+	}
+}
+
+func runPeriodicReminder(remindSettingUC *remind_settings_usecase.RemindSettings, notifyUC *lineworks_usecase.LineWorksUsecase) {
+	var mu sync.Mutex
+	run := func() {
+		mu.Lock()
+		defer mu.Unlock()
+
+		ctx := context.Background()
+		remindSetting, err := remindSettingUC.Get()
+		if err != nil {
+			slog.Error("remind settings load failed", "err", err)
+			return
+		}
+		now := time.Now()
+		if !utils.MatchesRemindInterval(now, remindSetting.NotifyStartWeek, remindSetting.NotifyIntervalDays) {
+			slog.Debug("remind skipped: cycle does not match today",
+				"notifyStartWeek", remindSetting.NotifyStartWeek,
+				"notifyIntervalDays", remindSetting.NotifyIntervalDays,
+			)
+			return
+		}
+		if err := notifyUC.SendOverdueMeetingReminders(ctx); err != nil {
+			slog.Error("remind send failed", "err", err)
+		}
+	}
+	for {
+		notifyTime := "10:00"
+		if setting, err := remindSettingUC.Get(); err == nil && setting.NotifyTime != "" {
+			notifyTime = setting.NotifyTime
+		} else if err != nil {
+			slog.Error("remind settings load failed before schedule", "err", err)
+		}
+		time.Sleep(time.Until(utils.NextRemindNotifyAt(time.Now(), notifyTime)))
+		run()
+	}
+}
+
+func runPeriodicMeetingCreator(meetingUC *meeting_mng_usecase.MeetingCreator, pairingUC *pairing_mng_usecase.PairingViewer, templateUC *template_mng_usecase.TemplateViewer, notifyUC *lineworks_usecase.LineWorksUsecase) {
+	var mux sync.Mutex
+	run := func() {
+		mux.Lock()
+		defer mux.Unlock()
+
+		template, err := templateUC.GetDefaultTemplate()
+		if err != nil {
+			slog.Error("get default template failed", slog.String("err", err.Error()))
+			return
+		}
+		pairings, err := pairingUC.ListPairingsByAllExTemporary()
+		if err != nil {
+			slog.Error("list pairings failed", "err", err)
+		}
+		pairingIDs := make([]uint, len(pairings))
+		for idx, pairing := range pairings {
+			pairingIDs[idx] = pairing.ID
+		}
+
+		now := time.Now()
+		implementeDate := time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, time.Local)
+		meetings, err := meetingUC.CreateMeetingByAll(template.ID, implementeDate, 1, nil, pairingIDs)
+		if err != nil {
+			slog.Error("failed periodically meeting create", "err", err)
+		}
+		meetingUUIDs := make([]uuid.UUID, len(meetings))
+		for idx, meeting := range meetings {
+			id, err := uuid.Parse(meeting.UUID)
+			if err != nil {
+				slog.Error("cannot parse uuid", "err", err)
+				return
+			}
+			meetingUUIDs[idx] = id
+		}
+
+		if err := notifyUC.SendCreateMeetingMsgsBySystem(context.Background(), meetingUUIDs); err != nil {
+			slog.Error("failed create meeting", "err", err)
+			return
+		}
+	}
+
+	for {
+		time.Sleep(time.Until(utils.NextMonthFirstAt(time.Now(), 10, 0)))
 		run()
 	}
 }

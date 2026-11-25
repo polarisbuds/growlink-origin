@@ -50,6 +50,14 @@ func (repo *TemplateRepository) Get(templateID uint) (ret0 *entity.Template, err
 	return &template, nil
 }
 
+func (repo *TemplateRepository) GetDefault() (ret0 *entity.Template, err error) {
+	template, err := templateChain(repo.db).Where("is_default = ?", true).First(repo.ctx)
+	if err != nil {
+		return nil, fmt.Errorf("デフォルトテンプレート取得処理に失敗しました: %w", err)
+	}
+	return &template, nil
+}
+
 func (repo *TemplateRepository) Create(input *entity.Template) (err error) {
 	if err = gorm.G[entity.Template](repo.db).Create(repo.ctx, input); err != nil {
 		return fmt.Errorf("テンプレートの新規作成に失敗しました: %w", err)

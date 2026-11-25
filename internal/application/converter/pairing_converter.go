@@ -27,3 +27,18 @@ func PairingEntitiesToOutputs(es []entity.Pairing) []outputmodel.PairingOutput {
 	}
 	return outputs
 }
+
+func PairingSharersToUserOutputs(sharers []entity.PairingSharer) []outputmodel.UserOutput {
+	if len(sharers) == 0 {
+		return nil
+	}
+	out := make([]outputmodel.UserOutput, len(sharers))
+	for idx, s := range sharers {
+		if s.User != nil {
+			out[idx] = UserEntityToOutput(*s.User)
+		} else if s.UserID != 0 {
+			out[idx] = outputmodel.UserOutput{ID: s.UserID}
+		}
+	}
+	return out
+}

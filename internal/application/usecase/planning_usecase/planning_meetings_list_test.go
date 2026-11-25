@@ -64,65 +64,6 @@ func TestSortPlanningMeetings_TieBreakByIDDESC(t *testing.T) {
 	require.Equal(t, uint(10), list[1].ID)
 }
 
-func TestFilterPlanningMeetings_DateRangeEmpty(t *testing.T) {
-	f := PlanningMeetingsListFilter{DateRangeEmpty: true}
-	out := filterPlanningMeetings([]outputmodel.MeetingOutput{meetingOut(1, time.Now(), "a", "b")}, f, nil)
-	require.Empty(t, out)
-}
-
-func TestFilterPlanningMeetings_ExcludeZeroDateWhenFromSet(t *testing.T) {
-	from, err := JSTDayStart("2025-01-01")
-	require.NoError(t, err)
-	f := PlanningMeetingsListFilter{From: &from}
-	list := []outputmodel.MeetingOutput{
-		meetingOut(1, time.Time{}, "a", "b"),
-		meetingOut(2, time.Date(2025, 1, 2, 0, 0, 0, 0, jst), "a", "b"),
-	}
-	out := filterPlanningMeetings(list, f, nil)
-	require.Len(t, out, 1)
-	require.Equal(t, uint(2), out[0].ID)
-}
-
-func TestFilterPlanningMeetings_ExcludeDeletedPairing(t *testing.T) {
-	m := meetingOut(1, time.Now(), "a", "b")
-	m.Pairing.Deleted = true
-	m2 := meetingOut(2, time.Now(), "c", "d")
-	out := filterPlanningMeetings([]outputmodel.MeetingOutput{m, m2}, PlanningMeetingsListFilter{}, nil)
-	require.Len(t, out, 1)
-	require.Equal(t, uint(2), out[0].ID)
-}
-
-func TestFilterPlanningMeetings_IncludeDeletedPairing(t *testing.T) {
-	m := meetingOut(1, time.Now(), "a", "b")
-	m.Pairing.Deleted = true
-	f := PlanningMeetingsListFilter{IncludeDeleted: true}
-	out := filterPlanningMeetings([]outputmodel.MeetingOutput{m}, f, nil)
-	require.Len(t, out, 1)
-}
-
-func TestFilterPlanningMeetings_Status(t *testing.T) {
-	st := valueobject.MeetingStatusDone
-	f := PlanningMeetingsListFilter{Status: &st}
-	m := meetingOut(1, time.Now(), "a", "b")
-	m.Status = valueobject.MeetingStatusDone
-	m2 := meetingOut(2, time.Now(), "a", "b")
-	m2.Status = valueobject.MeetingStatusDraft
-	out := filterPlanningMeetings([]outputmodel.MeetingOutput{m, m2}, f, nil)
-	require.Len(t, out, 1)
-	require.Equal(t, uint(1), out[0].ID)
-}
-
-func TestFilterPlanningMeetings_DepartmentOrMentorMentee(t *testing.T) {
-	f := PlanningMeetingsListFilter{DepartmentUUIDs: []uuid.UUID{uuid.New()}}
-	m1 := meetingOut(1, time.Now(), "a", "b")
-	m1.Pairing.Mentor.UUID = "mentor-in"
-	m2 := meetingOut(2, time.Now(), "c", "d")
-	m2.Pairing.Mentee.UUID = "mentee-in"
-	deptUsers := map[string]struct{}{"mentor-in": {}, "mentee-in": {}}
-	out := filterPlanningMeetings([]outputmodel.MeetingOutput{m1, m2}, f, deptUsers)
-	require.Len(t, out, 2)
-}
-
 func TestSlicePlanningMeetingsPage_OutOfRange(t *testing.T) {
 	list := make([]outputmodel.MeetingOutput, 25)
 	for i := range list {

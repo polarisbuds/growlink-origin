@@ -35,6 +35,10 @@ func NewPostgresqlDB(dsn string) (*gorm.DB, error) {
 		return nil, err
 	}
 
+	if err := migrateSystemSettingsNotifyColumns(db); err != nil {
+		return nil, err
+	}
+
 	if err := backfillLineWorksMessageKind(db); err != nil {
 		return nil, err
 	}
@@ -78,6 +82,34 @@ func AutoMigrate(db *gorm.DB) error {
 		// マスタテーブル
 		&entity.Role{},
 	)
+}
+
+func migrateSystemSettingsNotifyColumns(db *gorm.DB) error {
+	if !db.Migrator().HasTable("system_settings") {
+		return nil
+	}
+	if db.Migrator().HasColumn(&entity.SystemSettings{}, "RemindTime") {
+		if err := db.Exec(`
+UPDATE system_settings
+SET notify_time = remind_time
+WHERE (notify_time IS NULL OR notify_time = '') AND remind_time IS NOT NULL AND remind_time != ''
+`).Error; err != nil {
+			return err
+		}
+	}
+	legacy := []string{
+		"remind_auto_send",
+		"remind_mode",
+		"remind_days_before",
+		"remind_weekday",
+		"remind_time",
+	}
+	for _, col := range legacy {
+		if err := db.Exec("ALTER TABLE system_settings DROP COLUMN IF EXISTS " + col).Error; err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func renameLineWorksSettingsTable(db *gorm.DB) error {

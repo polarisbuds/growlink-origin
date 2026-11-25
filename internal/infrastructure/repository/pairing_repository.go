@@ -129,6 +129,22 @@ func (repo *PairingRepository) GetAll() (ret0 []entity.Pairing, err error) {
 	return pairing, nil
 }
 
+func (repo *PairingRepository) GetAllExTemporary() (ret0 []entity.Pairing, err error) {
+	pairing, err := gorm.G[entity.Pairing](repo.db).Order("id ASC").
+		Preload("Mentor", nil).
+		Preload("Mentor.DepartmentMembers", nil).
+		Preload("Mentor.TeamMembers", nil).
+		Preload("Mentee", nil).
+		Preload("Mentee.DepartmentMembers", nil).
+		Preload("Mentee.TeamMembers", nil).
+		Where("is_temporary = ?", false).
+		Find(repo.ctx)
+	if err != nil {
+		return nil, fmt.Errorf("全てのペアリング情報の取得に失敗しました: %w", err)
+	}
+	return pairing, nil
+}
+
 func (repo *PairingRepository) GetAllContainDeleted() (ret0 []entity.Pairing, err error) {
 	pairing, err := gorm.G[entity.Pairing](repo.unscoped).Scopes(func(stmt *gorm.Statement) { stmt.Unscoped = true }).Order("id ASC").
 		Preload("Mentor", nil).
@@ -203,6 +219,60 @@ func (repo *PairingRepository) UpdatePairing(pairingID, mentorID, menteeID uint)
 			"mentee_id": menteeID,
 		}).Error; err != nil {
 		return fmt.Errorf("ペアリングの更新に失敗しました: %w", err)
+	}
+	return nil
+}
+
+func (repo *PairingRepository) ListSharersByPairingID(pairingID uint) (ret0 []entity.PairingSharer, err error) {
+	sharers, err := gorm.G[entity.PairingSharer](repo.db).
+		Where("pairing_id = ?", pairingID).
+		Preload("User", nil).
+		Order("id ASC").
+		Find(repo.ctx)
+	if err != nil {
+		return nil, fmt.Errorf("ペア共有者の取得に失敗しました: %w", err)
+	}
+	return sharers, nil
+}
+
+func (repo *PairingRepository) ReplaceSharers(pairingID uint, userIDs []uint) (err error) {
+	want := map[uint]struct{}{}
+	for _, uid := range userIDs {
+		if uid == 0 {
+			continue
+		}
+		want[uid] = struct{}{}
+	}
+
+	err = repo.db.WithContext(repo.ctx).Transaction(func(tx *gorm.DB) error {
+		existing, err := gorm.G[entity.PairingSharer](tx).
+			Where("pairing_id = ?", pairingID).
+			Find(repo.ctx)
+		if err != nil {
+			return err
+		}
+		have := map[uint]struct{}{}
+		for _, row := range existing {
+			have[row.UserID] = struct{}{}
+			if _, ok := want[row.UserID]; !ok {
+				if _, err = gorm.G[entity.PairingSharer](tx).Where("id = ?", row.ID).Delete(repo.ctx); err != nil {
+					return err
+				}
+			}
+		}
+		for uid := range want {
+			if _, ok := have[uid]; ok {
+				continue
+			}
+			sharer := entity.PairingSharer{PairingID: pairingID, UserID: uid}
+			if err = gorm.G[entity.PairingSharer](tx).Create(repo.ctx, &sharer); err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+	if err != nil {
+		return fmt.Errorf("ペア共有者の更新に失敗しました: %w", err)
 	}
 	return nil
 }

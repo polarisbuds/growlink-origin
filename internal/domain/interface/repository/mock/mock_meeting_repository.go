@@ -11,6 +11,7 @@ package mock
 
 import (
 	entity "growlink/internal/domain/entity"
+	repository_interface "growlink/internal/domain/interface/repository"
 	valueobject "growlink/internal/domain/valueobject"
 	reflect "reflect"
 	time "time"
@@ -202,6 +203,45 @@ func (c *MockMeetingRepositoryGetBetweenDatesCall) DoAndReturn(f func(time.Time,
 	return c
 }
 
+// GetByFilter mocks base method.
+func (m *MockMeetingRepository) GetByFilter(filter repository_interface.MeetingListFilter) ([]entity.Meeting, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetByFilter", filter)
+	ret0, _ := ret[0].([]entity.Meeting)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetByFilter indicates an expected call of GetByFilter.
+func (mr *MockMeetingRepositoryMockRecorder) GetByFilter(filter any) *MockMeetingRepositoryGetByFilterCall {
+	mr.mock.ctrl.T.Helper()
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByFilter", reflect.TypeOf((*MockMeetingRepository)(nil).GetByFilter), filter)
+	return &MockMeetingRepositoryGetByFilterCall{Call: call}
+}
+
+// MockMeetingRepositoryGetByFilterCall wrap *gomock.Call
+type MockMeetingRepositoryGetByFilterCall struct {
+	*gomock.Call
+}
+
+// Return rewrite *gomock.Call.Return
+func (c *MockMeetingRepositoryGetByFilterCall) Return(arg0 []entity.Meeting, arg1 error) *MockMeetingRepositoryGetByFilterCall {
+	c.Call = c.Call.Return(arg0, arg1)
+	return c
+}
+
+// Do rewrite *gomock.Call.Do
+func (c *MockMeetingRepositoryGetByFilterCall) Do(f func(repository_interface.MeetingListFilter) ([]entity.Meeting, error)) *MockMeetingRepositoryGetByFilterCall {
+	c.Call = c.Call.Do(f)
+	return c
+}
+
+// DoAndReturn rewrite *gomock.Call.DoAndReturn
+func (c *MockMeetingRepositoryGetByFilterCall) DoAndReturn(f func(repository_interface.MeetingListFilter) ([]entity.Meeting, error)) *MockMeetingRepositoryGetByFilterCall {
+	c.Call = c.Call.DoAndReturn(f)
+	return c
+}
+
 // GetByID mocks base method.
 func (m *MockMeetingRepository) GetByID(id uint) (*entity.Meeting, error) {
 	m.ctrl.T.Helper()
@@ -354,6 +394,45 @@ func (c *MockMeetingRepositoryGetByPairingIDsCall) Do(f func([]uint) ([]entity.M
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
 func (c *MockMeetingRepositoryGetByPairingIDsCall) DoAndReturn(f func([]uint) ([]entity.Meeting, error)) *MockMeetingRepositoryGetByPairingIDsCall {
+	c.Call = c.Call.DoAndReturn(f)
+	return c
+}
+
+// GetByPairingIDsByMonth mocks base method.
+func (m *MockMeetingRepository) GetByPairingIDsByMonth(pairingIDs []uint, month time.Time) ([]entity.Meeting, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetByPairingIDsByMonth", pairingIDs, month)
+	ret0, _ := ret[0].([]entity.Meeting)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetByPairingIDsByMonth indicates an expected call of GetByPairingIDsByMonth.
+func (mr *MockMeetingRepositoryMockRecorder) GetByPairingIDsByMonth(pairingIDs, month any) *MockMeetingRepositoryGetByPairingIDsByMonthCall {
+	mr.mock.ctrl.T.Helper()
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByPairingIDsByMonth", reflect.TypeOf((*MockMeetingRepository)(nil).GetByPairingIDsByMonth), pairingIDs, month)
+	return &MockMeetingRepositoryGetByPairingIDsByMonthCall{Call: call}
+}
+
+// MockMeetingRepositoryGetByPairingIDsByMonthCall wrap *gomock.Call
+type MockMeetingRepositoryGetByPairingIDsByMonthCall struct {
+	*gomock.Call
+}
+
+// Return rewrite *gomock.Call.Return
+func (c *MockMeetingRepositoryGetByPairingIDsByMonthCall) Return(arg0 []entity.Meeting, arg1 error) *MockMeetingRepositoryGetByPairingIDsByMonthCall {
+	c.Call = c.Call.Return(arg0, arg1)
+	return c
+}
+
+// Do rewrite *gomock.Call.Do
+func (c *MockMeetingRepositoryGetByPairingIDsByMonthCall) Do(f func([]uint, time.Time) ([]entity.Meeting, error)) *MockMeetingRepositoryGetByPairingIDsByMonthCall {
+	c.Call = c.Call.Do(f)
+	return c
+}
+
+// DoAndReturn rewrite *gomock.Call.DoAndReturn
+func (c *MockMeetingRepositoryGetByPairingIDsByMonthCall) DoAndReturn(f func([]uint, time.Time) ([]entity.Meeting, error)) *MockMeetingRepositoryGetByPairingIDsByMonthCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }

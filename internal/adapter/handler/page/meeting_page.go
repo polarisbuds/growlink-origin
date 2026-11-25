@@ -25,7 +25,7 @@ func (h *Handler) MeetingListPage(c *echo.Context) error {
 
 func (h *Handler) MeetingNewPage(c *echo.Context) error {
 	data := h.baseData(c, "meeting-new")
-	pairings, err := h.deps.Management.Pairing.ListPairingsByAll()
+	pairings, err := h.deps.Management.Pairing.ListPairingsByAllExTemporary()
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}

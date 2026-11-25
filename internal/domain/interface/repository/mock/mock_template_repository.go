@@ -234,6 +234,45 @@ func (c *MockTemplateRepositoryGetByUUIDCall) DoAndReturn(f func(uuid.UUID) (*en
 	return c
 }
 
+// GetDefault mocks base method.
+func (m *MockTemplateRepository) GetDefault() (*entity.Template, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetDefault")
+	ret0, _ := ret[0].(*entity.Template)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetDefault indicates an expected call of GetDefault.
+func (mr *MockTemplateRepositoryMockRecorder) GetDefault() *MockTemplateRepositoryGetDefaultCall {
+	mr.mock.ctrl.T.Helper()
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetDefault", reflect.TypeOf((*MockTemplateRepository)(nil).GetDefault))
+	return &MockTemplateRepositoryGetDefaultCall{Call: call}
+}
+
+// MockTemplateRepositoryGetDefaultCall wrap *gomock.Call
+type MockTemplateRepositoryGetDefaultCall struct {
+	*gomock.Call
+}
+
+// Return rewrite *gomock.Call.Return
+func (c *MockTemplateRepositoryGetDefaultCall) Return(arg0 *entity.Template, arg1 error) *MockTemplateRepositoryGetDefaultCall {
+	c.Call = c.Call.Return(arg0, arg1)
+	return c
+}
+
+// Do rewrite *gomock.Call.Do
+func (c *MockTemplateRepositoryGetDefaultCall) Do(f func() (*entity.Template, error)) *MockTemplateRepositoryGetDefaultCall {
+	c.Call = c.Call.Do(f)
+	return c
+}
+
+// DoAndReturn rewrite *gomock.Call.DoAndReturn
+func (c *MockTemplateRepositoryGetDefaultCall) DoAndReturn(f func() (*entity.Template, error)) *MockTemplateRepositoryGetDefaultCall {
+	c.Call = c.Call.DoAndReturn(f)
+	return c
+}
+
 // Update mocks base method.
 func (m *MockTemplateRepository) Update(templateID uint, newTemplate *entity.Template) error {
 	m.ctrl.T.Helper()

@@ -10,6 +10,19 @@ import (
 	"github.com/google/uuid"
 )
 
+// MeetingListFilter is applied in SQL when listing planning meetings.
+type MeetingListFilter struct {
+	MentorUUIDs       []string
+	MenteeUUIDs       []string
+	DepartmentUUIDs   []string
+	Status            *valueobject.MeetingStatus
+	From              *time.Time
+	To                *time.Time
+	IncludeDeleted    bool
+	LimitToMeetingIDs bool
+	MeetingIDs        []uint
+}
+
 type MeetingRepository interface {
 	Create(meeting *entity.Meeting) (*entity.Meeting, error)
 
@@ -20,6 +33,8 @@ type MeetingRepository interface {
 	GetByUUIDs(uuids []uuid.UUID) ([]entity.Meeting, error)
 	GetByPairingID(pairingID uint) ([]entity.Meeting, error)
 	GetByPairingIDs(pairingIDs []uint) ([]entity.Meeting, error)
+	GetByPairingIDsByMonth(pairingIDs []uint, month time.Time) ([]entity.Meeting, error)
+	GetByFilter(filter MeetingListFilter) ([]entity.Meeting, error)
 
 	Update(meetingID uint, meeting *entity.Meeting) error
 	UpdateStatus(meetingID uint, status valueobject.MeetingStatus) error

@@ -7,11 +7,11 @@ import (
 
 	"growlink/internal/application/converter"
 	outputmodel "growlink/internal/application/model/output_model"
+	repository_interface "growlink/internal/domain/interface/repository"
 	"growlink/internal/domain/valueobject"
 	logutils "growlink/internal/shared/logUtils"
 
 	"github.com/google/uuid"
-	"golang.org/x/sync/errgroup"
 	"golang.org/x/text/collate"
 	"golang.org/x/text/language"
 )
@@ -32,31 +32,6 @@ type PlanningMeetingsListFilter struct {
 	IncludeDeleted  bool       // include meetings whose pairing is soft-deleted
 }
 
-func (f PlanningMeetingsListFilter) HasCondition() bool {
-	if f.MentorUUIDs != nil {
-		return true
-	}
-	if f.MenteeUUIDs != nil {
-		return true
-	}
-	if f.DepartmentUUIDs != nil {
-		return true
-	}
-	if f.Status != nil {
-		return true
-	}
-	if f.From != nil {
-		return true
-	}
-	if f.To != nil {
-		return true
-	}
-	if f.IncludeDeleted {
-		return true
-	}
-	return false
-}
-
 func JSTDayStart(dateYYYYMMDD string) (time.Time, error) {
 	t, err := time.ParseInLocation("2006-01-02", dateYYYYMMDD, jst)
 	if err != nil {
@@ -73,77 +48,28 @@ func JSTDayEnd(dateYYYYMMDD string) (time.Time, error) {
 	return start.Add(24 * time.Hour).Add(-time.Nanosecond), nil
 }
 
-// TODO; Queryで処理できないか
-func filterPlanningMeetings(
-	list []outputmodel.MeetingOutput,
-	f PlanningMeetingsListFilter,
-	deptMemberUserUUIDs map[string]struct{},
-) []outputmodel.MeetingOutput {
-	if f.DateRangeEmpty {
-		return []outputmodel.MeetingOutput{}
+func planningMeetingsRepoFilter(f PlanningMeetingsListFilter) repository_interface.MeetingListFilter {
+	mentors := make([]string, len(f.MentorUUIDs))
+	for idx, id := range f.MentorUUIDs {
+		mentors[idx] = id.String()
 	}
-	hasDateFilter := f.From != nil || f.To != nil
-	mentorSet := uuidSet(f.MentorUUIDs)
-	menteeSet := uuidSet(f.MenteeUUIDs)
-	deptFilter := len(f.DepartmentUUIDs) > 0
-
-	out := make([]outputmodel.MeetingOutput, 0, len(list))
-	for _, m := range list {
-		if len(mentorSet) > 0 {
-			mu := m.Pairing.Mentor.UUID
-			if mu == "" || !mentorSet[mu] {
-				continue
-			}
-		}
-		if len(menteeSet) > 0 {
-			mu := m.Pairing.Mentee.UUID
-			if mu == "" || !menteeSet[mu] {
-				continue
-			}
-		}
-		if deptFilter {
-			mentorUUID := m.Pairing.Mentor.UUID
-			menteeUUID := m.Pairing.Mentee.UUID
-			_, okM := deptMemberUserUUIDs[mentorUUID]
-			_, okE := deptMemberUserUUIDs[menteeUUID]
-			if !okM && !okE {
-				continue
-			}
-		}
-
-		if f.Status != nil && m.Status != *f.Status {
-			continue
-		}
-
-		if !f.IncludeDeleted && m.Pairing.Deleted {
-			continue
-		}
-		if hasDateFilter {
-			if m.ImplementedAt.IsZero() {
-				continue
-			}
-			at := m.ImplementedAt.In(jst)
-			if f.From != nil && at.Before(*f.From) {
-				continue
-			}
-			if f.To != nil && at.After(*f.To) {
-				continue
-			}
-		}
-		out = append(out, m)
+	mentees := make([]string, len(f.MenteeUUIDs))
+	for idx, id := range f.MenteeUUIDs {
+		mentees[idx] = id.String()
 	}
-	return out
-}
-
-func uuidSet(ids []uuid.UUID) map[string]bool {
-	if len(ids) == 0 {
-		return nil
+	depts := make([]string, len(f.DepartmentUUIDs))
+	for idx, id := range f.DepartmentUUIDs {
+		depts[idx] = id.String()
 	}
-	s := make(map[string]bool, len(ids))
-	for _, id := range ids {
-		s[id.String()] = true
+	return repository_interface.MeetingListFilter{
+		MentorUUIDs:     mentors,
+		MenteeUUIDs:     mentees,
+		DepartmentUUIDs: depts,
+		Status:          f.Status,
+		From:            f.From,
+		To:              f.To,
+		IncludeDeleted:  f.IncludeDeleted,
 	}
-	return s
 }
 
 func sortPlanningMeetings(list []outputmodel.MeetingOutput, desc bool) {
@@ -253,72 +179,40 @@ func (uc *PlanningAccessUsecase) ListPlanningMeetingsPaged(
 		done(err)
 	}()
 
-	group, _ := errgroup.WithContext(context.Background())
-	deptUsers := map[string]struct{}{}
-	group.Go(func() error {
-		deptUUIDs := []string{}
-		for _, u := range filter.DepartmentUUIDs {
-			deptUUIDs = append(deptUUIDs, u.String())
-		}
-		// TODO; DeptUsersではなくdeptUUIDsを渡したほうがいいのでは？？
-		deptUsers, err = uc.deptMemberUserUUIDsForDepartments(deptUUIDs)
-		if err != nil {
-			return err
-		}
-		return nil
-	})
-
-	meetingOutputs := []outputmodel.MeetingOutput{}
-	if filter.HasCondition() {
-		deptUUIDs := make([]string, len(filter.DepartmentUUIDs))
-		for idx, deptUUID := range filter.DepartmentUUIDs {
-			deptUUIDs[idx] = deptUUID.String()
-		}
-		deptMembersByDeptUUID, err := uc.deptMemberRepo.GetByDepartmentUUIDs(deptUUIDs)
-		if err != nil {
-			return outputmodel.PlanningMeetingsPageOutput{}, err
-		}
-		userIDs := []uint{}
-		for _, deptMembers := range deptMembersByDeptUUID {
-			for _, deptMember := range deptMembers {
-				userIDs = append(userIDs, deptMember.UserID)
-			}
-		}
-
-		pairings, err := uc.pairingRepo.GetByMenteeIDs(userIDs)
-		if err != nil {
-			return outputmodel.PlanningMeetingsPageOutput{}, err
-		}
-
-		pairingIDs := make([]uint, len(pairings))
-		for idx, pairing := range pairings {
-			pairingIDs[idx] = pairing.ID
-		}
-
-		meetings, err := uc.meetingRepo.GetByPairingIDs(pairingIDs)
-		if err != nil {
-			return outputmodel.PlanningMeetingsPageOutput{}, err
-		}
-		// TODO; uc.ListPlanningMeetings(userID, authority, systemRole)←こちらと同等にアクセス権限などの読み取り制限を追加する必要有
-		meetingOutputs = converter.MeetingEntitiesToOutputs(meetings)
-	} else {
-		// TODO; Departmentのフィルタがあればuuids指定とする
-		meetingOutputs, err = uc.ListPlanningMeetings(userID, authority, systemRole)
+	if filter.DateRangeEmpty {
+		return outputmodel.PlanningMeetingsPageOutput{
+			Items:    []outputmodel.MeetingOutput{},
+			Total:    0,
+			Page:     page,
+			PageSize: PlanningMeetingsPageSize,
+		}, nil
 	}
+
+	repoFilter := planningMeetingsRepoFilter(filter)
+	if fullPlanningAccess(systemRole) || authority.IsOwner() {
+		repoFilter.LimitToMeetingIDs = false
+	} else {
+		scoped, err := uc.ListPlanningMeetings(userID, authority, systemRole)
+		if err != nil {
+			return outputmodel.PlanningMeetingsPageOutput{}, err
+		}
+		repoFilter.MeetingIDs = make([]uint, len(scoped))
+		for idx, m := range scoped {
+			repoFilter.MeetingIDs[idx] = m.ID
+		}
+		repoFilter.LimitToMeetingIDs = true
+	}
+
+	meetings, err := uc.meetingRepo.GetByFilter(repoFilter)
 	if err != nil {
 		return outputmodel.PlanningMeetingsPageOutput{}, err
 	}
-
-	if err := group.Wait(); err != nil {
-		return outputmodel.PlanningMeetingsPageOutput{}, err
-	}
-
-	filtered := filterPlanningMeetings(meetingOutputs, filter, deptUsers)
-	sortPlanningMeetings(filtered, dirDesc)
-	items := slicePlanningMeetingsPage(filtered, page, PlanningMeetingsPageSize)
+	meetingOutputs := converter.MeetingEntitiesToOutputs(meetings)
+	sortPlanningMeetings(meetingOutputs, dirDesc)
+	items := slicePlanningMeetingsPage(meetingOutputs, page, PlanningMeetingsPageSize)
 	return outputmodel.PlanningMeetingsPageOutput{
 		Items:    items,
-		Total:    len(filtered),
+		Total:    len(meetingOutputs),
 		Page:     page,
 		PageSize: PlanningMeetingsPageSize,
 	}, nil

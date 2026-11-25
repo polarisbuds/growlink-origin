@@ -10,6 +10,7 @@ import (
 	"growlink/internal/domain/entity"
 	ldap_entity "growlink/internal/domain/entity/ldap"
 	"growlink/internal/domain/valueobject"
+	"growlink/internal/shared/config"
 	logutils "growlink/internal/shared/logUtils"
 )
 
@@ -107,7 +108,12 @@ func (uc *AuthUsecase) createUserFromLDAP(ctx context.Context, ldapUser ldap_ent
 	email := strings.TrimSpace(ldapUser.Mail)
 	atMarkIdx := strings.Index(ldapUser.Mail, "@")
 	if atMarkIdx >= 0 {
-		lineworksID = ldapUser.Mail[:atMarkIdx] + "@cap"
+		if config.IsProduct() {
+			lineworksID = ldapUser.Mail[:atMarkIdx] + "@cap"
+		} else {
+			// TODO; 必ず消しておくこと
+			lineworksID = "ryota.kashio@cap"
+		}
 	}
 	user := &entity.User{
 		Name:        strings.TrimSpace(ldapUser.Name),

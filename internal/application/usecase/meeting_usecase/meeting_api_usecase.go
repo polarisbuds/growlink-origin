@@ -18,7 +18,7 @@ import (
 var (
 	ErrMeetingForbidden         = errors.New("forbidden")
 	ErrMeetingNotFound          = errors.New("not found")
-	ErrRequireAnswerNotAnswered = errors.New("answered require")
+	ErrRequireAnswerNotAnswered = errors.New("必須項目へ入力してください")
 )
 
 type MeetingDetailFlags struct {

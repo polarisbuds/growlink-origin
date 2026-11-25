@@ -183,3 +183,85 @@ func TestListSpecificWeekdays(t *testing.T) {
 		}
 	})
 }
+
+func TestMatchesRemindInterval(t *testing.T) {
+	loc := time.FixedZone("JST", 9*60*60)
+	// 2026年11月: 第2月曜は 11/9（日曜は11/1）
+	beforeStart := time.Date(2026, time.November, 8, 10, 0, 0, 0, loc)
+	startDay := time.Date(2026, time.November, 9, 10, 0, 0, 0, loc)
+	tuesday := time.Date(2026, time.November, 10, 10, 0, 0, 0, loc)
+	nextMonday := time.Date(2026, time.November, 16, 10, 0, 0, 0, loc)
+
+	t.Run("開始週前は不一致", func(t *testing.T) {
+		if MatchesRemindInterval(beforeStart, 2, 1) {
+			t.Fatal("expected false before notify start")
+		}
+	})
+	t.Run("間隔1は開始日以降毎日", func(t *testing.T) {
+		for _, d := range []time.Time{startDay, tuesday} {
+			if !MatchesRemindInterval(d, 2, 1) {
+				t.Fatalf("expected true for daily interval on %v", d)
+			}
+		}
+	})
+	t.Run("間隔2は月水金", func(t *testing.T) {
+		if !MatchesRemindInterval(startDay, 2, 2) {
+			t.Fatal("Monday should match interval 2")
+		}
+		if MatchesRemindInterval(tuesday, 2, 2) {
+			t.Fatal("Tuesday should not match interval 2")
+		}
+		if !MatchesRemindInterval(nextMonday, 2, 2) {
+			t.Fatal("following Monday should match interval 2")
+		}
+	})
+	t.Run("最終週は当月最終月曜から", func(t *testing.T) {
+		lastMon := LastMondayOfMonth(time.Date(2026, time.November, 15, 0, 0, 0, 0, loc))
+		if lastMon.Day() != 30 {
+			t.Fatalf("last Monday = %v, want Nov 30", lastMon)
+		}
+		start := NotifyStartDateInMonth(lastMon, 5)
+		if !start.Equal(lastMon) {
+			t.Fatalf("notify start = %v, want %v", start, lastMon)
+		}
+		if !MatchesRemindInterval(lastMon, 5, 1) {
+			t.Fatal("last Monday should match with start week 5")
+		}
+	})
+}
+
+func TestNextMonthFirstAt(t *testing.T) {
+	loc := time.FixedZone("JST", 9*60*60)
+	t.Run("当月1日10時前は当月1日10時", func(t *testing.T) {
+		now := time.Date(2026, time.November, 1, 9, 0, 0, 0, loc)
+		next := NextMonthFirstAt(now, 10, 0)
+		want := time.Date(2026, time.November, 1, 10, 0, 0, 0, loc)
+		if !next.Equal(want) {
+			t.Fatalf("got %v, want %v", next, want)
+		}
+	})
+	t.Run("当月1日10時過ぎは翌月1日10時", func(t *testing.T) {
+		now := time.Date(2026, time.November, 1, 10, 1, 0, 0, loc)
+		next := NextMonthFirstAt(now, 10, 0)
+		want := time.Date(2026, time.December, 1, 10, 0, 0, 0, loc)
+		if !next.Equal(want) {
+			t.Fatalf("got %v, want %v", next, want)
+		}
+	})
+}
+
+func TestNextRemindNotifyAt(t *testing.T) {
+	loc := time.FixedZone("JST", 9*60*60)
+	now := time.Date(2026, time.November, 25, 8, 30, 0, 0, loc)
+	next := NextRemindNotifyAt(now, "09:00")
+	want := time.Date(2026, time.November, 25, 9, 0, 0, 0, loc)
+	if !next.Equal(want) {
+		t.Fatalf("got %v, want %v", next, want)
+	}
+	after := time.Date(2026, time.November, 25, 9, 5, 0, 0, loc)
+	next = NextRemindNotifyAt(after, "09:00")
+	want = time.Date(2026, time.November, 26, 9, 0, 0, 0, loc)
+	if !next.Equal(want) {
+		t.Fatalf("got %v, want %v", next, want)
+	}
+}

@@ -31,7 +31,8 @@ func (repo *DepartmentRepository) GetByID(id uint) (ret0 *entity.Department, err
 func (repo *DepartmentRepository) GetByIDs(ids []uint) (ret0 []entity.Department, err error) {
 	depts, err := gorm.G[entity.Department](repo.db).Where("id IN ?", ids).
 		Preload("Teams", nil).
-		Preload("Teams.Member", nil).
+		Preload("Teams.TeamMembers", nil).
+		Preload("Teams.TeamMembers.Member", nil).
 		Preload("DepartmentMembers", nil).
 		Preload("DepartmentMembers.User", nil).
 		Order("id ASC").Find(repo.ctx)
@@ -45,7 +46,8 @@ func (repo *DepartmentRepository) GetByIDsByUnscoped(ids []uint) (ret0 []entity.
 	depts, err := gorm.G[entity.Department](repo.unscoped).Where("id IN ?", ids).
 		Scopes(func(stmt *gorm.Statement) { stmt.Unscoped = true }).
 		Preload("Teams", nil).
-		Preload("Teams.Member", nil).
+		Preload("Teams.TeamMembers", nil).
+		Preload("Teams.TeamMembers.Member", nil).
 		Preload("DepartmentMembers", nil).
 		Preload("DepartmentMembers.User", nil).
 		Order("id ASC").Find(repo.ctx)

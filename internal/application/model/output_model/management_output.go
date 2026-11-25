@@ -73,11 +73,9 @@ type OrgDetailOutput struct {
 }
 
 type RemindSettingsOutput struct {
-	RemindAutoSend   bool   `json:"remindAutoSend"`
-	RemindMode       string `json:"remindMode"`
-	RemindDaysBefore int    `json:"remindDaysBefore"`
-	RemindWeekday    int    `json:"remindWeekday"`
-	RemindTime       string `json:"remindTime"`
+	NotifyStartWeek    int    `json:"notifyStartWeek"`
+	NotifyIntervalDays int    `json:"notifyIntervalDays"`
+	NotifyTime         string `json:"notifyTime"`
 }
 
 type LineWorksMessageOutput struct {

@@ -85,6 +85,23 @@ func (uc *PairingViewer) ListPairingsByAll() (ret0 []outputmodel.PairingOutput, 
 	return converter.PairingEntitiesToOutputs(permanent), nil
 }
 
+func (uc *PairingViewer) ListPairingsByAllExTemporary() (ret0 []outputmodel.PairingOutput, err error) {
+	const op = "pairing_mng_usecase.ListPairingsByAll"
+	done := logutils.Begin(context.Background(), logutils.LayerUsecase, op)
+	defer func() {
+		done(err)
+	}()
+	pairings, err := uc.pairingRepo.GetAllExTemporary()
+	if err != nil {
+		return nil, fmt.Errorf("ペアリング情報の全取得に失敗しました: %w", err)
+	}
+	permanent := make([]entity.Pairing, 0, len(pairings))
+	for _, p := range pairings {
+		permanent = append(permanent, p)
+	}
+	return converter.PairingEntitiesToOutputs(permanent), nil
+}
+
 func (uc *PairingViewer) ListPairingsByMentor(mentorID uint) (ret0 []outputmodel.PairingOutput, err error) {
 	const op = "pairing_mng_usecase.ListPairingsByMentor"
 	done := logutils.Begin(context.Background(), logutils.LayerUsecase, op)

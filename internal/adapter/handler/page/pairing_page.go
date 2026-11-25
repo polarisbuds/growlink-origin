@@ -8,7 +8,7 @@ import (
 
 func (h *Handler) PairingListPage(c *echo.Context) error {
 	data := h.baseData(c, "planning-pairs")
-	list, err := h.deps.Management.Pairing.ListPairingsByAll()
+	list, err := h.deps.Management.Pairing.ListPairingsByAllExTemporary()
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
