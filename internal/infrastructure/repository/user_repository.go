@@ -168,7 +168,7 @@ func likeContains(q string) string {
 	return "%" + q + "%"
 }
 
-func (repo *UserRepository) GetByFilter(nameQ string, emailQ string, departmentMemberUUIDs []string) (filteredUsers []entity.User, err error) {
+func (repo *UserRepository) GetByFilter(nameQ string, emailQ string, departmentMemberUUIDs []string, suspended *bool) (filteredUsers []entity.User, err error) {
 	query := preloads(gorm.G[entity.User](repo.db).Order("id ASC"))
 	if strings.TrimSpace(nameQ) != "" {
 		query = query.Where("name LIKE ? ESCAPE '\\'", likeContains(strings.ToLower(nameQ)))
@@ -178,6 +178,9 @@ func (repo *UserRepository) GetByFilter(nameQ string, emailQ string, departmentM
 	}
 	if len(departmentMemberUUIDs) > 0 {
 		query = query.Where("uuid IN ?", departmentMemberUUIDs)
+	}
+	if suspended != nil {
+		query = query.Where("suspended = ?", *suspended)
 	}
 	users, err := query.Find(repo.ctx)
 	if err != nil {

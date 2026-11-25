@@ -13,6 +13,7 @@ type managementUsersListQuery struct {
 	Name            string
 	Email           string
 	DepartmentUUIDs []uuid.UUID
+	AccountStatus   string
 	Page            int
 	All             bool
 	Size            int
@@ -22,6 +23,10 @@ func parseManagementUsersListQuery(c *echo.Context) (managementUsersListQuery, e
 	q := managementUsersListQuery{Page: 1}
 	q.Name = strings.TrimSpace(c.QueryParam("name"))
 	q.Email = strings.TrimSpace(c.QueryParam("email"))
+	q.AccountStatus = strings.TrimSpace(c.QueryParam("accountStatus"))
+	if q.AccountStatus != "" && q.AccountStatus != "all" && q.AccountStatus != "active" && q.AccountStatus != "suspended" {
+		return q, fmt.Errorf("invalid account status")
+	}
 	q.All = strings.TrimSpace(c.QueryParam("all")) == "1"
 
 	var err error

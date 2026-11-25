@@ -11,11 +11,14 @@ export type ManagementUsersPageResponse = {
 	pageSize: number;
 };
 
+export type UserAccountStatusFilter = 'all' | 'active' | 'suspended';
+
 export type ManagementUserListQuery = {
 	page: number;
 	name: string;
 	email: string;
 	departmentUuids: string[];
+	accountStatus: UserAccountStatusFilter;
 };
 
 export function buildManagementUsersQuery(q: ManagementUserListQuery): string {
@@ -27,6 +30,9 @@ export function buildManagementUsersQuery(q: ManagementUserListQuery): string {
 	if (email) params.set('email', email);
 	if (q.departmentUuids.length) {
 		params.set('departmentUuids', q.departmentUuids.join(','));
+	}
+	if (q.accountStatus !== 'all') {
+		params.set('accountStatus', q.accountStatus);
 	}
 	return params.toString();
 }

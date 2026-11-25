@@ -63,6 +63,7 @@ type ManagementUsersListFilter struct {
 	Name            string
 	Email           string
 	DepartmentUUIDs []uuid.UUID
+	AccountStatus   string
 }
 
 func (f ManagementUsersListFilter) hasCondition() bool {
@@ -75,7 +76,23 @@ func (f ManagementUsersListFilter) hasCondition() bool {
 	if len(f.DepartmentUUIDs) > 0 {
 		return true
 	}
+	if f.AccountStatus == "active" || f.AccountStatus == "suspended" {
+		return true
+	}
 	return false
+}
+
+func (f ManagementUsersListFilter) suspendedFilter() *bool {
+	switch f.AccountStatus {
+	case "active":
+		v := false
+		return &v
+	case "suspended":
+		v := true
+		return &v
+	default:
+		return nil
+	}
 }
 
 func (uc *UserAdmin) ListUsersPaged(filter ManagementUsersListFilter, page, size int) (ret0 outputmodel.ManagementUsersPageOutput, err error) {
@@ -125,7 +142,7 @@ func (uc *UserAdmin) ListUsersPaged(filter ManagementUsersListFilter, page, size
 				deptMemberUserUUIDs = append(deptMemberUserUUIDs, userUUID)
 			}
 		}
-		users, err = uc.userRepo.GetByFilter(filter.Name, filter.Email, deptMemberUserUUIDs)
+		users, err = uc.userRepo.GetByFilter(filter.Name, filter.Email, deptMemberUserUUIDs, filter.suspendedFilter())
 	} else {
 		users, err = uc.userRepo.GetAll()
 	}

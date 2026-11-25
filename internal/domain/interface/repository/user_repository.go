@@ -18,7 +18,7 @@ type UserRepository interface {
 	GetActiveUsersByIDs(ids []uint) ([]entity.User, error)
 	GetByDepartmentID(departmentID uint) ([]entity.User, error)
 	GetAll() ([]entity.User, error)
-	GetByFilter(nameQ string, emailQ string, departmentMemberUUIDs []string) (filteredUsers []entity.User, err error)
+	GetByFilter(nameQ string, emailQ string, departmentMemberUUIDs []string, suspended *bool) (filteredUsers []entity.User, err error)
 	SetSuspendedByIDs(ids []uint, suspended bool) error
 	Create(user *entity.User) error
 	UpdateByID(user *entity.User) error

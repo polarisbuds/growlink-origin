@@ -67,10 +67,15 @@ func (h *Handler) ListManagementUsers(c *echo.Context) error {
 	if pageSize == 0 {
 		pageSize = user_admin_usecase.ManagementUsersPageSize
 	}
+	accountStatus := q.AccountStatus
+	if accountStatus == "all" {
+		accountStatus = ""
+	}
 	out, err := h.deps.Management.UserAdmin.ListUsersPaged(user_admin_usecase.ManagementUsersListFilter{
 		Name:            q.Name,
 		Email:           q.Email,
 		DepartmentUUIDs: q.DepartmentUUIDs,
+		AccountStatus:   accountStatus,
 	}, q.Page, pageSize)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
