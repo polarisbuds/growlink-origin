@@ -205,7 +205,9 @@
     let userForm = $state<UserForm | null>(null);
     let authoritySelect = $state("general");
     let systemRoleSelect = $state("none");
+    type BulkDeptMode = "transfer" | "add" | "exclude";
     let bulkDeptTransferOpen = $state(false);
+    let bulkDeptMode = $state<BulkDeptMode>("transfer");
     let bulkDeptFromUuid = $state("");
     let bulkDeptToUuid = $state("");
     let createUserOpen = $state(false);
@@ -649,10 +651,27 @@
     let canBulkChangeDept = $derived(selectedUserUuids.length > 0);
     let canSuspendSelected = $derived(selectedUsers.some((u) => !u.suspended));
     let canUnsuspendSelected = $derived(selectedUsers.some((u) => u.suspended));
+    let bulkDeptFromChoices = $derived(
+        (() => {
+            const set = new Set<string>();
+            for (const u of selectedUsers) {
+                const rows = userDepartmentRows(u);
+                for (let i = 0; i < rows.length; i++) {
+                    const id = rows[i].departmentUuid;
+                    if (id) set.add(id);
+                }
+            }
+            return options.departments.filter((d) => set.has(d.uuid));
+        })(),
+    );
     let canSubmitBulkDeptTransfer = $derived(
-        bulkDeptFromUuid.trim() !== "" &&
-            bulkDeptToUuid.trim() !== "" &&
-            bulkDeptFromUuid !== bulkDeptToUuid,
+        bulkDeptMode === "transfer"
+            ? bulkDeptFromUuid.trim() !== "" &&
+                  bulkDeptToUuid.trim() !== "" &&
+                  bulkDeptFromUuid !== bulkDeptToUuid
+            : bulkDeptMode === "add"
+              ? bulkDeptToUuid.trim() !== ""
+              : bulkDeptFromUuid.trim() !== "",
     );
 
     let userFilterSignature = $derived(
@@ -789,7 +808,31 @@
 
     function onUserDepartmentChange() {
         if (!userForm) return;
-        userForm.teams = pruneTeamRows(userForm.departments, userForm.teams);
+        userForm = {
+            ...userForm,
+            teams: pruneTeamRows(userForm.departments, userForm.teams),
+        };
+    }
+
+    function setUserDepartmentUuid(index: number, departmentUuid: string) {
+        if (!userForm) return;
+        userForm = {
+            ...userForm,
+            departments: userForm.departments.map((row, j) =>
+                j === index ? { ...row, departmentUuid } : row,
+            ),
+        };
+        onUserDepartmentChange();
+    }
+
+    function setUserDepartmentRole(index: number, roleUuid: string) {
+        if (!userForm) return;
+        userForm = {
+            ...userForm,
+            departments: userForm.departments.map((row, j) =>
+                j === index ? { ...row, roleUuid } : row,
+            ),
+        };
     }
 
     function addUserDepartmentRow() {
@@ -898,20 +941,6 @@
             const res = await api<ManagementUsersPageResponse>(
                 "GET",
                 "/api/v1/management/users?all=1",
-            );
-            users = (res.items || []) as ManagementUser[];
-        } catch {
-            users = [];
-        }
-        usersDirectoryLoading = false;
-    }
-
-    async function loadUserByDepartment(uuid: string) {
-        usersDirectoryLoading = true;
-        try {
-            const res = await api<ManagementUsersPageResponse>(
-                "GET",
-                `/api/v1/management/users?departmentUuids=${uuid}&pageSize=999`,
             );
             users = (res.items || []) as ManagementUser[];
         } catch {
@@ -1333,14 +1362,28 @@
         return [];
     }
 
+    type BulkDeptAffiliationPayload = {
+        departments: DeptAssignment[];
+        teams: TeamAssignment[];
+    };
+
+    function firstRoleUuidFromUser(u: ManagementUser): string {
+        const rows = userDepartmentRows(u);
+        for (let i = 0; i < rows.length; i++) {
+            if (rows[i].roleUuid) return rows[i].roleUuid;
+        }
+        return "";
+    }
+
+    function userTeamsPayload(u: ManagementUser): TeamAssignment[] {
+        return (u.teams || []).map((t) => ({ teamUuid: t.teamUuid }));
+    }
+
     function buildDeptTransferUpdate(
         u: ManagementUser,
         fromUuid: string,
         toUuid: string,
-    ): {
-        departments: DeptAssignment[];
-        teams: TeamAssignment[];
-    } | null {
+    ): BulkDeptAffiliationPayload | null {
         const rows = userDepartmentRows(u);
         const fromRow = rows.find((r) => r.departmentUuid === fromUuid);
         if (!fromRow?.roleUuid) return null;
@@ -1366,51 +1409,190 @@
         return { departments: nextDepts, teams };
     }
 
+    function buildDeptTransferAddOnly(
+        u: ManagementUser,
+        toUuid: string,
+    ): BulkDeptAffiliationPayload | null {
+        const rows = userDepartmentRows(u);
+        if (rows.some((r) => r.departmentUuid === toUuid)) return null;
+        const roleUuid = firstRoleUuidFromUser(u);
+        if (!roleUuid) return null;
+        return {
+            departments: [...rows, { departmentUuid: toUuid, roleUuid }],
+            teams: userTeamsPayload(u),
+        };
+    }
+
+    function buildDeptAddUpdate(
+        u: ManagementUser,
+        deptUuid: string,
+    ): BulkDeptAffiliationPayload | null {
+        const rows = userDepartmentRows(u);
+        if (rows.some((r) => r.departmentUuid === deptUuid)) return null;
+        const roleUuid = firstRoleUuidFromUser(u);
+        if (!roleUuid) return null;
+        return {
+            departments: [...rows, { departmentUuid: deptUuid, roleUuid }],
+            teams: userTeamsPayload(u),
+        };
+    }
+
+    function buildDeptExcludeUpdate(
+        u: ManagementUser,
+        deptUuid: string,
+    ): BulkDeptAffiliationPayload | null {
+        const rows = userDepartmentRows(u);
+        if (!rows.some((r) => r.departmentUuid === deptUuid)) return null;
+        const nextDepts = rows.filter((r) => r.departmentUuid !== deptUuid);
+        const teams = (u.teams || [])
+            .filter((t) => {
+                const meta = options.teams.find(
+                    (opt) => opt.uuid === t.teamUuid,
+                );
+                if (!meta) return true;
+                return meta.departmentUuid !== deptUuid;
+            })
+            .map((t) => ({ teamUuid: t.teamUuid }));
+        return { departments: nextDepts, teams };
+    }
+
+    function setBulkDeptMode(mode: BulkDeptMode) {
+        bulkDeptMode = mode;
+        bulkDeptFromUuid = "";
+        bulkDeptToUuid = "";
+    }
+
     function openBulkDeptTransferModal() {
+        bulkDeptMode = "transfer";
         bulkDeptFromUuid = "";
         bulkDeptToUuid = "";
         bulkDeptTransferOpen = true;
     }
 
+    function bulkDeptNeedsRoleForAdd(u: ManagementUser, deptUuid: string) {
+        const rows = userDepartmentRows(u);
+        return !rows.some((r) => r.departmentUuid === deptUuid);
+    }
+
+    function buildBulkDeptPayloadForUser(
+        u: ManagementUser,
+        mode: BulkDeptMode,
+        fromUuid: string,
+        toUuid: string,
+    ): BulkDeptAffiliationPayload | null {
+        if (mode === "transfer") {
+            const inFrom = userDepartmentRows(u).some(
+                (r) => r.departmentUuid === fromUuid,
+            );
+            return inFrom
+                ? buildDeptTransferUpdate(u, fromUuid, toUuid)
+                : buildDeptTransferAddOnly(u, toUuid);
+        }
+        if (mode === "add") {
+            return buildDeptAddUpdate(u, toUuid);
+        }
+        return buildDeptExcludeUpdate(u, fromUuid);
+    }
+
+    function validateBulkDeptBeforeSubmit(
+        mode: BulkDeptMode,
+        fromUuid: string,
+        toUuid: string,
+    ): string | null {
+        if (mode === "transfer") {
+            if (!fromUuid || !toUuid || fromUuid === toUuid) {
+                return "異動元と異動先を選択してください";
+            }
+            for (const u of selectedUsers) {
+                const inFrom = userDepartmentRows(u).some(
+                    (r) => r.departmentUuid === fromUuid,
+                );
+                if (
+                    !inFrom &&
+                    bulkDeptNeedsRoleForAdd(u, toUuid) &&
+                    !firstRoleUuidFromUser(u)
+                ) {
+                    return "役職を取得できないユーザが含まれています";
+                }
+            }
+            return null;
+        }
+        if (mode === "add") {
+            if (!toUuid) return "追加先の部署を選択してください";
+            for (const u of selectedUsers) {
+                if (
+                    bulkDeptNeedsRoleForAdd(u, toUuid) &&
+                    !firstRoleUuidFromUser(u)
+                ) {
+                    return "役職を取得できないユーザが含まれています";
+                }
+            }
+            return null;
+        }
+        if (!fromUuid) return "除外する部署を選択してください";
+        for (const u of selectedUsers) {
+            const rows = userDepartmentRows(u);
+            if (
+                rows.some((r) => r.departmentUuid === fromUuid) &&
+                rows.length === 1
+            ) {
+                return "所属部署をすべて外せるユーザが含まれています";
+            }
+        }
+        return null;
+    }
+
+    function collectBulkDeptUpdates(
+        mode: BulkDeptMode,
+        fromUuid: string,
+        toUuid: string,
+    ): { u: ManagementUser; payload: BulkDeptAffiliationPayload }[] {
+        const out: { u: ManagementUser; payload: BulkDeptAffiliationPayload }[] =
+            [];
+        for (const u of selectedUsers) {
+            const payload = buildBulkDeptPayloadForUser(
+                u,
+                mode,
+                fromUuid,
+                toUuid,
+            );
+            if (payload) out.push({ u, payload });
+        }
+        return out;
+    }
+
+    function payloadHasInvalidDepartments(
+        items: { payload: BulkDeptAffiliationPayload }[],
+    ): boolean {
+        return items.some(
+            ({ payload }) =>
+                payload.departments.length === 0 ||
+                payload.departments.some(
+                    (d) => !d.departmentUuid || !d.roleUuid,
+                ),
+        );
+    }
+
     async function submitBulkDeptTransfer() {
+        const mode = bulkDeptMode;
         const fromUuid = bulkDeptFromUuid.trim();
         const toUuid = bulkDeptToUuid.trim();
-        if (!fromUuid || !toUuid || fromUuid === toUuid) {
-            showToast("異動元と異動先を選択してください", "error");
+        const validationError = validateBulkDeptBeforeSubmit(
+            mode,
+            fromUuid,
+            toUuid,
+        );
+        if (validationError) {
+            showToast(validationError, "error");
             return;
         }
 
-        const toUpdate = selectedUsers
-            .map((u) => ({
-                u,
-                payload: buildDeptTransferUpdate(u, fromUuid, toUuid),
-            }))
-            .filter(
-                (
-                    x,
-                ): x is {
-                    u: ManagementUser;
-                    payload: {
-                        departments: DeptAssignment[];
-                        teams: TeamAssignment[];
-                    };
-                } => x.payload !== null,
-            );
-
+        const toUpdate = collectBulkDeptUpdates(mode, fromUuid, toUuid);
         if (toUpdate.length === 0) {
-            showToast("異動元に所属するユーザが選択されていません", "error");
+            showToast("変更が必要なユーザがいません", "error");
             return;
         }
-
-        if (
-            toUpdate.some(
-                ({ payload }) =>
-                    payload.departments.length === 0 ||
-                    payload.departments.some(
-                        (d) => !d.departmentUuid || !d.roleUuid,
-                    ),
-            )
-        ) {
+        if (payloadHasInvalidDepartments(toUpdate)) {
             showToast("役職を取得できないユーザが含まれています", "error");
             return;
         }
@@ -1451,11 +1633,7 @@
                 : `/api/v1/management/departments/${n.uuid}`;
         let detail: OrgDetail;
         try {
-            const result = await Promise.all([
-                api<OrgDetail>("GET", url),
-                loadUserByDepartment(n.uuid),
-            ]);
-            detail = result[0];
+            detail = await api<OrgDetail>("GET", url);
         } catch {
             showToast("詳細の取得に失敗しました", "error");
             return;
@@ -1620,7 +1798,7 @@
             return;
         }
         orgModalOpen = false;
-        await loadOrgTree();
+        await Promise.all([loadOrgTree(), refreshUserData()]);
         showToast("保存しました");
     }
 
@@ -2392,8 +2570,14 @@
                             <div class="flex items-center gap-1">
                                 <select
                                     class="select select-bordered select-sm flex-1"
-                                    bind:value={row.departmentUuid}
-                                    onchange={onUserDepartmentChange}>
+                                    value={row.departmentUuid}
+                                    onchange={(e) =>
+                                        setUserDepartmentUuid(
+                                            i,
+                                            (
+                                                e.currentTarget as HTMLSelectElement
+                                            ).value,
+                                        )}>
                                     <option value="">部署を選択</option>
                                     {#each departmentChoices(userForm.departments, i) as d (`user-dept-opt-${i}-${d.uuid}`)}
                                         <option value={d.uuid}>{d.name}</option>
@@ -2401,7 +2585,14 @@
                                 </select>
                                 <select
                                     class="select select-bordered select-sm flex-1"
-                                    bind:value={row.roleUuid}>
+                                    value={row.roleUuid}
+                                    onchange={(e) =>
+                                        setUserDepartmentRole(
+                                            i,
+                                            (
+                                                e.currentTarget as HTMLSelectElement
+                                            ).value,
+                                        )}>
                                     <option value="">役職を選択</option>
                                     {#each options.roles as r (`user-role-opt-${i}-${r.uuid}`)}
                                         <option value={r.uuid}>{r.name}</option>
@@ -2760,32 +2951,99 @@
         <div class="p-6 pb-2 border-b border-base-200 shrink-0">
             <h3 class="font-bold text-lg">部署変更</h3>
             <p class="text-sm text-base-content/60 mt-0.5">
-                選択した {selectedUserUuids.length} 件のユーザを異動します
+                {#if bulkDeptMode === "transfer"}
+                    選択した {selectedUserUuids.length}
+                    件のユーザの所属部署を異動します
+                {:else if bulkDeptMode === "add"}
+                    選択した {selectedUserUuids.length}
+                    件のユーザに部署を追加します
+                {:else}
+                    選択した {selectedUserUuids.length}
+                    件のユーザから部署を除外します
+                {/if}
             </p>
         </div>
         <div class="min-h-0 flex-1 overflow-y-auto px-6 py-4 space-y-4">
-            <label class="form-control">
-                <span class="label-text font-medium">異動元</span>
-                <select
-                    class="select select-bordered mt-1"
-                    bind:value={bulkDeptFromUuid}>
-                    <option value="">部署を選択</option>
-                    {#each options.departments as d (`bulk-dept-from-${d.uuid}`)}
-                        <option value={d.uuid}>{d.name}</option>
-                    {/each}
-                </select>
-            </label>
-            <label class="form-control">
-                <span class="label-text font-medium">異動先</span>
-                <select
-                    class="select select-bordered mt-1"
-                    bind:value={bulkDeptToUuid}>
-                    <option value="">部署を選択</option>
-                    {#each options.departments as d (`bulk-dept-to-${d.uuid}`)}
-                        <option value={d.uuid}>{d.name}</option>
-                    {/each}
-                </select>
-            </label>
+            <fieldset class="form-control">
+                <span class="label-text font-medium">操作</span>
+                <div class="mt-2 flex flex-wrap gap-4">
+                    <label class="label cursor-pointer gap-2 justify-start py-0">
+                        <input
+                            type="radio"
+                            class="radio radio-sm"
+                            name="bulk-dept-mode"
+                            checked={bulkDeptMode === "transfer"}
+                            onchange={() => setBulkDeptMode("transfer")} />
+                        <span class="label-text">異動</span>
+                    </label>
+                    <label class="label cursor-pointer gap-2 justify-start py-0">
+                        <input
+                            type="radio"
+                            class="radio radio-sm"
+                            name="bulk-dept-mode"
+                            checked={bulkDeptMode === "add"}
+                            onchange={() => setBulkDeptMode("add")} />
+                        <span class="label-text">追加</span>
+                    </label>
+                    <label class="label cursor-pointer gap-2 justify-start py-0">
+                        <input
+                            type="radio"
+                            class="radio radio-sm"
+                            name="bulk-dept-mode"
+                            checked={bulkDeptMode === "exclude"}
+                            onchange={() => setBulkDeptMode("exclude")} />
+                        <span class="label-text">除外</span>
+                    </label>
+                </div>
+            </fieldset>
+            {#if bulkDeptMode === "transfer"}
+                <label class="form-control">
+                    <span class="label-text font-medium">異動元</span>
+                    <select
+                        class="select select-bordered mt-1"
+                        bind:value={bulkDeptFromUuid}>
+                        <option value="">部署を選択</option>
+                        {#each bulkDeptFromChoices as d (`bulk-dept-from-${d.uuid}`)}
+                            <option value={d.uuid}>{d.name}</option>
+                        {/each}
+                    </select>
+                </label>
+                <label class="form-control">
+                    <span class="label-text font-medium">異動先</span>
+                    <select
+                        class="select select-bordered mt-1"
+                        bind:value={bulkDeptToUuid}>
+                        <option value="">部署を選択</option>
+                        {#each options.departments as d (`bulk-dept-to-${d.uuid}`)}
+                            <option value={d.uuid}>{d.name}</option>
+                        {/each}
+                    </select>
+                </label>
+            {:else if bulkDeptMode === "add"}
+                <label class="form-control">
+                    <span class="label-text font-medium">追加先</span>
+                    <select
+                        class="select select-bordered mt-1"
+                        bind:value={bulkDeptToUuid}>
+                        <option value="">部署を選択</option>
+                        {#each options.departments as d (`bulk-dept-add-${d.uuid}`)}
+                            <option value={d.uuid}>{d.name}</option>
+                        {/each}
+                    </select>
+                </label>
+            {:else}
+                <label class="form-control">
+                    <span class="label-text font-medium">除外する部署</span>
+                    <select
+                        class="select select-bordered mt-1"
+                        bind:value={bulkDeptFromUuid}>
+                        <option value="">部署を選択</option>
+                        {#each bulkDeptFromChoices as d (`bulk-dept-exclude-${d.uuid}`)}
+                            <option value={d.uuid}>{d.name}</option>
+                        {/each}
+                    </select>
+                </label>
+            {/if}
         </div>
         <div class="modal-action border-t border-base-200 p-4 shrink-0">
             <button

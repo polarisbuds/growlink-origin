@@ -11,8 +11,6 @@ import (
 	"growlink/internal/shared/config"
 	"growlink/internal/shared/crypto"
 	logutils "growlink/internal/shared/logUtils"
-	"maps"
-	"slices"
 	"strings"
 
 	"github.com/google/uuid"
@@ -596,119 +594,49 @@ func (uc *UserAdmin) syncDepartmentAssignments(userID uint, rows []deptAssignmen
 		})
 	}
 
-	previous := map[uint]struct{}{}
 	membersOfUser, err := uc.deptMemberRepo.GetByUserID(userID)
 	if err != nil {
 		return nil, err
 	}
+	previous := map[uint]struct{}{}
 	for _, member := range membersOfUser {
 		previous[member.DepartmentID] = struct{}{}
 	}
-	touched := map[uint]struct{}{}
-	for id := range allowed {
-		touched[id] = struct{}{}
-	}
-	for id := range previous {
-		touched[id] = struct{}{}
-	}
-	roleIDByDept := map[uint]uint{}
-	for _, row := range want {
-		roleIDByDept[row.departmentID] = row.roleID
-	}
 
-	// TODO; members, err := uc.deptMemberRepo.GetByDepartmentID(deptID)これをループ外へ出したい
-
-	departments, err := uc.deptRepo.GetByIDsByUnscoped(slices.Collect(maps.Keys(touched)))
-	if err != nil {
+	syncRows := make([]entity.DepartmentMember, len(want))
+	for i, row := range want {
+		syncRows[i] = entity.DepartmentMember{
+			DepartmentID: row.departmentID,
+			UserID:       userID,
+			RoleID:       row.roleID,
+		}
+	}
+	if err := uc.deptMemberRepo.SyncUserDepartments(userID, syncRows); err != nil {
 		return nil, err
 	}
 
-	for _, dept := range departments {
-		_, keep := allowed[dept.ID]
-		next := make([]entity.DepartmentMember, 0, len(dept.DepartmentMembers)+1)
-		found := false
-		removed := false
-		for _, member := range dept.DepartmentMembers {
-			if member.UserID == userID {
-				if !keep {
-					removed = true
-					continue
-				}
-				found = true
-				if roleID, ok := roleIDByDept[dept.ID]; ok {
-					member.RoleID = roleID
-				}
-				next = append(next, member)
-				continue
-			}
-			next = append(next, member)
+	removedIDs := make([]uint, 0)
+	for id := range previous {
+		if _, keep := allowed[id]; !keep {
+			removedIDs = append(removedIDs, id)
 		}
-		if keep && !found {
-			roleID := roleIDByDept[dept.ID]
-			if roleID == 0 {
-				return nil, fmt.Errorf("役職を選択してください")
-			}
-			next = append(next, entity.DepartmentMember{
-				DepartmentID: dept.ID,
-				UserID:       userID,
-				RoleID:       roleID,
-			})
-		}
-		if !departmentMembersEqual(dept.DepartmentMembers, next) {
-			if err := uc.deptMemberRepo.ReplaceByDepartment(dept.ID, next); err != nil {
+	}
+	if len(removedIDs) == 0 {
+		return allowed, nil
+	}
+	depts, err := uc.deptRepo.GetByIDs(removedIDs)
+	if err != nil {
+		return nil, err
+	}
+	for _, dept := range depts {
+		if dept.HeadUserID == userID {
+			if err := uc.deptRepo.UpdateHeadUserID(dept.ID, 0); err != nil {
 				return nil, err
-			}
-		}
-		if removed {
-			dept, err := uc.deptRepo.GetByID(dept.ID)
-			if err != nil {
-				return nil, err
-			}
-			if dept.HeadUserID == userID {
-				if err := uc.deptRepo.UpdateHeadUserID(dept.ID, 0); err != nil {
-					return nil, err
-				}
 			}
 		}
 	}
 
 	return allowed, nil
-}
-
-func departmentMembersEqual(current, next []entity.DepartmentMember) bool {
-	count := map[[4]uint]int{}
-	n := 0
-	for _, member := range current {
-		if member.UserID == 0 {
-			continue
-		}
-		n++
-		count[memberKey(member)]++
-	}
-	for _, member := range next {
-		if member.UserID == 0 {
-			continue
-		}
-		key := memberKey(member)
-		if count[key] == 0 {
-			return false
-		}
-		count[key]--
-		n--
-	}
-	return n == 0
-}
-
-func memberKey(member entity.DepartmentMember) [4]uint {
-	head := uint(0)
-	manager := uint(0)
-	if member.IsHead {
-		head = 1
-	}
-	if member.IsManager {
-		manager = 1
-	}
-	return [4]uint{member.UserID, head, manager, member.RoleID}
 }
 
 func (uc *UserAdmin) syncTeamMemberships(userID uint, resolvedTeams []teamAssignmentResolved, allowedDepartments map[uint]struct{}) error {

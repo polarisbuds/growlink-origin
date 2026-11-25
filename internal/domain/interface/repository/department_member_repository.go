@@ -13,4 +13,5 @@ type DepartmentMemberRepository interface {
 	GetByUserIDs(userIDs []uint) (map[uint][]entity.DepartmentMember, error)
 	ReplaceByDepartment(departmentID uint, members []entity.DepartmentMember) error
 	ReplaceByUser(userID uint, member entity.DepartmentMember) error
+	SyncUserDepartments(userID uint, rows []entity.DepartmentMember) error
 }

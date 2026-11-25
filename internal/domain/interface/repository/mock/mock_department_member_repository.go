@@ -349,3 +349,41 @@ func (c *MockDepartmentMemberRepositoryReplaceByUserCall) DoAndReturn(f func(uin
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
+
+// SyncUserDepartments mocks base method.
+func (m *MockDepartmentMemberRepository) SyncUserDepartments(userID uint, rows []entity.DepartmentMember) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SyncUserDepartments", userID, rows)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SyncUserDepartments indicates an expected call of SyncUserDepartments.
+func (mr *MockDepartmentMemberRepositoryMockRecorder) SyncUserDepartments(userID, rows any) *MockDepartmentMemberRepositorySyncUserDepartmentsCall {
+	mr.mock.ctrl.T.Helper()
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SyncUserDepartments", reflect.TypeOf((*MockDepartmentMemberRepository)(nil).SyncUserDepartments), userID, rows)
+	return &MockDepartmentMemberRepositorySyncUserDepartmentsCall{Call: call}
+}
+
+// MockDepartmentMemberRepositorySyncUserDepartmentsCall wrap *gomock.Call
+type MockDepartmentMemberRepositorySyncUserDepartmentsCall struct {
+	*gomock.Call
+}
+
+// Return rewrite *gomock.Call.Return
+func (c *MockDepartmentMemberRepositorySyncUserDepartmentsCall) Return(arg0 error) *MockDepartmentMemberRepositorySyncUserDepartmentsCall {
+	c.Call = c.Call.Return(arg0)
+	return c
+}
+
+// Do rewrite *gomock.Call.Do
+func (c *MockDepartmentMemberRepositorySyncUserDepartmentsCall) Do(f func(uint, []entity.DepartmentMember) error) *MockDepartmentMemberRepositorySyncUserDepartmentsCall {
+	c.Call = c.Call.Do(f)
+	return c
+}
+
+// DoAndReturn rewrite *gomock.Call.DoAndReturn
+func (c *MockDepartmentMemberRepositorySyncUserDepartmentsCall) DoAndReturn(f func(uint, []entity.DepartmentMember) error) *MockDepartmentMemberRepositorySyncUserDepartmentsCall {
+	c.Call = c.Call.DoAndReturn(f)
+	return c
+}

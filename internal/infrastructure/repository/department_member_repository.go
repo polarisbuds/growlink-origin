@@ -182,6 +182,56 @@ func (repo *DepartmentMemberRepository) ReplaceByDepartment(departmentID uint, m
 	return nil
 }
 
+func (repo *DepartmentMemberRepository) SyncUserDepartments(userID uint, rows []entity.DepartmentMember) (err error) {
+	want := map[uint]uint{}
+	for _, row := range rows {
+		if row.DepartmentID == 0 {
+			continue
+		}
+		want[row.DepartmentID] = row.RoleID
+	}
+
+	err = repo.db.WithContext(repo.ctx).Transaction(func(tx *gorm.DB) error {
+		existing, err := gorm.G[entity.DepartmentMember](tx).
+			Where("user_id = ?", userID).
+			Find(repo.ctx)
+		if err != nil {
+			return err
+		}
+		for i := range existing {
+			member := existing[i]
+			roleID, keep := want[member.DepartmentID]
+			if !keep {
+				if _, err = gorm.G[entity.DepartmentMember](tx).Where("id = ?", member.ID).Delete(repo.ctx); err != nil {
+					return err
+				}
+				continue
+			}
+			if member.RoleID != roleID {
+				if _, err = gorm.G[entity.DepartmentMember](tx).Where("id = ?", member.ID).Update(repo.ctx, "role_id", roleID); err != nil {
+					return err
+				}
+			}
+			delete(want, member.DepartmentID)
+		}
+		for deptID, roleID := range want {
+			row := entity.DepartmentMember{
+				DepartmentID: deptID,
+				UserID:       userID,
+				RoleID:       roleID,
+			}
+			if err = gorm.G[entity.DepartmentMember](tx).Create(repo.ctx, &row); err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+	if err != nil {
+		return fmt.Errorf("ユーザの部署所属の同期に失敗しました: %w", err)
+	}
+	return nil
+}
+
 func (repo *DepartmentMemberRepository) ReplaceByUser(userID uint, member entity.DepartmentMember) (err error) {
 	member.UserID = userID
 	member.Department = nil
